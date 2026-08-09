@@ -1,0 +1,2235 @@
+<style>
+/* ================================================================
+   ДВА СЛОЯ ТОКЕНОВ.
+
+   1. Обрамление этой страницы (--page-*) следует теме зрителя.
+   2. Панели с компонентами (.t-light / .t-dark) всегда показывают
+      конкретную тему приложения независимо от темы зрителя.
+
+   Путать нельзя: иначе тёмная панель на тёмном фоне сольётся,
+   и оценить контраст станет невозможно.
+   ================================================================ */
+
+.t-light {
+  /* Основания и поверхности.
+     Нейтраль тёплая (тон ~45°, хрома 3-6%) — достаточно, чтобы читаться
+     выбранной, и достаточно мало, чтобы не подкрашивать акценты инстансов. */
+  --ground:            #f7f6f3;
+  --surface:           #ffffff;
+  --surface-sunken:    #efeeea;
+  --surface-hover:     #f2f1ec;
+  --surface-active:    #e9e7e1;
+
+  /* Границы */
+  --line:              #dedbd4;
+  --line-strong:       #c7c3b9;
+  --line-faint:        #eae8e2;
+
+  /* Текст */
+  --ink:               #1c1a16;
+  --ink-secondary:     #5c574e;
+  --ink-muted:         #6e6960;
+  --ink-on-accent:     #ffffff;
+
+  /* Состояния инстанса. Эти же цвета идут и в текст, и в точку,
+     поэтому подобраны под контраст текста, а не только заливки. */
+  --state-stopped:     #6e6960;
+  --state-starting:    #8a5d06;
+  --state-running:     #2f7a38;
+  --state-crashed:     #b23124;
+  --state-unavailable: #8b8579;
+
+  /* Мягкие подложки под пилюли состояний */
+  --state-starting-bg: #f5ecd6;
+  --state-running-bg:  #e2f0e3;
+  --state-crashed-bg:  #f7e2df;
+
+  /* Акценты инстансов. Полоса яркости выбрана так, чтобы каждый
+     проходил 3:1 и на светлом, и на тёмном основании. */
+  --accent-ember:      #c2542b;
+  --accent-amber:      #a87a12;
+  --accent-moss:       #5c8a2e;
+  --accent-teal:       #1e8a7a;
+  --accent-azure:      #2e7bc4;
+  --accent-indigo:     #6062c8;
+  --accent-orchid:     #9b4fa8;
+  --accent-rose:       #c24169;
+
+  /* Фокус */
+  --focus-ring:        #2e7bc4;
+
+  /* Главное действие. Нейтральное намеренно: фирменный цвет здесь
+     конкурировал бы с акцентами инстансов, которые выбирает пользователь. */
+  --btn-primary-bg:    #2a2721;
+  --btn-primary-hover: #1c1a16;
+  --btn-primary-ink:   #ffffff;
+
+  /* Консоль логов */
+  --console-bg:        #201f1b;
+  --console-ink:       #ddd9d1;
+  --console-dim:       #8b8579;
+
+  /* Тень всплывающих элементов — тостов */
+  --shadow-pop:        0 4px 16px rgb(0 0 0 / 0.13);
+
+  /* Прокрутка. Полоса тонкая и из палитры: системная светлая полоса
+     в тёмном интерфейсе выглядит чужеродно. Затухание у края —
+     полупрозрачный цвет, показывающий, что содержимое продолжается. */
+  --scroll-thumb:      #c7c3b9;
+  --edge-fade:         #1c1a1618;
+}
+
+.t-dark {
+  --ground:            #171613;
+  --surface:           #201f1b;
+  --surface-sunken:    #121110;
+  --surface-hover:     #282621;
+  --surface-active:    #302e27;
+
+  --line:              #35322b;
+  --line-strong:       #4a463d;
+  --line-faint:        #26241f;
+
+  --ink:               #f2f0eb;
+  --ink-secondary:     #a9a399;
+  --ink-muted:         #8b857a;
+  --ink-on-accent:     #ffffff;
+
+  --state-stopped:     #8b857a;
+  --state-starting:    #e0a93b;
+  --state-running:     #6fbf74;
+  --state-crashed:     #ec7565;
+  --state-unavailable: #7c766c;
+
+  --state-starting-bg: #322a17;
+  --state-running-bg:  #1d2c1f;
+  --state-crashed-bg:  #35211e;
+
+  --accent-ember:      #e2714a;
+  --accent-amber:      #c9992c;
+  --accent-moss:       #7fae4c;
+  --accent-teal:       #35ac99;
+  --accent-azure:      #559de4;
+  --accent-indigo:     #8688e6;
+  --accent-orchid:     #bb70c8;
+  --accent-rose:       #e0648a;
+
+  --focus-ring:        #559de4;
+
+  --btn-primary-bg:    #eeece6;
+  --btn-primary-hover: #ffffff;
+  --btn-primary-ink:   #171613;
+
+  --console-bg:        #121110;
+  --console-ink:       #ddd9d1;
+  --console-dim:       #7c766c;
+
+  --shadow-pop:        0 4px 16px rgb(0 0 0 / 0.5);
+
+  --scroll-thumb:      #4a463d;
+  --edge-fade:         #00000040;
+}
+
+:root {
+  /* Шрифты. Приложение только под Windows, поэтому стек начинается
+     с системных гарнитур Windows — интерфейс будет отрисован именно ими.
+     Microsoft YaHei обязателен: без него китайский падает в фолбэк. */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei",
+             system-ui, sans-serif;
+  --font-ui-display: "Segoe UI Variable Display", "Segoe UI",
+                     "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", "Courier New", monospace;
+
+  /* Шкала. Плотный инструмент: базовый кегль 13, шаг небольшой. */
+  --text-xs:   11px;
+  --text-sm:   12px;
+  --text-base: 13px;
+  --text-md:   15px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.45;
+
+  --weight-normal: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
+
+  --tracking-label: 0.06em;
+
+  /* Шаг сетки 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Радиусы. Мелкие — инструмент, а не карточки соцсети. */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-pill: 999px;
+
+  /* Размеры контролов */
+  --control-h: 28px;
+  --control-h-lg: 34px;
+
+  /* Рейл навигации */
+  --rail-w: 208px;
+  --rail-w-collapsed: 56px;
+
+  /* Тени. Едва заметные: плоский инструмент. */
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+/* ------------------------------------------- обрамление страницы */
+:root {
+  --page-bg: #faf9f7;
+  --page-panel: #ffffff;
+  --page-fg: #191713;
+  --page-dim: #66625a;
+  --page-faint: #8b8579;
+  --page-line: #e4e1da;
+  --page-line-soft: #efeee9;
+  --page-code: #f0efea;
+  --page-mark: #b23124;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #131210;
+    --page-panel: #1a1916;
+    --page-fg: #efedE8;
+    --page-dim: #a09a90;
+    --page-faint: #7c766c;
+    --page-line: #302e28;
+    --page-line-soft: #232119;
+    --page-code: #211f1b;
+    --page-mark: #ec7565;
+  }
+}
+:root[data-theme="dark"] {
+  --page-bg: #131210;
+  --page-panel: #1a1916;
+  --page-fg: #efedE8;
+  --page-dim: #a09a90;
+  --page-faint: #7c766c;
+  --page-line: #302e28;
+  --page-line-soft: #232119;
+  --page-code: #211f1b;
+  --page-mark: #ec7565;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+/* ------------------------------------------------------- шапка */
+.masthead {
+  padding: 64px 0 40px;
+  border-bottom: 1px solid var(--page-line);
+}
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin: 0 0 14px;
+}
+.masthead h1 {
+  font-family: var(--font-ui-display);
+  font-size: clamp(28px, 4.4vw, 42px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  text-wrap: balance;
+  max-width: 20ch;
+}
+.lede {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--page-dim);
+  font-size: 16px;
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: 28px;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--page-faint);
+}
+.facts b {
+  display: block;
+  font-size: 11px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.facts code { color: var(--page-dim); }
+
+/* ------------------------------------------------------- полосы */
+.band {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 40px;
+  padding: 48px 0;
+  border-bottom: 1px solid var(--page-line);
+}
+.band:last-of-type { border-bottom: 0; }
+
+.rail { position: sticky; top: 24px; align-self: start; }
+.rail h2 {
+  font-family: var(--font-ui-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.ids {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ids li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid var(--page-line);
+  border-radius: 3px;
+  color: var(--page-faint);
+  white-space: nowrap;
+}
+.rail p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--page-dim);
+}
+
+.stack { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+
+h3.sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin: 0 0 10px;
+}
+.aside {
+  margin: 0;
+  font-size: 13px;
+  color: var(--page-dim);
+  max-width: 66ch;
+}
+.aside strong { color: var(--page-fg); font-weight: 600; }
+
+/* ------------------------------------------- пара панелей тем */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+.panel {
+  margin: 0;
+  border: 1px solid var(--page-line);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+.panel > figcaption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 7px 12px;
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-ui);
+}
+.app {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  padding: var(--space-4);
+}
+.app.flush { padding: 0; }
+
+/* ------------------------------------------------------ палитра */
+.roles { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.role { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); }
+.role i { display: block; height: 22px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); }
+.role b { font-weight: var(--weight-medium); font-size: var(--text-sm); }
+.role span { color: var(--ink-muted); font-size: var(--text-xs); display: block; }
+.role code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  gap: 12px;
+}
+.sw {
+  border: 1px solid var(--page-line);
+  border-radius: 6px;
+  padding: 10px;
+  min-width: 0;
+}
+.sw-chips { display: flex; gap: 6px; margin-bottom: 9px; }
+.sw-chip { flex: 1; display: block; border-radius: 4px; padding: 9px; border: 1px solid var(--line); }
+.sw-chip i { display: block; height: 20px; border-radius: 3px; }
+.sw-name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.sw-meta { font-size: 10.5px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
+.sw-meta code { font-family: var(--font-mono); font-size: 10.5px; }
+
+/* ---------------------------------------------------- типографика */
+.scale { display: flex; flex-direction: column; gap: var(--space-3); }
+.scale-row { display: grid; grid-template-columns: 92px minmax(0,1fr); gap: var(--space-4); align-items: baseline; }
+.scale-row > span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.t-xl { font-family: var(--font-ui-display); font-size: var(--text-xl); font-weight: var(--weight-bold); letter-spacing: -0.01em; line-height: var(--leading-tight); }
+.t-lg { font-family: var(--font-ui-display); font-size: var(--text-lg); font-weight: var(--weight-medium); line-height: var(--leading-tight); }
+.t-md { font-size: var(--text-md); font-weight: var(--weight-medium); }
+.t-base { font-size: var(--text-base); }
+.t-sm { font-size: var(--text-sm); color: var(--ink-secondary); }
+.t-label { font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-muted); }
+.t-mono { font-family: var(--font-mono); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+
+.console {
+  background: var(--console-bg);
+  color: var(--console-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  white-space: pre;
+}
+.console .dim { color: var(--console-dim); }
+
+/* ---------------------------------------------------------- рейл */
+.rails { display: flex; gap: var(--space-4); align-items: flex-start; }
+.nav {
+  width: var(--rail-w);
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav.collapsed { width: var(--rail-w-collapsed); align-items: stretch; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 30px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--ink-secondary);
+  font-size: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nav.collapsed .nav-item { justify-content: center; padding: 0; gap: 0; }
+.nav.collapsed .nav-item span { display: none; }
+.nav-item:hover { background: var(--surface-hover); }
+.nav-item.on { background: var(--surface-active); color: var(--ink); font-weight: var(--weight-medium); }
+.nav-item:focus-visible, .nav-run:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.nav-item .ico { flex: none; width: 16px; height: 16px; }
+.nav-sep { height: 1px; background: var(--line); margin: var(--space-2) var(--space-1); }
+.nav-run {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 30px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.nav.collapsed .nav-run { justify-content: center; padding: 0; gap: 0; }
+.nav.collapsed .nav-run em { display: none; }
+.nav-run em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
+/* .chip — общий примитив, не принадлежит рейлу: цветная метка инстанса,
+   встречается и в навигации, и в списке совместимости. См. «Примитивы». */
+.dot { flex: none; width: 6px; height: 6px; border-radius: 50%; margin-left: auto; }
+.nav.collapsed .dot { display: none; }
+.nav-run.alert em { color: var(--state-crashed); }
+.badge {
+  flex: none;
+  min-width: 14px; height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--state-crashed);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  margin-left: auto;
+  padding: 0 3px;
+}
+.nav-note { font-size: var(--text-xs); color: var(--ink-muted); padding: var(--space-1) var(--space-2) 0; }
+.nav.collapsed .nav-note { display: none; }
+/* Разделы закреплены, список запущенных прокручивается внутри себя:
+   при восьми инстансах он иначе выталкивает разделы за пределы окна. */
+.nav-runs {
+  display: flex; flex-direction: column; gap: 2px;
+  overflow-y: auto; min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+.nav-runs::-webkit-scrollbar { width: 8px; }
+.nav-runs::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: var(--radius-pill); border: 2px solid var(--surface); }
+
+/* ------------------------------------------------ карточка инстанса */
+.cards { display: flex; flex-direction: column; gap: var(--space-2); }
+.card {
+  display: grid;
+  grid-template-columns: 3px minmax(0,1fr);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.card-accent { background: var(--instance-accent, var(--line-strong)); }
+.card-in { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.card-top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.card-name { font-weight: var(--weight-medium); font-size: var(--text-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-desc { color: var(--ink-secondary); font-size: var(--text-sm); }
+.pill {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 19px; padding: 0 7px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+.pill i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.pill.stopped { color: var(--state-stopped); background: var(--surface-sunken); }
+.pill.starting { color: var(--state-starting); background: var(--state-starting-bg); }
+.pill.running { color: var(--state-running); background: var(--state-running-bg); }
+.pill.crashed { color: var(--state-crashed); background: var(--state-crashed-bg); }
+.pill.gone { color: var(--state-unavailable); background: transparent; border: 1px dashed var(--line-strong); }
+.meta {
+  display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3);
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--ink-muted); font-variant-numeric: tabular-nums;
+}
+.src {
+  font-size: var(--text-xs); color: var(--ink-muted);
+  border-top: 1px solid var(--line-faint); padding-top: var(--space-2);
+}
+.src code { font-family: var(--font-mono); }
+.card.gone { border-style: dashed; background: transparent; }
+.card.gone .card-accent { background: var(--line-strong); }
+.card.gone .card-name { color: var(--ink-muted); }
+.bar { height: 3px; border-radius: var(--radius-pill); background: var(--surface-sunken); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 38%; background: var(--state-starting); border-radius: inherit; }
+
+/* ------------------------------------------------------- кнопки */
+.row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  height: var(--control-h); padding: 0 var(--space-3);
+  border: 1px solid transparent; border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: var(--text-base); font-weight: var(--weight-medium);
+  white-space: nowrap; cursor: pointer;
+}
+.btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.btn.lg { height: var(--control-h-lg); padding: 0 var(--space-4); }
+.btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
+.btn.primary:hover { background: var(--btn-primary-hover); }
+.btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+.btn.secondary:hover { background: var(--surface-hover); }
+.btn.ghost { background: transparent; color: var(--ink-secondary); }
+.btn.ghost:hover { background: var(--surface-hover); color: var(--ink); }
+.btn.danger { background: transparent; color: var(--state-crashed); border-color: var(--state-crashed); }
+.btn[aria-disabled="true"] { opacity: .45; cursor: default; }
+.spin {
+  width: 12px; height: 12px; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; opacity: .6; } }
+
+/* сплит-кнопка запуска */
+.split { display: inline-flex; }
+.split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .btn:last-child {
+  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  padding: 0 var(--space-2);
+  box-shadow: inset 1px 0 0 rgb(255 255 255 / .22);
+}
+
+/* ---------------------------------------------------- примитивы */
+/* Мелкие сущности, не принадлежащие ни одному компоненту. Держатся
+   отдельно, потому что иначе появляются селекторы вида
+   `.compat-row .chip` — а такой селектор пересекает границу компонента
+   и при переносе в SFC потребовал бы `:deep()`. */
+
+/* Цветная метка инстанса. Цвет приходит извне через --instance-accent,
+   а не выбирается из палитры здесь: в приложении его задаёт пользователь. */
+.chip {
+  flex: none;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 700;
+  color: var(--ink-on-accent);
+  background: var(--instance-accent, var(--line-strong));
+}
+.chip.sm { width: 14px; height: 14px; border-radius: 3px; }
+
+/* ---------------------------------------------------- прокрутка */
+/* Окно фиксированной высоты, данные не ограничены. Управляющие элементы
+   выносятся из области прокрутки: уехавший подвал мастера делает мастер
+   непроходимым, уехавшая панель деталей — выбор невидимым. */
+
+.pane {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;          /* без этого grid-элемент не сожмётся ниже содержимого */
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.pane-head, .pane-foot {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.pane-head { border-bottom: 1px solid var(--line); }
+.pane-foot { border-top: 1px solid var(--line); justify-content: flex-end; }
+.pane-head .title { font-weight: var(--weight-medium); margin-right: auto; }
+
+/* Область прокрутки. Тени у краёв появляются сами, без скриптов:
+   верхний и нижний градиенты закреплены за содержимым (local),
+   а затемнения — за областью (scroll), и одно перекрывает другое. */
+.scroll {
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+  background:
+    linear-gradient(var(--surface) 30%, transparent) top / 100% 18px no-repeat local,
+    linear-gradient(transparent, var(--surface) 70%) bottom / 100% 18px no-repeat local,
+    linear-gradient(var(--edge-fade), transparent) top / 100% 8px no-repeat scroll,
+    linear-gradient(transparent, var(--edge-fade)) bottom / 100% 8px no-repeat scroll,
+    var(--surface);
+}
+.scroll::-webkit-scrollbar { width: 10px; }
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--surface);
+}
+.scroll::-webkit-scrollbar-track { background: transparent; }
+.scroll-pad { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Раскладка «список — детали»: два независимых региона рядом.
+   Единственное место, где вложенная прокрутка допустима. */
+.split-master {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  gap: var(--space-3);
+  min-height: 0;
+}
+.split-master > * { min-height: 0; }
+
+/* Консоль с автопрокруткой */
+.log { position: relative; display: grid; min-height: 0; }
+.log .console { overflow-y: auto; min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.log .console::-webkit-scrollbar { width: 10px; }
+.log .console::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: var(--radius-pill); border: 3px solid var(--console-bg); }
+.log-follow {
+  position: absolute; right: var(--space-3); bottom: var(--space-3);
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  height: 24px; padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--btn-primary-bg); color: var(--btn-primary-ink);
+  font-size: var(--text-xs); font-weight: var(--weight-medium);
+  box-shadow: var(--shadow-pop);
+  white-space: nowrap;
+}
+.log-follow .n { font-variant-numeric: tabular-nums; opacity: .75; }
+
+/* --------------------------------------------------------- поля */
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field > label { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--ink-secondary); }
+.input {
+  height: var(--control-h); padding: 0 var(--space-2);
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: var(--text-base);
+  display: flex; align-items: center; min-width: 0;
+}
+.input.mono { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-secondary); }
+.input.num { font-variant-numeric: tabular-nums; width: 92px; }
+.input.bad { border-color: var(--state-crashed); }
+.input:focus-within { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
+.hint { font-size: var(--text-xs); color: var(--ink-muted); }
+.hint.bad { color: var(--state-crashed); }
+.path-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-2); }
+.path-row .input { overflow: hidden; }
+.path-row .input span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.toggle-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+.toggle {
+  flex: none; width: 32px; height: 18px; border-radius: var(--radius-pill);
+  background: var(--btn-primary-bg); position: relative; margin-top: 1px;
+}
+.toggle::after {
+  content: ""; position: absolute; top: 2px; right: 2px;
+  width: 14px; height: 14px; border-radius: 50%; background: var(--btn-primary-ink);
+}
+.toggle.off { background: var(--line-strong); }
+.toggle.off::after { right: auto; left: 2px; background: var(--surface); }
+
+.picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.picker i {
+  width: 22px; height: 22px; border-radius: var(--radius-sm);
+  display: block; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line-strong) inset;
+}
+.picker i.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* --------------------------------------------------------- тосты */
+.toasts { display: flex; flex-direction: column; gap: var(--space-2); }
+.toast {
+  display: grid; grid-template-columns: 3px minmax(0,1fr);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+.toast > i { display: block; }
+.toast.ok > i { background: var(--state-running); }
+.toast.err > i { background: var(--state-crashed); }
+.toast-in { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.toast-head { display: flex; gap: var(--space-2); align-items: baseline; }
+.toast-head b { font-weight: var(--weight-medium); font-size: var(--text-base); }
+.toast-head .close { margin-left: auto; color: var(--ink-muted); font-size: var(--text-sm); }
+.toast p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); }
+.toast-life { height: 2px; background: var(--surface-sunken); border-radius: var(--radius-pill); }
+.toast-life > i { display: block; height: 100%; width: 62%; background: var(--state-running); border-radius: inherit; }
+.disclosure {
+  border-top: 1px solid var(--line-faint); padding-top: var(--space-2);
+  display: flex; align-items: center; gap: var(--space-3);
+  font-size: var(--text-xs); color: var(--ink-muted);
+}
+.disclosure code { font-family: var(--font-mono); }
+
+/* ------------------------------------------------------ прогресс */
+.prog { display: flex; flex-direction: column; gap: var(--space-2); }
+.prog-head { display: flex; gap: var(--space-3); align-items: baseline; font-size: var(--text-sm); }
+.prog-head .count { margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink-muted); font-size: var(--text-xs); }
+.track { height: 5px; background: var(--surface-sunken); border-radius: var(--radius-pill); overflow: hidden; }
+.track > i { display: block; height: 100%; background: var(--btn-primary-bg); border-radius: inherit; }
+.track.indet > i { width: 34%; animation: slide 1.4s ease-in-out infinite; }
+@keyframes slide { 0% { margin-left: -34%; } 100% { margin-left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .track.indet > i { animation: none; width: 100%; opacity: .4; } }
+.prog-file { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* -------------------------------------------------- пустой экран */
+.empty { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; padding: var(--space-6) var(--space-4); }
+.empty h4 { font-family: var(--font-ui-display); font-size: var(--text-lg); margin: 0; font-weight: var(--weight-bold); }
+.empty > p { margin: 0; font-size: var(--text-base); color: var(--ink-secondary); max-width: 46ch; }
+.forks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--space-3); width: 100%; }
+.fork { border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-3); background: var(--surface); display: flex; flex-direction: column; gap: var(--space-2); }
+.fork b { font-weight: var(--weight-medium); font-size: var(--text-base); }
+.fork p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); flex: 1; }
+
+/* ------------------------------------------------- шаги мастера */
+.steps { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.step { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--ink-muted); }
+.step u { text-decoration: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; border: 1px solid var(--line-strong); font-variant-numeric: tabular-nums; }
+.step.done { color: var(--ink-secondary); }
+.step.done u { background: var(--state-running); border-color: var(--state-running); color: #fff; }
+.step.now { color: var(--ink); font-weight: var(--weight-medium); }
+.step.now u { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); color: var(--btn-primary-ink); }
+.step-sep { width: 14px; height: 1px; background: var(--line-strong); }
+.wizard-foot { display: flex; gap: var(--space-2); justify-content: flex-end; border-top: 1px solid var(--line); padding-top: var(--space-3); }
+
+/* ------------------------------------------- категории моделей */
+.cats { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.cat { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
+.cat code { font-family: var(--font-mono); font-size: var(--text-sm); }
+.cat .n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.cat.unknown code { color: var(--ink-muted); }
+.cat.blocked { background: var(--surface-sunken); }
+.cat.blocked code { color: var(--ink-muted); text-decoration: line-through; }
+.tag { font-size: var(--text-xs); padding: 1px 6px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); color: var(--ink-muted); white-space: nowrap; }
+.tag.warn { color: var(--state-starting); border-color: var(--state-starting); }
+.tag.stop { color: var(--state-crashed); border-color: var(--state-crashed); }
+
+/* ------------------------------------------------ совместимость */
+.compat { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.compat-row { display: grid; grid-template-columns: 16px minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
+.compat-note { font-size: var(--text-xs); color: var(--ink-muted); }
+.compat-row.ok .compat-note { color: var(--state-running); }
+.compat-row.warn .compat-note { color: var(--state-starting); }
+.missing { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); padding: 0 var(--space-3) var(--space-2) calc(16px + var(--space-3) + var(--space-3)); background: var(--surface); }
+
+/* ------------------------------------------------- строка проверки */
+.longform {
+  border: 1px dashed var(--page-line);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.longform .lf-head {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin-bottom: 8px;
+}
+.longform .lf-rows { display: flex; flex-direction: column; gap: 6px; }
+.longform .lf-row { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; font-size: 13px; color: var(--page-dim); align-items: baseline; }
+.longform .lf-row b { font-family: var(--font-mono); font-size: 10px; color: var(--page-faint); font-weight: 400; }
+
+/* ---------------------------------------------------------- финал */
+.closing { padding-top: 48px; }
+.closing h2 { font-family: var(--font-ui-display); font-size: 19px; margin: 0 0 14px; font-weight: 700; }
+.closing p { max-width: 66ch; color: var(--page-dim); font-size: 14px; margin: 0 0 12px; }
+.closing code, .facts code, .aside code { font-family: var(--font-mono); font-size: 0.88em; background: var(--page-code); padding: 1px 5px; border-radius: 3px; }
+
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+@media (max-width: 760px) {
+  .band { grid-template-columns: 1fr; gap: 20px; padding: 36px 0; }
+  .rail { position: static; }
+  .rails { flex-direction: column; }
+}
+
+</style>
+
+
+<svg class="sprite" aria-hidden="true">
+  <symbol id="i-inst" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2.5" width="12" height="4" rx="1"/><rect x="2" y="9.5" width="12" height="4" rx="1"/>
+  </symbol>
+  <symbol id="i-install" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 2v7"/><path d="M5 6.5 8 9.5l3-3"/><path d="M2.5 11.5v1a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5v-1"/>
+  </symbol>
+  <symbol id="i-wf" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="3.5" cy="4" r="1.6"/><circle cx="12.5" cy="4" r="1.6"/><circle cx="8" cy="12" r="1.6"/>
+    <path d="M3.5 5.6v2a1.5 1.5 0 0 0 1.5 1.5h1.5"/><path d="M12.5 5.6v2a1.5 1.5 0 0 1-1.5 1.5H9.5"/>
+  </symbol>
+  <symbol id="i-set" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2.5 4.5h11"/><path d="M2.5 11.5h11"/><circle cx="6" cy="4.5" r="1.6"/><circle cx="10.5" cy="11.5" r="1.6"/>
+  </symbol>
+  <symbol id="i-about" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6"/><path d="M8 5.2v.1"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Дизайн · итерация 1 из 3</p>
+    <h1>Токены и четыре элемента</h1>
+    <p class="lede">
+      Первый заход по дизайну ComfyUI Portable Organizer: палитра, типографика,
+      рейл навигации и карточка инстанса — в светлой и тёмной темах.
+      Задача итерации одна — понять, верен ли тон, прежде чем рисовать
+      остальные тринадцать компонентов.
+    </p>
+    <ul class="facts">
+      <li><b>Источник правды</b><code>design/tokens/tokens.css</code></li>
+      <li><b>Тон</b>строгий инструмент, плотная сетка</li>
+      <li><b>Темы</b>светлая, тёмная, системная</li>
+      <li><b>Платформа</b>Windows</li>
+    </ul>
+  </header>
+
+  <!-- ============================================ ПАЛИТРА -->
+  <section class="band">
+    <div class="rail">
+      <h2>Палитра</h2>
+      <ul class="ids"><li>US-UI-01</li><li>US-REG-02</li><li>NFR-280</li></ul>
+      <p>Нейтраль обязана быть тише пользовательских акцентов, иначе она их подкрашивает.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Тёплый графит вместо привычного сине-серого: тон около 45°, насыщенность
+        3–6%. Достаточно, чтобы нейтраль читалась выбранной, и достаточно мало,
+        чтобы восемь акцентных цветов инстансов жили рядом не конфликтуя.
+        Рядом с холодным почти-чёрным холстом ComfyUI такая чрома не спорит.
+      </p>
+
+      <div>
+        <h3 class="sub">Семантические роли</h3>
+        <div class="pair">
+<figure class="panel t-light"><figcaption>Светлая</figcaption><div class="app"><div class="roles">
+<div class="role"><i style="background:var(--ground)"></i><div><b>ground</b><span>основание окна</span></div><code>#f7f6f3</code></div>
+<div class="role"><i style="background:var(--surface)"></i><div><b>surface</b><span>карточки, рейл, поля</span></div><code>#ffffff</code></div>
+<div class="role"><i style="background:var(--surface-sunken)"></i><div><b>surface-sunken</b><span>шапки, вдавленные зоны</span></div><code>#efeeea</code></div>
+<div class="role"><i style="background:var(--line)"></i><div><b>line</b><span>границы</span></div><code>#dedbd4</code></div>
+<div class="role"><i style="background:var(--ink)"></i><div><b>ink</b><span>основной текст</span></div><code>#1c1a16</code></div>
+<div class="role"><i style="background:var(--ink-secondary)"></i><div><b>ink-secondary</b><span>описания</span></div><code>#5c574e</code></div>
+<div class="role"><i style="background:var(--ink-muted)"></i><div><b>ink-muted</b><span>метаданные, пути</span></div><code>#6e6960</code></div>
+</div></div></figure>
+<figure class="panel t-dark"><figcaption>Тёмная</figcaption><div class="app"><div class="roles">
+<div class="role"><i style="background:var(--ground)"></i><div><b>ground</b><span>основание окна</span></div><code>#171613</code></div>
+<div class="role"><i style="background:var(--surface)"></i><div><b>surface</b><span>карточки, рейл, поля</span></div><code>#201f1b</code></div>
+<div class="role"><i style="background:var(--surface-sunken)"></i><div><b>surface-sunken</b><span>шапки, вдавленные зоны</span></div><code>#121110</code></div>
+<div class="role"><i style="background:var(--line)"></i><div><b>line</b><span>границы</span></div><code>#35322b</code></div>
+<div class="role"><i style="background:var(--ink)"></i><div><b>ink</b><span>основной текст</span></div><code>#f2f0eb</code></div>
+<div class="role"><i style="background:var(--ink-secondary)"></i><div><b>ink-secondary</b><span>описания</span></div><code>#a9a399</code></div>
+<div class="role"><i style="background:var(--ink-muted)"></i><div><b>ink-muted</b><span>метаданные, пути</span></div><code>#8b857a</code></div>
+</div></div></figure>
+</div>
+      </div>
+
+      <div>
+        <h3 class="sub">Акценты инстансов · слева светлая тема, справа тёмная</h3>
+        <p class="aside" style="margin-bottom:12px">
+          Пользователь выбирает цвет каждому инстансу сам, поэтому предлагать
+          заведомо нечитаемый нельзя. Яркость всех восьми удерживается в узкой
+          полосе, где цвет проходит <strong>3:1</strong> и на бумаге, и на графите —
+          числа под образцами посчитаны из токенов при сборке, а не проставлены руками.
+        </p>
+        <div class="swatches">
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-ember)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-ember)"></i></span>
+              </div>
+              <div class="sw-name">Ember</div>
+              <div class="sw-meta"><code>#c2542b</code> · 4.23:1</div>
+              <div class="sw-meta"><code>#e2714a</code> · 5.77:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-amber)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-amber)"></i></span>
+              </div>
+              <div class="sw-name">Amber</div>
+              <div class="sw-meta"><code>#a87a12</code> · 3.56:1</div>
+              <div class="sw-meta"><code>#c9992c</code> · 6.96:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-moss)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-moss)"></i></span>
+              </div>
+              <div class="sw-name">Moss</div>
+              <div class="sw-meta"><code>#5c8a2e</code> · 3.79:1</div>
+              <div class="sw-meta"><code>#7fae4c</code> · 6.95:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-teal)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-teal)"></i></span>
+              </div>
+              <div class="sw-name">Teal</div>
+              <div class="sw-meta"><code>#1e8a7a</code> · 3.91:1</div>
+              <div class="sw-meta"><code>#35ac99</code> · 6.47:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-azure)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-azure)"></i></span>
+              </div>
+              <div class="sw-name">Azure</div>
+              <div class="sw-meta"><code>#2e7bc4</code> · 4.09:1</div>
+              <div class="sw-meta"><code>#559de4</code> · 6.32:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-indigo)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-indigo)"></i></span>
+              </div>
+              <div class="sw-name">Indigo</div>
+              <div class="sw-meta"><code>#6062c8</code> · 4.76:1</div>
+              <div class="sw-meta"><code>#8688e6</code> · 5.75:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-orchid)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-orchid)"></i></span>
+              </div>
+              <div class="sw-name">Orchid</div>
+              <div class="sw-meta"><code>#9b4fa8</code> · 4.77:1</div>
+              <div class="sw-meta"><code>#bb70c8</code> · 5.4:1</div>
+            </div>
+            <div class="sw">
+              <div class="sw-chips">
+                <span class="sw-chip t-light" style="background:var(--ground)"><i style="background:var(--accent-rose)"></i></span>
+                <span class="sw-chip t-dark" style="background:var(--ground)"><i style="background:var(--accent-rose)"></i></span>
+              </div>
+              <div class="sw-name">Rose</div>
+              <div class="sw-meta"><code>#c24169</code> · 4.57:1</div>
+              <div class="sw-meta"><code>#e0648a</code> · 5.48:1</div>
+            </div>
+        </div>
+      </div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Shared model storage</span></div>
+          <div class="lf-row"><b>RU</b><span>Общее хранилище моделей</span></div>
+          <div class="lf-row"><b>ES</b><span>Almacenamiento compartido de modelos</span></div>
+          <div class="lf-row"><b>ZH</b><span>共享模型存储</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================== ТИПОГРАФИКА -->
+  <section class="band">
+    <div class="rail">
+      <h2>Типографика</h2>
+      <ul class="ids"><li>US-UI-02</li><li>NFR-250</li><li>NFR-260</li></ul>
+      <p>Системные гарнитуры Windows — не экономия, а то, чем приложение будет отрисовано на самом деле.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Приложение существует только под Windows, поэтому стек начинается с
+        <code>Segoe UI Variable</code>, а моноширинный — с <code>Cascadia Mono</code>.
+        Макет и итоговая сборка совпадут посимвольно. <code>Microsoft YaHei</code>
+        в стеке обязателен: без него китайский падает в случайный фолбэк и выглядит
+        чужеродно. Базовый кегль 13&nbsp;px — инструмент, где в список должно
+        помещаться много инстансов, а в консоль много строк.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <div class="scale">
+              <div class="scale-row"><span>xl · 22</span><div class="t-xl">Общие модели</div></div>
+              <div class="scale-row"><span>lg · 18</span><div class="t-lg">Мастер установки</div></div>
+              <div class="scale-row"><span>md · 15</span><div class="t-md">SDXL — стабильная</div></div>
+              <div class="scale-row"><span>base · 13</span><div class="t-base">Инстанс подключён к общей папке моделей</div></div>
+              <div class="scale-row"><span>sm · 12</span><div class="t-sm">Требуется перезапуск, чтобы изменение вступило в силу</div></div>
+              <div class="scale-row"><span>label · 11</span><div class="t-label">Профиль запуска</div></div>
+              <div class="scale-row"><span>mono · 12</span><div class="t-mono">D:\AI\SDXL · :8188 · 52.3 GB</div></div>
+              <div class="scale-row"><span>CJK</span><div class="t-base">共享模型存储 · 工作流库 · 安装向导</div></div>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <div class="scale">
+              <div class="scale-row"><span>xl · 22</span><div class="t-xl">Общие модели</div></div>
+              <div class="scale-row"><span>lg · 18</span><div class="t-lg">Мастер установки</div></div>
+              <div class="scale-row"><span>md · 15</span><div class="t-md">SDXL — стабильная</div></div>
+              <div class="scale-row"><span>base · 13</span><div class="t-base">Инстанс подключён к общей папке моделей</div></div>
+              <div class="scale-row"><span>sm · 12</span><div class="t-sm">Требуется перезапуск, чтобы изменение вступило в силу</div></div>
+              <div class="scale-row"><span>label · 11</span><div class="t-label">Профиль запуска</div></div>
+              <div class="scale-row"><span>mono · 12</span><div class="t-mono">D:\AI\SDXL · :8188 · 52.3 GB</div></div>
+              <div class="scale-row"><span>CJK</span><div class="t-base">共享模型存储 · 工作流库 · 安装向导</div></div>
+            </div>
+          </div>
+</figure>
+</div>
+
+      <div>
+        <h3 class="sub">Консоль запуска · моноширинный в деле</h3>
+        <p class="aside" style="margin-bottom:12px">
+          Строка индикатора загрузки моделей <strong>перерисовывается на месте</strong>,
+          а не добавляется новой — иначе за один старт лог распухает на десятки тысяч
+          строк <code>US-RUN-03/AC-3</code>.
+        </p>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span>
+Starting server on 127.0.0.1:8188</div>
+            </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span>
+Starting server on 127.0.0.1:8188</div>
+            </div>
+</figure>
+</div>
+      </div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · подписи разделов</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Workflow library · Installation wizard · About the app</span></div>
+          <div class="lf-row"><b>RU</b><span>Библиотека воркфлоу · Мастер установки · О приложении</span></div>
+          <div class="lf-row"><b>ES</b><span>Biblioteca de flujos de trabajo · Asistente de instalación · Acerca de la aplicación</span></div>
+          <div class="lf-row"><b>ZH</b><span>工作流库 · 安装向导 · 关于应用</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== РЕЙЛ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Рейл навигации</h2>
+      <ul class="ids"><li>US-TAB-01</li><li>US-TAB-03</li><li>US-UI-04</li></ul>
+      <p>Единственная часть интерфейса, видимая всегда — включая экран работающего ComfyUI.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Два блока, разделённых чертой: пять разделов приложения и список
+        запущенных инстансов в их акцентных цветах. Второй блок решает две задачи
+        разом — переключение между сборками в один клик и, что важнее,
+        <strong>видимость аварий</strong>: когда на экране развёрнут ComfyUI,
+        рейл остаётся единственным местом, где заметно, что процесс упал
+        <code>US-UI-04/AC-2</code>. Свёрнутый вид оставляет от рейла 56&nbsp;px.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая · развёрнутый и свёрнутый</figcaption>
+<div class="app">
+            <div class="rails">
+              <nav class="nav">
+                <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+                <div class="nav-sep"></div>
+                <div class="nav-note">Запущены</div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              </nav>
+              <nav class="nav collapsed">
+                <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+                <div class="nav-sep"></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux</em></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em></div>
+              </nav>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная · развёрнутый и свёрнутый</figcaption>
+<div class="app">
+            <div class="rails">
+              <nav class="nav">
+                <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+                <div class="nav-sep"></div>
+                <div class="nav-note">Запущены</div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              </nav>
+              <nav class="nav collapsed">
+                <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+                <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+                <div class="nav-sep"></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux</em></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em></div>
+              </nav>
+            </div>
+          </div>
+</figure>
+</div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · пункты рейла в 208 px</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Instances · Install · Library · Settings · About</span></div>
+          <div class="lf-row"><b>RU</b><span>Инстансы · Установка · Библиотека · Настройки · О приложении</span></div>
+          <div class="lf-row"><b>ES</b><span>Instancias · Instalación · Biblioteca · Configuración · Acerca de</span></div>
+          <div class="lf-row"><b>ZH</b><span>实例 · 安装 · 库 · 设置 · 关于</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================== КАРТОЧКА ИНСТАНСА -->
+  <section class="band">
+    <div class="rail">
+      <h2>Карточка инстанса</h2>
+      <ul class="ids"><li>US-REG-03</li><li>US-INST-07</li><li>US-RUN-06</li></ul>
+      <p>Самый частый и самый насыщенный данными элемент приложения.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Состояний пять, а не два. Недоступный инстанс — папка исчезла или диск
+        отключён — <strong>не пропадает из списка</strong>, а помечается пунктиром
+        <code>US-REG-03/AC-7</code>: молча удалять запись нельзя, пользователь
+        должен понять, что произошло. Строка источника показывает, из какого архива
+        развёрнут инстанс, — по ней различаются версии, стоящие рядом
+        <code>US-INST-07/AC-5</code>.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая · пять состояний</figcaption>
+<div class="app">
+            <div class="cards">
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8188</span><span>52.3 GB</span></div>
+                  <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
+                  <div class="card-desc">Проверяю новые ноды перед переносом</div>
+                  <div class="bar"><i></i></div>
+                  <div class="meta"><span>ComfyUI 0.31.0</span><span>Python 3.13.12</span><span>:8189</span><span>18.7 GB</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8190</span><span>41.0 GB</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-moss)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc">Песочница под чужие воркфлоу</div>
+                  <div class="meta"><span>ComfyUI 0.29.4</span><span>Python 3.12.8</span><span>:8191</span><span>9.4 GB</span></div>
+                </div>
+              </div>
+              <div class="card gone">
+                <div class="card-accent"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Архив на внешнем диске</div><span class="pill gone">Недоступен</span></div>
+                  <div class="card-desc">Папка не найдена — диск отключён</div>
+                  <div class="meta"><span>E:\ComfyUI\Legacy</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная · пять состояний</figcaption>
+<div class="app">
+            <div class="cards">
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8188</span><span>52.3 GB</span></div>
+                  <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
+                  <div class="card-desc">Проверяю новые ноды перед переносом</div>
+                  <div class="bar"><i></i></div>
+                  <div class="meta"><span>ComfyUI 0.31.0</span><span>Python 3.13.12</span><span>:8189</span><span>18.7 GB</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8190</span><span>41.0 GB</span></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-moss)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc">Песочница под чужие воркфлоу</div>
+                  <div class="meta"><span>ComfyUI 0.29.4</span><span>Python 3.12.8</span><span>:8191</span><span>9.4 GB</span></div>
+                </div>
+              </div>
+              <div class="card gone">
+                <div class="card-accent"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Архив на внешнем диске</div><span class="pill gone">Недоступен</span></div>
+                  <div class="card-desc">Папка не найдена — диск отключён</div>
+                  <div class="meta"><span>E:\ComfyUI\Legacy</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+</figure>
+</div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · подписи состояний</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Stopped · Starting · Running · Crashed · Unavailable</span></div>
+          <div class="lf-row"><b>RU</b><span>Остановлен · Стартует · Работает · Аварийно завершён · Недоступен</span></div>
+          <div class="lf-row"><b>ES</b><span>Detenido · Iniciando · En ejecución · Finalizado con error · No disponible</span></div>
+          <div class="lf-row"><b>ZH</b><span>已停止 · 启动中 · 运行中 · 异常终止 · 不可用</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================== ДЕЙСТВИЯ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Действия</h2>
+      <ul class="ids"><li>US-RUN-01</li><li>US-REG-05</li><li>NFR-300</li></ul>
+      <p>Главное действие нейтральное: фирменный цвет спорил бы с акцентами инстансов.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Кнопка главного действия залита не фирменным цветом, а нейтральным
+        чернильным — потому что цвет в этом приложении уже занят: его выбирает
+        пользователь каждому инстансу. Опасные действия обозначены контуром,
+        а не заливкой: удаление из реестра не должно выглядеть привлекательнее
+        запуска.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-4)">
+            <div class="row">
+              <span class="btn primary">Запустить</span>
+              <span class="btn secondary">Открыть папку</span>
+              <span class="btn ghost">Отмена</span>
+              <span class="btn danger">Убрать из реестра</span>
+            </div>
+            <div class="row">
+              <span class="btn primary lg">Установить ComfyUI</span>
+              <span class="btn secondary"><i class="spin"></i>Останавливается</span>
+              <span class="btn secondary" aria-disabled="true">Запустить</span>
+            </div>
+            <div class="row">
+              <span class="split">
+                <span class="btn primary">Запустить</span>
+                <span class="btn primary">▾</span>
+              </span>
+              <span class="t-label">сплит-кнопка выбора профиля</span>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-4)">
+            <div class="row">
+              <span class="btn primary">Запустить</span>
+              <span class="btn secondary">Открыть папку</span>
+              <span class="btn ghost">Отмена</span>
+              <span class="btn danger">Убрать из реестра</span>
+            </div>
+            <div class="row">
+              <span class="btn primary lg">Установить ComfyUI</span>
+              <span class="btn secondary"><i class="spin"></i>Останавливается</span>
+              <span class="btn secondary" aria-disabled="true">Запустить</span>
+            </div>
+            <div class="row">
+              <span class="split">
+                <span class="btn primary">Запустить</span>
+                <span class="btn primary">▾</span>
+              </span>
+              <span class="t-label">сплит-кнопка выбора профиля</span>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+      <p class="aside">
+        Выпадающий список профилей у сплит-кнопки раскрывается
+        <strong>только пока инстанс не запущен</strong>. После старта область
+        контента занимает нативное окно ComfyUI, и всплыть поверх него наш список
+        физически не может — поэтому здесь он показан закрытым.
+      </p>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · подписи кнопок</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Launch · Open folder · Remove from registry</span></div>
+          <div class="lf-row"><b>RU</b><span>Запустить · Открыть папку · Убрать из реестра</span></div>
+          <div class="lf-row"><b>ES</b><span>Iniciar · Abrir carpeta · Quitar del registro</span></div>
+          <div class="lf-row"><b>ZH</b><span>启动 · 打开文件夹 · 从注册表移除</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================= ПРОКРУТКА -->
+  <section class="band">
+    <div class="rail">
+      <h2>Прокрутка</h2>
+      <ul class="ids"><li>NFR-420</li><li>NFR-430</li><li>NFR-440</li></ul>
+      <p>Окно фиксированной высоты, данные не ограничены. Что закреплено, а что уезжает — это архитектура экрана.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Правило одно: <strong>окно не прокручивается целиком</strong>. Рейл
+        закреплён, внутри контентной области ровно один вертикальный скролл —
+        область данных, а всё управляющее из неё вынесено. Уехавший подвал
+        мастера делает мастер непроходимым; уехавшая панель деталей делает
+        выбор невидимым. Вложенная прокрутка допускается только в раскладке
+        «список — детали»: два независимых региона рядом.
+      </p>
+
+      <div>
+        <h3 class="sub">Каркас: закреплённый верх → область данных → закреплённый подвал</h3>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <div class="pane" style="height:220px">
+              <div class="pane-head"><span class="title">Назначения</span><span class="t-label">6</span></div>
+              <div class="scroll"><div class="scroll-pad">
+                <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
+                <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
+                <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
+              </div></div>
+              <div class="pane-foot"><span class="btn ghost">Назад</span><span class="btn primary">Далее</span></div>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <div class="pane" style="height:220px">
+              <div class="pane-head"><span class="title">Назначения</span><span class="t-label">6</span></div>
+              <div class="scroll"><div class="scroll-pad">
+                <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
+                <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
+                <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
+                <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
+              </div></div>
+              <div class="pane-foot"><span class="btn ghost">Назад</span><span class="btn primary">Далее</span></div>
+            </div>
+          </div>
+</figure>
+</div>
+      </div>
+
+      <div>
+        <h3 class="sub">Список и детали — две независимые прокрутки</h3>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <div class="split-master" style="height:220px">
+              <div class="pane">
+                <div class="pane-head"><span class="title">Воркфлоу</span><span class="t-label">214</span></div>
+                <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                  <div class="wf-row"><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star">★</span></div>
+                  <div class="wf-row"><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span><span class="star">★</span></div>
+                  <div class="wf-row"><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span><span></span></div>
+                  <div class="wf-row"><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span><span></span></div>
+                  <div class="wf-row"><span class="nm">utils / batch-rename.json</span><span class="tags"></span><span></span></div>
+                  <div class="wf-row"><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span><span></span></div>
+                </div></div>
+              </div>
+              <div class="pane">
+                <div class="pane-head"><span class="title">Выбран</span></div>
+                <div class="scroll"><div class="scroll-pad">
+                  <div class="t-sm">flux / portrait-v3.json</div>
+                  <div class="t-label">Заметка</div>
+                  <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
+                  <div class="t-label">Совместимость</div>
+                  <div class="compat-note" style="color:var(--state-starting)">нет 2 нод в «Flux тест»</div>
+                </div></div>
+                <div class="pane-foot"><span class="btn primary">Добавить</span></div>
+              </div>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <div class="split-master" style="height:220px">
+              <div class="pane">
+                <div class="pane-head"><span class="title">Воркфлоу</span><span class="t-label">214</span></div>
+                <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                  <div class="wf-row"><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star">★</span></div>
+                  <div class="wf-row"><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span><span class="star">★</span></div>
+                  <div class="wf-row"><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span><span></span></div>
+                  <div class="wf-row"><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span><span></span></div>
+                  <div class="wf-row"><span class="nm">utils / batch-rename.json</span><span class="tags"></span><span></span></div>
+                  <div class="wf-row"><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span><span></span></div>
+                </div></div>
+              </div>
+              <div class="pane">
+                <div class="pane-head"><span class="title">Выбран</span></div>
+                <div class="scroll"><div class="scroll-pad">
+                  <div class="t-sm">flux / portrait-v3.json</div>
+                  <div class="t-label">Заметка</div>
+                  <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
+                  <div class="t-label">Совместимость</div>
+                  <div class="compat-note" style="color:var(--state-starting)">нет 2 нод в «Flux тест»</div>
+                </div></div>
+                <div class="pane-foot"><span class="btn primary">Добавить</span></div>
+              </div>
+            </div>
+          </div>
+</figure>
+</div>
+        <p class="aside" style="margin-top:12px">
+          Прокрутка списка не двигает панель деталей, и наоборот. При узком окне
+          раскладка схлопывается в одну колонку, и детали становятся отдельным
+          экраном — иначе на панель в 300&nbsp;px не останется места.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="sub">Консоль: следование за лентой приостановлено</h3>
+        <p class="aside" style="margin-bottom:12px">
+          Пока пользователь внизу, консоль следует за новыми строками. Как только
+          он прокрутил вверх, следование <strong>приостанавливается</strong> —
+          иначе лог выдёргивает текст из-под курсора при каждой новой строке.
+          Кнопка возврата показывает, сколько строк накопилось.
+        </p>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <div class="log" style="height:180px">
+<div class="console">Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Loading custom nodes: 47 found
+  ComfyUI-Manager 3.19.4
+  ComfyUI_IPAdapter_plus
+  ComfyUI-VideoHelperSuite
+  was-node-suite-comfyui
+<span class="dim">  ... ещё 43</span>
+Import times for custom nodes:
+   0.1 seconds: ComfyUI-Manager
+   2.4 seconds: was-node-suite-comfyui
+Starting server on 127.0.0.1:8188</div>
+              <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <div class="log" style="height:180px">
+<div class="console">Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Loading custom nodes: 47 found
+  ComfyUI-Manager 3.19.4
+  ComfyUI_IPAdapter_plus
+  ComfyUI-VideoHelperSuite
+  was-node-suite-comfyui
+<span class="dim">  ... ещё 43</span>
+Import times for custom nodes:
+   0.1 seconds: ComfyUI-Manager
+   2.4 seconds: was-node-suite-comfyui
+Starting server on 127.0.0.1:8188</div>
+              <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+            </div>
+          </div>
+</figure>
+</div>
+      </div>
+
+      <div>
+        <h3 class="sub">Рейл: разделы закреплены, запущенные прокручиваются</h3>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <nav class="nav" style="height:240px">
+              <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+              <div class="nav-sep"></div>
+              <div class="nav-note">Запущены · 8</div>
+              <div class="nav-runs">
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+              </div>
+            </nav>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <nav class="nav" style="height:240px">
+              <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+              <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+              <div class="nav-sep"></div>
+              <div class="nav-note">Запущены · 8</div>
+              <div class="nav-runs">
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+                <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+                <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+              </div>
+            </nav>
+          </div>
+</figure>
+</div>
+      </div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Механика, которую легко сделать неправильно</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>1</b><span><code>min-height: 0</code> на каждом звене цепочки — иначе grid-элемент не сожмётся ниже содержимого и скролл не появится вовсе</span></div>
+          <div class="lf-row"><b>2</b><span><code>overscroll-behavior: contain</code> — иначе докрутка списка до конца начинает прокручивать страницу за ним</span></div>
+          <div class="lf-row"><b>3</b><span>Закрепление через <code>position: sticky</code> внутри панели, а не <code>fixed</code> — тот привязался бы к окну</span></div>
+          <div class="lf-row"><b>4</b><span>Полоса прокрутки из токенов: системная светлая в тёмном интерфейсе выглядит чужеродно</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== ПОЛЯ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Поля ввода</h2>
+      <ul class="ids"><li>US-REG-01</li><li>US-REG-02</li><li>US-SHARED-04</li></ul>
+      <p>Путь, имя, порт, цвет — четыре вещи, которые задаются при каждом добавлении инстанса.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Выбор акцентного цвета — единственное поле с проверкой контраста:
+        пользователь волен взять любой, но предлагать заведомо нечитаемый нельзя
+        <code>US-UI-01/AC-8</code>. Поэтому набор ограничен восемью, каждый из
+        которых проходит порог на обоих основаниях.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-4)">
+            <div class="field">
+              <label>Папка инстанса</label>
+              <div class="path-row">
+                <div class="input mono"><span>D:\AI\ComfyUI_SDXL</span></div>
+                <span class="btn secondary">Обзор</span>
+              </div>
+              <div class="hint">Регистрация ничего не изменит внутри папки</div>
+            </div>
+
+            <div class="field">
+              <label>Имя</label>
+              <div class="input">SDXL стабильная</div>
+            </div>
+
+            <div class="field">
+              <label>Имя</label>
+              <div class="input bad"></div>
+              <div class="hint bad">Имя не может быть пустым</div>
+            </div>
+
+            <div class="row" style="gap:var(--space-6); align-items:flex-start">
+              <div class="field">
+                <label>Порт</label>
+                <div class="input num mono">8188</div>
+              </div>
+              <div class="field" style="flex:1">
+                <label>Акцентный цвет</label>
+                <div class="picker">
+                  <i style="background:var(--accent-ember)"></i>
+                  <i style="background:var(--accent-amber)"></i>
+                  <i style="background:var(--accent-moss)"></i>
+                  <i class="on" style="background:var(--accent-teal)"></i>
+                  <i style="background:var(--accent-azure)"></i>
+                  <i style="background:var(--accent-indigo)"></i>
+                  <i style="background:var(--accent-orchid)"></i>
+                  <i style="background:var(--accent-rose)"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span class="toggle"></span>
+              <div>
+                <div class="t-base">Скачивать новые модели в общую папку</div>
+                <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle off"></span>
+              <div>
+                <div class="t-base">Записывать файл настроек внутрь инстанса</div>
+                <div class="hint">Нужно, если сборка иногда запускается мимо приложения</div>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-4)">
+            <div class="field">
+              <label>Папка инстанса</label>
+              <div class="path-row">
+                <div class="input mono"><span>D:\AI\ComfyUI_SDXL</span></div>
+                <span class="btn secondary">Обзор</span>
+              </div>
+              <div class="hint">Регистрация ничего не изменит внутри папки</div>
+            </div>
+
+            <div class="field">
+              <label>Имя</label>
+              <div class="input">SDXL стабильная</div>
+            </div>
+
+            <div class="field">
+              <label>Имя</label>
+              <div class="input bad"></div>
+              <div class="hint bad">Имя не может быть пустым</div>
+            </div>
+
+            <div class="row" style="gap:var(--space-6); align-items:flex-start">
+              <div class="field">
+                <label>Порт</label>
+                <div class="input num mono">8188</div>
+              </div>
+              <div class="field" style="flex:1">
+                <label>Акцентный цвет</label>
+                <div class="picker">
+                  <i style="background:var(--accent-ember)"></i>
+                  <i style="background:var(--accent-amber)"></i>
+                  <i style="background:var(--accent-moss)"></i>
+                  <i class="on" style="background:var(--accent-teal)"></i>
+                  <i style="background:var(--accent-azure)"></i>
+                  <i style="background:var(--accent-indigo)"></i>
+                  <i style="background:var(--accent-orchid)"></i>
+                  <i style="background:var(--accent-rose)"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span class="toggle"></span>
+              <div>
+                <div class="t-base">Скачивать новые модели в общую папку</div>
+                <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle off"></span>
+              <div>
+                <div class="t-base">Записывать файл настроек внутрь инстанса</div>
+                <div class="hint">Нужно, если сборка иногда запускается мимо приложения</div>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · подписи полей</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Download new models to the shared folder</span></div>
+          <div class="lf-row"><b>RU</b><span>Скачивать новые модели в общую папку</span></div>
+          <div class="lf-row"><b>ES</b><span>Descargar los modelos nuevos en la carpeta compartida</span></div>
+          <div class="lf-row"><b>ZH</b><span>将新模型下载到共享文件夹</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================== УВЕДОМЛЕНИЯ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Уведомления</h2>
+      <ul class="ids"><li>US-UI-03</li><li>US-UI-05</li></ul>
+      <p>Успех исчезает сам. Ошибка ждёт, пока её прочитают.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Разное поведение не косметика, а требование: успешную операцию
+        подтверждают и забывают, а сообщение об ошибке нужно дочитать, развернуть
+        и скопировать вместе с кодом <code>US-UI-03/AC-3…AC-5</code>. Код ошибки
+        показывается всегда — по нему пользователь ищет ответ в документации,
+        даже если перевода сообщения нет.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="toasts">
+            <div class="toast ok">
+              <i></i>
+              <div class="toast-in">
+                <div class="toast-head"><b>Инстанс добавлен</b><span class="close">✕</span></div>
+                <p>SDXL стабильная — профили запуска распознаны</p>
+                <div class="toast-life"><i></i></div>
+              </div>
+            </div>
+            <div class="toast err">
+              <i></i>
+              <div class="toast-in">
+                <div class="toast-head"><b>Не удалось записать настройки</b><span class="close">✕</span></div>
+                <p>Папка инстанса доступна только для чтения. Общие модели можно подключить вторым способом — без записи в папку.</p>
+                <div class="disclosure"><span>Детали</span><code>ERR_INSTANCE_READONLY</code><span style="margin-left:auto">Копировать</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="toasts">
+            <div class="toast ok">
+              <i></i>
+              <div class="toast-in">
+                <div class="toast-head"><b>Инстанс добавлен</b><span class="close">✕</span></div>
+                <p>SDXL стабильная — профили запуска распознаны</p>
+                <div class="toast-life"><i></i></div>
+              </div>
+            </div>
+            <div class="toast err">
+              <i></i>
+              <div class="toast-in">
+                <div class="toast-head"><b>Не удалось записать настройки</b><span class="close">✕</span></div>
+                <p>Папка инстанса доступна только для чтения. Общие модели можно подключить вторым способом — без записи в папку.</p>
+                <div class="disclosure"><span>Детали</span><code>ERR_INSTANCE_READONLY</code><span style="margin-left:auto">Копировать</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+      <div>
+        <h3 class="sub">Прогресс — только там, где операция действительно долгая</h3>
+        <p class="aside" style="margin-bottom:12px">
+          Постоянного индикатора на каждое действие нет: почти всё в приложении
+          мгновенно, и мелькающая шкала только шумит <code>US-UI-05/AC-6</code>.
+          Детерминантный показывает доли, когда объём работы известен;
+          индетерминантный — только когда он неизвестен, и без ложной шкалы.
+        </p>
+        <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+            <div class="stack" style="gap:var(--space-5)">
+              <div class="prog">
+                <div class="prog-head"><span>Распаковка · D:\AI\Flux</span><span class="count">1 / 2</span></div>
+                <div class="track"><i style="width:64%"></i></div>
+                <div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div>
+              </div>
+              <div class="prog">
+                <div class="prog-head"><span>Обход общей папки моделей</span><span class="count">412 ГБ</span></div>
+                <div class="track indet"><i></i></div>
+                <div class="prog-file">длительность заранее неизвестна</div>
+              </div>
+            </div>
+          </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+            <div class="stack" style="gap:var(--space-5)">
+              <div class="prog">
+                <div class="prog-head"><span>Распаковка · D:\AI\Flux</span><span class="count">1 / 2</span></div>
+                <div class="track"><i style="width:64%"></i></div>
+                <div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div>
+              </div>
+              <div class="prog">
+                <div class="prog-head"><span>Обход общей папки моделей</span><span class="count">412 ГБ</span></div>
+                <div class="track indet"><i></i></div>
+                <div class="prog-file">длительность заранее неизвестна</div>
+              </div>
+            </div>
+          </div>
+</figure>
+</div>
+      </div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · тексты уведомлений</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Could not write settings — the instance folder is read-only</span></div>
+          <div class="lf-row"><b>RU</b><span>Не удалось записать настройки — папка инстанса доступна только для чтения</span></div>
+          <div class="lf-row"><b>ES</b><span>No se pudo escribir la configuración: la carpeta de la instancia es de solo lectura</span></div>
+          <div class="lf-row"><b>ZH</b><span>无法写入设置——实例文件夹为只读</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================== ПУСТОЙ ЭКРАН -->
+  <section class="band">
+    <div class="rail">
+      <h2>Пустой реестр</h2>
+      <ul class="ids"><li>US-ONB-01</li><li>US-ONB-02</li><li>US-ONB-03</li></ul>
+      <p>Первые тридцать секунд знакомства. Отдельного приветственного экрана нет — его роль играет пустое состояние.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Ровно два пути, и у каждого пояснение, кому он подходит
+        <code>US-ONB-01/AC-3</code>: новичок и владелец готовой сборки должны
+        выбрать не угадывая. Обещание «регистрация ничего не изменит» стоит прямо
+        здесь — это главный страх того, у кого уже есть рабочая папка.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="empty">
+            <h4>Пока ни одного инстанса</h4>
+            <p>Приложение запускает портабл-сборки ComfyUI, показывает логи старта и открывает интерфейс прямо в этом окне.</p>
+            <div class="forks">
+              <div class="fork">
+                <b>У меня уже есть ComfyUI</b>
+                <p>Укажите распакованную папку. Приложение прочитает версию и профили запуска и ничего в ней не изменит.</p>
+                <span class="btn secondary">Указать папку</span>
+              </div>
+              <div class="fork">
+                <b>Установить ComfyUI</b>
+                <p>Понадобится скачанный архив портабл-сборки. Распакуем сразу в одну или несколько папок.</p>
+                <span class="btn primary">Открыть мастер</span>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="empty">
+            <h4>Пока ни одного инстанса</h4>
+            <p>Приложение запускает портабл-сборки ComfyUI, показывает логи старта и открывает интерфейс прямо в этом окне.</p>
+            <div class="forks">
+              <div class="fork">
+                <b>У меня уже есть ComfyUI</b>
+                <p>Укажите распакованную папку. Приложение прочитает версию и профили запуска и ничего в ней не изменит.</p>
+                <span class="btn secondary">Указать папку</span>
+              </div>
+              <div class="fork">
+                <b>Установить ComfyUI</b>
+                <p>Понадобится скачанный архив портабл-сборки. Распакуем сразу в одну или несколько папок.</p>
+                <span class="btn primary">Открыть мастер</span>
+              </div>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · заголовки развилки</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>I already have ComfyUI · Install ComfyUI</span></div>
+          <div class="lf-row"><b>RU</b><span>У меня уже есть ComfyUI · Установить ComfyUI</span></div>
+          <div class="lf-row"><b>ES</b><span>Ya tengo ComfyUI instalado · Instalar ComfyUI</span></div>
+          <div class="lf-row"><b>ZH</b><span>我已经安装了 ComfyUI · 安装 ComfyUI</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================= МАСТЕР -->
+  <section class="band">
+    <div class="rail">
+      <h2>Шаги мастера</h2>
+      <ul class="ids"><li>US-INST-01</li><li>US-INST-05</li></ul>
+      <p>Пять шагов, из которых пользователь может выйти в любой момент, ничего за собой не оставив.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Нумерация здесь оправдана: это настоящая последовательность, где порядок
+        несёт смысл — пока не выбран архив, нельзя проверить место на диске, а
+        пока не заданы папки, нечего распаковывать.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-5)">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
+              <span class="step now"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Установка</span><span class="step-sep"></span>
+              <span class="step"><u>5</u>Готово</span>
+            </div>
+            <div class="wizard-foot">
+              <span class="btn ghost">Назад</span>
+              <span class="btn primary">Далее</span>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="stack" style="gap:var(--space-5)">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
+              <span class="step now"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Установка</span><span class="step-sep"></span>
+              <span class="step"><u>5</u>Готово</span>
+            </div>
+            <div class="wizard-foot">
+              <span class="btn ghost">Назад</span>
+              <span class="btn primary">Далее</span>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+      <div class="longform" data-longform>
+        <div class="lf-head">Проверка на длинных строках · названия шагов</div>
+        <div class="lf-rows">
+          <div class="lf-row"><b>EN</b><span>Archive · Destinations · Shared resources · Install · Done</span></div>
+          <div class="lf-row"><b>RU</b><span>Архив · Назначения · Общие ресурсы · Установка · Готово</span></div>
+          <div class="lf-row"><b>ES</b><span>Archivo · Destinos · Recursos compartidos · Instalación · Listo</span></div>
+          <div class="lf-row"><b>ZH</b><span>压缩包 · 目标位置 · 共享资源 · 安装 · 完成</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================= КАТЕГОРИИ МОДЕЛЕЙ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Категории моделей</h2>
+      <ul class="ids"><li>US-SHARED-02</li><li>NFR-390</li></ul>
+      <p>Список строится из того, что реально лежит в общей папке, а не из зашитого перечня.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Набор категорий в ComfyUI меняется от версии к версии, поэтому
+        распознавание идёт по содержимому папки: имена подпапок и есть категории
+        <code>NFR-390</code>. Нераспознанное показывается отдельно, а не
+        замалчивается. Отдельная строка — <strong>каталог кастомных нод</strong>:
+        он валиден для этого механизма, но шаринг отменил бы саму причину
+        разводить инстансы, поэтому исключён безусловно и с объяснением
+        <code>US-SHARED-02/AC-4</code>.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="cats">
+            <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>controlnet</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+            <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+            <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="cats">
+            <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+            <div class="cat"><code>controlnet</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+            <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+            <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+          </div>
+        </div>
+</figure>
+</div>
+
+    </div>
+  </section>
+
+  <!-- =================================== СОВМЕСТИМОСТЬ -->
+  <section class="band">
+    <div class="rail">
+      <h2>Совместимость воркфлоу</h2>
+      <ul class="ids"><li>US-WF-05</li></ul>
+      <p>То, ради чего перенос воркфлоу живёт в приложении, а не в проводнике.</p>
+    </div>
+    <div class="stack">
+
+      <p class="aside">
+        Перед добавлением видно, все ли нужные ноды есть в целевой сборке.
+        Состояний три, а не два: у остановленного инстанса точного ответа нет,
+        и честнее пометить его <strong>неизвестным</strong>, чем показать
+        зелёную галочку <code>US-WF-05/AC-6</code>. Нехватка нод предупреждает,
+        но не запрещает — доустановить их можно потом <code>AC-4</code>.
+      </p>
+
+      <div class="pair">
+<figure class="panel t-light">
+<figcaption>Светлая</figcaption>
+<div class="app">
+          <div class="compat">
+            <div class="compat-row ok">
+              <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
+              <span>SDXL стабильная</span>
+              <span class="compat-note">все ноды на месте</span>
+            </div>
+            <div class="compat-row warn">
+              <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
+              <span>Flux тест</span>
+              <span class="compat-note">нет 2 нод</span>
+            </div>
+            <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
+            <div class="compat-row">
+              <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
+              <span>Эксперименты</span>
+              <span class="compat-note">по данным последнего запуска</span>
+            </div>
+          </div>
+        </div>
+</figure>
+<figure class="panel t-dark">
+<figcaption>Тёмная</figcaption>
+<div class="app">
+          <div class="compat">
+            <div class="compat-row ok">
+              <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
+              <span>SDXL стабильная</span>
+              <span class="compat-note">все ноды на месте</span>
+            </div>
+            <div class="compat-row warn">
+              <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
+              <span>Flux тест</span>
+              <span class="compat-note">нет 2 нод</span>
+            </div>
+            <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
+            <div class="compat-row">
+              <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
+              <span>Эксперименты</span>
+              <span class="compat-note">по данным последнего запуска</span>
+            </div>
+          </div>
+        </div>
+</figure>
+</div>
+
+    </div>
+  </section>
+
+  <!-- ============================================= ФИНАЛ -->
+  <section class="closing">
+    <h2>Что дальше</h2>
+    <p>
+      Если тон верен, следующим заходом идут остальные компоненты: кнопки и поля,
+      сплит-кнопка запуска, тосты, индикаторы прогресса, пустые состояния, шаги
+      мастера, список категорий моделей и признак совместимости воркфлоу.
+      Третьим — экраны целиком по сквозным сценариям <code>J-01…J-06</code>.
+    </p>
+    <p>
+      Всё, что здесь показано, лежит в репозитории: палитра и метрики в
+      <code>design/tokens/tokens.css</code>, эта страница — в
+      <code>design/preview.html</code>. Рабочий файл приложения собирается
+      командой <code>node design/build.mjs</code> и в Фазе 0.5 переезжает в
+      <code>apps/desktop/src/styles/tokens.css</code>. Цвета не сочиняются заново
+      при реализации — иначе дизайн и код разойдутся на второй неделе.
+    </p>
+  </section>
+
+</div>
