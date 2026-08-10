@@ -1,0 +1,18 @@
+{
+  "name": "comfyui-portable-organizer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Управление портабл-сборками ComfyUI: реестр, запуск, встроенные вкладки, общие модели",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:desktop": "pnpm --filter @cpo/desktop tauri dev",
+    "dev:docs": "pnpm --filter @cpo/docs docs:dev",
+    "build:desktop": "pnpm --filter @cpo/desktop tauri build",
+    "build:docs": "pnpm --filter @cpo/docs docs:build",
+    "design:build": "node design/build.mjs",
+    "design:check": "node design/build.mjs && node design/check.mjs"
+  }
+}

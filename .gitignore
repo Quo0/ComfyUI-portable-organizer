@@ -1,0 +1,36 @@
+# Зависимости и сборка
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Rust
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+
+# Сайт документации
+apps/docs/.vitepress/cache/
+apps/docs/.vitepress/dist/
+
+# Результаты сборки дизайна.
+# Генерируются `node design/build.mjs` из design/tokens и design/styles.
+# В истории им не место: правка одного токена меняет три больших файла,
+# и каждый коммит превращался бы в конфликт.
+design/dist/
+design/preview.html
+design/screens.html
+
+# Стенд разработки: junction на системный Python в git не кладётся,
+# фикстура создаётся скриптом (см. «Разработка» в PLAN.md).
+tools/fixtures/fake-instance/python_embeded/
+
+# Локальное окружение
+.env
+.env.local
+*.local
+
+# Редакторы и ОС
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
