@@ -15,23 +15,36 @@ const embedded = ref(false);
 const firstLineAfter = ref<number | null>(null);
 
 const slot = useTemplateRef<HTMLDivElement>('slot');
-let unlisten: UnlistenFn | null = null;
+const unlisten: UnlistenFn[] = [];
 let startedAt = 0;
 let observer: ResizeObserver | null = null;
 
 onMounted(async () => {
-  unlisten = await events.logLine.listen((e) => {
-    // Проверка живого стриминга: засекаем, через сколько пришла первая строка.
-    if (firstLineAfter.value === null && startedAt) {
-      firstLineAfter.value = Math.round((performance.now() - startedAt) / 100) / 10;
-    }
-    lines.value.push(e.payload);
-    if (lines.value.length > 2000) lines.value.splice(0, 500);
-  });
+  void commands.spikePing('смонтирован');
+  unlisten.push(
+    await events.logLine.listen((e) => {
+      // Проверка живого стриминга: засекаем, через сколько пришла первая строка.
+      if (firstLineAfter.value === null && startedAt) {
+        firstLineAfter.value = Math.round((performance.now() - startedAt) / 100) / 10;
+      }
+      lines.value.push(e.payload);
+      if (lines.value.length > 2000) lines.value.splice(0, 500);
+    }),
+  );
+
+  // Автопрогон (CPO_SPIKE=1) стартует ComfyUI из Rust и сообщает о готовности
+  // сюда — встраивать вкладку должен фронт, потому что прямоугольник знает он.
+  unlisten.push(
+    await events.comfyReady.listen(async (e) => {
+      void commands.spikePing(`получил comfyReady, порт ${e.payload.port}`);
+      status.value = `Работает на :${e.payload.port}, готов за ${e.payload.secs} с`;
+      await embed(e.payload.port);
+    }),
+  );
 });
 
 onBeforeUnmount(() => {
-  unlisten?.();
+  unlisten.forEach((off) => off());
   observer?.disconnect();
 });
 
@@ -41,6 +54,8 @@ async function start() {
   firstLineAfter.value = null;
   startedAt = performance.now();
   status.value = 'Стартует';
+  // Автопрогон уже мог засечь время старта в Rust; здесь важно только,
+  // чтобы отсчёт первой строки шёл от нажатия.
   try {
     const started = await commands.startComfy();
     if (started.status === 'error') throw new Error(started.error);
@@ -59,23 +74,35 @@ async function start() {
 }
 
 async function embed(port: number) {
+  // Показать контейнер обязательно ДО замера. У элемента, скрытого через
+  // v-show, getBoundingClientRect возвращает одни нули, и вебвью получил бы
+  // нулевой размер — то есть остался бы невидимым без единой ошибки.
+  embedded.value = true;
   await nextTick();
+
   const el = slot.value;
-  if (!el) return;
+  if (!el) {
+    status.value = 'Ошибка: не найден контейнер для вкладки';
+    return;
+  }
 
   // Автолейаута у дочернего вебвью нет: он нативное окно поверх нашего HTML,
   // поэтому прямоугольник пересчитывается вручную на каждое изменение.
-  const sync = () => {
+  const sync = async () => {
     const r = el.getBoundingClientRect();
-    void commands.embedComfy(port, r.left, r.top, r.width, r.height);
+    void commands.spikePing(`замер ${Math.round(r.width)}x${Math.round(r.height)} при ${Math.round(r.left)},${Math.round(r.top)}`);
+    if (r.width < 1 || r.height < 1) return;
+    const res = await commands.embedComfy(port, r.left, r.top, r.width, r.height);
+    // Молча глотать здесь нельзя: без вкладки приложение бессмысленно,
+    // а ошибка встраивания никак иначе себя не проявит.
+    if (res.status === 'error') status.value = `Ошибка вкладки: ${res.error}`;
   };
-  sync();
-  embedded.value = true;
+  await sync();
 
   observer?.disconnect();
-  observer = new ResizeObserver(sync);
+  observer = new ResizeObserver(() => void sync());
   observer.observe(el);
-  window.addEventListener('resize', sync);
+  window.addEventListener('resize', () => void sync());
 }
 
 async function stop() {

@@ -45,14 +45,38 @@ struct LogLine {
     text: String,
 }
 
+/// Сервер поднялся и готов принимать запросы.
+///
+/// Автопрогон не встраивает вкладку сам: прямоугольник знает только фронт,
+/// у которого есть `ResizeObserver`. Захардкоженный размер в Rust дал бы
+/// вкладку не по месту.
+#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
+struct ComfyReady {
+    port: u16,
+    secs: u32,
+}
+
 /// Запускает ComfyUI и стримит его вывод событиями `comfy-log`.
 ///
 /// Ключевые флаги: `--disable-auto-launch` не даёт открыться браузеру
 /// (в cli_args.py он применяется после `--windows-standalone-build`
 /// и всегда побеждает), `--port` фиксирует порт.
+/// Команды объявлены `async` намеренно.
+///
+/// Синхронная команда Tauri выполняется в главном потоке. Для `wait_ready`
+/// это заморозило бы интерфейс на все минуты холодного старта, а для
+/// `embed_comfy` дало бы взаимную блокировку: `add_child` изнутри ставит
+/// задачу в главный поток и ждёт её результата.
 #[tauri::command]
 #[specta::specta]
-fn start_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Result<u16, String> {
+async fn start_comfy(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, SpikeState>,
+) -> Result<u16, String> {
+    spawn_comfy(&app, &state)
+}
+
+fn spawn_comfy(app: &tauri::AppHandle, state: &SpikeState) -> Result<u16, String> {
     if state.child.lock().unwrap().is_some() {
         return Err("Уже запущен".into());
     }
@@ -128,13 +152,27 @@ fn report(msg: &str) {
     println!("[СПАЙК] {msg}");
 }
 
+/// Позволяет фронту отметиться в терминале.
+///
+/// Консоль вебвью в вывод `tauri dev` не попадает, поэтому без такого
+/// канала непонятно, дошло ли событие до интерфейса или сломалось раньше.
+#[tauri::command]
+#[specta::specta]
+fn spike_ping(stage: String) {
+    report(&format!("фронт: {stage}"));
+}
+
 /// Опрашивает `/system_stats`, пока сервер не ответит.
 ///
 /// Реализовано на голом TcpStream осознанно: тянуть HTTP-клиент ради
 /// одного запроса в спайк — лишние минуты компиляции.
 #[tauri::command]
 #[specta::specta]
-fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, String> {
+async fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, String> {
+    wait_ready_inner(port, timeout_secs)
+}
+
+fn wait_ready_inner(port: u16, timeout_secs: u32) -> Result<u32, String> {
     let deadline = Instant::now() + Duration::from_secs(timeout_secs.into());
     let started = Instant::now();
 
@@ -176,7 +214,18 @@ fn probe(port: u16) -> bool {
 /// послабления в настройках сервера.
 #[tauri::command]
 #[specta::specta]
-fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
+async fn embed_comfy(
+    app: tauri::AppHandle,
+    port: u16,
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+) -> Result<(), String> {
+    embed_inner(&app, port, x, y, w, h)
+}
+
+fn embed_inner(app: &tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
     let window = app.get_window("main").ok_or("Нет окна main")?;
 
     if let Some(existing) = app.get_webview("comfy") {
@@ -241,7 +290,10 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
 
 #[tauri::command]
 #[specta::specta]
-fn stop_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Result<(), String> {
+async fn stop_comfy(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, SpikeState>,
+) -> Result<(), String> {
     if let Some(view) = app.get_webview("comfy") {
         let _ = view.close();
     }
@@ -264,7 +316,7 @@ fn autorun(app: tauri::AppHandle) {
         report("автопрогон включён (CPO_SPIKE=1)");
         let state = app.state::<SpikeState>();
 
-        let port = match start_comfy(app.clone(), state) {
+        let port = match spawn_comfy(&app, &state) {
             Ok(p) => {
                 report(&format!("процесс запущен, порт {p}"));
                 p
@@ -275,18 +327,20 @@ fn autorun(app: tauri::AppHandle) {
             }
         };
 
-        match wait_ready(port, 300) {
-            Ok(secs) => report(&format!("сервер готов за {secs} с")),
+        let secs = match wait_ready_inner(port, 300) {
+            Ok(secs) => {
+                report(&format!("сервер готов за {secs} с"));
+                secs
+            }
             Err(e) => {
                 report(&format!("ПРОВАЛ: {e}"));
                 return;
             }
-        }
+        };
 
-        // Прямоугольник произвольный: во фронте его считает ResizeObserver,
-        // здесь важно лишь то, что вебвью создаётся и грузит страницу.
-        if let Err(e) = embed_comfy(app.clone(), port, 0.0, 46.0, 1100.0, 460.0) {
-            report(&format!("ПРОВАЛ: не удалось встроить вкладку: {e}"));
+        // Встраивание отдаём фронту: прямоугольник знает он.
+        if let Err(e) = (ComfyReady { port, secs }).emit(&app) {
+            report(&format!("ПРОВАЛ: не удалось сообщить о готовности: {e}"));
         }
     });
 }
@@ -299,9 +353,10 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             start_comfy,
             wait_ready,
             embed_comfy,
-            stop_comfy
+            stop_comfy,
+            spike_ping
         ])
-        .events(tauri_specta::collect_events![LogLine])
+        .events(tauri_specta::collect_events![LogLine, ComfyReady])
 }
 
 /// Выгружает типы в `src/bindings.ts`.
