@@ -3,15 +3,21 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { accentVar, initial } from '../lib/format';
-import { statusOf, useInstancesStore } from '../stores/instances';
+import { displayStatus, needsAttention, STATE_DOT } from '../lib/status';
+import { useInstancesStore } from '../stores/instances';
+import { useRunStore } from '../stores/run';
 import { useUiStore } from '../stores/ui';
 
 const ui = useUiStore();
 const instances = useInstancesStore();
+const run = useRunStore();
 const { t } = useI18n();
 
-onMounted(() => {
-  if (!instances.loaded) void instances.load();
+onMounted(async () => {
+  if (!instances.loaded) await instances.load();
+  // Подписка на события живёт в сторе и заводится один раз: рейл виден
+  // всегда, значит и слушать он обязан всегда.
+  await run.load();
 });
 
 // Порядок фиксирован планом: инстансы, установка, библиотека, настройки,
@@ -26,21 +32,17 @@ const sections = computed(() => [
 
 /**
  * Второй блок рейла. Смысл его в том, что события, не вызванные действием
- * пользователя, обязаны быть видны независимо от открытого раздела.
- *
- * Пока нет супервизора, это инстансы с исчезнувшей папкой. В Фазе 2 сюда же
- * придут работающие, стартующие и аварийно завершённые — отсюда нейтральный
- * заголовок вместо «Запущены»: он остаётся верным в обоих случаях.
+ * пользователя, обязаны быть видны независимо от открытого раздела:
+ * упавший процесс, самоперезапуск от ComfyUI-Manager, исчезнувшая папка.
  */
-const attention = computed(() => instances.needsAttention);
-
-const dotColor: Record<string, string> = {
-  running: 'var(--state-running)',
-  starting: 'var(--state-starting)',
-  crashed: 'var(--state-crashed)',
-  unavailable: 'var(--state-unavailable)',
-  stopped: 'var(--state-stopped)',
-};
+const attention = computed(() =>
+  instances.items
+    .map((instance) => ({
+      instance,
+      status: displayStatus(instance, run.statusOf(instance.id)),
+    }))
+    .filter((row) => needsAttention(row.status)),
+);
 
 const toggleLabel = computed(() =>
   ui.railCollapsed ? t('nav.expand') : t('nav.collapse'),
@@ -69,21 +71,22 @@ const toggleLabel = computed(() =>
            кнопку сворачивания за пределы окна. -->
       <div class="nav-runs">
         <RouterLink
-          v-for="instance in attention"
-          :key="instance.id"
+          v-for="row in attention"
+          :key="row.instance.id"
           class="nav-run"
-          :class="{ alert: statusOf(instance) === 'crashed' }"
-          :to="`/instances/${instance.id}`"
-          :title="instance.name"
+          :class="{ alert: row.status === 'crashed' || row.status === 'detached' }"
+          :to="`/instances/${row.instance.id}`"
+          :title="row.instance.name"
         >
           <span
             class="chip"
-            :style="{ '--instance-accent': accentVar(instance.accent) }"
+            :style="{ '--instance-accent': accentVar(row.instance.accent) }"
           >
-            {{ initial(instance.name) }}
+            {{ initial(row.instance.name) }}
           </span>
-          <em>{{ instance.name }}</em>
-          <i class="dot" :style="{ background: dotColor[statusOf(instance)] }"></i>
+          <em>{{ row.instance.name }}</em>
+          <span v-if="row.status === 'crashed'" class="badge">!</span>
+          <i v-else class="dot" :style="{ background: STATE_DOT[row.status] }"></i>
         </RouterLink>
       </div>
     </template>

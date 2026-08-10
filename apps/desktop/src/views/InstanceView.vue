@@ -5,15 +5,19 @@ import { useRouter } from 'vue-router';
 import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
 import InstanceFields from '../components/InstanceFields.vue';
+import LaunchPanel from '../components/LaunchPanel.vue';
 import StatusPill from '../components/StatusPill.vue';
 import type { InstanceEdit } from '../bindings';
 import { accentVar, useFormat } from '../lib/format';
-import { statusOf, useInstancesStore } from '../stores/instances';
+import { displayStatus } from '../lib/status';
+import { useInstancesStore } from '../stores/instances';
+import { useRunStore } from '../stores/run';
 import { useUiStore } from '../stores/ui';
 
 const props = defineProps<{ id: string }>();
 
 const instances = useInstancesStore();
+const run = useRunStore();
 const ui = useUiStore();
 const router = useRouter();
 const { t } = useI18n();
@@ -105,7 +109,7 @@ function openFolder(): void {
         :style="{ '--instance-accent': accentVar(instance.accent) }"
       ></span>
       <h1 class="t-lg">{{ instance.name }}</h1>
-      <StatusPill :status="statusOf(instance)" />
+      <StatusPill :status="displayStatus(instance, run.statusOf(instance.id))" />
       <span class="head-spacer"></span>
       <button v-if="!editing" type="button" class="btn secondary" @click="startEdit">
         {{ t('common.edit') }}
@@ -122,6 +126,8 @@ function openFolder(): void {
             {{ t('instances.unavailable.body', { path: instance.path }) }}
           </p>
         </div>
+
+        <LaunchPanel :instance="instance" />
 
         <div v-if="instance.description" class="card-desc">
           {{ instance.description }}

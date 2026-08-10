@@ -30,7 +30,9 @@
     "starting": "Starting",
     "running": "Running",
     "crashed": "Crashed",
-    "unavailable": "Folder missing"
+    "unavailable": "Folder missing",
+    "detached": "Out of our control",
+    "stopping": "Stopping"
   },
   "accent": {
     "ember": "Ember",
@@ -245,6 +247,32 @@
       "longPath": "The deepest file would land {chars} characters in. Unpacking will still work, but ComfyUI and pip may not — pick a shorter path.",
       "noSpace": "Not enough free space: about {needed} GB is required.",
       "historyFailed": "Could not read the archive history: {reason}"
+    },
+    "run": {
+      "spawnFailed": "Could not start the build: {reason}",
+      "stopFailed": "Could not stop the process: {reason}",
+      "noFreePort": "No free port could be found.",
+      "noProfiles": "This instance has no launch profile.",
+      "alreadyRunning": "This instance is already running.",
+      "notRunning": "This instance is not running.",
+      "readyTimeout": "The server did not become ready within {secs} seconds.",
+      "cancelled": "Startup was cancelled."
     }
+  },
+  "run": {
+    "start": "Start",
+    "starting": "Starting…",
+    "stop": "Stop",
+    "restart": "Restart",
+    "profile": "Launch profile",
+    "profileDefault": "Default profile",
+    "console": "Startup log",
+    "openInBrowser": "Open in browser",
+    "readyIn": "ready in {secs} s",
+    "onPort": "port {port}",
+    "fallback": "This profile could not be parsed, so it runs through cmd. Stopping it is less reliable.",
+    "crashed": "The server stopped on its own. Exit code {code}. The log above is kept.",
+    "detached": "The server is still answering on its port, but a different process owns it now — most likely ComfyUI-Manager restarted it after installing nodes. Stopping it from here is no longer possible.",
+    "empty": "The log is empty so far."
   }
 }

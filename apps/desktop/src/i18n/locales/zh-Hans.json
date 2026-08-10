@@ -30,7 +30,9 @@
     "starting": "启动中",
     "running": "运行中",
     "crashed": "异常退出",
-    "unavailable": "找不到文件夹"
+    "unavailable": "找不到文件夹",
+    "detached": "不受控制",
+    "stopping": "正在停止"
   },
   "accent": {
     "ember": "余烬",
@@ -245,6 +247,32 @@
       "longPath": "最深的文件将位于 {chars} 个字符处。解压本身可以完成，但 ComfyUI 和 pip 可能会出问题，请选择更短的路径。",
       "noSpace": "可用空间不足：大约需要 {needed} GB。",
       "historyFailed": "无法读取压缩包历史：{reason}"
+    },
+    "run": {
+      "spawnFailed": "无法启动：{reason}",
+      "stopFailed": "无法停止进程：{reason}",
+      "noFreePort": "找不到空闲端口。",
+      "noProfiles": "这个实例没有任何启动配置。",
+      "alreadyRunning": "这个实例已在运行。",
+      "notRunning": "这个实例未在运行。",
+      "readyTimeout": "服务器在 {secs} 秒内没有就绪。",
+      "cancelled": "启动已取消。"
     }
+  },
+  "run": {
+    "start": "启动",
+    "starting": "启动中…",
+    "stop": "停止",
+    "restart": "重启",
+    "profile": "启动配置",
+    "profileDefault": "默认配置",
+    "console": "启动日志",
+    "openInBrowser": "在浏览器中打开",
+    "readyIn": "{secs} 秒就绪",
+    "onPort": "端口 {port}",
+    "fallback": "这个配置无法解析，因此通过 cmd 启动。停止它的可靠性较低。",
+    "crashed": "服务器自行退出。退出代码 {code}。上方日志保留。",
+    "detached": "端口上的服务器仍在响应，但现在它属于另一个进程——很可能是 ComfyUI-Manager 安装节点后重启了它。从这里已无法停止。",
+    "empty": "日志目前为空。"
   }
 }

@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import {
@@ -10,38 +10,11 @@ import {
 } from '../bindings';
 import { useUiStore } from './ui';
 
-/**
- * Состояние инстанса в интерфейсе.
- *
- * В Фазе 1 живых процессов ещё нет, поэтому реальных значений два:
- * остановлен и папка исчезла. Остальные появятся вместе с супервизором
- * в Фазе 2, но перечислены сразу — от этого зависят и рейл, и карточки.
- */
-export type InstanceStatus =
-  | 'stopped'
-  | 'starting'
-  | 'running'
-  | 'crashed'
-  | 'unavailable';
-
-export function statusOf(instance: Instance): InstanceStatus {
-  return instance.available ? 'stopped' : 'unavailable';
-}
-
 export const useInstancesStore = defineStore('instances', () => {
   const ui = useUiStore();
 
   const items = ref<Instance[]>([]);
   const loaded = ref(false);
-
-  /**
-   * Что показывать в рейле. Пока нет супервизора — это инстансы
-   * с исчезнувшей папкой: единственное, о чём приложение уже сейчас
-   * обязано сообщать независимо от открытого раздела.
-   */
-  const needsAttention = computed(() =>
-    items.value.filter((i) => statusOf(i) !== 'stopped'),
-  );
 
   function byId(id: string): Instance | undefined {
     return items.value.find((i) => i.id === id);
@@ -125,7 +98,6 @@ export const useInstancesStore = defineStore('instances', () => {
   return {
     items,
     loaded,
-    needsAttention,
     byId,
     load,
     probe,

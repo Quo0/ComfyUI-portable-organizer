@@ -11,13 +11,13 @@
 import { ref, onMounted, onBeforeUnmount, useTemplateRef, nextTick } from 'vue';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 
-import { commands, events, type LogLine } from '../bindings';
+import { commands, events, type SpikeLog } from '../bindings';
 import { errorText } from '../lib/errors';
 import { useUiStore } from '../stores/ui';
 
 const ui = useUiStore();
 
-const lines = ref<LogLine[]>([]);
+const lines = ref<SpikeLog[]>([]);
 const status = ref('Остановлен');
 const busy = ref(false);
 const embedded = ref(false);
@@ -29,13 +29,13 @@ let port = 0;
 
 onMounted(async () => {
   unlisten.push(
-    await events.logLine.listen((e) => {
+    await events.spikeLog.listen((e) => {
       lines.value.push(e.payload);
       if (lines.value.length > 2000) lines.value.splice(0, 500);
     }),
   );
   unlisten.push(
-    await events.comfyReady.listen(async (e) => {
+    await events.spikeReady.listen(async (e) => {
       status.value = `Работает на :${e.payload.port}, готов за ${e.payload.secs} с`;
       await embed(e.payload.port);
     }),

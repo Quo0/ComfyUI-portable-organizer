@@ -30,7 +30,9 @@
     "starting": "Arrancando",
     "running": "En marcha",
     "crashed": "Terminada con error",
-    "unavailable": "Carpeta no encontrada"
+    "unavailable": "Carpeta no encontrada",
+    "detached": "Fuera de nuestro control",
+    "stopping": "Deteniéndose"
   },
   "accent": {
     "ember": "Brasa",
@@ -245,6 +247,32 @@
       "longPath": "El archivo más profundo quedaría a {chars} caracteres. La descompresión funcionará, pero ComfyUI y pip puede que no: elige una ruta más corta.",
       "noSpace": "No hay espacio suficiente: hacen falta unos {needed} GB.",
       "historyFailed": "No se ha podido leer el historial de archivos: {reason}"
+    },
+    "run": {
+      "spawnFailed": "No se ha podido arrancar: {reason}",
+      "stopFailed": "No se ha podido detener el proceso: {reason}",
+      "noFreePort": "No se ha encontrado ningún puerto libre.",
+      "noProfiles": "Esta instancia no tiene ningún perfil de arranque.",
+      "alreadyRunning": "Esta instancia ya está en marcha.",
+      "notRunning": "Esta instancia no está en marcha.",
+      "readyTimeout": "El servidor no ha estado listo en {secs} segundos.",
+      "cancelled": "Se ha cancelado el arranque."
     }
+  },
+  "run": {
+    "start": "Arrancar",
+    "starting": "Arrancando…",
+    "stop": "Detener",
+    "restart": "Reiniciar",
+    "profile": "Perfil de arranque",
+    "profileDefault": "Perfil por defecto",
+    "console": "Registro de arranque",
+    "openInBrowser": "Abrir en el navegador",
+    "readyIn": "lista en {secs} s",
+    "onPort": "puerto {port}",
+    "fallback": "Este perfil no se ha podido interpretar, así que se ejecuta a través de cmd. Detenerlo es menos fiable.",
+    "crashed": "El servidor se ha detenido solo. Código de salida {code}. El registro de arriba se conserva.",
+    "detached": "El servidor sigue respondiendo en su puerto, pero ahora lo controla otro proceso: lo más probable es que ComfyUI-Manager lo haya reiniciado tras instalar nodos. Ya no se puede detener desde aquí.",
+    "empty": "De momento el registro está vacío."
   }
 }

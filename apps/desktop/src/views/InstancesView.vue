@@ -5,9 +5,12 @@ import { useI18n } from 'vue-i18n';
 import StatusPill from '../components/StatusPill.vue';
 import type { Instance } from '../bindings';
 import { accentVar, useFormat } from '../lib/format';
-import { statusOf, useInstancesStore } from '../stores/instances';
+import { displayStatus } from '../lib/status';
+import { useInstancesStore } from '../stores/instances';
+import { useRunStore } from '../stores/run';
 
 const instances = useInstancesStore();
+const run = useRunStore();
 const { t } = useI18n();
 const { bytes, moment } = useFormat();
 
@@ -53,7 +56,7 @@ onMounted(() => {
             <div class="card-in">
               <div class="card-top">
                 <div class="card-name">{{ instance.name }}</div>
-                <StatusPill :status="statusOf(instance)" />
+                <StatusPill :status="displayStatus(instance, run.statusOf(instance.id))" />
               </div>
               <div v-if="instance.description" class="card-desc">
                 {{ instance.description }}

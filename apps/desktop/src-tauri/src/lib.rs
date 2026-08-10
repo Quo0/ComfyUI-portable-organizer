@@ -16,7 +16,12 @@ pub mod discovery;
 pub mod error;
 pub mod installer;
 pub mod instances;
+pub mod ports;
+pub mod process;
+pub mod profiles;
+pub mod run;
 pub mod settings;
+pub mod supervise;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
@@ -37,6 +42,8 @@ use crate::installer::{
 use crate::instances::{
     Accent, Instance, InstanceEdit, ProbeResult, SizeJobs, Sized_,
 };
+use crate::process::{RunState, RunStatus, Runtime};
+use crate::profiles::LaunchProfile;
 use crate::settings::{Bootstrap, UiSettings};
 
 /// Настройки, прочитанные при старте: тема, язык, состояние рейла,
@@ -215,6 +222,185 @@ async fn cancel_install(cancel: tauri::State<'_, InstallCancel>) -> Result<(), A
     Ok(())
 }
 
+
+// ------------------------------------------------------ запуск сборки
+
+/// Событие с очередной строкой лога запущенного инстанса.
+///
+/// Имя с префиксом `Run`, чтобы не столкнуться с `SpikeLog` спайка:
+/// tauri-specta выводит имя события из имени структуры, и одинаковые
+/// имена разъехались бы молча.
+#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
+#[serde(rename_all = "camelCase")]
+pub struct RunLog {
+    pub instance_id: String,
+    pub line: crate::process::LogLine,
+}
+
+/// Событие смены состояния. Приходит и тогда, когда пользователь ничего
+/// не делал: падение и самоперезапуск обязаны быть видны сразу.
+#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
+pub struct RunChanged(pub RunStatus);
+
+/// Профили запуска инстанса, разобранные из его `.bat` прямо сейчас.
+#[tauri::command]
+#[specta::specta]
+async fn instance_profiles(
+    app: tauri::AppHandle,
+    id: String,
+) -> Result<Vec<LaunchProfile>, AppError> {
+    let instance = instances::list(&app)?
+        .into_iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", &id))?;
+    Ok(run::profiles_of(&instance))
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn run_statuses(runtime: tauri::State<'_, Runtime>) -> Result<Vec<RunStatus>, AppError> {
+    Ok(runtime.statuses())
+}
+
+/// Весь накопленный лог инстанса.
+///
+/// Нужен, чтобы вернувшись на экран инстанса увидеть старт целиком:
+/// события догоняют только то, что происходит при открытом экране.
+#[tauri::command]
+#[specta::specta]
+async fn run_log(
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+) -> Result<Vec<crate::process::LogLine>, AppError> {
+    Ok(runtime
+        .get(&id)
+        .map(|cell| cell.lock().unwrap().log.snapshot())
+        .unwrap_or_default())
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn start_instance(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+    profile_id: Option<String>,
+) -> Result<RunStatus, AppError> {
+    if runtime.is_busy(&id) {
+        return Err(AppError::new("run.alreadyRunning"));
+    }
+
+    let instance = instances::list(&app)?
+        .into_iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", &id))?;
+    if !instance.available {
+        return Err(AppError::with("instances.missing", "path", &instance.path));
+    }
+
+    let all = run::profiles_of(&instance);
+    let profile = profile_id
+        .as_deref()
+        .and_then(|want| all.iter().find(|p| p.id == want))
+        .or_else(|| all.first())
+        .ok_or_else(|| AppError::new("run.noProfiles"))?
+        .clone();
+
+    let emitter = app.clone();
+    let on_line = std::sync::Arc::new({
+        let id = id.clone();
+        move |line: crate::process::LogLine| {
+            let _ = RunLog { instance_id: id.clone(), line }.emit(&emitter);
+        }
+    });
+
+    let exit_app = app.clone();
+    let exit_id = id.clone();
+    let outcome = run::start(&instance, &profile, on_line, move |exit| {
+        finish(&exit_app, &exit_id, exit);
+    })?;
+
+    runtime.insert(&id, outcome.cell.clone());
+    let _ = RunChanged(outcome.status.clone()).emit(&app);
+
+    // Готовность ждём в фоне: команда обязана вернуться сразу, иначе
+    // интерфейс не покажет ни строчки до конца холодного старта.
+    let ready_app = app.clone();
+    let ready_cell = outcome.cell.clone();
+    let port = outcome.status.port.unwrap_or_default();
+    std::thread::spawn(move || {
+        let keep = {
+            let cell = ready_cell.clone();
+            move || {
+                matches!(cell.lock().unwrap().status.state, RunState::Starting)
+            }
+        };
+        match crate::process::wait_ready(port, crate::process::READY_TIMEOUT, keep) {
+            Ok(secs) => {
+                let mut running = ready_cell.lock().unwrap();
+                if running.status.state == RunState::Starting {
+                    running.status.state = RunState::Running;
+                    running.status.ready_secs = Some(secs);
+                    let _ = RunChanged(running.status.clone()).emit(&ready_app);
+                }
+            }
+            Err(_) => {
+                let mut running = ready_cell.lock().unwrap();
+                if running.status.state == RunState::Starting {
+                    running.status.state = RunState::Crashed;
+                    let _ = RunChanged(running.status.clone()).emit(&ready_app);
+                }
+            }
+        }
+    });
+
+    Ok(outcome.status)
+}
+
+/// Разбирает, чем кончился процесс, и сообщает наверх.
+fn finish(app: &tauri::AppHandle, id: &str, exit: run::Exit) {
+    let runtime = app.state::<Runtime>();
+    let Some(cell) = runtime.get(id) else { return };
+    let mut running = cell.lock().unwrap();
+
+    match exit {
+        run::Exit::Requested => {
+            running.status.state = RunState::Stopped;
+            running.status.pid = None;
+        }
+        run::Exit::Crashed(code) => {
+            running.status.state = RunState::Crashed;
+            running.status.exit_code = code;
+            running.status.pid = None;
+        }
+        run::Exit::Detached => {
+            // Сервер жив, но не наш. Управлять им мы больше не можем,
+            // и делать вид, что можем, нельзя.
+            running.status.state = RunState::Detached;
+            running.status.pid = None;
+        }
+    }
+    let _ = RunChanged(running.status.clone()).emit(app);
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn stop_instance(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+) -> Result<(), AppError> {
+    let cell = runtime
+        .get(&id)
+        .ok_or_else(|| AppError::new("run.notRunning"))?;
+    let _ = RunChanged(RunStatus {
+        state: RunState::Stopping,
+        ..cell.lock().unwrap().status.clone()
+    })
+    .emit(&app);
+    run::stop(&cell)
+}
+
 /// Считает размер инстанса на диске.
 ///
 /// Команда `async`, поэтому выполняется не в главном потоке и интерфейс
@@ -244,13 +430,17 @@ struct SpikeState {
     child: Mutex<Option<Child>>,
 }
 
-/// Событие с строкой лога.
+/// Событие с строкой лога спайка.
+///
+/// Имя с префиксом Spike не для красоты: tauri-specta выводит имя
+/// события из имени структуры, и совпадение с LogLine из process.rs
+/// роняло экспорт типов.
 ///
 /// Типы генерируются в `src/bindings.ts`: описывать одну и ту же модель
 /// на Rust и на TypeScript руками — верный способ получить молчаливое
 /// расхождение, а этих моделей дальше будет много.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-struct LogLine {
+struct SpikeLog {
     stream: String,
     text: String,
 }
@@ -261,7 +451,7 @@ struct LogLine {
 /// у которого есть `ResizeObserver`. Захардкоженный размер в Rust дал бы
 /// вкладку не по месту.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-struct ComfyReady {
+struct SpikeReady {
     port: u16,
     secs: u32,
 }
@@ -353,7 +543,7 @@ fn pump<R: Read + Send + 'static>(app: tauri::AppHandle, stream: R, name: &'stat
                     text.chars().take(60).collect::<String>()
                 ));
             }
-            let _ = LogLine { stream: name.to_string(), text }.emit(&app);
+            let _ = SpikeLog { stream: name.to_string(), text }.emit(&app);
         }
     });
 }
@@ -467,7 +657,7 @@ fn embed_inner(
         .disable_drag_drop_handler()
         .on_page_load(move |view, payload| {
             report(&format!("вкладка загрузила {}", payload.url()));
-            let _ = LogLine {
+            let _ = SpikeLog {
                 stream: "webview".into(),
                 text: format!("страница загружена: {}", payload.url()),
             }
@@ -485,7 +675,7 @@ fn embed_inner(
                 // Главный результат фазы: что реально отдал сервер вкладке.
                 // Если бы origin-middleware отбила запрос, здесь было бы 403.
                 report(&format!("вкладка видит: {rest}"));
-                let _ = LogLine {
+                let _ = SpikeLog {
                     stream: "webview".into(),
                     text: format!("вебвью видит: {rest}"),
                 }
@@ -571,7 +761,7 @@ fn autorun(app: tauri::AppHandle) {
         };
 
         // Встраивание отдаём фронту: прямоугольник знает он.
-        if let Err(e) = (ComfyReady { port, secs }).emit(&app) {
+        if let Err(e) = (SpikeReady { port, secs }).emit(&app) {
             report(&format!("ПРОВАЛ: не удалось сообщить о готовности: {e}"));
         }
     });
@@ -597,13 +787,24 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             forget_archive,
             run_install,
             cancel_install,
+            instance_profiles,
+            run_statuses,
+            run_log,
+            start_instance,
+            stop_instance,
             start_comfy,
             wait_ready,
             embed_comfy,
             hide_comfy,
             stop_comfy
         ])
-        .events(tauri_specta::collect_events![LogLine, ComfyReady, InstallProgress])
+        .events(tauri_specta::collect_events![
+            SpikeLog,
+            SpikeReady,
+            InstallProgress,
+            RunLog,
+            RunChanged
+        ])
 }
 
 /// Выгружает типы в `src/bindings.ts`.
@@ -647,11 +848,19 @@ pub fn run() {
         .manage(SizeJobs::default())
         .manage(InstallLock::default())
         .manage(InstallCancel::default())
+        .manage(Runtime::default())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             // Обязательно: без mount_events типизированные события
             // не доедут до фронта.
             builder.mount_events(app);
+
+            // Job Object до всего остального: сборки, запущенные до его
+            // установки, переживут падение приложения и оставят занятой
+            // видеопамять.
+            if let Err(e) = supervise::windows::install_job_object() {
+                eprintln!("[CPO] job object не создан: {e}. Дочерние процессы могут пережить приложение.");
+            }
 
             if std::env::var("CPO_SPIKE").as_deref() == Ok("1") {
                 autorun(app.handle().clone());
