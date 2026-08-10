@@ -92,14 +92,33 @@ fn start_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Re
 }
 
 /// Читает поток построчно в отдельном треде и шлёт каждую строку во фронт.
+///
+/// Первая строка дополнительно печатается в терминал: по ней видно,
+/// действительно ли стриминг живой, или вывод пришёл пачкой в конце.
 fn pump<R: Read + Send + 'static>(app: tauri::AppHandle, stream: R, name: &'static str) {
     std::thread::spawn(move || {
+        let started = Instant::now();
+        let mut first = true;
         let reader = BufReader::new(stream);
         for line in reader.lines() {
             let Ok(text) = line else { break };
+            if first {
+                first = false;
+                report(&format!(
+                    "первая строка {name} через {:.1} с: {}",
+                    started.elapsed().as_secs_f32(),
+                    text.chars().take(60).collect::<String>()
+                ));
+            }
             let _ = app.emit("comfy-log", LogLine { stream: name, text });
         }
     });
+}
+
+/// Печатает факт спайка в терминал `tauri dev` с приметным префиксом,
+/// чтобы результаты было видно среди логов сборки.
+fn report(msg: &str) {
+    println!("[СПАЙК] {msg}");
 }
 
 /// Опрашивает `/system_stats`, пока сервер не ответит.
@@ -173,6 +192,7 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
         // и воркфлоу на холст ComfyUI перестанет работать.
         .disable_drag_drop_handler()
         .on_page_load(move |view, payload| {
+            report(&format!("вкладка загрузила {}", payload.url()));
             let _ = probe_app.emit(
                 "comfy-log",
                 LogLine {
@@ -190,6 +210,9 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
         })
         .on_document_title_changed(move |_view, title| {
             if let Some(rest) = title.strip_prefix("CPO|") {
+                // Главный результат фазы: что реально отдал сервер вкладке.
+                // Если бы origin-middleware отбила запрос, здесь было бы 403.
+                report(&format!("вкладка видит: {rest}"));
                 let _ = title_app.emit(
                     "comfy-log",
                     LogLine {
@@ -225,6 +248,43 @@ fn stop_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Res
     Ok(())
 }
 
+/// Прогоняет спайк целиком без участия человека.
+///
+/// Включается переменной `CPO_SPIKE=1`. Нужен потому, что проверить
+/// результат кликом по кнопке можно только руками, а решение фазы
+/// хочется получать воспроизводимо и в логе.
+fn autorun(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        report("автопрогон включён (CPO_SPIKE=1)");
+        let state = app.state::<SpikeState>();
+
+        let port = match start_comfy(app.clone(), state) {
+            Ok(p) => {
+                report(&format!("процесс запущен, порт {p}"));
+                p
+            }
+            Err(e) => {
+                report(&format!("ПРОВАЛ: не удалось запустить: {e}"));
+                return;
+            }
+        };
+
+        match wait_ready(port, 300) {
+            Ok(secs) => report(&format!("сервер готов за {secs} с")),
+            Err(e) => {
+                report(&format!("ПРОВАЛ: {e}"));
+                return;
+            }
+        }
+
+        // Прямоугольник произвольный: во фронте его считает ResizeObserver,
+        // здесь важно лишь то, что вебвью создаётся и грузит страницу.
+        if let Err(e) = embed_comfy(app.clone(), port, 0.0, 46.0, 1100.0, 460.0) {
+            report(&format!("ПРОВАЛ: не удалось встроить вкладку: {e}"));
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -236,6 +296,12 @@ pub fn run() {
             embed_comfy,
             stop_comfy
         ])
+        .setup(|app| {
+            if std::env::var("CPO_SPIKE").as_deref() == Ok("1") {
+                autorun(app.handle().clone());
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("не удалось запустить приложение");
 }
