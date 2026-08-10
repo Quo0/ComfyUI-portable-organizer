@@ -2,10 +2,11 @@
 // Спайк Фазы 0. Интерфейс намеренно черновой: его задача — не выглядеть,
 // а показать четыре факта. Настоящие экраны появятся с Фазы 0.5.
 import { ref, onMounted, onBeforeUnmount, useTemplateRef, nextTick } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-
-type LogLine = { stream: 'stdout' | 'stderr' | 'webview'; text: string };
+import type { UnlistenFn } from '@tauri-apps/api/event';
+// Типы и вызовы сгенерированы из сигнатур Rust: см. src-tauri/src/lib.rs.
+// Файл не редактируется руками — он перезаписывается при каждом запуске
+// дев-сборки.
+import { commands, events, type LogLine } from './bindings';
 
 const lines = ref<LogLine[]>([]);
 const status = ref('Остановлен');
@@ -19,7 +20,7 @@ let startedAt = 0;
 let observer: ResizeObserver | null = null;
 
 onMounted(async () => {
-  unlisten = await listen<LogLine>('comfy-log', (e) => {
+  unlisten = await events.logLine.listen((e) => {
     // Проверка живого стриминга: засекаем, через сколько пришла первая строка.
     if (firstLineAfter.value === null && startedAt) {
       firstLineAfter.value = Math.round((performance.now() - startedAt) / 100) / 10;
@@ -41,9 +42,14 @@ async function start() {
   startedAt = performance.now();
   status.value = 'Стартует';
   try {
-    const port = await invoke<number>('start_comfy');
-    const secs = await invoke<number>('wait_ready', { port, timeoutSecs: 300 });
-    status.value = `Работает на :${port}, готов за ${secs} с`;
+    const started = await commands.startComfy();
+    if (started.status === 'error') throw new Error(started.error);
+    const port = started.data;
+
+    const ready = await commands.waitReady(port, 300);
+    if (ready.status === 'error') throw new Error(ready.error);
+
+    status.value = `Работает на :${port}, готов за ${ready.data} с`;
     await embed(port);
   } catch (e) {
     status.value = `Ошибка: ${String(e)}`;
@@ -61,13 +67,7 @@ async function embed(port: number) {
   // поэтому прямоугольник пересчитывается вручную на каждое изменение.
   const sync = () => {
     const r = el.getBoundingClientRect();
-    void invoke('embed_comfy', {
-      port,
-      x: r.left,
-      y: r.top,
-      w: r.width,
-      h: r.height,
-    });
+    void commands.embedComfy(port, r.left, r.top, r.width, r.height);
   };
   sync();
   embedded.value = true;
@@ -81,7 +81,7 @@ async function embed(port: number) {
 async function stop() {
   busy.value = true;
   try {
-    await invoke('stop_comfy');
+    await commands.stopComfy();
     embedded.value = false;
     status.value = 'Остановлен';
   } finally {

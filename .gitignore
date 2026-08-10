@@ -34,3 +34,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Генерируется tauri-specta при каждом запуске дев-сборки.
+apps/desktop/src/bindings.ts

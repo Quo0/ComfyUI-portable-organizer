@@ -15,8 +15,9 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use serde::Serialize;
-use tauri::{Emitter, LogicalPosition, LogicalSize, Manager, WebviewUrl};
+use serde::{Deserialize, Serialize};
+use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
+use tauri_specta::Event;
 
 /// Реальная установка для спайка. Захардкожена намеренно: реестр появится в Фазе 1.
 const INSTANCE_DIR: &str =
@@ -33,9 +34,14 @@ struct SpikeState {
     child: Mutex<Option<Child>>,
 }
 
-#[derive(Clone, Serialize)]
+/// Событие с строкой лога.
+///
+/// Типы генерируются в `src/bindings.ts`: описывать одну и ту же модель
+/// на Rust и на TypeScript руками — верный способ получить молчаливое
+/// расхождение, а этих моделей дальше будет много.
+#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
 struct LogLine {
-    stream: &'static str,
+    stream: String,
     text: String,
 }
 
@@ -45,6 +51,7 @@ struct LogLine {
 /// (в cli_args.py он применяется после `--windows-standalone-build`
 /// и всегда побеждает), `--port` фиксирует порт.
 #[tauri::command]
+#[specta::specta]
 fn start_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Result<u16, String> {
     if state.child.lock().unwrap().is_some() {
         return Err("Уже запущен".into());
@@ -110,7 +117,7 @@ fn pump<R: Read + Send + 'static>(app: tauri::AppHandle, stream: R, name: &'stat
                     text.chars().take(60).collect::<String>()
                 ));
             }
-            let _ = app.emit("comfy-log", LogLine { stream: name, text });
+            let _ = LogLine { stream: name.to_string(), text }.emit(&app);
         }
     });
 }
@@ -126,13 +133,14 @@ fn report(msg: &str) {
 /// Реализовано на голом TcpStream осознанно: тянуть HTTP-клиент ради
 /// одного запроса в спайк — лишние минуты компиляции.
 #[tauri::command]
-fn wait_ready(port: u16, timeout_secs: u64) -> Result<u64, String> {
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+#[specta::specta]
+fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, String> {
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs.into());
     let started = Instant::now();
 
     while Instant::now() < deadline {
         if probe(port) {
-            return Ok(started.elapsed().as_secs());
+            return Ok(started.elapsed().as_secs() as u32);
         }
         std::thread::sleep(Duration::from_millis(500));
     }
@@ -167,6 +175,7 @@ fn probe(port: u16) -> bool {
 /// навигацию верхнего уровня, и middleware пропускает без единого
 /// послабления в настройках сервера.
 #[tauri::command]
+#[specta::specta]
 fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
     let window = app.get_window("main").ok_or("Нет окна main")?;
 
@@ -193,13 +202,11 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
         .disable_drag_drop_handler()
         .on_page_load(move |view, payload| {
             report(&format!("вкладка загрузила {}", payload.url()));
-            let _ = probe_app.emit(
-                "comfy-log",
-                LogLine {
-                    stream: "webview",
-                    text: format!("страница загружена: {}", payload.url()),
-                },
-            );
+            let _ = LogLine {
+                stream: "webview".into(),
+                text: format!("страница загружена: {}", payload.url()),
+            }
+            .emit(&probe_app);
             // Заголовок — единственный канал обратно из чужого origin:
             // наш IPC там не доступен. Кладём в него начало текста страницы,
             // чтобы увидеть, отдал ли сервер интерфейс или 403.
@@ -213,13 +220,11 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
                 // Главный результат фазы: что реально отдал сервер вкладке.
                 // Если бы origin-middleware отбила запрос, здесь было бы 403.
                 report(&format!("вкладка видит: {rest}"));
-                let _ = title_app.emit(
-                    "comfy-log",
-                    LogLine {
-                        stream: "webview",
-                        text: format!("вебвью видит: {rest}"),
-                    },
-                );
+                let _ = LogLine {
+                    stream: "webview".into(),
+                    text: format!("вебвью видит: {rest}"),
+                }
+                .emit(&title_app);
             }
         });
 
@@ -235,6 +240,7 @@ fn embed_comfy(app: tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64)
 }
 
 #[tauri::command]
+#[specta::specta]
 fn stop_comfy(app: tauri::AppHandle, state: tauri::State<'_, SpikeState>) -> Result<(), String> {
     if let Some(view) = app.get_webview("comfy") {
         let _ = view.close();
@@ -285,18 +291,60 @@ fn autorun(app: tauri::AppHandle) {
     });
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .manage(SpikeState::default())
-        .invoke_handler(tauri::generate_handler![
+/// Единый список команд и событий: и обработчик вызовов, и генератор типов
+/// берутся отсюда, поэтому разойтись они не могут.
+fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
+        .commands(tauri_specta::collect_commands![
             start_comfy,
             wait_ready,
             embed_comfy,
             stop_comfy
         ])
-        .setup(|app| {
+        .events(tauri_specta::collect_events![LogLine])
+}
+
+/// Выгружает типы в `src/bindings.ts`.
+///
+/// Вызывается и из дев-сборки, и из теста. Тест важнее: он генерирует
+/// типы без запуска окна, поэтому работает в CI и не требует ни дисплея,
+/// ни дев-сервера Vite.
+#[cfg(debug_assertions)]
+fn export_bindings(builder: &tauri_specta::Builder<tauri::Wry>) {
+    builder
+        .export(
+            specta_typescript::Typescript::default(),
+            "../src/bindings.ts",
+        )
+        .expect("не удалось выгрузить типы в bindings.ts");
+}
+
+#[cfg(test)]
+mod tests {
+    /// Держит `src/bindings.ts` в согласии с сигнатурами команд.
+    /// Ломается ровно тогда, когда изменился контракт, — и это хорошо.
+    #[test]
+    fn bindings_up_to_date() {
+        super::export_bindings(&super::specta_builder());
+    }
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    let builder = specta_builder();
+
+    #[cfg(debug_assertions)]
+    export_bindings(&builder);
+
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .manage(SpikeState::default())
+        .invoke_handler(builder.invoke_handler())
+        .setup(move |app| {
+            // Обязательно: без mount_events типизированные события
+            // не доедут до фронта.
+            builder.mount_events(app);
+
             if std::env::var("CPO_SPIKE").as_deref() == Ok("1") {
                 autorun(app.handle().clone());
             }
