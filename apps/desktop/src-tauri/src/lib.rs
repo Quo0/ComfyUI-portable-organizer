@@ -10,10 +10,13 @@
 //! Спайк остаётся до Фазы 3 как единственный способ проверить встраивание:
 //! путь захардкожен, состояние примитивное. Настоящая архитектура — с Фазы 1.
 
-mod discovery;
-mod error;
-mod instances;
-mod settings;
+// Модули публичные: по ним ходят примеры в examples/, которыми
+// проверяется распаковка на реальном архиве.
+pub mod discovery;
+pub mod error;
+pub mod installer;
+pub mod instances;
+pub mod settings;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
@@ -27,6 +30,10 @@ use tauri_specta::Event;
 
 use crate::discovery::windows_portable::WindowsPortable;
 use crate::error::AppError;
+use crate::installer::history::ArchiveRecord;
+use crate::installer::{
+    ArchiveInfo, InstallCancel, InstallLock, InstallProgress, InstallTarget, TargetCheck,
+};
 use crate::instances::{
     Accent, Instance, InstanceEdit, ProbeResult, SizeJobs, Sized_,
 };
@@ -83,7 +90,7 @@ async fn add_instance(
         &WindowsPortable,
         std::path::Path::new(&path),
     )?;
-    instances::add(&app, probe, edit)
+    instances::add(&app, probe, edit, None)
 }
 
 #[tauri::command]
@@ -101,6 +108,111 @@ async fn update_instance(
 #[specta::specta]
 async fn remove_instance(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
     instances::remove(&app, &id)
+}
+
+// ---------------------------------------------------- мастер установки
+
+#[tauri::command]
+#[specta::specta]
+async fn probe_archive(path: String) -> Result<ArchiveInfo, AppError> {
+    installer::probe_archive(&path)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn check_targets(
+    info: ArchiveInfo,
+    targets: Vec<InstallTarget>,
+) -> Result<Vec<TargetCheck>, AppError> {
+    Ok(installer::check_targets(&info, &targets))
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn archive_history(app: tauri::AppHandle) -> Result<Vec<ArchiveRecord>, AppError> {
+    installer::history::list(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn forget_archive(app: tauri::AppHandle, path: String) -> Result<(), AppError> {
+    installer::history::forget(&app, &path)
+}
+
+/// Разворачивает архив в цели и регистрирует их.
+///
+/// Команда `async`, поэтому минуты распаковки не блокируют главный поток.
+/// Прогресс идёт событиями: возвращать его в ответе нечем, ответ один.
+#[tauri::command]
+#[specta::specta]
+async fn run_install(
+    app: tauri::AppHandle,
+    lock: tauri::State<'_, InstallLock>,
+    cancel: tauri::State<'_, InstallCancel>,
+    info: ArchiveInfo,
+    targets: Vec<InstallTarget>,
+) -> Result<Vec<Instance>, AppError> {
+    let _guard = lock.acquire()?;
+    cancel.reset();
+
+    // Проверки повторяются перед самой работой: между экраном целей
+    // и запуском место на диске могло кончиться, а папка — появиться.
+    let blocking: Vec<AppError> = installer::check_targets(&info, &targets)
+        .into_iter()
+        .flat_map(|c| c.errors)
+        .collect();
+    if let Some(first) = blocking.into_iter().next() {
+        return Err(first);
+    }
+
+    let emitter = app.clone();
+    installer::run(&info, &targets, &cancel, |progress| {
+        let _ = progress.emit(&emitter);
+    })?;
+
+    installer::history::remember(&app, &info)?;
+    register_targets(&app, &info, &targets)
+}
+
+/// Регистрирует распакованные цели, проставляя источник.
+fn register_targets(
+    app: &tauri::AppHandle,
+    info: &ArchiveInfo,
+    targets: &[InstallTarget],
+) -> Result<Vec<Instance>, AppError> {
+    let source = instances::InstallSource {
+        archive_path: info.path.clone(),
+        archive_label: info.label.clone(),
+        installed_at: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as f64)
+            .unwrap_or(0.0),
+    };
+
+    let mut created = Vec::new();
+    for target in targets {
+        let probe = <WindowsPortable as crate::discovery::InstanceDiscovery>::probe(
+            &WindowsPortable,
+            std::path::Path::new(&target.path),
+        )?;
+        let edit = InstanceEdit {
+            name: target.name.clone(),
+            description: target.description.clone(),
+            accent: target.accent,
+            preferred_port: target.preferred_port,
+        };
+        created.push(instances::add(app, probe, edit, Some(source.clone()))?);
+    }
+    Ok(created)
+}
+
+/// Просит мастер остановиться. Проверяется между файлами, поэтому
+/// отменённая установка не оставляет полураспакованного дерева.
+#[tauri::command]
+#[specta::specta]
+async fn cancel_install(cancel: tauri::State<'_, InstallCancel>) -> Result<(), AppError> {
+    cancel.request();
+    Ok(())
 }
 
 /// Считает размер инстанса на диске.
@@ -479,13 +591,19 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             update_instance,
             remove_instance,
             measure_instance_size,
+            probe_archive,
+            check_targets,
+            archive_history,
+            forget_archive,
+            run_install,
+            cancel_install,
             start_comfy,
             wait_ready,
             embed_comfy,
             hide_comfy,
             stop_comfy
         ])
-        .events(tauri_specta::collect_events![LogLine, ComfyReady])
+        .events(tauri_specta::collect_events![LogLine, ComfyReady, InstallProgress])
 }
 
 /// Выгружает типы в `src/bindings.ts`.
@@ -527,6 +645,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(SpikeState::default())
         .manage(SizeJobs::default())
+        .manage(InstallLock::default())
+        .manage(InstallCancel::default())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             // Обязательно: без mount_events типизированные события

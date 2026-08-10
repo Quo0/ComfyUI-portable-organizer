@@ -102,7 +102,46 @@
     },
     "wizard": {
       "title": "Descomprimir de un archivo",
+      "step": {
+        "archive": "Archivo",
+        "targets": "Destinos",
+        "running": "Descomprimiendo",
+        "done": "Listo"
+      },
+      "next": "Siguiente",
       "body": "Descomprimir una versión portable en uno o varios destinos y registrarlos de una vez."
+    },
+    "archive": {
+      "choose": "Elegir un archivo .7z…",
+      "history": "Recientes",
+      "missing": "El archivo ya no está o ha cambiado",
+      "forget": "Quitar de la lista",
+      "files": "{n} archivo | {n} archivos",
+      "unpacked": "Ocupará {size} al descomprimirse",
+      "root": "Carpeta raíz dentro del archivo: {name}",
+      "noRoot": "El archivo no tiene una única carpeta raíz, así que su contenido se descomprime tal cual."
+    },
+    "targets": {
+      "title": "Dónde descomprimir",
+      "hint": "La carpeta debe estar vacía o no existir. El nombre lo eliges tú: la carpeta raíz del archivo se descarta.",
+      "add": "Añadir otro destino",
+      "remove": "Quitar este destino",
+      "choose": "Elegir…",
+      "needed": "Hacen falta unos {size} libres"
+    },
+    "run": {
+      "start": "Descomprimir",
+      "cancel": "Cancelar",
+      "extracting": "Descomprimiendo en {name}",
+      "copying": "Copiando en {name}",
+      "registering": "Registrando",
+      "progress": "{done} de {total}",
+      "note": "El primer destino se descomprime y el resto se copia de él. La descompresión es la parte lenta, y hacerla una sola vez ahorra minutos."
+    },
+    "done": {
+      "title": "Listo",
+      "added": "{n} instancia añadida | {n} instancias añadidas",
+      "open": "Abrir"
     }
   },
   "workflows": {
@@ -188,6 +227,24 @@
     },
     "webview": {
       "embedFailed": "No se ha podido abrir la pestaña de ComfyUI: {reason}"
+    },
+    "installer": {
+      "archiveUnreadable": "No se ha podido leer el archivo: {reason}",
+      "extractFailed": "La descompresión ha fallado: {reason}",
+      "copyFailed": "La copia ha fallado: {reason}",
+      "writeFailed": "No se ha podido escribir en el destino: {reason}",
+      "cleanupFailed": "No se han podido borrar algunos archivos de la instalación interrumpida: {reason}",
+      "cancelled": "Se ha cancelado la descompresión.",
+      "busy": "Ya hay una instalación en marcha.",
+      "noTargets": "No se ha elegido ningún destino.",
+      "emptyPath": "La ruta de destino no puede estar vacía.",
+      "notAbsolute": "{path} no es una ruta completa.",
+      "notEmpty": "{path} no está vacía. Elige una carpeta vacía o que aún no exista.",
+      "notADirectory": "{path} existe y no es una carpeta.",
+      "duplicateTarget": "{path} aparece dos veces.",
+      "longPath": "El archivo más profundo quedaría a {chars} caracteres. La descompresión funcionará, pero ComfyUI y pip puede que no: elige una ruta más corta.",
+      "noSpace": "No hay espacio suficiente: hacen falta unos {needed} GB.",
+      "historyFailed": "No se ha podido leer el historial de archivos: {reason}"
     }
   }
 }

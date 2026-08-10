@@ -102,7 +102,46 @@
     },
     "wizard": {
       "title": "Unpack from an archive",
+      "step": {
+        "archive": "Archive",
+        "targets": "Destinations",
+        "running": "Unpacking",
+        "done": "Done"
+      },
+      "next": "Next",
       "body": "Unpack a portable build into one or several destinations and register them at once."
+    },
+    "archive": {
+      "choose": "Choose a .7z archive…",
+      "history": "Recently used",
+      "missing": "The file is gone or has changed",
+      "forget": "Remove from the list",
+      "files": "{n} file | {n} files",
+      "unpacked": "Unpacks to {size}",
+      "root": "Root folder in the archive: {name}",
+      "noRoot": "The archive has no single root folder, so its contents are unpacked as they are."
+    },
+    "targets": {
+      "title": "Where to unpack",
+      "hint": "The folder must be empty or not exist yet. The name is up to you: the root folder from the archive is stripped.",
+      "add": "Add another destination",
+      "remove": "Remove this destination",
+      "choose": "Choose…",
+      "needed": "Needs about {size} free"
+    },
+    "run": {
+      "start": "Unpack",
+      "cancel": "Cancel",
+      "extracting": "Unpacking into {name}",
+      "copying": "Copying into {name}",
+      "registering": "Registering",
+      "progress": "{done} of {total}",
+      "note": "The first destination is unpacked, the rest are copied from it. Decompression is the slow part, and doing it once saves minutes."
+    },
+    "done": {
+      "title": "Ready",
+      "added": "{n} instance added | {n} instances added",
+      "open": "Open"
     }
   },
   "workflows": {
@@ -188,6 +227,24 @@
     },
     "webview": {
       "embedFailed": "Could not open the ComfyUI tab: {reason}"
+    },
+    "installer": {
+      "archiveUnreadable": "Could not read the archive: {reason}",
+      "extractFailed": "Unpacking failed: {reason}",
+      "copyFailed": "Copying failed: {reason}",
+      "writeFailed": "Could not write to the destination: {reason}",
+      "cleanupFailed": "Some files of the interrupted install could not be removed: {reason}",
+      "cancelled": "Unpacking was cancelled.",
+      "busy": "An install is already running.",
+      "noTargets": "No destination was chosen.",
+      "emptyPath": "The destination path cannot be empty.",
+      "notAbsolute": "{path} is not a full path.",
+      "notEmpty": "{path} is not empty. Choose an empty folder, or one that does not exist yet.",
+      "notADirectory": "{path} exists and is not a folder.",
+      "duplicateTarget": "{path} is listed twice.",
+      "longPath": "The deepest file would land {chars} characters in. Unpacking will still work, but ComfyUI and pip may not — pick a shorter path.",
+      "noSpace": "Not enough free space: about {needed} GB is required.",
+      "historyFailed": "Could not read the archive history: {reason}"
     }
   }
 }

@@ -229,10 +229,14 @@ pub fn suggest_accent(app: &tauri::AppHandle) -> Result<Accent, AppError> {
     Ok(next_accent(&read_all(app)?))
 }
 
+/// Регистрирует папку. `source` заполняет мастер установки — по нему
+/// в карточке видно, из какого архива развёрнут инстанс; у добавленных
+/// вручную его нет.
 pub fn add(
     app: &tauri::AppHandle,
     probe: Probe,
     edit: InstanceEdit,
+    source: Option<InstallSource>,
 ) -> Result<Instance, AppError> {
     let mut list = read_all(app)?;
 
@@ -252,7 +256,7 @@ pub fn add(
         python_version: probe.python_version,
         profiles: probe.profiles,
         created_at: now_ms(),
-        source: None,
+        source,
         size_bytes: None,
         size_measured_at: None,
         available: true,

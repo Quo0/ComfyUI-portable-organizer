@@ -32,6 +32,11 @@ export const router = createRouter({
       component: () => import('../views/InstallView.vue'),
     },
     {
+      path: '/install/wizard',
+      name: 'install-wizard',
+      component: () => import('../views/InstallWizardView.vue'),
+    },
+    {
       path: '/workflows',
       name: 'workflows',
       component: () => import('../views/WorkflowsView.vue'),

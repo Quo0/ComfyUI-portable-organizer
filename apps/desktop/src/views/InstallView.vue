@@ -38,7 +38,11 @@ const { t } = useI18n();
           </div>
           <div class="scroll-pad">
             <p class="t-sm">{{ t('install.wizard.body') }}</p>
-            <p class="placeholder">{{ t('common.notReady') }}</p>
+            <div class="row">
+              <RouterLink class="btn primary" to="/install/wizard">
+                {{ t('install.archive.choose') }}
+              </RouterLink>
+            </div>
           </div>
         </div>
       </div>

@@ -102,7 +102,46 @@
     },
     "wizard": {
       "title": "从压缩包解压",
+      "step": {
+        "archive": "压缩包",
+        "targets": "目标位置",
+        "running": "解压中",
+        "done": "完成"
+      },
+      "next": "下一步",
       "body": "把便携版解压到一个或多个位置，并一次性登记。"
+    },
+    "archive": {
+      "choose": "选择 .7z 压缩包…",
+      "history": "最近使用",
+      "missing": "文件已不存在或已变更",
+      "forget": "从列表移除",
+      "files": "{n} 个文件",
+      "unpacked": "解压后占用 {size}",
+      "root": "压缩包内的根目录：{name}",
+      "noRoot": "压缩包没有唯一的根目录，因此内容将原样解压。"
+    },
+    "targets": {
+      "title": "解压到哪里",
+      "hint": "文件夹必须为空或尚不存在。名称由你决定，压缩包内的根目录会被去掉。",
+      "add": "再添加一个目标",
+      "remove": "移除这个目标",
+      "choose": "选择…",
+      "needed": "约需 {size} 可用空间"
+    },
+    "run": {
+      "start": "开始解压",
+      "cancel": "取消",
+      "extracting": "正在解压到 {name}",
+      "copying": "正在复制到 {name}",
+      "registering": "正在登记",
+      "progress": "{done} / {total}",
+      "note": "第一个目标通过解压得到，其余从它复制。解压是最慢的一步，只做一次能省下几分钟。"
+    },
+    "done": {
+      "title": "完成",
+      "added": "已添加 {n} 个实例",
+      "open": "打开"
     }
   },
   "workflows": {
@@ -188,6 +227,24 @@
     },
     "webview": {
       "embedFailed": "无法打开 ComfyUI 标签页：{reason}"
+    },
+    "installer": {
+      "archiveUnreadable": "无法读取压缩包：{reason}",
+      "extractFailed": "解压失败：{reason}",
+      "copyFailed": "复制失败：{reason}",
+      "writeFailed": "无法写入目标位置：{reason}",
+      "cleanupFailed": "中断安装留下的部分文件无法删除：{reason}",
+      "cancelled": "解压已取消。",
+      "busy": "已有安装正在进行。",
+      "noTargets": "没有选择目标位置。",
+      "emptyPath": "目标路径不能为空。",
+      "notAbsolute": "{path} 不是完整路径。",
+      "notEmpty": "{path} 不是空的。请选择空文件夹或尚不存在的文件夹。",
+      "notADirectory": "{path} 已存在且不是文件夹。",
+      "duplicateTarget": "{path} 重复出现了两次。",
+      "longPath": "最深的文件将位于 {chars} 个字符处。解压本身可以完成，但 ComfyUI 和 pip 可能会出问题，请选择更短的路径。",
+      "noSpace": "可用空间不足：大约需要 {needed} GB。",
+      "historyFailed": "无法读取压缩包历史：{reason}"
     }
   }
 }
