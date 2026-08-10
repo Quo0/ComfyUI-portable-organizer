@@ -10,7 +10,9 @@
 //! Спайк остаётся до Фазы 3 как единственный способ проверить встраивание:
 //! путь захардкожен, состояние примитивное. Настоящая архитектура — с Фазы 1.
 
+mod discovery;
 mod error;
+mod instances;
 mod settings;
 
 use std::io::{BufRead, BufReader, Read, Write};
@@ -23,7 +25,11 @@ use serde::{Deserialize, Serialize};
 use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
 use tauri_specta::Event;
 
+use crate::discovery::windows_portable::WindowsPortable;
 use crate::error::AppError;
+use crate::instances::{
+    Accent, Instance, InstanceEdit, ProbeResult, SizeJobs, Sized_,
+};
 use crate::settings::{Bootstrap, UiSettings};
 
 /// Настройки, прочитанные при старте: тема, язык, состояние рейла,
@@ -38,6 +44,77 @@ async fn load_bootstrap(app: tauri::AppHandle) -> Result<Bootstrap, AppError> {
 #[specta::specta]
 async fn save_settings(app: tauri::AppHandle, settings: UiSettings) -> Result<(), AppError> {
     settings::save(&app, &settings)
+}
+
+// ------------------------------------------------------------ реестр
+
+#[tauri::command]
+#[specta::specta]
+async fn list_instances(app: tauri::AppHandle) -> Result<Vec<Instance>, AppError> {
+    instances::list(&app)
+}
+
+/// Проверяет выбранную папку и заодно предлагает имя, порт и цвет.
+///
+/// Проверка и предложения приходят одним ответом: экран добавления
+/// показывает их вместе, и разбивать это на три вызова незачем.
+#[tauri::command]
+#[specta::specta]
+async fn probe_folder(app: tauri::AppHandle, path: String) -> Result<ProbeResult, AppError> {
+    instances::probe(&app, &WindowsPortable, &path)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn suggest_accent(app: tauri::AppHandle) -> Result<Accent, AppError> {
+    instances::suggest_accent(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn add_instance(
+    app: tauri::AppHandle,
+    path: String,
+    edit: InstanceEdit,
+) -> Result<Instance, AppError> {
+    // Папка проверяется заново, а не берётся из ответа probe_folder:
+    // между экраном выбора и сохранением её могли переименовать.
+    let probe = <WindowsPortable as crate::discovery::InstanceDiscovery>::probe(
+        &WindowsPortable,
+        std::path::Path::new(&path),
+    )?;
+    instances::add(&app, probe, edit)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn update_instance(
+    app: tauri::AppHandle,
+    id: String,
+    edit: InstanceEdit,
+) -> Result<Instance, AppError> {
+    instances::update(&app, &id, edit)
+}
+
+/// Убирает инстанс из реестра. Папка на диске остаётся нетронутой.
+#[tauri::command]
+#[specta::specta]
+async fn remove_instance(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
+    instances::remove(&app, &id)
+}
+
+/// Считает размер инстанса на диске.
+///
+/// Команда `async`, поэтому выполняется не в главном потоке и интерфейс
+/// не замирает на все минуты обхода. `None` означает, что подсчёт уже идёт.
+#[tauri::command]
+#[specta::specta]
+async fn measure_instance_size(
+    app: tauri::AppHandle,
+    jobs: tauri::State<'_, SizeJobs>,
+    id: String,
+) -> Result<Option<Sized_>, AppError> {
+    instances::measure_size(&app, &jobs, &id)
 }
 
 /// Реальная установка для спайка. Захардкожена намеренно: реестр появится в Фазе 1.
@@ -395,6 +472,13 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             load_bootstrap,
             save_settings,
+            list_instances,
+            probe_folder,
+            suggest_accent,
+            add_instance,
+            update_instance,
+            remove_instance,
+            measure_instance_size,
             start_comfy,
             wait_ready,
             embed_comfy,
@@ -440,7 +524,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .manage(SpikeState::default())
+        .manage(SizeJobs::default())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             // Обязательно: без mount_events типизированные события

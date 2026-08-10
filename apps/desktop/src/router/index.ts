@@ -14,6 +14,18 @@ export const router = createRouter({
       name: 'instances',
       component: () => import('../views/InstancesView.vue'),
     },
+    // Добавление — отдельный роут, а не модалка: см. дисциплину z-order.
+    {
+      path: '/instances/add',
+      name: 'instance-add',
+      component: () => import('../views/AddInstanceView.vue'),
+    },
+    {
+      path: '/instances/:id',
+      name: 'instance',
+      component: () => import('../views/InstanceView.vue'),
+      props: true,
+    },
     {
       path: '/install',
       name: 'install',

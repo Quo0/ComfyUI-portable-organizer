@@ -10,7 +10,7 @@
     "about": "Acerca de",
     "collapse": "Contraer el menú",
     "expand": "Expandir el menú",
-    "running": "En marcha"
+    "active": "Requieren atención"
   },
   "common": {
     "copy": "Copiar",
@@ -18,7 +18,29 @@
     "close": "Cerrar",
     "details": "Detalles",
     "openFolder": "Abrir carpeta",
-    "notReady": "Esta parte de la aplicación aún no está hecha."
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "edit": "Editar",
+    "notReady": "Esta parte de la aplicación aún no está hecha.",
+    "unknown": "Desconocido"
+  },
+  "status": {
+    "stopped": "Detenida",
+    "starting": "Arrancando",
+    "running": "En marcha",
+    "crashed": "Terminada con error",
+    "unavailable": "Carpeta no encontrada"
+  },
+  "accent": {
+    "ember": "Brasa",
+    "amber": "Ámbar",
+    "moss": "Musgo",
+    "teal": "Turquesa",
+    "azure": "Azur",
+    "indigo": "Índigo",
+    "orchid": "Orquídea",
+    "rose": "Rosa"
   },
   "instances": {
     "title": "Instancias",
@@ -27,11 +49,61 @@
       "title": "Todavía no hay instancias",
       "body": "Indica una carpeta de ComfyUI que ya tengas o descomprime una versión nueva desde un archivo.",
       "action": "Ir a la instalación"
+    },
+    "add": {
+      "title": "Añadir una instancia",
+      "lead": "Elige la carpeta de una versión portable de ComfyUI. No se cambiará nada dentro de ella.",
+      "chooseFolder": "Elegir carpeta…",
+      "checking": "Comprobando la carpeta…",
+      "submit": "Añadir a la lista",
+      "openExisting": "Esta carpeta ya está en la lista. Abrirla"
+    },
+    "field": {
+      "folder": "Carpeta",
+      "name": "Nombre",
+      "description": "Descripción",
+      "accent": "Color distintivo",
+      "port": "Puerto preferido",
+      "portHint": "Se usa al arrancar si está libre.",
+      "comfyVersion": "Versión de ComfyUI",
+      "pythonVersion": "Versión de Python",
+      "profiles": "Perfiles de arranque",
+      "profilesNone": "No se han encontrado archivos .bat: tendrás que indicar las opciones de arranque a mano.",
+      "profilesAdvanced": "avanzados",
+      "sizeOnDisk": "Tamaño en disco",
+      "sizeMeasuring": "calculando…",
+      "sizeMeasuredAt": "medido {when}",
+      "recalculate": "Recalcular",
+      "source": "Descomprimida de {archive} el {when}"
+    },
+    "unavailable": {
+      "title": "La carpeta ha desaparecido",
+      "body": "Ya no hay nada en {path}: la han movido, la han renombrado o la unidad no está conectada. La instancia sigue en la lista hasta que la quites."
+    },
+    "remove": {
+      "action": "Quitar de la lista",
+      "title": "¿Quitar {name} de la lista?",
+      "body": "Solo desaparece la entrada de esta aplicación. La carpeta del disco, sus modelos y sus ajustes se quedan exactamente donde están.",
+      "confirm": "Quitar"
+    },
+    "toast": {
+      "added": "{name} añadida",
+      "updated": "{name} guardada",
+      "removed": "{name} quitada de la lista"
     }
   },
   "install": {
     "title": "Instalación",
-    "lead": "Dos caminos: indicar una carpeta de ComfyUI que ya tengas o descomprimir una versión portable desde un archivo .7z en uno o varios destinos."
+    "lead": "Dos caminos: indicar una carpeta de ComfyUI que ya tengas o descomprimir una versión portable desde un archivo .7z en uno o varios destinos.",
+    "existing": {
+      "title": "Ya tengo una carpeta",
+      "body": "Registrar una versión ya descomprimida. La carpeta se deja intacta.",
+      "action": "Elegir una carpeta"
+    },
+    "wizard": {
+      "title": "Descomprimir de un archivo",
+      "body": "Descomprimir una versión portable en uno o varios destinos y registrarlos de una vez."
+    }
   },
   "workflows": {
     "title": "Biblioteca",
@@ -91,6 +163,23 @@
     "settings": {
       "loadFailed": "No se ha podido leer el archivo de ajustes: {reason}",
       "saveFailed": "No se han podido guardar los ajustes: {reason}"
+    },
+    "discovery": {
+      "notADirectory": "{path} no es una carpeta.",
+      "noPython": "En esta carpeta no hay un Python incorporado: falta {expected}.",
+      "noMainPy": "En esta carpeta no hay ComfyUI: falta {expected}.",
+      "notComfy": "{path} no parece una versión portable de ComfyUI.",
+      "tryChild": "Casi: la versión está un nivel más abajo. Elige {suggested}.",
+      "tryParent": "Casi: esto es una parte de la versión. Elige la carpeta de arriba: {suggested}."
+    },
+    "instances": {
+      "loadFailed": "No se ha podido leer la lista de instancias: {reason}",
+      "saveFailed": "No se ha podido guardar la lista de instancias: {reason}",
+      "duplicate": "Esta carpeta ya está en la lista con el nombre {name}.",
+      "notFound": "No hay ninguna instancia con el identificador {id}.",
+      "emptyName": "El nombre no puede estar vacío.",
+      "portRange": "El puerto debe ser {min} o mayor.",
+      "missing": "La carpeta {path} ya no está."
     },
     "comfy": {
       "spawnFailed": "No se ha podido iniciar ComfyUI: {reason}",

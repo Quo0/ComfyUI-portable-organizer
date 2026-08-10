@@ -10,7 +10,7 @@
     "about": "About",
     "collapse": "Collapse menu",
     "expand": "Expand menu",
-    "running": "Running"
+    "active": "Needs attention"
   },
   "common": {
     "copy": "Copy",
@@ -18,7 +18,29 @@
     "close": "Close",
     "details": "Details",
     "openFolder": "Open folder",
-    "notReady": "This part of the app is not built yet."
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "edit": "Edit",
+    "notReady": "This part of the app is not built yet.",
+    "unknown": "Unknown"
+  },
+  "status": {
+    "stopped": "Stopped",
+    "starting": "Starting",
+    "running": "Running",
+    "crashed": "Crashed",
+    "unavailable": "Folder missing"
+  },
+  "accent": {
+    "ember": "Ember",
+    "amber": "Amber",
+    "moss": "Moss",
+    "teal": "Teal",
+    "azure": "Azure",
+    "indigo": "Indigo",
+    "orchid": "Orchid",
+    "rose": "Rose"
   },
   "instances": {
     "title": "Instances",
@@ -27,11 +49,61 @@
       "title": "No instances yet",
       "body": "Point the app at a ComfyUI folder you already have, or unpack a fresh build from an archive.",
       "action": "Go to Install"
+    },
+    "add": {
+      "title": "Add an instance",
+      "lead": "Choose the folder of a portable ComfyUI build. Nothing inside it will be changed.",
+      "chooseFolder": "Choose folder…",
+      "checking": "Checking the folder…",
+      "submit": "Add to the list",
+      "openExisting": "This folder is already on the list. Open it"
+    },
+    "field": {
+      "folder": "Folder",
+      "name": "Name",
+      "description": "Description",
+      "accent": "Accent colour",
+      "port": "Preferred port",
+      "portHint": "Used at startup when it is free.",
+      "comfyVersion": "ComfyUI version",
+      "pythonVersion": "Python version",
+      "profiles": "Launch profiles",
+      "profilesNone": "No .bat launchers found — you will need to set the launch options by hand.",
+      "profilesAdvanced": "advanced",
+      "sizeOnDisk": "Size on disk",
+      "sizeMeasuring": "counting…",
+      "sizeMeasuredAt": "measured {when}",
+      "recalculate": "Recount",
+      "source": "Unpacked from {archive} on {when}"
+    },
+    "unavailable": {
+      "title": "The folder is gone",
+      "body": "The build is no longer at {path}. It may have been moved, renamed, or the drive is not connected. The instance stays on the list until you remove it."
+    },
+    "remove": {
+      "action": "Remove from the list",
+      "title": "Remove {name} from the list?",
+      "body": "Only the entry in this app goes away. The folder on disk, its models and its settings stay exactly where they are.",
+      "confirm": "Remove"
+    },
+    "toast": {
+      "added": "{name} added",
+      "updated": "{name} saved",
+      "removed": "{name} removed from the list"
     }
   },
   "install": {
     "title": "Install",
-    "lead": "Two ways in: point the app at an existing ComfyUI folder, or unpack a portable build from a .7z archive into one or several destinations."
+    "lead": "Two ways in: point the app at an existing ComfyUI folder, or unpack a portable build from a .7z archive into one or several destinations.",
+    "existing": {
+      "title": "I already have a folder",
+      "body": "Register a build that is already unpacked. The folder is left untouched.",
+      "action": "Choose a folder"
+    },
+    "wizard": {
+      "title": "Unpack from an archive",
+      "body": "Unpack a portable build into one or several destinations and register them at once."
+    }
   },
   "workflows": {
     "title": "Workflows",
@@ -91,6 +163,23 @@
     "settings": {
       "loadFailed": "Could not read the settings file: {reason}",
       "saveFailed": "Could not save settings: {reason}"
+    },
+    "discovery": {
+      "notADirectory": "{path} is not a folder.",
+      "noPython": "No bundled Python in this folder — {expected} is missing.",
+      "noMainPy": "No ComfyUI in this folder — {expected} is missing.",
+      "notComfy": "{path} does not look like a portable ComfyUI build.",
+      "tryChild": "Almost — the build is one level down. Choose {suggested}.",
+      "tryParent": "Almost — this is a part of the build. Choose the folder above: {suggested}."
+    },
+    "instances": {
+      "loadFailed": "Could not read the instance list: {reason}",
+      "saveFailed": "Could not save the instance list: {reason}",
+      "duplicate": "This folder is already on the list as {name}.",
+      "notFound": "No instance with id {id}.",
+      "emptyName": "The name cannot be empty.",
+      "portRange": "The port must be {min} or higher.",
+      "missing": "The folder {path} is not there any more."
     },
     "comfy": {
       "spawnFailed": "Could not start ComfyUI: {reason}",

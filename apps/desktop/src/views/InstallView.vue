@@ -3,8 +3,9 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-// Две дорожки — существующая папка и мастер распаковки — появятся
-// в Фазе 1.5. Раздел постоянный, а не только для первого запуска.
+// Раздел постоянный, а не только для первого запуска. Первая дорожка —
+// регистрация существующей папки — работает с Фазы 1; мастер распаковки
+// придёт в Фазе 1.5.
 </script>
 
 <template>
@@ -16,7 +17,30 @@ const { t } = useI18n();
     <div class="screen-body">
       <div class="screen-pad">
         <p class="t-sm">{{ t('install.lead') }}</p>
-        <p class="placeholder">{{ t('common.notReady') }}</p>
+
+        <div class="pane">
+          <div class="pane-head">
+            <span class="title">{{ t('install.existing.title') }}</span>
+          </div>
+          <div class="scroll-pad">
+            <p class="t-sm">{{ t('install.existing.body') }}</p>
+            <div class="row">
+              <RouterLink class="btn primary" to="/instances/add">
+                {{ t('install.existing.action') }}
+              </RouterLink>
+            </div>
+          </div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            <span class="title">{{ t('install.wizard.title') }}</span>
+          </div>
+          <div class="scroll-pad">
+            <p class="t-sm">{{ t('install.wizard.body') }}</p>
+            <p class="placeholder">{{ t('common.notReady') }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>

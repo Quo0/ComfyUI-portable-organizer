@@ -10,7 +10,7 @@
     "about": "关于",
     "collapse": "收起菜单",
     "expand": "展开菜单",
-    "running": "运行中"
+    "active": "需要处理"
   },
   "common": {
     "copy": "复制",
@@ -18,7 +18,29 @@
     "close": "关闭",
     "details": "详情",
     "openFolder": "打开文件夹",
-    "notReady": "这一部分尚未完成。"
+    "save": "保存",
+    "cancel": "取消",
+    "back": "返回",
+    "edit": "修改",
+    "notReady": "这一部分尚未完成。",
+    "unknown": "未知"
+  },
+  "status": {
+    "stopped": "已停止",
+    "starting": "启动中",
+    "running": "运行中",
+    "crashed": "异常退出",
+    "unavailable": "找不到文件夹"
+  },
+  "accent": {
+    "ember": "余烬",
+    "amber": "琥珀",
+    "moss": "苔绿",
+    "teal": "青绿",
+    "azure": "天蓝",
+    "indigo": "靛蓝",
+    "orchid": "兰紫",
+    "rose": "玫红"
   },
   "instances": {
     "title": "实例",
@@ -27,11 +49,61 @@
       "title": "还没有实例",
       "body": "指定一个已有的 ComfyUI 文件夹，或者从压缩包解压一份新的。",
       "action": "前往安装"
+    },
+    "add": {
+      "title": "添加实例",
+      "lead": "选择便携版 ComfyUI 所在的文件夹。其中的内容不会被改动。",
+      "chooseFolder": "选择文件夹…",
+      "checking": "正在检查文件夹…",
+      "submit": "加入列表",
+      "openExisting": "该文件夹已在列表中。打开它"
+    },
+    "field": {
+      "folder": "文件夹",
+      "name": "名称",
+      "description": "说明",
+      "accent": "标识颜色",
+      "port": "首选端口",
+      "portHint": "启动时若端口空闲便会使用。",
+      "comfyVersion": "ComfyUI 版本",
+      "pythonVersion": "Python 版本",
+      "profiles": "启动配置",
+      "profilesNone": "没有找到 .bat 文件，启动参数需要手动设置。",
+      "profilesAdvanced": "进阶",
+      "sizeOnDisk": "占用空间",
+      "sizeMeasuring": "正在统计…",
+      "sizeMeasuredAt": "测量于 {when}",
+      "recalculate": "重新统计",
+      "source": "于 {when} 从 {archive} 解压"
+    },
+    "unavailable": {
+      "title": "文件夹已不存在",
+      "body": "{path} 处已经没有这份安装了：可能被移动、改名，或者磁盘未连接。在你移除之前，该实例仍会留在列表中。"
+    },
+    "remove": {
+      "action": "从列表移除",
+      "title": "把 {name} 从列表中移除？",
+      "body": "只会移除本应用中的记录。磁盘上的文件夹、其中的模型和设置都原样保留。",
+      "confirm": "移除"
+    },
+    "toast": {
+      "added": "已添加 {name}",
+      "updated": "已保存 {name}",
+      "removed": "已从列表移除 {name}"
     }
   },
   "install": {
     "title": "安装",
-    "lead": "两条路径：指定一个已有的 ComfyUI 文件夹，或者把 .7z 便携版解压到一个或多个位置。"
+    "lead": "两条路径：指定一个已有的 ComfyUI 文件夹，或者把 .7z 便携版解压到一个或多个位置。",
+    "existing": {
+      "title": "已经有文件夹",
+      "body": "登记一份已经解压好的安装。文件夹保持原样。",
+      "action": "选择文件夹"
+    },
+    "wizard": {
+      "title": "从压缩包解压",
+      "body": "把便携版解压到一个或多个位置，并一次性登记。"
+    }
   },
   "workflows": {
     "title": "工作流库",
@@ -91,6 +163,23 @@
     "settings": {
       "loadFailed": "无法读取设置文件：{reason}",
       "saveFailed": "无法保存设置：{reason}"
+    },
+    "discovery": {
+      "notADirectory": "{path} 不是文件夹。",
+      "noPython": "这个文件夹里没有内置 Python：缺少 {expected}。",
+      "noMainPy": "这个文件夹里没有 ComfyUI：缺少 {expected}。",
+      "notComfy": "{path} 看起来不是便携版 ComfyUI。",
+      "tryChild": "差一点：安装在下一层。请选择 {suggested}。",
+      "tryParent": "差一点：这只是安装的一部分。请选择上一层文件夹：{suggested}。"
+    },
+    "instances": {
+      "loadFailed": "无法读取实例列表：{reason}",
+      "saveFailed": "无法保存实例列表：{reason}",
+      "duplicate": "该文件夹已在列表中，名称为 {name}。",
+      "notFound": "找不到标识为 {id} 的实例。",
+      "emptyName": "名称不能为空。",
+      "portRange": "端口不能小于 {min}。",
+      "missing": "文件夹 {path} 已不存在。"
     },
     "comfy": {
       "spawnFailed": "无法启动 ComfyUI：{reason}",

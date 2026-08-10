@@ -43,18 +43,22 @@ function russianPluralRule(choice: number, choicesLength: number): number {
  * Числа и даты идут только через `n()` и `d()`: разделитель разрядов
  * и порядок частей даты у четырёх языков разные, и руками это не собрать.
  */
+/**
+ * Размеры на диске. Единица идёт через Intl, а не через ключ перевода:
+ * «GB», «ГБ» и китайский вариант браузер знает сам, и заводить под них
+ * ручные строки значит плодить работу переводчикам на пустом месте.
+ *
+ * Формат выбирается по величине — см. `useFormat().bytes`.
+ */
+const sizeFormat = (unit: string) =>
+  ({ style: 'unit', unit, unitDisplay: 'short', maximumFractionDigits: 1 }) as const;
+
 const numberFormats = {
-  /**
-   * Размер на диске. Единица идёт через Intl, а не через ключ перевода:
-   * «GB», «ГБ» и «GB» с китайской пунктуацией браузер знает сам,
-   * и заводить под них ручные строки значит плодить работу переводчикам.
-   */
-  gigabytes: {
-    style: 'unit',
-    unit: 'gigabyte',
-    unitDisplay: 'short',
-    maximumFractionDigits: 1,
-  },
+  bytes: { style: 'unit', unit: 'byte', unitDisplay: 'short', maximumFractionDigits: 0 },
+  kilobytes: sizeFormat('kilobyte'),
+  megabytes: sizeFormat('megabyte'),
+  gigabytes: sizeFormat('gigabyte'),
+  terabytes: sizeFormat('terabyte'),
   integer: { style: 'decimal', maximumFractionDigits: 0 },
 } as const;
 

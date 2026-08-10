@@ -581,12 +581,18 @@ h3.sub {
 .toggle.off { background: var(--line-strong); }
 .toggle.off::after { right: auto; left: 2px; background: var(--surface); }
 
+/* Выбор акцентного цвета. Селектор по любому потомку, а не по `i`:
+   в макете это статичные метки, в приложении — кнопки, и цвет выбирается
+   с клавиатуры наравне с мышью. */
 .picker { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.picker i {
+.picker > * {
   width: 22px; height: 22px; border-radius: var(--radius-sm);
-  display: block; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line-strong) inset;
+  display: block; padding: 0; cursor: pointer;
+  border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line-strong) inset;
 }
-.picker i.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+.picker > .on,
+.picker > [aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.picker > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
 /* --------------------------------------------------------- тосты */
 .toasts { display: flex; flex-direction: column; gap: var(--space-2); }

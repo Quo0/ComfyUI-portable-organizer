@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n';
 
 import type { ThemeChoice } from '../../bindings';
 import { LOCALE_NAMES, LOCALES, type Locale } from '../../i18n';
+import { useFormat } from '../../lib/format';
 import { useUiStore } from '../../stores/ui';
 
 const ui = useUiStore();
-const { t, n, d } = useI18n();
+const { t } = useI18n();
+const { bytes, moment } = useFormat();
 
 const themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => [
   { value: 'light', label: t('settings.appearance.theme.light') },
@@ -27,7 +29,7 @@ const systemNow = computed(() =>
 // Предпросмотр на выдуманных, но правдоподобных данных: он показывает
 // не оформление, а то, как выбранный язык влияет на числа, даты
 // и формы слов. Проверить это иначе можно только запустив четыре сборки.
-const PREVIEW_SIZE_GB = 41.7;
+const PREVIEW_SIZE = 41.7 * 1024 ** 3;
 const PREVIEW_COUNT = 3;
 const previewDate = new Date(2026, 7, 9, 21, 42);
 
@@ -93,11 +95,11 @@ function onLocale(event: Event): void {
                   <span>{{ t('instances.count', PREVIEW_COUNT) }}</span>
                   <span>
                     {{ t('settings.appearance.preview.size') }}:
-                    {{ n(PREVIEW_SIZE_GB, 'gigabytes') }}
+                    {{ bytes(PREVIEW_SIZE) }}
                   </span>
                   <span>
                     {{ t('settings.appearance.preview.lastRun') }}:
-                    {{ d(previewDate, 'short') }}
+                    {{ moment(previewDate.getTime()) }}
                   </span>
                 </div>
               </div>

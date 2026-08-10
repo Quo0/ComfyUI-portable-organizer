@@ -11,13 +11,19 @@ type Schema = typeof en;
 declare module 'vue-i18n' {
   export interface DefineLocaleMessage extends Schema {}
 
+  type SizeFormat = {
+    style: 'unit';
+    unit: string;
+    unitDisplay: 'short';
+    maximumFractionDigits: number;
+  };
+
   export interface DefineNumberFormat {
-    gigabytes: {
-      style: 'unit';
-      unit: 'gigabyte';
-      unitDisplay: 'short';
-      maximumFractionDigits: number;
-    };
+    bytes: SizeFormat;
+    kilobytes: SizeFormat;
+    megabytes: SizeFormat;
+    gigabytes: SizeFormat;
+    terabytes: SizeFormat;
     integer: { style: 'decimal'; maximumFractionDigits: number };
   }
 
