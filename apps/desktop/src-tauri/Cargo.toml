@@ -1,0 +1,23 @@
+[package]
+name = "cpo-desktop"
+version = "0.1.0"
+description = "Управление портабл-сборками ComfyUI"
+authors = ["Andrew Blokhin"]
+edition = "2021"
+
+[lib]
+# Суффикс _lib нужен, чтобы имя библиотеки не конфликтовало с именем
+# бинаря — на Windows иначе ломается сборка.
+name = "cpo_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Фича unstable обязательна: мультивебвью, на котором держится вся идея
+# встроенных вкладок, пока доступен только за ней.
+tauri = { version = "2", features = ["unstable"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

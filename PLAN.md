@@ -237,7 +237,7 @@ advanced/run_nvidia_gpu_disable_api_nodes.bat
 
 | Файл | Зачем |
 |---|---|
-| `...-setup.exe` | Инсталлятор NSIS, perUser |
+| `...-setup.exe` | Инсталлятор NSIS, установка в профиль пользователя |
 | `...-setup.exe.sig` | Подпись обновления |
 | `latest.json` | Манифест для апдейтера |
 | `SHA256SUMS.txt` | Проверка целостности вручную |
@@ -339,7 +339,7 @@ apps/desktop/src-tauri/src/
 
 ```rust
 WebviewBuilder::new(format!("comfy-{id}"), WebviewUrl::External(url))
-    .drag_drop_handler_enabled(false)   // критично, см. ниже
+    .disable_drag_drop_handler()        // критично, см. ниже
     .initialization_script(INJECT_JS)
     .on_navigation(|url| { /* чужой хост → opener::open_url, вернуть false */ })
 ```
@@ -377,7 +377,7 @@ DeleteRegKey SHCTX "${MANUPRODUCTKEY}"   (+ ещё несколько ключе
 
 - **Удаляется путь строго по bundle identifier.** Поэтому никакого хардкода вида `%APPDATA%\comfyui-portable-organizer`: только `app_data_dir()` и `app_local_data_dir()`. Литерал разойдётся с `${BUNDLEID}`, и очистка пройдёт мимо.
 - **Данные WebView2** (`$LOCALAPPDATA\<identifier>\EBWebView`) покрываются автоматически, отдельно чистить не нужно.
-- **MSI такого чекбокса не имеет** и оставляет `%LOCALAPPDATA%\<id>` — это [tauri#6113](https://github.com/tauri-apps/tauri/issues/6113). Поэтому собираем **только NSIS `.exe`**, `installMode: perUser` (без прав администратора, ставится в `%LOCALAPPDATA%\Programs`). MSI не собираем.
+- **MSI такого чекбокса не имеет** и оставляет `%LOCALAPPDATA%\<id>` — это [tauri#6113](https://github.com/tauri-apps/tauri/issues/6113). Поэтому собираем **только NSIS `.exe`**, `installMode: currentUser` (без прав администратора, ставится в `%LOCALAPPDATA%\Programs`). MSI не собираем.
 
 ### Остальные правила
 
@@ -519,7 +519,7 @@ cpo_shared_0:
 
 ### Наполнение библиотеки
 
-- Кнопка «Добавить файл» и drag&drop JSON на экран библиотеки. Конфликта с ComfyUI нет: у дочернего вебвью стоит `drag_drop_handler_enabled(false)`, там дроп принадлежит канвасу, а наш живёт на нашем HTML.
+- Кнопка «Добавить файл» и drag&drop JSON на экран библиотеки. Конфликта с ComfyUI нет: у дочернего вебвью стоит `disable_drag_drop_handler()`, там дроп принадлежит канвасу, а наш живёт на нашем HTML.
 - «Забрать из инстанса»: у запущенного — `GET /v2/userdata?path=workflows`, затем `GET /userdata/{file}`; у остановленного — чтение папки с диска.
 
 ### Добавление в инстанс
@@ -793,7 +793,7 @@ Child webview — нативное окно **поверх** нашего HTML. 
 
 ## Грабли, которые надо обработать явно
 
-- **Drag & drop.** Tauri по умолчанию перехватывает системный дроп файлов, что **сломает** перетаскивание картинок и workflow-json на канвас ComfyUI. Обязателен `drag_drop_handler_enabled(false)` на дочернем webview.
+- **Drag & drop.** Tauri по умолчанию перехватывает системный дроп файлов, что **сломает** перетаскивание картинок и workflow-json на канвас ComfyUI. Обязателен `disable_drag_drop_handler()` на дочернем webview.
 - **Одновременный запуск двух инстансов = OOM по VRAM.** При старте второго — диалог «Instance X уже работает» с выбором: остановить тот / запустить всё равно.
 - **ComfyUI-Manager перезапускает сервер сам** после установки нод — респавнит процесс, и наш хэндл его теряет. MVP: детектим выход процесса, ещё ~15 секунд опрашиваем порт; если `/system_stats` отвечает — показываем «сервер перезапустился вне нашего контроля» и предлагаем переподключиться. Полное решение (найти PID владельца порта через `GetExtendedTcpTable`) — после MVP.
 - **Внешние ссылки и OAuth.** Ссылки на доки и вход в API-ноды должны уходить в системный браузер через `on_navigation`, иначе откроется голое окно WebView2 без всякой навигации.
@@ -952,7 +952,7 @@ Child webview — нативное окно **поверх** нашего HTML. 
 ### Фаза 3 — встроенные табы
 
 - [ ] Создание child webview на инстанс, лейбл `comfy-<id>`
-- [ ] `drag_drop_handler_enabled(false)` — иначе ломается дроп на канвас
+- [ ] `disable_drag_drop_handler()` — иначе ломается дроп на канвас
 - [ ] Команда `set_webview_bounds` через `ResizeObserver` на контейнере контента; ресинк на ресайзе окна, сворачивании рейла и переходе по роуту
 - [ ] Переключение табов через `show()` / `hide()`
 - [ ] `on_navigation`: чужой хост → системный браузер, вернуть `false`
@@ -971,7 +971,7 @@ Child webview — нативное окно **поверх** нашего HTML. 
 - [ ] Проверка скачиваний и «Сохранить изображение» из WebView2
 - [ ] Импорт воркфлоу из PNG — ComfyUI кладёт граф в tEXt-чанк `workflow`
 - [ ] Экран «О приложении»: пути данных, кнопки «открыть папку», что удалится при деинсталляции
-- [ ] Сборка **NSIS `.exe`**, `installMode: perUser`; MSI не собираем. Подпись кода не покупаем — вместо неё страница про SmartScreen
+- [ ] Сборка **NSIS `.exe`**, `installMode: currentUser`; MSI не собираем. Подпись кода не покупаем — вместо неё страница про SmartScreen
 - [ ] Тест деинсталляции по чеклисту из «Верификации»
 - [ ] Ключи апдейтера: `tauri signer generate`, публичный в `plugins.updater.pubkey`, приватный и пароль — в секреты CI. **Приватный ключ сохранить вне репозитория:** при утере обновления для установленных копий выпустить будет невозможно никогда
 - [ ] `bundle.createUpdaterArtifacts: true` и `plugins.updater.endpoints` на `latest.json` в релизах
@@ -1012,7 +1012,7 @@ Child webview — нативное окно **поверх** нашего HTML. 
 1. `pnpm dev:desktop` → добавить папку → в списке профилей появились `run_nvidia_gpu`, `run_nvidia_gpu_fast_fp16_accumulation`, `run_cpu`, `advanced/run_nvidia_gpu_disable_api_nodes` с верно раскрытыми `..\` путями.
 2. Запустить `run_nvidia_gpu` → **браузер не открывается**, логи текут в течение 5 секунд после старта, прогрессбары загрузки моделей не спамят буфер.
 3. По готовности ComfyUI рисуется внутри окна, в консоли нет 403.
-4. Перетащить PNG с воркфлоу на канвас → воркфлоу загрузился (проверка `drag_drop_handler_enabled(false)`).
+4. Перетащить PNG с воркфлоу на канвас → воркфлоу загрузился (проверка `disable_drag_drop_handler()`).
 5. Кликнуть внешнюю ссылку в интерфейсе ComfyUI → открылся системный браузер, не webview.
 6. Ресайз окна и сворачивание рейла → webview следует за областью контента без разрывов.
 7. Stop → `python.exe` исчез из диспетчера задач, порт освободился.
