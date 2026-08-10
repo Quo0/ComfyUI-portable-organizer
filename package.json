@@ -8,11 +8,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev:desktop": "pnpm --filter @cpo/desktop tauri dev",
+    "dev:desktop": "pnpm design:sync && pnpm --filter @cpo/desktop tauri dev",
     "dev:docs": "pnpm --filter @cpo/docs docs:dev",
-    "build:desktop": "pnpm --filter @cpo/desktop tauri build",
+    "build:desktop": "pnpm design:sync && pnpm --filter @cpo/desktop tauri build",
     "build:docs": "pnpm --filter @cpo/docs docs:build",
     "design:build": "node design/build.mjs",
-    "design:check": "node design/build.mjs && node design/check.mjs"
+    "design:sync": "node design/build.mjs && node tools/sync-design.mjs",
+    "design:check": "node design/build.mjs && node design/check.mjs",
+    "i18n:check": "node tools/i18n-check.mjs",
+    "typecheck": "pnpm --filter @cpo/desktop exec vue-tsc --noEmit"
   }
 }

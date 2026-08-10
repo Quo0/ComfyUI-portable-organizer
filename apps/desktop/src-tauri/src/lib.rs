@@ -1,13 +1,17 @@
-//! Спайк Фазы 0.
+//! Точка сборки приложения.
 //!
-//! Задача — доказать четыре вещи, на которых держится весь замысел:
+//! Здесь же пока живёт спайк Фазы 0 — он доказал четыре вещи, на которых
+//! держится весь замысел:
 //!   1. ComfyUI запускается напрямую через python.exe, без .bat;
 //!   2. браузер при этом не открывается и окно консоли не всплывает;
 //!   3. stderr стримится в интерфейс живьём, а не после завершения;
 //!   4. дочерний вебвью грузит ComfyUI без 403 от origin-middleware.
 //!
-//! Всё здесь временное: путь захардкожен, состояние примитивное,
-//! обработка ошибок минимальная. Настоящая архитектура — с Фазы 1.
+//! Спайк остаётся до Фазы 3 как единственный способ проверить встраивание:
+//! путь захардкожен, состояние примитивное. Настоящая архитектура — с Фазы 1.
+
+mod error;
+mod settings;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
@@ -18,6 +22,23 @@ use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
 use tauri_specta::Event;
+
+use crate::error::AppError;
+use crate::settings::{Bootstrap, UiSettings};
+
+/// Настройки, прочитанные при старте: тема, язык, состояние рейла,
+/// плюс системная локаль и пути для раздела «О приложении».
+#[tauri::command]
+#[specta::specta]
+async fn load_bootstrap(app: tauri::AppHandle) -> Result<Bootstrap, AppError> {
+    settings::load(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn save_settings(app: tauri::AppHandle, settings: UiSettings) -> Result<(), AppError> {
+    settings::save(&app, &settings)
+}
 
 /// Реальная установка для спайка. Захардкожена намеренно: реестр появится в Фазе 1.
 const INSTANCE_DIR: &str =
@@ -72,13 +93,13 @@ struct ComfyReady {
 async fn start_comfy(
     app: tauri::AppHandle,
     state: tauri::State<'_, SpikeState>,
-) -> Result<u16, String> {
+) -> Result<u16, AppError> {
     spawn_comfy(&app, &state)
 }
 
-fn spawn_comfy(app: &tauri::AppHandle, state: &SpikeState) -> Result<u16, String> {
+fn spawn_comfy(app: &tauri::AppHandle, state: &SpikeState) -> Result<u16, AppError> {
     if state.child.lock().unwrap().is_some() {
-        return Err("Уже запущен".into());
+        return Err(AppError::new("comfy.alreadyRunning"));
     }
 
     let python = format!(r"{INSTANCE_DIR}\python_embeded\python.exe");
@@ -107,7 +128,9 @@ fn spawn_comfy(app: &tauri::AppHandle, state: &SpikeState) -> Result<u16, String
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
 
-    let mut child = cmd.spawn().map_err(|e| format!("Не удалось запустить: {e}"))?;
+    let mut child = cmd
+        .spawn()
+        .map_err(|e| AppError::because("comfy.spawnFailed", e))?;
 
     // ComfyUI пишет основную часть старта в stderr, а не в stdout,
     // поэтому читаем оба потока.
@@ -152,27 +175,17 @@ fn report(msg: &str) {
     println!("[СПАЙК] {msg}");
 }
 
-/// Позволяет фронту отметиться в терминале.
-///
-/// Консоль вебвью в вывод `tauri dev` не попадает, поэтому без такого
-/// канала непонятно, дошло ли событие до интерфейса или сломалось раньше.
-#[tauri::command]
-#[specta::specta]
-fn spike_ping(stage: String) {
-    report(&format!("фронт: {stage}"));
-}
-
 /// Опрашивает `/system_stats`, пока сервер не ответит.
 ///
 /// Реализовано на голом TcpStream осознанно: тянуть HTTP-клиент ради
 /// одного запроса в спайк — лишние минуты компиляции.
 #[tauri::command]
 #[specta::specta]
-async fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, String> {
+async fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, AppError> {
     wait_ready_inner(port, timeout_secs)
 }
 
-fn wait_ready_inner(port: u16, timeout_secs: u32) -> Result<u32, String> {
+fn wait_ready_inner(port: u16, timeout_secs: u32) -> Result<u32, AppError> {
     let deadline = Instant::now() + Duration::from_secs(timeout_secs.into());
     let started = Instant::now();
 
@@ -182,7 +195,7 @@ fn wait_ready_inner(port: u16, timeout_secs: u32) -> Result<u32, String> {
         }
         std::thread::sleep(Duration::from_millis(500));
     }
-    Err(format!("Сервер не ответил за {timeout_secs} с"))
+    Err(AppError::with("comfy.readyTimeout", "secs", timeout_secs))
 }
 
 fn probe(port: u16) -> bool {
@@ -221,26 +234,40 @@ async fn embed_comfy(
     y: f64,
     w: f64,
     h: f64,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     embed_inner(&app, port, x, y, w, h)
 }
 
-fn embed_inner(app: &tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
-    let window = app.get_window("main").ok_or("Нет окна main")?;
+fn embed_inner(
+    app: &tauri::AppHandle,
+    port: u16,
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+) -> Result<(), AppError> {
+    let embed_failed = |e: tauri::Error| AppError::because("webview.embedFailed", e);
+
+    let window = app
+        .get_window("main")
+        .ok_or_else(|| AppError::because("webview.embedFailed", "нет окна main"))?;
 
     if let Some(existing) = app.get_webview("comfy") {
         existing
             .set_position(LogicalPosition::new(x, y))
-            .map_err(|e| e.to_string())?;
+            .map_err(embed_failed)?;
         existing
             .set_size(LogicalSize::new(w, h))
-            .map_err(|e| e.to_string())?;
+            .map_err(embed_failed)?;
+        // Возврат на экран инстанса: вкладку показываем и ставим на место
+        // одним действием, иначе она мигнёт на старом прямоугольнике.
+        existing.show().map_err(embed_failed)?;
         return Ok(());
     }
 
     let url = format!("http://127.0.0.1:{port}")
         .parse()
-        .map_err(|_| "Плохой URL")?;
+        .map_err(|_| AppError::because("webview.embedFailed", "плохой URL"))?;
 
     let probe_app = app.clone();
     let title_app = app.clone();
@@ -283,8 +310,24 @@ fn embed_inner(app: &tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64
             LogicalPosition::new(x, y),
             LogicalSize::new(w, h),
         )
-        .map_err(|e| format!("Не удалось создать вебвью: {e}"))?;
+        .map_err(embed_failed)?;
 
+    Ok(())
+}
+
+/// Прячет вкладку, не останавливая сервер.
+///
+/// Уход с экрана инстанса в любой другой раздел обязан скрыть дочерний
+/// вебвью: он нативное окно поверх нашего HTML и иначе закроет собой
+/// открытый раздел. Процесс при этом продолжает работать — останавливает
+/// его только явная команда.
+#[tauri::command]
+#[specta::specta]
+async fn hide_comfy(app: tauri::AppHandle) -> Result<(), AppError> {
+    if let Some(view) = app.get_webview("comfy") {
+        view.hide()
+            .map_err(|e| AppError::because("webview.embedFailed", e))?;
+    }
     Ok(())
 }
 
@@ -293,7 +336,7 @@ fn embed_inner(app: &tauri::AppHandle, port: u16, x: f64, y: f64, w: f64, h: f64
 async fn stop_comfy(
     app: tauri::AppHandle,
     state: tauri::State<'_, SpikeState>,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if let Some(view) = app.get_webview("comfy") {
         let _ = view.close();
     }
@@ -322,7 +365,7 @@ fn autorun(app: tauri::AppHandle) {
                 p
             }
             Err(e) => {
-                report(&format!("ПРОВАЛ: не удалось запустить: {e}"));
+                report(&format!("ПРОВАЛ: не удалось запустить: {}", e.code));
                 return;
             }
         };
@@ -333,7 +376,7 @@ fn autorun(app: tauri::AppHandle) {
                 secs
             }
             Err(e) => {
-                report(&format!("ПРОВАЛ: {e}"));
+                report(&format!("ПРОВАЛ: {}", e.code));
                 return;
             }
         };
@@ -350,11 +393,13 @@ fn autorun(app: tauri::AppHandle) {
 fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
         .commands(tauri_specta::collect_commands![
+            load_bootstrap,
+            save_settings,
             start_comfy,
             wait_ready,
             embed_comfy,
-            stop_comfy,
-            spike_ping
+            hide_comfy,
+            stop_comfy
         ])
         .events(tauri_specta::collect_events![LogLine, ComfyReady])
 }
@@ -393,6 +438,8 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .manage(SpikeState::default())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {

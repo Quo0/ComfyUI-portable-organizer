@@ -1,0 +1,203 @@
+/* Каркас окна приложения.
+ *
+ * Здесь только то, чего нет в дизайн-системе: как разложены рейл и контент
+ * внутри окна. Всё, что можно назвать компонентом, живёт в design/styles
+ * и приезжает сюда через components.css.
+ *
+ * Главное правило: окно не скроллится никогда. Прокрутка живёт внутри
+ * экрана, в одной области; иначе рейл уезжал бы вверх, а прямоугольник
+ * встроенного вебвью переставал совпадать с местом на экране.
+ */
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.shell {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+/* Рейл в окне — не карточка: он примыкает к краям, поэтому теряет рамку
+   и радиус и получает одну разделительную линию справа. */
+.nav.in-window {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+}
+
+/* Сворачивание уезжает вниз, к краю рейла. */
+.nav .rail-toggle {
+  margin-top: auto;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-size: var(--text-sm);
+}
+
+.content {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+}
+
+/* ------------------------------------------------------------- экран */
+/* Шапка не скроллится: заголовок раздела должен оставаться на месте,
+   иначе при длинном списке непонятно, где ты находишься. */
+.screen {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.screen-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+}
+
+.screen-head .lead {
+  color: var(--ink-secondary);
+  font-size: var(--text-sm);
+}
+
+/* Область прокрутки экрана. Отличается от .scroll из дизайн-системы
+   только основанием: та рассчитана на поверхность внутри панели. */
+.screen-body {
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+  background:
+    linear-gradient(var(--edge-fade), transparent) top / 100% 8px no-repeat scroll,
+    linear-gradient(transparent, var(--edge-fade)) bottom / 100% 8px no-repeat scroll;
+}
+
+.screen-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.screen-body::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--ground);
+}
+
+.screen-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.screen-pad {
+  padding: 0 var(--space-5) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 720px;
+}
+
+/* Блок настроек: заголовок и содержимое. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Мастер-детейл настроек: список разделов слева не скроллится,
+   прокручивается только содержимое выбранного. */
+.settings-split {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+
+.settings-sections {
+  padding: var(--space-3) var(--space-2);
+  border-right: 1px solid var(--line-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-sections .nav-item[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------- тосты */
+/* Плавающие в углу контентной области. Конфликта с вебвью нет: любая
+   операция, способная выдать тост, начинается с экрана оболочки, а там
+   дочернего вебвью на экране ещё нет. */
+.toast-host {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: min(380px, calc(100% - var(--space-8)));
+  z-index: 10;
+  pointer-events: none;
+}
+
+.toast-host > * {
+  pointer-events: auto;
+}
+
+.toast-head .close {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.toast-details {
+  margin: 0;
+  padding: var(--space-2);
+  max-height: 160px;
+  overflow: auto;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ------------------------------------------------------- пустой раздел */
+/* Заглушка ненаписанного раздела. Текст ведущий, а не «скоро будет»:
+   он объясняет, что здесь появится, и остаётся в силе после реализации. */
+.placeholder {
+  padding: var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}

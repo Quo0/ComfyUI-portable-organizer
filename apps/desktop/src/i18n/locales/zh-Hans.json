@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "ComfyUI Portable Organizer"
+  },
+  "nav": {
+    "instances": "实例",
+    "install": "安装",
+    "workflows": "工作流库",
+    "settings": "设置",
+    "about": "关于",
+    "collapse": "收起菜单",
+    "expand": "展开菜单",
+    "running": "运行中"
+  },
+  "common": {
+    "copy": "复制",
+    "copied": "已复制",
+    "close": "关闭",
+    "details": "详情",
+    "openFolder": "打开文件夹",
+    "notReady": "这一部分尚未完成。"
+  },
+  "instances": {
+    "title": "实例",
+    "count": "{n} 个实例",
+    "empty": {
+      "title": "还没有实例",
+      "body": "指定一个已有的 ComfyUI 文件夹，或者从压缩包解压一份新的。",
+      "action": "前往安装"
+    }
+  },
+  "install": {
+    "title": "安装",
+    "lead": "两条路径：指定一个已有的 ComfyUI 文件夹，或者把 .7z 便携版解压到一个或多个位置。"
+  },
+  "workflows": {
+    "title": "工作流库",
+    "lead": "把常用的工作流集中存放，加上标签，随时添加到任意实例。"
+  },
+  "settings": {
+    "title": "设置",
+    "section": {
+      "appearance": "外观",
+      "sharedModels": "共享模型",
+      "library": "工作流库",
+      "archives": "安装包"
+    },
+    "appearance": {
+      "title": "外观",
+      "theme": {
+        "label": "主题",
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统",
+        "systemNow": "Windows 当前为{mode}。"
+      },
+      "language": {
+        "label": "语言"
+      },
+      "preview": {
+        "title": "预览",
+        "hint": "数字、日期和词形都会跟随所选语言。",
+        "size": "占用空间",
+        "lastRun": "上次运行",
+        "running": "运行中",
+        "stopped": "已停止"
+      },
+      "comfyNote": "内嵌标签页里的 ComfyUI 有自己的主题和语言设置，本应用不会改动它们。"
+    }
+  },
+  "about": {
+    "title": "关于",
+    "version": "版本",
+    "paths": {
+      "title": "应用数据的存放位置",
+      "appData": "应用数据"
+    },
+    "uninstall": {
+      "title": "卸载会删除什么",
+      "body": "卸载只会移除应用本身及其设置。你的模型、共享模板和 ComfyUI 文件夹都会原样保留。"
+    }
+  },
+  "toast": {
+    "dismiss": "关闭",
+    "copyError": "复制错误文本",
+    "repeated": "已发生 {n} 次",
+    "errorCode": "错误代码"
+  },
+  "errors": {
+    "unknown": "出了点问题。",
+    "settings": {
+      "loadFailed": "无法读取设置文件：{reason}",
+      "saveFailed": "无法保存设置：{reason}"
+    },
+    "comfy": {
+      "spawnFailed": "无法启动 ComfyUI：{reason}",
+      "alreadyRunning": "ComfyUI 已在运行。",
+      "readyTimeout": "ComfyUI 在 {secs} 秒内没有就绪。"
+    },
+    "webview": {
+      "embedFailed": "无法打开 ComfyUI 标签页：{reason}"
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "ComfyUI Portable Organizer"
+  },
+  "nav": {
+    "instances": "Instancias",
+    "install": "Instalación",
+    "workflows": "Biblioteca",
+    "settings": "Ajustes",
+    "about": "Acerca de",
+    "collapse": "Contraer el menú",
+    "expand": "Expandir el menú",
+    "running": "En marcha"
+  },
+  "common": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "close": "Cerrar",
+    "details": "Detalles",
+    "openFolder": "Abrir carpeta",
+    "notReady": "Esta parte de la aplicación aún no está hecha."
+  },
+  "instances": {
+    "title": "Instancias",
+    "count": "{n} instancia | {n} instancias",
+    "empty": {
+      "title": "Todavía no hay instancias",
+      "body": "Indica una carpeta de ComfyUI que ya tengas o descomprime una versión nueva desde un archivo.",
+      "action": "Ir a la instalación"
+    }
+  },
+  "install": {
+    "title": "Instalación",
+    "lead": "Dos caminos: indicar una carpeta de ComfyUI que ya tengas o descomprimir una versión portable desde un archivo .7z en uno o varios destinos."
+  },
+  "workflows": {
+    "title": "Biblioteca",
+    "lead": "Guarda en un solo sitio los flujos de trabajo que de verdad usas, con etiquetas y con la opción de añadirlos a cualquier instancia."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "section": {
+      "appearance": "Apariencia",
+      "sharedModels": "Modelos compartidos",
+      "library": "Biblioteca de flujos",
+      "archives": "Archivos del instalador"
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "theme": {
+        "label": "Tema",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Seguir al sistema",
+        "systemNow": "Windows está ahora en modo {mode}."
+      },
+      "language": {
+        "label": "Idioma"
+      },
+      "preview": {
+        "title": "Vista previa",
+        "hint": "Los números, las fechas y las formas de las palabras siguen el idioma elegido.",
+        "size": "Tamaño en disco",
+        "lastRun": "Última ejecución",
+        "running": "En marcha",
+        "stopped": "Detenida"
+      },
+      "comfyNote": "ComfyUI mantiene su propio tema y su propio idioma dentro de la pestaña incrustada, y la aplicación no los cambia."
+    }
+  },
+  "about": {
+    "title": "Acerca de",
+    "version": "Versión",
+    "paths": {
+      "title": "Dónde guarda sus datos la aplicación",
+      "appData": "Datos de la aplicación"
+    },
+    "uninstall": {
+      "title": "Qué se borra al desinstalar",
+      "body": "La desinstalación se lleva la aplicación y sus propios ajustes. Tus modelos, las plantillas compartidas y las carpetas de ComfyUI se quedan donde están."
+    }
+  },
+  "toast": {
+    "dismiss": "Cerrar",
+    "copyError": "Copiar el texto del error",
+    "repeated": "Ha ocurrido {n} veces",
+    "errorCode": "Código de error"
+  },
+  "errors": {
+    "unknown": "Algo ha salido mal.",
+    "settings": {
+      "loadFailed": "No se ha podido leer el archivo de ajustes: {reason}",
+      "saveFailed": "No se han podido guardar los ajustes: {reason}"
+    },
+    "comfy": {
+      "spawnFailed": "No se ha podido iniciar ComfyUI: {reason}",
+      "alreadyRunning": "ComfyUI ya está en marcha.",
+      "readyTimeout": "ComfyUI no ha estado listo en {secs} segundos."
+    },
+    "webview": {
+      "embedFailed": "No se ha podido abrir la pestaña de ComfyUI: {reason}"
+    }
+  }
+}

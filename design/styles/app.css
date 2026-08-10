@@ -424,6 +424,36 @@ h3.sub {
   box-shadow: inset 1px 0 0 rgb(255 255 255 / .22);
 }
 
+/* Сегментированный переключатель: один вариант из нескольких коротких.
+   Радиокнопки заняли бы втрое больше места, а выпадашка спрятала бы
+   варианты — на экране настроек их лучше видеть все сразу. */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.seg > * {
+  height: var(--control-h);
+  padding: 0 var(--space-3);
+  display: inline-flex; align-items: center;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-family: var(--font-ui); font-size: var(--text-base);
+  white-space: nowrap;
+  border: 0;
+  border-left: 1px solid var(--line-strong);
+  cursor: pointer;
+}
+.seg > *:first-child { border-left: 0; }
+.seg > *:hover { background: var(--surface-hover); color: var(--ink); }
+.seg > [aria-pressed="true"] {
+  background: var(--surface-active);
+  color: var(--ink);
+  font-weight: var(--weight-medium);
+}
+.seg > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+
 /* ---------------------------------------------------- примитивы */
 /* Мелкие сущности, не принадлежащие ни одному компоненту. Держатся
    отдельно, потому что иначе появляются селекторы вида

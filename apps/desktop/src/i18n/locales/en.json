@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "ComfyUI Portable Organizer"
+  },
+  "nav": {
+    "instances": "Instances",
+    "install": "Install",
+    "workflows": "Workflows",
+    "settings": "Settings",
+    "about": "About",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "running": "Running"
+  },
+  "common": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close",
+    "details": "Details",
+    "openFolder": "Open folder",
+    "notReady": "This part of the app is not built yet."
+  },
+  "instances": {
+    "title": "Instances",
+    "count": "{n} instance | {n} instances",
+    "empty": {
+      "title": "No instances yet",
+      "body": "Point the app at a ComfyUI folder you already have, or unpack a fresh build from an archive.",
+      "action": "Go to Install"
+    }
+  },
+  "install": {
+    "title": "Install",
+    "lead": "Two ways in: point the app at an existing ComfyUI folder, or unpack a portable build from a .7z archive into one or several destinations."
+  },
+  "workflows": {
+    "title": "Workflows",
+    "lead": "Keep the workflows you actually use in one place, tag them, and add them to any instance."
+  },
+  "settings": {
+    "title": "Settings",
+    "section": {
+      "appearance": "Appearance",
+      "sharedModels": "Shared models",
+      "library": "Workflow library",
+      "archives": "Installer archives"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": {
+        "label": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "Follow system",
+        "systemNow": "Windows is currently set to {mode}."
+      },
+      "language": {
+        "label": "Language"
+      },
+      "preview": {
+        "title": "Preview",
+        "hint": "Numbers, dates and word forms follow the selected language.",
+        "size": "Disk size",
+        "lastRun": "Last run",
+        "running": "Running",
+        "stopped": "Stopped"
+      },
+      "comfyNote": "ComfyUI keeps its own theme and language inside the embedded tab, and the app does not change them."
+    }
+  },
+  "about": {
+    "title": "About",
+    "version": "Version",
+    "paths": {
+      "title": "Where the app keeps its data",
+      "appData": "App data"
+    },
+    "uninstall": {
+      "title": "What uninstalling removes",
+      "body": "Uninstalling removes the app and its own settings. Your models, shared templates and ComfyUI folders stay where they are."
+    }
+  },
+  "toast": {
+    "dismiss": "Dismiss",
+    "copyError": "Copy error text",
+    "repeated": "Happened {n} times",
+    "errorCode": "Error code"
+  },
+  "errors": {
+    "unknown": "Something went wrong.",
+    "settings": {
+      "loadFailed": "Could not read the settings file: {reason}",
+      "saveFailed": "Could not save settings: {reason}"
+    },
+    "comfy": {
+      "spawnFailed": "Could not start ComfyUI: {reason}",
+      "alreadyRunning": "ComfyUI is already running.",
+      "readyTimeout": "ComfyUI did not become ready within {secs} seconds."
+    },
+    "webview": {
+      "embedFailed": "Could not open the ComfyUI tab: {reason}"
+    }
+  }
+}

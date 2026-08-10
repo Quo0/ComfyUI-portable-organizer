@@ -35,5 +35,13 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
+# Личные настройки Claude Code. Общие правила лежат в .claude/settings.json
+# и CLAUDE.md — они версионируются.
+.claude/settings.local.json
+.claude/hook-events.log
 # Генерируется tauri-specta при каждом запуске дев-сборки.
 apps/desktop/src/bindings.ts
+
+# Копии из design/dist, кладёт tools/sync-design.mjs.
+apps/desktop/src/styles/tokens.css
+apps/desktop/src/styles/components.css
