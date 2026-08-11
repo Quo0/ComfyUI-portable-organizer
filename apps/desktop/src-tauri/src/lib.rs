@@ -46,6 +46,9 @@ use crate::instances::{
 use crate::process::{RunState, RunStatus, Runtime};
 use crate::profiles::LaunchProfile;
 use crate::settings::{Bootstrap, UiSettings};
+use crate::shared_models::{
+    ApplyMode, InstanceFileInfo, InstanceFileState, InstanceShared, RootScan, SharedSettings,
+};
 
 /// Настройки, прочитанные при старте: тема, язык, состояние рейла,
 /// плюс системная локаль и пути для раздела «О приложении».
@@ -316,11 +319,213 @@ async fn run_log(
 
 #[tauri::command]
 #[specta::specta]
+async fn load_shared_settings(app: tauri::AppHandle) -> Result<SharedSettings, AppError> {
+    settings::load_shared(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn save_shared_settings(
+    app: tauri::AppHandle,
+    shared: SharedSettings,
+) -> Result<(), AppError> {
+    settings::save_shared(&app, &shared)
+}
+
+/// Сканирует папку и возвращает найденные категории.
+///
+/// Обход дерева в блокирующем потоке: на общей папке в сотни гигабайт это
+/// десятки тысяч обращений к метаданным, и держать на них главный поток
+/// нельзя — интерфейс замрёт ровно тогда, когда пользователь ждёт ответа.
+#[tauri::command]
+#[specta::specta]
+async fn scan_shared_root(path: String) -> Result<RootScan, AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        shared_models::scan_root(std::path::Path::new(&path))
+    })
+    .await
+    .map_err(|e| AppError::because("shared.scanFailed", e))
+}
+
+/// YAML, который получится при текущих настройках.
+///
+/// Предпросмотр не косметика: пользователь должен видеть, что именно
+/// попадёт в конфиг, до того как это попадёт в его сборку.
+#[tauri::command]
+#[specta::specta]
+async fn preview_shared_yaml(shared: SharedSettings) -> Result<String, AppError> {
+    tauri::async_runtime::spawn_blocking(move || shared_models::render_settings(&shared).yaml)
+        .await
+        .map_err(|e| AppError::because("shared.scanFailed", e))
+}
+
+/// Создаёт недостающие стандартные подпапки в общем корне.
+#[tauri::command]
+#[specta::specta]
+async fn create_shared_folders(path: String, names: Vec<String>) -> Result<RootScan, AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let root = std::path::Path::new(&path);
+        for name in &names {
+            // Имя приходит из нашего же списка предложений, но проверить
+            // дешевле, чем однажды создать папку на уровень выше корня.
+            if name.contains(['/', '\\', ':']) || name.starts_with('.') {
+                continue;
+            }
+            let _ = std::fs::create_dir_all(root.join(name));
+        }
+        shared_models::scan_root(root)
+    })
+    .await
+    .map_err(|e| AppError::because("shared.scanFailed", e))
+}
+
+/// Что лежит в `extra_model_paths.yaml` инстанса.
+#[tauri::command]
+#[specta::specta]
+async fn inspect_instance_config(
+    app: tauri::AppHandle,
+    id: String,
+) -> Result<InstanceFileInfo, AppError> {
+    let instance = find_instance(&app, &id)?;
+    Ok(shared_models::inspect_instance_file(std::path::Path::new(&instance.path)))
+}
+
+/// Подключает инстанс к общим моделям.
+///
+/// `confirm_overwrite` относится только к режиму «файл в инстансе» и только
+/// к случаю, когда там уже лежит чужой файл. Без согласия команда отказывает
+/// кодом `shared.foreignConfig`, и фронт показывает экран сравнения.
+#[tauri::command]
+#[specta::specta]
+async fn connect_shared(
+    app: tauri::AppHandle,
+    id: String,
+    apply_mode: ApplyMode,
+    confirm_overwrite: bool,
+) -> Result<Option<String>, AppError> {
+    let instance = find_instance(&app, &id)?;
+    let settings = settings::load_shared(&app)?;
+    let rendered = shared_models::render_settings(&settings);
+
+    if rendered.empty {
+        return Err(AppError::new("shared.noRoots"));
+    }
+
+    let mut backup = None;
+    if apply_mode == ApplyMode::InstanceFile {
+        let root = std::path::Path::new(&instance.path);
+        let info = shared_models::inspect_instance_file(root);
+        if info.state == InstanceFileState::Foreign && !confirm_overwrite {
+            return Err(AppError::with("shared.foreignConfig", "path", info.path));
+        }
+        backup = shared_models::write_instance_file(root, &rendered.yaml, now_secs())?;
+    }
+
+    instances::set_shared(&app, &id, InstanceShared { enabled: true, apply_mode })?;
+    Ok(backup)
+}
+
+/// Отключает инстанс от общих моделей.
+///
+/// В режиме «файл в инстансе» убирает наш файл и возвращает на место
+/// сохранённую копию чужого. Модели в общей папке не трогаются никогда.
+#[tauri::command]
+#[specta::specta]
+async fn disconnect_shared(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
+    let instance = find_instance(&app, &id)?;
+
+    if instance.shared.apply_mode == ApplyMode::InstanceFile {
+        shared_models::remove_instance_file(std::path::Path::new(&instance.path))?;
+    }
+
+    instances::set_shared(
+        &app,
+        &id,
+        InstanceShared { enabled: false, apply_mode: instance.shared.apply_mode },
+    )
+}
+
+fn find_instance(app: &tauri::AppHandle, id: &str) -> Result<Instance, AppError> {
+    instances::list(app)?
+        .into_iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", id))
+}
+
+/// Секунды эпохи — метка в имени резервной копии.
+fn now_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+/// Готовит общие модели к запуску инстанса.
+///
+/// Возвращает путь конфига для `--extra-model-paths-config`, если инстанс
+/// подключён в режиме флага. В режиме «файл в инстансе» флаг не нужен:
+/// файл уже лежит в папке сборки и подхватывается ComfyUI сам.
+fn prepare_shared(
+    app: &tauri::AppHandle,
+    instance: &Instance,
+    without_shared: bool,
+) -> Result<Option<String>, AppError> {
+    if without_shared || !instance.shared.enabled {
+        return Ok(None);
+    }
+
+    let settings = settings::load_shared(app)?;
+    let rendered = shared_models::render_settings(&settings);
+
+    // Проверка до запуска, а не после: внешний диск отключают, и узнавать
+    // об этом из «model not found» посреди работы пользователь не должен.
+    if let Some(path) = rendered.unavailable.first() {
+        return Err(AppError::with("shared.rootUnavailable", "path", path));
+    }
+    if rendered.empty {
+        return Ok(None);
+    }
+
+    if instance.shared.apply_mode == ApplyMode::InstanceFile {
+        // Файл мог устареть: пользователь завёл в общей папке новую
+        // категорию, а конфиг остался прежним. Обновляем — но только свой.
+        // Чужой на этом месте означает, что его положили после нас,
+        // и трогать его при обычном запуске мы права не имеем.
+        let root = std::path::Path::new(&instance.path);
+        if shared_models::inspect_instance_file(root).state == InstanceFileState::Ours {
+            shared_models::write_config(
+                &shared_models::instance_config_path(root),
+                &rendered.yaml,
+            )?;
+        }
+        return Ok(None);
+    }
+
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| AppError::because("shared.writeFailed", e))?;
+    let path = shared_models::flag_config_path(&dir);
+    shared_models::write_config(&path, &rendered.yaml)?;
+    Ok(Some(path.display().to_string()))
+}
+
+/// Запускает инстанс.
+///
+/// `without_shared` — согласие запуститься без общих моделей.
+/// Недоступный корень не может просто игнорироваться: пользователь,
+/// державший модели на внешнем диске, получил бы «model not found» посреди
+/// работы и решил бы, что сломалось приложение. Поэтому первый вызов
+/// отказывает кодом `shared.rootUnavailable`, фронт показывает выбор,
+/// и повторный вызов приходит уже с согласием.
+#[tauri::command]
+#[specta::specta]
 async fn start_instance(
     app: tauri::AppHandle,
     runtime: tauri::State<'_, Runtime>,
     id: String,
     profile_id: Option<String>,
+    without_shared: bool,
 ) -> Result<RunStatus, AppError> {
     if runtime.is_busy(&id) {
         return Err(AppError::new("run.alreadyRunning"));
@@ -342,6 +547,8 @@ async fn start_instance(
         .ok_or_else(|| AppError::new("run.noProfiles"))?
         .clone();
 
+    let shared_config = prepare_shared(&app, &instance, without_shared)?;
+
     let emitter = app.clone();
     let on_line = std::sync::Arc::new({
         let id = id.clone();
@@ -352,7 +559,7 @@ async fn start_instance(
 
     let exit_app = app.clone();
     let exit_id = id.clone();
-    let outcome = run::start(&instance, &profile, on_line, move |exit| {
+    let outcome = run::start(&instance, &profile, shared_config.as_deref(), on_line, move |exit| {
         finish(&exit_app, &exit_id, exit);
     })?;
 
@@ -824,6 +1031,14 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             run_install,
             cancel_install,
             instance_profiles,
+            load_shared_settings,
+            save_shared_settings,
+            scan_shared_root,
+            preview_shared_yaml,
+            create_shared_folders,
+            inspect_instance_config,
+            connect_shared,
+            disconnect_shared,
             run_statuses,
             run_log,
             start_instance,

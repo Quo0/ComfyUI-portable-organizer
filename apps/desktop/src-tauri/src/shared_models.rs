@@ -435,3 +435,158 @@ pub fn write_config(path: &Path, yaml: &str) -> Result<(), AppError> {
     }
     std::fs::write(path, yaml).map_err(|e| AppError::because("shared.writeFailed", e))
 }
+
+/// Имя нашего конфига в папке данных приложения — для режима «флаг».
+///
+/// Один файл на все инстансы: настройка общая, и держать по копии на инстанс
+/// значило бы разъезжаться при первой же правке корня.
+pub fn flag_config_path(app_data_dir: &Path) -> PathBuf {
+    app_data_dir.join("shared-models.yaml")
+}
+
+/// Что получилось при сборке конфига по настройкам.
+pub struct Rendered {
+    pub yaml: String,
+    /// Корни, которых сейчас нет на месте. Пустой список — всё доступно.
+    /// Проверять надо **до** запуска: иначе пользователь узнает о снятом
+    /// внешнем диске из ошибки «model not found» посреди работы.
+    pub unavailable: Vec<String>,
+    /// Ни одного включённого корня — генерировать нечего.
+    pub empty: bool,
+}
+
+/// Сканирует включённые корни и собирает по ним YAML.
+pub fn render_settings(settings: &SharedSettings) -> Rendered {
+    let scans: Vec<RootScan> = settings
+        .roots
+        .iter()
+        .filter(|r| r.enabled)
+        .map(|r| scan_root(Path::new(&r.path)))
+        .collect();
+
+    let unavailable =
+        scans.iter().filter(|s| !s.available).map(|s| s.path.clone()).collect::<Vec<_>>();
+
+    // Недоступный корень в конфиг не пишем: ComfyUI на несуществующий путь
+    // не ругается, он его молча добавит, и разбираться потом будет не с чем.
+    let usable: Vec<(&RootScan, &str)> =
+        scans.iter().filter(|s| s.available).map(|s| (s, "")).collect();
+
+    Rendered {
+        empty: usable.is_empty(),
+        yaml: render_yaml(&usable, settings.make_default_target),
+        unavailable,
+    }
+}
+
+/// Что лежит в `extra_model_paths.yaml` инстанса.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum InstanceFileState {
+    /// Файла нет — пишем без вопросов.
+    Absent,
+    /// Наш, узнан по маркеру, — обновляем молча.
+    Ours,
+    /// Чужой. Не трогаем, пока пользователь не решит.
+    Foreign,
+    /// Файл есть, но не читается. Не трогаем и говорим об этом:
+    /// перезаписать то, что не смогли прочитать, — верный способ
+    /// уничтожить работающую настройку.
+    Unreadable,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct InstanceFileInfo {
+    pub path: String,
+    pub state: InstanceFileState,
+    /// Содержимое чужого файла — чтобы показать пользователю, что именно
+    /// он собирается заменить. У своего и отсутствующего пусто.
+    pub content: Option<String>,
+}
+
+pub fn inspect_instance_file(root: &Path) -> InstanceFileInfo {
+    let path = instance_config_path(root);
+    let display = path.display().to_string();
+
+    if !path.exists() {
+        return InstanceFileInfo { path: display, state: InstanceFileState::Absent, content: None };
+    }
+
+    match std::fs::read_to_string(&path) {
+        Ok(content) if is_ours(&content) => {
+            InstanceFileInfo { path: display, state: InstanceFileState::Ours, content: None }
+        }
+        Ok(content) => InstanceFileInfo {
+            path: display,
+            state: InstanceFileState::Foreign,
+            content: Some(content),
+        },
+        Err(_) => {
+            InstanceFileInfo { path: display, state: InstanceFileState::Unreadable, content: None }
+        }
+    }
+}
+
+/// Кладёт наш конфиг в папку инстанса, сохранив чужой.
+///
+/// Возвращает путь резервной копии, если она понадобилась. Чужой файл
+/// без копии не перезаписывается никогда — даже когда пользователь
+/// подтвердил: подтверждение относится к замене, а не к уничтожению.
+pub fn write_instance_file(root: &Path, yaml: &str, stamp: u64) -> Result<Option<String>, AppError> {
+    let path = instance_config_path(root);
+    let info = inspect_instance_file(root);
+
+    let backup = match info.state {
+        InstanceFileState::Unreadable => {
+            return Err(AppError::with("shared.fileUnreadable", "path", path.display()))
+        }
+        InstanceFileState::Foreign => {
+            let backup = backup_path(&path, stamp);
+            std::fs::copy(&path, &backup)
+                .map_err(|e| AppError::because("shared.backupFailed", e))?;
+            Some(backup.display().to_string())
+        }
+        InstanceFileState::Absent | InstanceFileState::Ours => None,
+    };
+
+    write_config(&path, yaml)?;
+    Ok(backup)
+}
+
+/// Убирает наш конфиг из папки инстанса и возвращает на место чужой.
+///
+/// Чужой файл не удаляется ни при каких обстоятельствах: если на месте
+/// лежит не наш, значит его положили после нас, и он главнее.
+pub fn remove_instance_file(root: &Path) -> Result<(), AppError> {
+    let path = instance_config_path(root);
+    let info = inspect_instance_file(root);
+
+    if info.state != InstanceFileState::Ours {
+        return Ok(());
+    }
+
+    std::fs::remove_file(&path).map_err(|e| AppError::because("shared.removeFailed", e))?;
+
+    // Восстанавливаем самую свежую копию: имена содержат метку времени,
+    // так что лексикографический максимум — он же последний по времени.
+    if let Some(backup) = latest_backup(&path) {
+        std::fs::rename(&backup, &path)
+            .map_err(|e| AppError::because("shared.restoreFailed", e))?;
+    }
+    Ok(())
+}
+
+/// Самая свежая резервная копия рядом с конфигом.
+fn latest_backup(config: &Path) -> Option<PathBuf> {
+    let dir = config.parent()?;
+    let prefix = format!("{}.bak-", config.file_name()?.to_string_lossy());
+
+    std::fs::read_dir(dir)
+        .ok()?
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|name| name.starts_with(&prefix))
+        .max()
+        .map(|name| dir.join(name))
+}

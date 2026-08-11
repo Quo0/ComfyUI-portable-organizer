@@ -190,14 +190,28 @@ fn normalize(path: &Path) -> PathBuf {
     parts.iter().fold(PathBuf::new(), |acc, p| acc.join(p))
 }
 
-/// Готовит аргументы к запуску: свой порт и запрет на открытие браузера.
+/// Готовит аргументы к запуску: свой порт, запрет на браузер и, если инстанс
+/// подключён к общим моделям в режиме флага, путь к нашему конфигу.
 ///
 /// Существующий `--port` вырезается вместе со значением — иначе сборка
 /// займёт порт из `.bat`, а не выданный нами, и два инстанса подерутся.
 /// `--disable-auto-launch` в cli_args.py применяется после
 /// `--windows-standalone-build` и всегда побеждает.
-pub fn apply_runtime_args(args: &[String], port: u16) -> Vec<String> {
-    let mut result = Vec::with_capacity(args.len() + 3);
+///
+/// А вот `--extra-model-paths-config` из `.bat` мы **не трогаем**: у флага
+/// `action='append'`, файлы применяются подряд, и своё мы просто дописываем
+/// рядом. Вырезать чужое значило бы молча отобрать настройку, которую
+/// пользователь завёл руками.
+///
+/// Своё значение идёт отдельным вхождением флага, а не голым путём в конец.
+/// Проверено на argparse из реальной сборки: приписанный путь тоже
+/// загрузился бы — `main.py:134` разворачивает вхождения через
+/// `itertools.chain`, и порядок сохраняется в обоих случаях. Ломается другое:
+/// если в `.bat` этого флага нет вовсе, голый путь становится позиционным
+/// аргументом, и argparse отвергает всю командную строку. Отдельное
+/// вхождение не зависит от того, что написано в `.bat`.
+pub fn apply_runtime_args(args: &[String], port: u16, shared_config: Option<&str>) -> Vec<String> {
+    let mut result = Vec::with_capacity(args.len() + 5);
     let mut skip_value = false;
 
     for arg in args {
@@ -218,5 +232,11 @@ pub fn apply_runtime_args(args: &[String], port: u16) -> Vec<String> {
     result.push("--port".to_string());
     result.push(port.to_string());
     result.push("--disable-auto-launch".to_string());
+
+    if let Some(config) = shared_config {
+        result.push("--extra-model-paths-config".to_string());
+        result.push(config.to_string());
+    }
+
     result
 }

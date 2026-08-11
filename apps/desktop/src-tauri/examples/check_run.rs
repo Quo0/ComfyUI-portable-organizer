@@ -38,6 +38,7 @@ fn main() {
         profiles: probe.profiles.clone(),
         created_at: 0.0,
         source: None,
+        shared: Default::default(),
         size_bytes: None,
         size_measured_at: None,
         available: true,
@@ -71,7 +72,7 @@ fn scenario_normal(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::L
     let (lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
 
-    let outcome = run::start(instance, profile, sink, move |exit| {
+    let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
     .expect("не запустился");
@@ -132,7 +133,7 @@ fn scenario_crash(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::La
     let (lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
 
-    let outcome = run::start(instance, profile, sink, move |exit| {
+    let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
     .expect("не запустился");
@@ -159,7 +160,7 @@ fn scenario_hang(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::Lau
     let (_lines, sink) = collector();
     let (tx, _rx) = mpsc::channel();
 
-    let outcome = run::start(instance, profile, sink, move |exit| {
+    let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
     .expect("не запустился");
@@ -191,7 +192,7 @@ fn scenario_restart(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::
     let (_lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
 
-    let outcome = run::start(instance, profile, sink, move |exit| {
+    let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
     .expect("не запустился");

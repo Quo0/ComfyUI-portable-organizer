@@ -76,7 +76,7 @@ fn main() {
     );
 
     // Мутация аргументов перед стартом.
-    let mutated = apply_runtime_args(&normal.args, 8231);
+    let mutated = apply_runtime_args(&normal.args, 8231, None);
     failures += check(
         "порт дописан",
         mutated.windows(2).any(|w| w[0] == "--port" && w[1] == "8231"),
@@ -84,6 +84,10 @@ fn main() {
     failures += check(
         "браузер запрещён",
         mutated.iter().filter(|a| *a == "--disable-auto-launch").count() == 1,
+    );
+    failures += check(
+        "без общих моделей флага конфига нет",
+        !mutated.iter().any(|a| a == "--extra-model-paths-config"),
     );
 
     let already = vec![
@@ -95,8 +99,43 @@ fn main() {
     ];
     failures += check(
         "прежний --port вырезан вместе со значением",
-        apply_runtime_args(&already, 8300)
+        apply_runtime_args(&already, 8300, None)
             == vec!["-s", "main.py", "--port", "8300", "--disable-auto-launch"],
+    );
+
+    // Общие модели: свой конфиг дописывается отдельным вхождением флага.
+    let shared = apply_runtime_args(&already, 8300, Some(r"C:\data\shared-models.yaml"));
+    failures += check(
+        "путь конфига идёт сразу за своим флагом",
+        shared
+            .windows(2)
+            .any(|w| w[0] == "--extra-model-paths-config" && w[1] == r"C:\data\shared-models.yaml"),
+    );
+
+    // У флага `action='append'`, файлы применяются подряд. Вырезать чужой
+    // значило бы молча отобрать настройку, заведённую руками.
+    let with_own = vec![
+        "-s".to_string(),
+        "main.py".to_string(),
+        "--extra-model-paths-config".to_string(),
+        "my_paths.yaml".to_string(),
+    ];
+    let merged = apply_runtime_args(&with_own, 8300, Some("ours.yaml"));
+    failures += check(
+        "чужой --extra-model-paths-config сохранён",
+        merged.iter().any(|a| a == "my_paths.yaml"),
+    );
+    failures += check(
+        "флаг конфига встречается дважды, а не склеен в одно вхождение",
+        merged.iter().filter(|a| *a == "--extra-model-paths-config").count() == 2,
+    );
+    // Свой путь обязан идти следом за своим же флагом. Приписанный к чужому
+    // вхождению он тоже загрузился бы, но при отсутствии флага в `.bat` стал
+    // бы позиционным аргументом и уронил бы разбор всей командной строки.
+    failures += check(
+        "свой путь идёт следом за своим же флагом",
+        merged.iter().position(|a| a == "ours.yaml")
+            == merged.iter().rposition(|a| a == "--extra-model-paths-config").map(|i| i + 1),
     );
 
     println!();

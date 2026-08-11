@@ -50,16 +50,20 @@ pub struct StartOutcome {
 ///
 /// Возвращается сразу после спавна: ждать готовности здесь нельзя, иначе
 /// вызывающий не увидит ни строчки лога до самого конца холодного старта.
+/// `shared_config` — путь к нашему `extra_model_paths.yaml` для режима
+/// «флаг». В режиме «файл в инстансе» его нет: файл уже лежит в папке
+/// сборки и подхватывается ComfyUI сам.
 pub fn start(
     instance: &Instance,
     profile: &LaunchProfile,
+    shared_config: Option<&str>,
     on_line: Arc<dyn Fn(LogLine) + Send + Sync>,
     on_exit: impl FnOnce(Exit) + Send + 'static,
 ) -> Result<StartOutcome, AppError> {
     let port = ports::pick(instance.preferred_port)
         .ok_or_else(|| AppError::new("run.noFreePort"))?;
 
-    let args = profiles::apply_runtime_args(&profile.args, port);
+    let args = profiles::apply_runtime_args(&profile.args, port, shared_config);
     let request = SpawnRequest {
         program: profile.python_path.clone(),
         args,

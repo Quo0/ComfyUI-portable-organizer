@@ -18,6 +18,7 @@ use tauri_plugin_store::StoreExt;
 
 use crate::discovery::{FoundProfile, InstanceDiscovery, Probe};
 use crate::error::AppError;
+use crate::shared_models::InstanceShared;
 
 const STORE_FILE: &str = "instances.json";
 const KEY_LIST: &str = "instances";
@@ -79,6 +80,13 @@ pub struct Instance {
     pub profiles: Vec<FoundProfile>,
     pub created_at: f64,
     pub source: Option<InstallSource>,
+
+    /// Подключение к общему хранилищу моделей. `#[serde(default)]` не
+    /// украшение: реестр, записанный до Фазы 2.5, поля не содержит, и без
+    /// умолчания разбор всего файла упал бы — то есть пользователь потерял
+    /// бы список инстансов из-за появления новой настройки.
+    #[serde(default)]
+    pub shared: InstanceShared,
 
     /// Размер на диске. `f64`, а не `u64`: specta запрещает экспорт целых,
     /// не помещающихся в число JavaScript без потери точности. Байты
@@ -257,6 +265,7 @@ pub fn add(
         profiles: probe.profiles,
         created_at: now_ms(),
         source,
+        shared: InstanceShared::default(),
         size_bytes: None,
         size_measured_at: None,
         available: true,
@@ -290,6 +299,25 @@ pub fn update(
     let updated = instance.clone();
     write_all(app, &list)?;
     Ok(updated)
+}
+
+/// Записывает подключение к общим моделям.
+///
+/// Отдельно от `update`: тот принимает форму редактирования инстанса и
+/// перетёр бы имя с описанием значениями, которых у вызывающего нет.
+pub fn set_shared(
+    app: &tauri::AppHandle,
+    id: &str,
+    shared: InstanceShared,
+) -> Result<(), AppError> {
+    let mut list = read_all(app)?;
+    let instance = list
+        .iter_mut()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", id))?;
+
+    instance.shared = shared;
+    write_all(app, &list)
 }
 
 /// Убирает инстанс из реестра. Папку на диске не трогает — никогда.
