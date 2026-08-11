@@ -304,7 +304,11 @@
       "empty": "Sin definir",
       "howto": "Elija una carpeta con subcarpetas nombradas por categorías de modelos: checkpoints, loras, vae, etc. Puede estar vacía por ahora.",
       "unavailable": "La carpeta no está disponible ahora. Las instancias conectadas avisarán antes de iniciarse.",
-      "noCategories": "Aún no hay subcarpetas: por ahora no hay nada que compartir."
+      "noCategories": "Aún no hay subcarpetas: por ahora no hay nada que compartir.",
+      "insideInstance": "Esta carpeta está dentro de la instalación «{name}». Funciona, pero borrar esa instalación se llevaría los modelos compartidos de todas las demás.",
+      "changeTitle": "¿Cambiar la carpeta compartida?",
+      "changeBody": "{n} instalación conectada pasará a la nueva carpeta en su próximo inicio. | Las {n} instalaciones conectadas pasarán a la nueva carpeta en su próximo inicio.",
+      "changeConfirm": "Cambiarla"
     },
     "summary": {
       "categories": "{n} categoría reconocida | {n} categorías reconocidas",
@@ -327,7 +331,8 @@
     },
     "default": {
       "label": "Descargar los modelos nuevos en la carpeta compartida",
-      "hint": "Un modelo descargado en una instancia queda visible para todas."
+      "hint": "Un modelo descargado en una instancia queda visible para todas.",
+      "restartNote": "Surte efecto en el próximo inicio de una instalación."
     },
     "yaml": {
       "show": "Mostrar la configuración generada",

@@ -304,7 +304,11 @@
       "empty": "Not set",
       "howto": "Pick a folder with subfolders named after model categories — checkpoints, loras, vae and so on. It can be empty for now.",
       "unavailable": "The folder is not available right now. Instances connected to it will warn you before they start.",
-      "noCategories": "No subfolders yet — there is nothing to share so far."
+      "noCategories": "No subfolders yet — there is nothing to share so far.",
+      "insideInstance": "This folder is inside the build «{name}». That works, but deleting that build would take the shared models of all the others with it.",
+      "changeTitle": "Change the shared folder?",
+      "changeBody": "{n} connected build will switch to the new folder at its next start. | All {n} connected builds will switch to the new folder at their next start.",
+      "changeConfirm": "Change it"
     },
     "summary": {
       "categories": "{n} category recognised | {n} categories recognised",
@@ -327,7 +331,8 @@
     },
     "default": {
       "label": "Download new models into the shared folder",
-      "hint": "A model downloaded in one instance becomes visible to all of them."
+      "hint": "A model downloaded in one instance becomes visible to all of them.",
+      "restartNote": "Takes effect the next time a build starts."
     },
     "yaml": {
       "show": "Show the generated config",

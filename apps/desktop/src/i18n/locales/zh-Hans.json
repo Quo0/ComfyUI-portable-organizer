@@ -304,7 +304,11 @@
       "empty": "未设置",
       "howto": "选择一个文件夹，其中的子文件夹按模型类别命名——checkpoints、loras、vae 等。目前可以是空的。",
       "unavailable": "该文件夹当前不可用。已连接的实例会在启动前提醒您。",
-      "noCategories": "尚无子文件夹——暂时没有可共享的内容。"
+      "noCategories": "尚无子文件夹——暂时没有可共享的内容。",
+      "insideInstance": "此文件夹位于安装「{name}」内部。这样可行，但删除该安装会连带删除其他所有安装的共享模型。",
+      "changeTitle": "更改共享文件夹？",
+      "changeBody": "已连接的 {n} 个安装将在下次启动时改用新文件夹。",
+      "changeConfirm": "更改"
     },
     "summary": {
       "categories": "已识别 {n} 个类别",
@@ -327,7 +331,8 @@
     },
     "default": {
       "label": "将新模型下载到共享文件夹",
-      "hint": "在一个实例中下载的模型将对所有实例可见。"
+      "hint": "在一个实例中下载的模型将对所有实例可见。",
+      "restartNote": "在安装下次启动时生效。"
     },
     "yaml": {
       "show": "显示生成的配置",

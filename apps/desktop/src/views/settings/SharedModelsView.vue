@@ -1,25 +1,62 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useI18n } from 'vue-i18n';
 
 import { useFormat } from '../../lib/format';
+import { useInstancesStore } from '../../stores/instances';
 import { useSharedStore } from '../../stores/shared';
 
 const shared = useSharedStore();
+const instances = useInstancesStore();
 const { t } = useI18n();
 const { bytes } = useFormat();
 
 /** Предпросмотр YAML свёрнут: он длинный и нужен не всем. */
 const showYaml = ref(false);
 
-onMounted(() => {
-  if (!shared.loaded) void shared.load();
+/**
+ * Выбранная, но ещё не применённая папка. Смена корня действует сразу на
+ * все подключённые инстансы, поэтому спрашиваем до, а не после.
+ */
+const pending = ref<string | null>(null);
+
+onMounted(async () => {
+  if (!shared.loaded) await shared.load();
+  if (!instances.loaded) await instances.load();
+});
+
+const sameCase = (a: string, b: string): boolean =>
+  a.replace(/\\/g, '/').toLowerCase().startsWith(b.replace(/\\/g, '/').toLowerCase());
+
+/**
+ * Корень лежит внутри зарегистрированной сборки.
+ *
+ * Не запрещаем — бывает осмысленно, — но последствия неочевидны:
+ * удаление этой сборки унесёт с собой общие модели всех остальных.
+ */
+const insideInstance = computed(() => {
+  const path = shared.root?.path;
+  if (!path) return null;
+  return instances.items.find((i) => sameCase(path, i.path)) ?? null;
 });
 
 async function pick(): Promise<void> {
   const picked = await open({ directory: true, multiple: false });
-  if (typeof picked === 'string') await shared.setRoot(picked);
+  if (typeof picked !== 'string') return;
+
+  // Первый выбор применяем сразу: менять нечего и предупреждать не о чем.
+  if (!shared.configured || shared.connected === 0) {
+    await shared.setRoot(picked);
+    return;
+  }
+  pending.value = picked;
+}
+
+async function applyPending(): Promise<void> {
+  if (!pending.value) return;
+  await shared.setRoot(pending.value);
+  pending.value = null;
 }
 </script>
 
@@ -57,6 +94,30 @@ async function pick(): Promise<void> {
             {{ bytes(shared.scan?.totalBytes) }} ·
             {{ t('shared.summary.connected', shared.connected) }}
           </p>
+
+          <!-- Корень внутри сборки. Не запрет, а предупреждение: удаление
+               этой сборки унесёт общие модели всех остальных. -->
+          <p v-if="insideInstance" class="hint bad">
+            {{ t('shared.root.insideInstance', { name: insideInstance.name }) }}
+          </p>
+        </div>
+
+        <!-- Смена корня действует сразу на все подключённые сборки,
+             поэтому спрашиваем до, а не после. -->
+        <div v-if="pending" class="group danger-zone">
+          <p class="t-md">{{ t('shared.root.changeTitle') }}</p>
+          <p class="t-sm">
+            {{ t('shared.root.changeBody', shared.connected) }}
+          </p>
+          <div class="input mono"><span>{{ pending }}</span></div>
+          <div class="row">
+            <button type="button" class="btn danger" @click="applyPending">
+              {{ t('shared.root.changeConfirm') }}
+            </button>
+            <button type="button" class="btn ghost" @click="pending = null">
+              {{ t('common.cancel') }}
+            </button>
+          </div>
         </div>
 
         <template v-if="shared.configured && shared.available">
@@ -110,6 +171,10 @@ async function pick(): Promise<void> {
             <div>
               <div class="t-base">{{ t('shared.default.label') }}</div>
               <div class="hint">{{ t('shared.default.hint') }}</div>
+              <!-- Настройка читается сборкой при старте. Молчать об этом
+                   нельзя: переключивший тумблер у работающей сборки решит,
+                   что она сломана. -->
+              <div class="hint">{{ t('shared.default.restartNote') }}</div>
             </div>
           </div>
 
