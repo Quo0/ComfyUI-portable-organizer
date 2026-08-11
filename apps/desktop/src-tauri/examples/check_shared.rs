@@ -156,14 +156,24 @@ fn main() {
 
     // Самая тонкая ветвь: две папки обязаны съехаться в один ключ
     // многострочным блоком, иначе вторая молча потеряется.
-    let merged_ok = yaml.contains("  diffusion_models: |\n    diffusion_models/\n    unet/\n");
+    let merged_ok = yaml.contains("  diffusion_models: |\n    unet/\n    diffusion_models/\n");
     check("diffusion_models и unet слиты в один ключ", merged_ok, String::new());
-    // Порядок внутри ключа — это порядок поиска: `add_model_folder_path`
-    // складывает пути подряд. Каноническая папка обязана идти первой,
-    // иначе приоритет определялся бы алфавитом, то есть случайно.
+
+    // Порядок внутри ключа определяет цель для новых загрузок: ею служит
+    // `paths[0]`. При is_default пути вставляются в начало, то есть порядок
+    // переворачивается, — значит каноническую папку надо писать последней.
     check(
-        "внутри ключа каноническая папка впереди устаревшей",
-        yaml.contains("  text_encoders: |\n    text_encoders/\n    clip/\n"),
+        "при is_default каноническая папка пишется последней",
+        yaml.contains("  text_encoders: |\n    clip/\n    text_encoders/\n"),
+        String::new(),
+    );
+
+    // Без is_default пути дописываются в конец, порядок сохраняется —
+    // и каноническая обязана идти первой.
+    let appended = shared_models::render_yaml(&[(&scan, "shared")], false);
+    check(
+        "без is_default каноническая папка пишется первой",
+        appended.contains("  text_encoders: |\n    text_encoders/\n    clip/\n"),
         String::new(),
     );
 

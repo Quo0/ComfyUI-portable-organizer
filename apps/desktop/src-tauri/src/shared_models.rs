@@ -352,12 +352,20 @@ pub fn render_yaml(roots: &[(&RootScan, &str)], make_default: bool) -> String {
         }
 
         for (key, mut folders) in merged {
-            // Каноническая папка первой, устаревшие следом: `add_model_folder_path`
-            // складывает пути по порядку, и порядок определяет, где ComfyUI
-            // ищет раньше. Без явной сортировки он вышел бы алфавитным,
-            // то есть случайным — `clip/` опережал бы `text_encoders/`,
-            // а `diffusion_models/` опережал бы `unet/`.
-            folders.sort_by_key(|folder| (*folder != key, *folder));
+            // Порядок внутри ключа определяет, куда ComfyUI положит вновь
+            // скачанное: целью служит `paths[0]`. Из двух папок, слитых
+            // в один ключ, целью обязана быть каноническая, а не устаревшая.
+            //
+            // Но добавление зависит от `is_default`, и зависит наоборот
+            // (`folder_paths.py:379-385`): при `false` путь дописывается
+            // в конец и порядок сохраняется, при `true` — вставляется
+            // в начало, то есть порядок переворачивается. Проверено на
+            // реальной сборке: `diffusion_models/`, `unet/` приезжали
+            // как `[unet, diffusion_models]`.
+            //
+            // Поэтому при `is_default` каноническую пишем последней —
+            // после переворота она окажется первой.
+            folders.sort_by_key(|folder| ((*folder == key) == make_default, *folder));
             if folders.len() == 1 {
                 out.push_str(&format!("  {key}: {}/\n", folders[0]));
             } else {
