@@ -121,7 +121,8 @@
       "files": "{n} 个文件",
       "unpacked": "解压后占用 {size}",
       "root": "压缩包内的根目录：{name}",
-      "noRoot": "压缩包没有唯一的根目录，因此内容将原样解压。"
+      "noRoot": "压缩包没有唯一的根目录，因此内容将原样解压。",
+      "reading": "正在读取压缩包目录…"
     },
     "targets": {
       "title": "解压到哪里",
@@ -139,7 +140,9 @@
       "registering": "正在登记",
       "progress": "{done} / {total}",
       "note": "第一个目标通过解压得到，其余从它复制。解压是最慢的一步，只做一次能省下几分钟。",
-      "files": "{done} / {total} 个文件"
+      "files": "{done} / {total} 个文件",
+      "preparing": "正在检查文件夹并打开压缩包…",
+      "cleaning": "正在清理上次中断留下的文件…"
     },
     "done": {
       "title": "完成",

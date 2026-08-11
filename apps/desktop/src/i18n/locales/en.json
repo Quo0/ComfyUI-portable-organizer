@@ -121,7 +121,8 @@
       "files": "{n} file | {n} files",
       "unpacked": "Unpacks to {size}",
       "root": "Root folder in the archive: {name}",
-      "noRoot": "The archive has no single root folder, so its contents are unpacked as they are."
+      "noRoot": "The archive has no single root folder, so its contents are unpacked as they are.",
+      "reading": "Reading the archive index…"
     },
     "targets": {
       "title": "Where to unpack",
@@ -139,7 +140,9 @@
       "registering": "Registering",
       "progress": "{done} of {total}",
       "note": "The first destination is unpacked, the rest are copied from it. Decompression is the slow part, and doing it once saves minutes.",
-      "files": "{done} of {total} files"
+      "files": "{done} of {total} files",
+      "preparing": "Checking the folders and opening the archive…",
+      "cleaning": "Clearing what an interrupted attempt left behind…"
     },
     "done": {
       "title": "Ready",

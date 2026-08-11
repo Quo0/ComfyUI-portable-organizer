@@ -386,6 +386,14 @@ h3.sub {
 .card.gone .card-name { color: var(--ink-muted); }
 .bar { height: 3px; border-radius: var(--radius-pill); background: var(--surface-sunken); overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 38%; background: var(--state-starting); border-radius: inherit; }
+/* Индетерминантное состояние: длительность заранее неизвестна, показывать
+   долю выполненного нечем, а молчать нельзя — пауза без подписи и без
+   движения читается как зависание. Кадры те же, что у .track.indet:
+   заводить вторые ради одной и той же анимации незачем. */
+.bar.indet > i { width: 34%; animation: slide 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .bar.indet > i { animation: none; width: 100%; opacity: .4; }
+}
 
 /* ------------------------------------------------------- кнопки */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }

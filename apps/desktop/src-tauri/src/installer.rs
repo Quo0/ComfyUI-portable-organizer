@@ -81,15 +81,31 @@ pub struct TargetCheck {
     pub warnings: Vec<AppError>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum InstallPhase {
+    /// Проверки, открытие архива, разворот словаря LZMA2 на 768 МБ.
+    /// Занимает секунды, а выглядела бы тишиной, если о ней не сказать.
+    Preparing,
+    /// Уборка следов прерванной попытки. Отдельно от `Preparing`, потому что
+    /// это единственная подготовка, способная затянуться надолго: там
+    /// десятки тысяч файлов и повторы вокруг занятых антивирусом.
+    Cleaning,
     /// Распаковка архива в первую цель.
     Extracting,
     /// Копирование готового дерева в остальные цели.
     Copying,
-    /// Регистрация в реестре.
+    /// Регистрация в реестре: перепроверка каждой цели с запуском
+    /// `python --version`. Тоже секунды, тоже не бесплатно.
     Registering,
+}
+
+impl InstallPhase {
+    /// Фазы, у которых нет доли выполненного: показывать нечего, кроме
+    /// того, что работа идёт.
+    pub fn is_indeterminate(self) -> bool {
+        matches!(self, Self::Preparing | Self::Cleaning | Self::Registering)
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
@@ -117,6 +133,25 @@ pub struct InstallProgress {
     /// Байты остаются, но уже как подпись рядом, а не как полоса.
     pub done_bytes: f64,
     pub total_bytes: f64,
+}
+
+impl InstallProgress {
+    /// Событие фазы без счётчиков. Нули здесь не «ничего не сделано»,
+    /// а «считать нечего»: фронт по `phase` понимает это и рисует
+    /// бегущую полосу вместо доли.
+    pub fn stage(phase: InstallPhase, target: u32, targets: u32, name: &str) -> Self {
+        Self {
+            phase,
+            target,
+            targets,
+            target_name: name.to_string(),
+            current: String::new(),
+            done_files: 0,
+            total_files: 0,
+            done_bytes: 0.0,
+            total_bytes: 0.0,
+        }
+    }
 }
 
 /// Отмена мастера. Проверяется между файлами: прерывать распаковку одного
@@ -396,8 +431,24 @@ where
 {
     let partial = partial_of(dest);
     // Прошлая попытка могла оборваться — начинаем с чистого места.
+    // Уборка тут способна занять минуты, поэтому о ней говорим отдельно.
+    if partial.exists() {
+        report(InstallProgress::stage(
+            InstallPhase::Cleaning,
+            1,
+            targets,
+            &target.name,
+        ));
+    }
     remove_tree(&partial)?;
 
+    // Открытие архива и разворот словаря — ещё несколько секунд тишины.
+    report(InstallProgress::stage(
+        InstallPhase::Preparing,
+        1,
+        targets,
+        &target.name,
+    ));
     let outcome = extract_into(info, &partial, target, targets, cancel, report);
 
     if outcome.is_err() || cancel.requested() {
@@ -507,8 +558,22 @@ where
     F: FnMut(InstallProgress),
 {
     let partial = partial_of(to);
+    if partial.exists() {
+        report(InstallProgress::stage(
+            InstallPhase::Cleaning,
+            index,
+            targets,
+            &target.name,
+        ));
+    }
     remove_tree(&partial)?;
 
+    report(InstallProgress::stage(
+        InstallPhase::Preparing,
+        index,
+        targets,
+        &target.name,
+    ));
     let outcome = copy_into(from, &partial, info, target, index, targets, cancel, report);
 
     if outcome.is_err() || cancel.requested() {

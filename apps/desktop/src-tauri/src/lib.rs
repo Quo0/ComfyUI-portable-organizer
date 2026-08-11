@@ -162,6 +162,19 @@ async fn run_install(
     let _guard = lock.acquire()?;
     cancel.reset();
 
+    // Первым делом, до любой работы: от клика до этого события проходит
+    // только время IPC, и экран перестаёт молчать сразу. Без него первые
+    // секунды выглядели зависанием — проверки, открытие архива и разворот
+    // словаря LZMA2 идут молча.
+    let first_name = targets.first().map(|t| t.name.clone()).unwrap_or_default();
+    let _ = installer::InstallProgress::stage(
+        installer::InstallPhase::Preparing,
+        1,
+        targets.len() as u32,
+        &first_name,
+    )
+    .emit(&app);
+
     // Проверки повторяются перед самой работой: между экраном целей
     // и запуском место на диске могло кончиться, а папка — появиться.
     let blocking: Vec<AppError> = installer::check_targets(&info, &targets)
@@ -187,6 +200,17 @@ async fn run_install(
     .await
     .map_err(|e| AppError::because("installer.extractFailed", e))?;
     outcome?;
+
+    // Регистрация перепроверяет каждую цель и запускает `python --version`
+    // на каждую — это ещё пара секунд после того, как файлы кончились.
+    // Прежде экран стоял на сотне процентов с подписью от последнего файла.
+    let _ = installer::InstallProgress::stage(
+        installer::InstallPhase::Registering,
+        targets.len() as u32,
+        targets.len() as u32,
+        &first_name,
+    )
+    .emit(&app);
 
     installer::history::remember(&app, &info)?;
     register_targets(&app, &info, &targets)

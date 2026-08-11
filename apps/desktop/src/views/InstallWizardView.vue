@@ -44,13 +44,39 @@ const percent = computed(() => {
   return Math.min(100, (p.doneFiles / p.totalFiles) * 100);
 });
 
+/**
+ * Подпись к текущей фазе.
+ *
+ * Прежде здесь стоял запасной вариант «Регистрация» на случай отсутствия
+ * прогресса — и именно он показывался всю подготовку, то есть врал. Теперь
+ * о подготовке сообщает Rust отдельным событием, и запасной вариант нужен
+ * только на мгновение до первого события.
+ */
 const phaseText = computed(() => {
   const p = wizard.progress;
-  if (!p) return t('install.run.registering');
+  if (!p) return t('install.run.preparing');
   const name = p.targetName;
-  return p.phase === 'copying'
-    ? t('install.run.copying', { name })
-    : t('install.run.extracting', { name });
+  switch (p.phase) {
+    case 'preparing':
+      return t('install.run.preparing');
+    case 'cleaning':
+      return t('install.run.cleaning');
+    case 'registering':
+      return t('install.run.registering');
+    case 'copying':
+      return t('install.run.copying', { name });
+    default:
+      return t('install.run.extracting', { name });
+  }
+});
+
+/**
+ * Фазы без доли выполненного. Показывать нечего, кроме того, что работа
+ * идёт, — полоса бежит вместо того, чтобы стоять на нуле.
+ */
+const indeterminate = computed(() => {
+  const phase = wizard.progress?.phase;
+  return !phase || phase === 'preparing' || phase === 'cleaning' || phase === 'registering';
 });
 
 async function pickArchive(): Promise<void> {
@@ -124,9 +150,21 @@ const needed = computed(() =>
         <!-- ------------------------------------------------ шаг «архив» -->
         <template v-if="wizard.step === 'archive'">
           <div class="row">
-            <button type="button" class="btn primary" @click="pickArchive">
+            <button
+              type="button"
+              class="btn primary"
+              :disabled="wizard.reading"
+              @click="pickArchive"
+            >
               {{ t('install.archive.choose') }}
             </button>
+          </div>
+
+          <!-- Разбор заголовка на 56 тысяч записей занимает больше секунды.
+               Без подписи выбор файла выглядит проигнорированным. -->
+          <div v-if="wizard.reading" class="group">
+            <p class="t-sm">{{ t('install.archive.reading') }}</p>
+            <div class="bar indet"><i></i></div>
           </div>
 
           <div v-if="wizard.history.length" class="group">
@@ -320,30 +358,33 @@ const needed = computed(() =>
         <template v-else-if="wizard.step === 'running'">
           <div class="group">
             <p class="t-md">{{ phaseText }}</p>
-            <div class="bar">
-              <i :style="{ width: `${percent}%` }"></i>
+            <div class="bar" :class="{ indet: indeterminate }">
+              <i :style="indeterminate ? undefined : { width: `${percent}%` }"></i>
             </div>
-            <!-- Байты остаются подписью: они понятны и полезны, просто мерой
-                 прогресса быть не могут. -->
-            <p v-if="wizard.progress" class="hint">
-              {{
-                t('install.run.files', {
-                  done: wizard.progress.doneFiles,
-                  total: wizard.progress.totalFiles,
-                })
-              }}
-              ·
-              {{
-                t('install.run.progress', {
-                  done: bytes(wizard.progress.doneBytes),
-                  total: bytes(wizard.progress.totalBytes),
-                })
-              }}
-            </p>
-            <!-- Текущий файл не переводится: это путь. -->
-            <p v-if="wizard.progress" class="t-mono current">
-              {{ wizard.progress.current }}
-            </p>
+
+            <!-- Счётчики только там, где есть что считать: в фазах подготовки
+                 они показали бы «0 из 0» и сбили бы с толку сильнее тишины. -->
+            <template v-if="wizard.progress && !indeterminate">
+              <!-- Байты остаются подписью: они понятны и полезны, просто
+                   мерой прогресса быть не могут. -->
+              <p class="hint">
+                {{
+                  t('install.run.files', {
+                    done: wizard.progress.doneFiles,
+                    total: wizard.progress.totalFiles,
+                  })
+                }}
+                ·
+                {{
+                  t('install.run.progress', {
+                    done: bytes(wizard.progress.doneBytes),
+                    total: bytes(wizard.progress.totalBytes),
+                  })
+                }}
+              </p>
+              <!-- Текущий файл не переводится: это путь. -->
+              <p class="t-mono current">{{ wizard.progress.current }}</p>
+            </template>
           </div>
 
           <div class="row">

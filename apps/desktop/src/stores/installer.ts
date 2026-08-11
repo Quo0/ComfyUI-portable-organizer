@@ -34,6 +34,12 @@ export const useInstallerStore = defineStore('installer', () => {
   const running = ref(false);
   const created = ref<Instance[]>([]);
 
+  /**
+   * Идёт разбор заголовка архива. Секунда с лишним на 56 тысяч записей —
+   * достаточно, чтобы выбор файла показался проигнорированным.
+   */
+  const reading = ref(false);
+
   let listening = false;
 
   /** Начать нельзя, пока хоть у одной цели есть ошибка. */
@@ -68,13 +74,18 @@ export const useInstallerStore = defineStore('installer', () => {
   }
 
   async function chooseArchive(path: string): Promise<boolean> {
-    const res = await commands.probeArchive(path);
-    if (res.status === 'error') {
-      ui.pushError(res.error);
-      return false;
+    reading.value = true;
+    try {
+      const res = await commands.probeArchive(path);
+      if (res.status === 'error') {
+        ui.pushError(res.error);
+        return false;
+      }
+      info.value = res.data;
+      return true;
+    } finally {
+      reading.value = false;
     }
-    info.value = res.data;
-    return true;
   }
 
   async function recheck(): Promise<void> {
@@ -130,6 +141,7 @@ export const useInstallerStore = defineStore('installer', () => {
     progress,
     running,
     created,
+    reading,
     blocked,
     loadHistory,
     forget,

@@ -121,7 +121,8 @@
       "files": "{n} archivo | {n} archivos",
       "unpacked": "Ocupará {size} al descomprimirse",
       "root": "Carpeta raíz dentro del archivo: {name}",
-      "noRoot": "El archivo no tiene una única carpeta raíz, así que su contenido se descomprime tal cual."
+      "noRoot": "El archivo no tiene una única carpeta raíz, así que su contenido se descomprime tal cual.",
+      "reading": "Leyendo el índice del archivo…"
     },
     "targets": {
       "title": "Dónde descomprimir",
@@ -139,7 +140,9 @@
       "registering": "Registrando",
       "progress": "{done} de {total}",
       "note": "El primer destino se descomprime y el resto se copia de él. La descompresión es la parte lenta, y hacerla una sola vez ahorra minutos.",
-      "files": "{done} de {total} archivos"
+      "files": "{done} de {total} archivos",
+      "preparing": "Comprobando las carpetas y abriendo el archivo…",
+      "cleaning": "Limpiando lo que dejó un intento interrumpido…"
     },
     "done": {
       "title": "Listo",
