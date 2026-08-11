@@ -576,8 +576,7 @@ pub fn remove_instance_file(root: &Path) -> Result<(), AppError> {
 
     std::fs::remove_file(&path).map_err(|e| AppError::because("shared.removeFailed", e))?;
 
-    // Восстанавливаем самую свежую копию: имена содержат метку времени,
-    // так что лексикографический максимум — он же последний по времени.
+    // Возвращаем самую свежую копию.
     if let Some(backup) = latest_backup(&path) {
         std::fs::rename(&backup, &path)
             .map_err(|e| AppError::because("shared.restoreFailed", e))?;
@@ -586,6 +585,11 @@ pub fn remove_instance_file(root: &Path) -> Result<(), AppError> {
 }
 
 /// Самая свежая резервная копия рядом с конфигом.
+///
+/// Метка сравнивается **числом**, а не строкой. Лексикографически
+/// `.bak-5` больше, чем `.bak-40`, и восстановилась бы копия постарше.
+/// На настоящих метках эпохи это не всплыло бы до 2286 года — все они
+/// десятизначные, — то есть дефект дожил бы до продакшена незамеченным.
 fn latest_backup(config: &Path) -> Option<PathBuf> {
     let dir = config.parent()?;
     let prefix = format!("{}.bak-", config.file_name()?.to_string_lossy());
@@ -594,7 +598,10 @@ fn latest_backup(config: &Path) -> Option<PathBuf> {
         .ok()?
         .flatten()
         .map(|e| e.file_name().to_string_lossy().to_string())
-        .filter(|name| name.starts_with(&prefix))
-        .max()
-        .map(|name| dir.join(name))
+        .filter_map(|name| {
+            let stamp = name.strip_prefix(&prefix)?.parse::<u64>().ok()?;
+            Some((stamp, name))
+        })
+        .max_by_key(|(stamp, _)| *stamp)
+        .map(|(_, name)| dir.join(name))
 }
