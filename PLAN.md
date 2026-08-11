@@ -40,7 +40,13 @@
 | Чеклист фаз | [plan/phases.md](plan/phases.md) |
 | Верификация | [plan/verification.md](plan/verification.md) |
 
-Разборы «что зафиксировано» по итогам каждой фазы — в [plan/notes/](plan/notes/). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
+Разборы «что зафиксировано» по итогам каждой фазы — в [plan/notes/](plan/notes/):
+[Фаза 0](plan/notes/phase-0-spike.md) ·
+[0.5](plan/notes/phase-05-shell.md) ·
+[1](plan/notes/phase-1-registry.md) ·
+[1.5](plan/notes/phase-15-installer.md) ·
+[2](plan/notes/phase-2-run.md) ·
+[2.5](plan/notes/phase-25-shared-models.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
 
 ---
 
