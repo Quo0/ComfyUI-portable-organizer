@@ -578,9 +578,20 @@ h3.sub {
 .path-row .input span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .toggle-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+
+/* Состояние задаётся классом: голый `.toggle` — включён, `.toggle.off` —
+   выключен. На `aria-checked` тумблер не реагирует, хотя ставить его
+   в разметке обязательно: он для программ чтения с экрана. Соседний
+   `.seg` устроен иначе и смотрит именно на `[aria-pressed]` — не путать.
+
+   В образцах тумблер был `<span>`, поэтому обвязки кнопки здесь не было.
+   Приложению нужен настоящий орган управления, отсюда сброс, курсор,
+   кольцо фокуса и недоступный вид. */
 .toggle {
   flex: none; width: 32px; height: 18px; border-radius: var(--radius-pill);
   background: var(--btn-primary-bg); position: relative; margin-top: 1px;
+  appearance: none; border: 0; padding: 0; box-sizing: border-box;
+  cursor: pointer;
 }
 .toggle::after {
   content: ""; position: absolute; top: 2px; right: 2px;
@@ -588,6 +599,8 @@ h3.sub {
 }
 .toggle.off { background: var(--line-strong); }
 .toggle.off::after { right: auto; left: 2px; background: var(--surface); }
+.toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.toggle:disabled { opacity: .5; cursor: default; }
 
 /* Выбор акцентного цвета. Селектор по любому потомку, а не по `i`:
    в макете это статичные метки, в приложении — кнопки, и цвет выбирается

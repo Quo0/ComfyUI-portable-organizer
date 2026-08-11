@@ -391,6 +391,7 @@ const needed = computed(() =>
           <div class="toggle-row">
             <button
               class="toggle"
+              :class="{ off: !wizard.connectShared }"
               type="button"
               role="switch"
               :aria-checked="wizard.connectShared"

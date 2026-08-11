@@ -163,6 +163,7 @@ async function applyPending(): Promise<void> {
           <div class="toggle-row">
             <button
               class="toggle"
+              :class="{ off: !shared.settings.makeDefaultTarget }"
               type="button"
               role="switch"
               :aria-checked="shared.settings.makeDefaultTarget"

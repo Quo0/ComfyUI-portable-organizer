@@ -99,6 +99,7 @@ async function setMode(next: ApplyMode): Promise<void> {
     <div class="toggle-row">
       <button
         class="toggle"
+        :class="{ off: !enabled }"
         type="button"
         role="switch"
         :aria-checked="enabled"
