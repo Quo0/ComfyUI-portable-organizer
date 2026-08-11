@@ -21,6 +21,7 @@ pub mod process;
 pub mod profiles;
 pub mod run;
 pub mod settings;
+pub mod shared_models;
 pub mod supervise;
 
 use std::io::{BufRead, BufReader, Read, Write};
