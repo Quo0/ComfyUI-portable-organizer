@@ -30,11 +30,18 @@ onMounted(() => {
   if (!wizard.info) void wizard.loadHistory();
 });
 
+/**
+ * Полоса идёт по файлам, а не по байтам.
+ *
+ * Хвост сборки — это `site-packages` с десятками тысяч файлов по паре
+ * килобайт: на отметке 98% байт сделано меньше половины файлов, и полоса
+ * замирает ровно там, где работы остаётся больше всего. Время уходит
+ * не на байты, а на создание файлов и проверку каждого антивирусом.
+ */
 const percent = computed(() => {
   const p = wizard.progress;
-  // Числа f64 приезжают как number | null: в JSON нет NaN и бесконечностей.
-  if (!p?.totalBytes || p.doneBytes === null) return 0;
-  return Math.min(100, (p.doneBytes / p.totalBytes) * 100);
+  if (!p?.totalFiles) return 0;
+  return Math.min(100, (p.doneFiles / p.totalFiles) * 100);
 });
 
 const phaseText = computed(() => {
@@ -316,7 +323,16 @@ const needed = computed(() =>
             <div class="bar">
               <i :style="{ width: `${percent}%` }"></i>
             </div>
+            <!-- Байты остаются подписью: они понятны и полезны, просто мерой
+                 прогресса быть не могут. -->
             <p v-if="wizard.progress" class="hint">
+              {{
+                t('install.run.files', {
+                  done: wizard.progress.doneFiles,
+                  total: wizard.progress.totalFiles,
+                })
+              }}
+              ·
               {{
                 t('install.run.progress', {
                   done: bytes(wizard.progress.doneBytes),

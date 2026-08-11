@@ -32,3 +32,10 @@ sevenz-rust2 = "0.21.4"
 
 [target."cfg(windows)".dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security"] }
+
+# Наш код остаётся отлаживаемым, зависимости собираются оптимизированно.
+# Без этого LZMA2 и BCJ2 в дев-сборке декодируют в разы медленнее, и мастер
+# установки выглядит сломанным, хотя сломана только сборка. Замер 238 с
+# на реальном архиве снят в release и к debug отношения не имел.
+[profile.dev.package."*"]
+opt-level = 3

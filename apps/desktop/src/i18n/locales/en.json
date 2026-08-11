@@ -138,7 +138,8 @@
       "copying": "Copying into {name}",
       "registering": "Registering",
       "progress": "{done} of {total}",
-      "note": "The first destination is unpacked, the rest are copied from it. Decompression is the slow part, and doing it once saves minutes."
+      "note": "The first destination is unpacked, the rest are copied from it. Decompression is the slow part, and doing it once saves minutes.",
+      "files": "{done} of {total} files"
     },
     "done": {
       "title": "Ready",

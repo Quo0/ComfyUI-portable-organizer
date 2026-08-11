@@ -102,14 +102,29 @@ pub struct InstallProgress {
     pub target_name: String,
     /// Путь текущего файла внутри инстанса. Не переводится.
     pub current: String,
+
+    /// Файлы, а не байты, — вот честная мера прогресса на этом архиве.
+    ///
+    /// Хвост сборки это `site-packages` с десятками тысяч файлов по паре
+    /// килобайт. На отметке 98% байт сделано меньше половины файлов, и полоса
+    /// стоит ровно там, где идёт самая долгая часть работы: время уходит
+    /// не на байты, а на создание файлов и проверку каждого антивирусом.
+    /// Замерено на прерванном прогоне: 27 906 файлов из 61 895 при 4.0 ГБ
+    /// из 4.1 ГБ.
+    pub done_files: u32,
+    pub total_files: u32,
+
+    /// Байты остаются, но уже как подпись рядом, а не как полоса.
     pub done_bytes: f64,
     pub total_bytes: f64,
 }
 
 /// Отмена мастера. Проверяется между файлами: прерывать распаковку одного
 /// файла посреди потока незачем, самый крупный в архиве — считанные мегабайты.
-#[derive(Default)]
-pub struct InstallCancel(AtomicBool);
+/// Флаг за `Arc`, потому что работа уходит в отдельный поток, а команда
+/// отмены остаётся в состоянии приложения: оба должны смотреть на один бит.
+#[derive(Default, Clone)]
+pub struct InstallCancel(std::sync::Arc<AtomicBool>);
 
 impl InstallCancel {
     pub fn request(&self) {
@@ -118,6 +133,11 @@ impl InstallCancel {
 
     pub fn reset(&self) {
         self.0.store(false, Ordering::Relaxed);
+    }
+
+    /// Копия, разделяющая тот же флаг. Для передачи в рабочий поток.
+    pub fn share(&self) -> Self {
+        self.clone()
     }
 
     fn requested(&self) -> bool {
@@ -389,6 +409,9 @@ where
 
     fs::create_dir_all(dest.parent().unwrap_or(dest))
         .map_err(|e| AppError::because("installer.writeFailed", e))?;
+    // Переименование поверх существующей пустой папки работает —
+    // проверено `examples/check_rename.rs` на нашей же связке Rust
+    // и Windows. Снимать папку заранее не нужно.
     fs::rename(verbatim(&partial), verbatim(dest))
         .map_err(|e| AppError::because("installer.writeFailed", e))
 }
@@ -413,7 +436,12 @@ where
     let root = info.single_root.clone();
     let total = info.total_uncompressed;
     let mut done = 0f64;
+    let mut files = 0u32;
     let mut last = Instant::now();
+    // Записи архива идут группами по каталогам, поэтому родитель почти всегда
+    // тот же, что у предыдущего файла. Без этой памяти create_dir_all звался бы
+    // пятьдесят шесть тысяч раз, каждый раз проходя все компоненты пути.
+    let mut last_parent: Option<PathBuf> = None;
 
     reader
         .for_each_entries(|entry, stream| {
@@ -429,14 +457,19 @@ where
 
             if entry.is_directory {
                 fs::create_dir_all(&out)?;
+                last_parent = Some(out);
                 return Ok(true);
             }
             if let Some(parent) = out.parent() {
-                fs::create_dir_all(parent)?;
+                if last_parent.as_deref() != Some(parent) {
+                    fs::create_dir_all(parent)?;
+                    last_parent = Some(parent.to_path_buf());
+                }
             }
 
             let mut file = File::create(&out)?;
             done += io::copy(stream, &mut file)? as f64;
+            files += 1;
 
             if last.elapsed().as_millis() >= PROGRESS_INTERVAL_MS {
                 last = Instant::now();
@@ -446,6 +479,8 @@ where
                     targets,
                     target_name: target.name.clone(),
                     current: rel,
+                    done_files: files,
+                    total_files: info.files,
                     done_bytes: done,
                     total_bytes: total,
                 });
@@ -503,6 +538,7 @@ where
         .map_err(|e| AppError::because("installer.writeFailed", e))?;
 
     let mut done = 0f64;
+    let mut files = 0u32;
     let mut last = Instant::now();
     // Обход без рекурсии: глубина дерева питона непредсказуема, а переполнение
     // стека здесь было бы падением всего приложения.
@@ -538,6 +574,7 @@ where
             fs::copy(entry.path(), &out)
                 .map_err(|e| AppError::because("installer.copyFailed", e))?;
             done += meta.len() as f64;
+            files += 1;
 
             if last.elapsed().as_millis() >= PROGRESS_INTERVAL_MS {
                 last = Instant::now();
@@ -547,6 +584,8 @@ where
                     targets,
                     target_name: target.name.clone(),
                     current: rel.display().to_string(),
+                    done_files: files,
+                    total_files: info.files,
                     done_bytes: done,
                     total_bytes: info.total_uncompressed,
                 });

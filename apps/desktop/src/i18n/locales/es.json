@@ -138,7 +138,8 @@
       "copying": "Copiando en {name}",
       "registering": "Registrando",
       "progress": "{done} de {total}",
-      "note": "El primer destino se descomprime y el resto se copia de él. La descompresión es la parte lenta, y hacerla una sola vez ahorra minutos."
+      "note": "El primer destino se descomprime y el resto se copia de él. La descompresión es la parte lenta, y hacerla una sola vez ahorra minutos.",
+      "files": "{done} de {total} archivos"
     },
     "done": {
       "title": "Listo",

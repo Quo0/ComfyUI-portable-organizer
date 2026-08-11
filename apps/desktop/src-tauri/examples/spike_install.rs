@@ -52,6 +52,12 @@ fn main() {
         }
     }
 
+    // Первую цель создаём заранее пустой папкой. Ровно так делает
+    // пользователь, и ровно на этом ломался финальный rename: замена
+    // существующего каталога через MoveFileEx не работает.
+    std::fs::create_dir_all(&paths[0]).expect("не создалась папка назначения");
+    println!("[СПАЙК] первая цель создана заранее пустой");
+
     let cancel = InstallCancel::default();
     let started = Instant::now();
     let mut last_phase = String::new();
@@ -62,9 +68,15 @@ fn main() {
             last_phase = phase.clone();
             println!("\n[СПАЙК] фаза: {phase} — {}", p.target_name);
         }
+        // Проценты по файлам, байты рядом: на этом архиве они расходятся
+        // так сильно, что по байтам прогресс выглядит замершим.
         print!(
-            "\r[СПАЙК] {:5.1}%  {}",
-            p.done_bytes / p.total_bytes * 100.0,
+            "\r[СПАЙК] {:5.1}%  {}/{} файлов, {:.2}/{:.2} ГБ  {}",
+            p.done_files as f64 / p.total_files as f64 * 100.0,
+            p.done_files,
+            p.total_files,
+            p.done_bytes / 1024f64.powi(3),
+            p.total_bytes / 1024f64.powi(3),
             p.current
         );
     });

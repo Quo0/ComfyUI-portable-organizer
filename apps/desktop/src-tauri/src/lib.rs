@@ -172,10 +172,21 @@ async fn run_install(
         return Err(first);
     }
 
+    // Минуты распаковки уходят в отдельный поток, а не на воркер асинхронного
+    // рантайма: иначе `cancel_install` и остальные команды соревнуются
+    // за тот же воркер всё это время.
     let emitter = app.clone();
-    installer::run(&info, &targets, &cancel, |progress| {
-        let _ = progress.emit(&emitter);
-    })?;
+    let work_info = info.clone();
+    let work_targets = targets.clone();
+    let cancel_flag = cancel.share();
+    let outcome = tauri::async_runtime::spawn_blocking(move || {
+        installer::run(&work_info, &work_targets, &cancel_flag, |progress| {
+            let _ = progress.emit(&emitter);
+        })
+    })
+    .await
+    .map_err(|e| AppError::because("installer.extractFailed", e))?;
+    outcome?;
 
     installer::history::remember(&app, &info)?;
     register_targets(&app, &info, &targets)
