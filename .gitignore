@@ -20,8 +20,12 @@ design/preview.html
 design/screens.html
 
 # Стенд разработки: junction на системный Python в git не кладётся,
-# фикстура создаётся скриптом (см. «Разработка» в PLAN.md).
+# фикстура создаётся скриптом (см. «Разработка» в plan/dev.md).
 tools/fixtures/fake-instance/python_embeded/
+
+# Стенд общей папки моделей: полсотни пустых файлов, целиком генерируется
+# скриптом make-shared-root.mjs. В истории им делать нечего.
+tools/fixtures/shared-models/
 
 # Локальное окружение
 .env
