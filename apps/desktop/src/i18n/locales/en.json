@@ -109,7 +109,8 @@
         "archive": "Archive",
         "targets": "Destinations",
         "running": "Unpacking",
-        "done": "Done"
+        "done": "Done",
+        "shared": "Shared resources"
       },
       "next": "Next",
       "body": "Unpack a portable build into one or several destinations and register them at once."
@@ -149,6 +150,11 @@
       "title": "Ready",
       "added": "{n} instance added | {n} instances added",
       "open": "Open"
+    },
+    "shared": {
+      "title": "Connect the new builds to shared models",
+      "body": "A checkpoint weighs from two to twenty gigabytes. Keeping one copy for all builds is the whole point of a shared folder.",
+      "connect": "Connect the new build | Connect all {n} new builds"
     }
   },
   "workflows": {

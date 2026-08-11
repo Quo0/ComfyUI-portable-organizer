@@ -4,6 +4,7 @@ import { defineStore } from 'pinia';
 import {
   commands,
   events,
+  type ApplyMode,
   type ArchiveInfo,
   type ArchiveRecord,
   type Instance,
@@ -12,9 +13,10 @@ import {
   type TargetCheck,
 } from '../bindings';
 import { useInstancesStore } from './instances';
+import { useSharedStore } from './shared';
 import { useUiStore } from './ui';
 
-export type WizardStep = 'archive' | 'targets' | 'running' | 'done';
+export type WizardStep = 'archive' | 'targets' | 'shared' | 'running' | 'done';
 
 /**
  * Состояние мастера живёт в сторе, а не в экране, по одной причине:
@@ -33,6 +35,13 @@ export const useInstallerStore = defineStore('installer', () => {
   const progress = ref<InstallProgress | null>(null);
   const running = ref(false);
   const created = ref<Instance[]>([]);
+
+  /**
+   * Подключить свежие инстансы к общим моделям сразу после распаковки.
+   * Шаг мастера, а не отдельный поход в настройки: US-SHARED-01/AC-4.
+   */
+  const connectShared = ref(false);
+  const sharedMode = ref<ApplyMode>('flag');
 
   /**
    * Идёт разбор заголовка архива. Секунда с лишним на 56 тысяч записей —
@@ -101,6 +110,8 @@ export const useInstallerStore = defineStore('installer', () => {
     checks.value = [];
     progress.value = null;
     created.value = [];
+    connectShared.value = false;
+    sharedMode.value = 'flag';
   }
 
   async function start(): Promise<void> {
@@ -123,6 +134,18 @@ export const useInstallerStore = defineStore('installer', () => {
     }
 
     created.value = res.data;
+
+    // Подключение — после регистрации и по одному: инстансы независимы,
+    // и отказ на одном не должен отменять остальные. Ошибку показывает
+    // стор общих моделей, мастер при этом доводит установку до конца:
+    // распакованное никуда не делось, подключить можно и потом.
+    if (connectShared.value) {
+      const shared = useSharedStore();
+      for (const instance of created.value) {
+        await shared.connect(instance.id, sharedMode.value);
+      }
+    }
+
     step.value = 'done';
     await instances.load();
     await loadHistory();
@@ -141,6 +164,8 @@ export const useInstallerStore = defineStore('installer', () => {
     progress,
     running,
     created,
+    connectShared,
+    sharedMode,
     reading,
     blocked,
     loadHistory,

@@ -109,7 +109,8 @@
         "archive": "Archivo",
         "targets": "Destinos",
         "running": "Descomprimiendo",
-        "done": "Listo"
+        "done": "Listo",
+        "shared": "Recursos compartidos"
       },
       "next": "Siguiente",
       "body": "Descomprimir una versión portable en uno o varios destinos y registrarlos de una vez."
@@ -149,6 +150,11 @@
       "title": "Listo",
       "added": "{n} instancia añadida | {n} instancias añadidas",
       "open": "Abrir"
+    },
+    "shared": {
+      "title": "Conectar las nuevas instalaciones a los modelos compartidos",
+      "body": "Un checkpoint pesa de dos a veinte gigabytes. Tener una sola copia para todas las instalaciones es justo el propósito de la carpeta compartida.",
+      "connect": "Conectar la nueva instalación | Conectar las {n} instalaciones nuevas"
     }
   },
   "workflows": {

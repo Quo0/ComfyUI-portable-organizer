@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Мастер установки — отдельный роут с шагами внутри, а не череда модалок.
-// Шаги: архив → назначения → выполнение → итог. Шаг общих ресурсов придёт
-// в Фазе 2.5 теми же компонентами, что в «Настройках».
+// Шаги: архив → назначения → общие ресурсы → выполнение → итог.
+// Шаг общих ресурсов собран из тех же компонентов, что экран настроек,
+// и пользуется тем же стором: логика подключения не дублируется.
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -10,8 +11,10 @@ import type { ArchiveRecord, InstallTarget } from '../bindings';
 import { errorText } from '../lib/errors';
 import { accentVar, useFormat } from '../lib/format';
 import { useInstallerStore } from '../stores/installer';
+import { useSharedStore } from '../stores/shared';
 
 const wizard = useInstallerStore();
+const shared = useSharedStore();
 const { t } = useI18n();
 const { bytes, moment } = useFormat();
 
@@ -28,7 +31,14 @@ const ACCENTS = [
 
 onMounted(() => {
   if (!wizard.info) void wizard.loadHistory();
+  if (!shared.loaded) void shared.load();
 });
+
+/** Общий корень задаётся прямо здесь — уходить в настройки не нужно. */
+async function pickSharedRoot(): Promise<void> {
+  const picked = await open({ directory: true, multiple: false });
+  if (typeof picked === 'string') await shared.setRoot(picked);
+}
 
 /**
  * Полоса идёт по файлам, а не по байтам.
@@ -135,13 +145,7 @@ const needed = computed(() =>
       <RouterLink class="btn ghost" to="/install">{{ t('common.back') }}</RouterLink>
       <h1 class="t-lg">{{ t('install.wizard.title') }}</h1>
       <span class="t-sm">{{
-        wizard.step === 'archive'
-          ? t('install.wizard.step.archive')
-          : wizard.step === 'targets'
-            ? t('install.wizard.step.targets')
-            : wizard.step === 'running'
-              ? t('install.wizard.step.running')
-              : t('install.wizard.step.done')
+        t(`install.wizard.step.${wizard.step}`)
       }}</span>
     </header>
 
@@ -347,9 +351,89 @@ const needed = computed(() =>
               type="button"
               class="btn primary lg"
               :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
-              @click="wizard.start()"
+              @click="wizard.step = 'shared'"
             >
+              {{ t('install.wizard.next') }}
+            </button>
+          </div>
+        </template>
+
+        <!-- ---------------------------------------- шаг «общие ресурсы» -->
+        <template v-else-if="wizard.step === 'shared'">
+          <div class="group">
+            <p class="t-md">{{ t('install.shared.title') }}</p>
+            <p class="t-sm">{{ t('install.shared.body') }}</p>
+          </div>
+
+          <div class="field">
+            <span class="t-label">{{ t('shared.root.label') }}</span>
+            <div class="path-row">
+              <div class="input mono">
+                <span>{{ shared.root?.path ?? t('shared.root.empty') }}</span>
+              </div>
+              <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
+                   не выгонять пользователя из мастера ради одной папки. -->
+              <button class="btn secondary" type="button" @click="pickSharedRoot">
+                {{ t('common.browse') }}
+              </button>
+            </div>
+            <div v-if="shared.scanning" class="bar indet"><i></i></div>
+            <p v-else-if="!shared.configured" class="hint">{{ t('shared.root.howto') }}</p>
+            <p v-else-if="!shared.available" class="hint">
+              {{ t('shared.root.unavailable') }}
+            </p>
+            <p v-else class="hint">
+              {{ t('shared.summary.categories', shared.recognized.length) }} ·
+              {{ bytes(shared.scan?.totalBytes) }}
+            </p>
+          </div>
+
+          <div class="toggle-row">
+            <button
+              class="toggle"
+              type="button"
+              role="switch"
+              :aria-checked="wizard.connectShared"
+              :disabled="!shared.configured"
+              @click="wizard.connectShared = !wizard.connectShared"
+            ></button>
+            <div>
+              <div class="t-base">
+                {{ t('install.shared.connect', wizard.targets.length) }}
+              </div>
+              <div class="hint">{{ t('shared.default.hint') }}</div>
+            </div>
+          </div>
+
+          <div v-if="wizard.connectShared" class="group">
+            <span class="t-label">{{ t('shared.mode.label') }}</span>
+            <div class="seg">
+              <button
+                type="button"
+                :aria-pressed="wizard.sharedMode === 'flag'"
+                @click="wizard.sharedMode = 'flag'"
+              >
+                {{ t('shared.mode.flag.title') }}
+              </button>
+              <button
+                type="button"
+                :aria-pressed="wizard.sharedMode === 'instanceFile'"
+                @click="wizard.sharedMode = 'instanceFile'"
+              >
+                {{ t('shared.mode.instanceFile.title') }}
+              </button>
+            </div>
+            <p class="hint">{{ t(`shared.mode.${wizard.sharedMode}.hint`) }}</p>
+          </div>
+
+          <p class="hint">{{ t('install.run.note') }}</p>
+
+          <div class="row">
+            <button type="button" class="btn primary lg" @click="wizard.start()">
               {{ t('install.run.start') }}
+            </button>
+            <button type="button" class="btn ghost" @click="wizard.step = 'targets'">
+              {{ t('common.back') }}
             </button>
           </div>
         </template>
