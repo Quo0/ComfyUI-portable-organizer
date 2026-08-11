@@ -23,7 +23,8 @@
     "back": "Atrás",
     "edit": "Editar",
     "notReady": "Esta parte de la aplicación aún no está hecha.",
-    "unknown": "Desconocido"
+    "unknown": "Desconocido",
+    "browse": "Examinar"
   },
   "status": {
     "stopped": "Detenida",
@@ -278,5 +279,43 @@
     "crashed": "El servidor se ha detenido solo. Código de salida {code}. El registro de arriba se conserva.",
     "detached": "El servidor sigue respondiendo en su puerto, pero ahora lo controla otro proceso: lo más probable es que ComfyUI-Manager lo haya reiniciado tras instalar nodos. Ya no se puede detener desde aquí.",
     "empty": "De momento el registro está vacío."
+  },
+  "shared": {
+    "title": "Modelos compartidos",
+    "root": {
+      "label": "Carpeta de modelos compartidos",
+      "empty": "Sin definir",
+      "howto": "Elija una carpeta con subcarpetas nombradas por categorías de modelos: checkpoints, loras, vae, etc. Puede estar vacía por ahora.",
+      "unavailable": "La carpeta no está disponible ahora. Las instancias conectadas avisarán antes de iniciarse.",
+      "noCategories": "Aún no hay subcarpetas: por ahora no hay nada que compartir."
+    },
+    "summary": {
+      "categories": "{n} categoría reconocida | {n} categorías reconocidas",
+      "connected": "{n} instancia conectada | {n} instancias conectadas"
+    },
+    "cat": {
+      "files": "{n} archivo | {n} archivos",
+      "empty": "vacío",
+      "notShared": "nunca se comparte",
+      "status": {
+        "recognized": "reconocido",
+        "unknown": "no reconocido",
+        "blocked": "excluido"
+      },
+      "whyBlocked": "Los nodos personalizados nunca se comparten: las instalaciones separadas existen precisamente porque los nodos entran en conflicto."
+    },
+    "missing": {
+      "hint": "Faltan carpetas estándar: {list}",
+      "create": "Crearlas"
+    },
+    "default": {
+      "label": "Descargar los modelos nuevos en la carpeta compartida",
+      "hint": "Un modelo descargado en una instancia queda visible para todas."
+    },
+    "yaml": {
+      "show": "Mostrar la configuración generada",
+      "hide": "Ocultar la configuración generada",
+      "title": "extra_model_paths.yaml"
+    }
   }
 }

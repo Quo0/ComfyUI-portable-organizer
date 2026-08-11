@@ -23,7 +23,8 @@
     "back": "返回",
     "edit": "修改",
     "notReady": "这一部分尚未完成。",
-    "unknown": "未知"
+    "unknown": "未知",
+    "browse": "浏览"
   },
   "status": {
     "stopped": "已停止",
@@ -278,5 +279,43 @@
     "crashed": "服务器自行退出。退出代码 {code}。上方日志保留。",
     "detached": "端口上的服务器仍在响应，但现在它属于另一个进程——很可能是 ComfyUI-Manager 安装节点后重启了它。从这里已无法停止。",
     "empty": "日志目前为空。"
+  },
+  "shared": {
+    "title": "共享模型",
+    "root": {
+      "label": "共享模型文件夹",
+      "empty": "未设置",
+      "howto": "选择一个文件夹，其中的子文件夹按模型类别命名——checkpoints、loras、vae 等。目前可以是空的。",
+      "unavailable": "该文件夹当前不可用。已连接的实例会在启动前提醒您。",
+      "noCategories": "尚无子文件夹——暂时没有可共享的内容。"
+    },
+    "summary": {
+      "categories": "已识别 {n} 个类别",
+      "connected": "已连接 {n} 个实例"
+    },
+    "cat": {
+      "files": "{n} 个文件",
+      "empty": "空",
+      "notShared": "不共享",
+      "status": {
+        "recognized": "已识别",
+        "unknown": "未识别",
+        "blocked": "已排除"
+      },
+      "whyBlocked": "自定义节点从不共享：正因为节点相互冲突，才需要分开的安装。"
+    },
+    "missing": {
+      "hint": "缺少标准文件夹：{list}",
+      "create": "创建它们"
+    },
+    "default": {
+      "label": "将新模型下载到共享文件夹",
+      "hint": "在一个实例中下载的模型将对所有实例可见。"
+    },
+    "yaml": {
+      "show": "显示生成的配置",
+      "hide": "隐藏生成的配置",
+      "title": "extra_model_paths.yaml"
+    }
   }
 }

@@ -26,6 +26,21 @@ export const useRunStore = defineStore('run', () => {
   const profiles = ref<Record<string, LaunchProfile[]>>({});
   const busy = ref<Record<string, boolean>>({});
 
+  /**
+   * Инстансы, у которых запуск упёрся в недоступный общий корень.
+   * Держим и профиль: повторный запуск обязан пойти тем же профилем,
+   * который выбрал пользователь, а не первым попавшимся.
+   */
+  const sharedWarning = ref<
+    Record<string, { path: string; profileId: string | null }>
+  >({});
+
+  function dismissSharedWarning(id: string): void {
+    const next = { ...sharedWarning.value };
+    delete next[id];
+    sharedWarning.value = next;
+  }
+
   let listening = false;
 
   /** Инстансы, о которых рейл обязан сообщать независимо от раздела. */
@@ -90,16 +105,37 @@ export const useRunStore = defineStore('run', () => {
     logs.value = { ...logs.value, [id]: res.data };
   }
 
-  async function start(id: string, profileId: string | null): Promise<void> {
+  /**
+   * `withoutShared` — согласие стартовать без общих моделей.
+   *
+   * Недоступный общий корень не ошибка запуска, а развилка: бэкенд
+   * отказывает кодом `shared.rootUnavailable`, экран инстанса показывает
+   * выбор, и повторный вызов приходит с согласием. Тостом это сделать
+   * нельзя — у тоста нет кнопок, а модалку над областью контента положить
+   * невозможно (дисциплина z-order).
+   */
+  async function start(
+    id: string,
+    profileId: string | null,
+    withoutShared = false,
+  ): Promise<void> {
     await listen();
     busy.value = { ...busy.value, [id]: true };
     logs.value = { ...logs.value, [id]: [] };
     try {
-      const res = await commands.startInstance(id, profileId);
+      const res = await commands.startInstance(id, profileId, withoutShared);
       if (res.status === 'error') {
+        if (res.error.code === 'shared.rootUnavailable') {
+          sharedWarning.value = {
+            ...sharedWarning.value,
+            [id]: { path: res.error.params.reason ?? res.error.params.path ?? '', profileId },
+          };
+          return;
+        }
         ui.pushError(res.error);
         return;
       }
+      dismissSharedWarning(id);
       statuses.value = { ...statuses.value, [id]: res.data };
     } finally {
       busy.value = { ...busy.value, [id]: false };
@@ -121,6 +157,8 @@ export const useRunStore = defineStore('run', () => {
     logs,
     profiles,
     busy,
+    sharedWarning,
+    dismissSharedWarning,
     active,
     statusOf,
     load,

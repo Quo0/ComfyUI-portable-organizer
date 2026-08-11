@@ -23,7 +23,8 @@
     "back": "Back",
     "edit": "Edit",
     "notReady": "This part of the app is not built yet.",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "browse": "Browse"
   },
   "status": {
     "stopped": "Stopped",
@@ -278,5 +279,43 @@
     "crashed": "The server stopped on its own. Exit code {code}. The log above is kept.",
     "detached": "The server is still answering on its port, but a different process owns it now — most likely ComfyUI-Manager restarted it after installing nodes. Stopping it from here is no longer possible.",
     "empty": "The log is empty so far."
+  },
+  "shared": {
+    "title": "Shared models",
+    "root": {
+      "label": "Shared models folder",
+      "empty": "Not set",
+      "howto": "Pick a folder with subfolders named after model categories — checkpoints, loras, vae and so on. It can be empty for now.",
+      "unavailable": "The folder is not available right now. Instances connected to it will warn you before they start.",
+      "noCategories": "No subfolders yet — there is nothing to share so far."
+    },
+    "summary": {
+      "categories": "{n} category recognised | {n} categories recognised",
+      "connected": "{n} instance connected | {n} instances connected"
+    },
+    "cat": {
+      "files": "{n} file | {n} files",
+      "empty": "empty",
+      "notShared": "never shared",
+      "status": {
+        "recognized": "recognised",
+        "unknown": "not recognised",
+        "blocked": "excluded"
+      },
+      "whyBlocked": "Custom nodes are never shared: separate builds exist precisely because nodes conflict with each other."
+    },
+    "missing": {
+      "hint": "Standard folders that are missing: {list}",
+      "create": "Create them"
+    },
+    "default": {
+      "label": "Download new models into the shared folder",
+      "hint": "A model downloaded in one instance becomes visible to all of them."
+    },
+    "yaml": {
+      "show": "Show the generated config",
+      "hide": "Hide the generated config",
+      "title": "extra_model_paths.yaml"
+    }
   }
 }

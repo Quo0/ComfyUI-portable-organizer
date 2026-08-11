@@ -51,6 +51,11 @@ export const router = createRouter({
           name: 'settings-appearance',
           component: () => import('../views/settings/AppearanceView.vue'),
         },
+        {
+          path: 'shared-models',
+          name: 'settings-shared-models',
+          component: () => import('../views/settings/SharedModelsView.vue'),
+        },
       ],
     },
     {
