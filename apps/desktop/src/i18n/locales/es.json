@@ -262,6 +262,17 @@
       "notRunning": "Esta instancia no está en marcha.",
       "readyTimeout": "El servidor no ha estado listo en {secs} segundos.",
       "cancelled": "Se ha cancelado el arranque."
+    },
+    "shared": {
+      "rootUnavailable": "La carpeta de modelos compartidos no está disponible: {path}",
+      "noRoots": "No se ha definido una carpeta de modelos compartidos.",
+      "foreignConfig": "La instalación ya tiene su propia configuración: {path}",
+      "fileUnreadable": "No se puede leer la configuración de la instalación, así que no se tocó: {path}",
+      "writeFailed": "No se pudo escribir la configuración: {reason}",
+      "backupFailed": "No se pudo guardar una copia de la configuración existente: {reason}",
+      "removeFailed": "No se pudo eliminar la configuración: {reason}",
+      "restoreFailed": "No se pudo restaurar la configuración anterior: {reason}",
+      "scanFailed": "No se pudo leer la carpeta compartida: {reason}"
     }
   },
   "run": {
@@ -316,6 +327,40 @@
       "show": "Mostrar la configuración generada",
       "hide": "Ocultar la configuración generada",
       "title": "extra_model_paths.yaml"
+    },
+    "instance": {
+      "label": "Modelos compartidos",
+      "hint": "Dar a esta instalación acceso a la carpeta compartida sin copiar nada en ella.",
+      "noRoot": "Aún no se ha definido una carpeta compartida.",
+      "setUp": "Configurarla",
+      "badge": "modelos compartidos",
+      "needsRestart": "La instalación lee este ajuste solo al iniciarse. Reiníciela para que el cambio surta efecto.",
+      "backupMade": "La configuración anterior se guardó como {path}"
+    },
+    "mode": {
+      "label": "Modo de aplicación",
+      "flag": {
+        "title": "No tocar la instalación",
+        "short": "instalación intacta",
+        "hint": "La configuración vive junto a la aplicación y se pasa a la instalación al iniciar. No se escribe nada en su carpeta."
+      },
+      "instanceFile": {
+        "title": "Escribir un archivo en la instalación",
+        "short": "archivo dentro de la instalación",
+        "hint": "Los modelos compartidos siguen funcionando al iniciar la instalación con su propio .bat, sin pasar por esta aplicación."
+      }
+    },
+    "foreign": {
+      "title": "Esta instalación ya tiene su propia configuración",
+      "body": "El archivo {path} no lo creó esta aplicación. No se tocará sin su decisión.",
+      "whatsThere": "Contenido actual del archivo",
+      "replace": "Reemplazarlo y guardar una copia",
+      "useFlag": "Dejarlo y aplicar de la otra forma"
+    },
+    "unavailable": {
+      "title": "La carpeta de modelos compartidos no está disponible",
+      "body": "No se puede acceder a {path}. Iniciar ahora significa que la instalación verá solo sus propios modelos.",
+      "startAnyway": "Iniciar sin modelos compartidos"
     }
   }
 }

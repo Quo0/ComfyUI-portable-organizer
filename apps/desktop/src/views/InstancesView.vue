@@ -67,6 +67,12 @@ onMounted(() => {
                 </span>
                 <span>:{{ instance.preferredPort }}</span>
                 <span v-if="sizeText(instance)">{{ sizeText(instance) }}</span>
+                <!-- Подключение к общим моделям видно из списка: иначе
+                     разобраться, почему у двух сборок разный набор
+                     чекпоинтов, можно только зайдя в каждую. -->
+                <span v-if="instance.shared?.enabled" class="tag">
+                  {{ t('shared.instance.badge') }}
+                </span>
               </div>
               <div v-if="instance.source" class="src">
                 {{

@@ -262,6 +262,17 @@
       "notRunning": "This instance is not running.",
       "readyTimeout": "The server did not become ready within {secs} seconds.",
       "cancelled": "Startup was cancelled."
+    },
+    "shared": {
+      "rootUnavailable": "The shared models folder is not available: {path}",
+      "noRoots": "No shared models folder is set.",
+      "foreignConfig": "The build already has its own config: {path}",
+      "fileUnreadable": "The config in the build cannot be read, so it was left alone: {path}",
+      "writeFailed": "Could not write the config: {reason}",
+      "backupFailed": "Could not save a copy of the existing config: {reason}",
+      "removeFailed": "Could not remove the config: {reason}",
+      "restoreFailed": "Could not restore the previous config: {reason}",
+      "scanFailed": "Could not read the shared folder: {reason}"
     }
   },
   "run": {
@@ -316,6 +327,40 @@
       "show": "Show the generated config",
       "hide": "Hide the generated config",
       "title": "extra_model_paths.yaml"
+    },
+    "instance": {
+      "label": "Shared models",
+      "hint": "Give this build access to the shared folder without copying anything into it.",
+      "noRoot": "No shared folder is set yet.",
+      "setUp": "Set it up",
+      "badge": "shared models",
+      "needsRestart": "The build reads this setting only when it starts. Restart it for the change to take effect.",
+      "backupMade": "The previous config was saved as {path}"
+    },
+    "mode": {
+      "label": "How to apply",
+      "flag": {
+        "title": "Leave the build alone",
+        "short": "build folder untouched",
+        "hint": "The config lives with the app and is passed to the build at startup. Nothing is written into the build folder."
+      },
+      "instanceFile": {
+        "title": "Write a file into the build",
+        "short": "file inside the build",
+        "hint": "Shared models keep working when you start the build from its own .bat, bypassing this app."
+      }
+    },
+    "foreign": {
+      "title": "There is already a config in this build",
+      "body": "The file {path} was not written by this app. It will not be touched without your say-so.",
+      "whatsThere": "What is in the file now",
+      "replace": "Replace it, keeping a copy",
+      "useFlag": "Leave it and apply the other way"
+    },
+    "unavailable": {
+      "title": "The shared models folder is not available",
+      "body": "{path} cannot be reached. Starting now means this build will see only its own models.",
+      "startAnyway": "Start without shared models"
     }
   }
 }

@@ -26,6 +26,7 @@ const state = computed(() => displayStatus(props.instance, status.value));
 const profiles = computed(() => run.profiles[props.instance.id] ?? []);
 const lines = computed(() => run.logs[props.instance.id] ?? []);
 const busy = computed(() => run.busy[props.instance.id] === true);
+const warning = computed(() => run.sharedWarning[props.instance.id]);
 
 const active = computed(() =>
   ['starting', 'running', 'stopping'].includes(state.value),
@@ -122,6 +123,30 @@ function openInBrowser(): void {
       <span v-if="status?.readySecs" class="hint">
         {{ t('run.readyIn', { secs: status.readySecs }) }}
       </span>
+    </div>
+
+    <!-- Общий корень недоступен. Не ошибка запуска, а развилка: продолжить
+         без общих моделей или отменить. Раскрывается на месте — модалок
+         в приложении нет, а у тоста не бывает кнопок. -->
+    <div v-if="warning" class="group danger-zone">
+      <p class="t-md">{{ t('shared.unavailable.title') }}</p>
+      <p class="t-sm">{{ t('shared.unavailable.body', { path: warning.path }) }}</p>
+      <div class="row">
+        <button
+          type="button"
+          class="btn secondary"
+          @click="run.start(instance.id, warning.profileId, true)"
+        >
+          {{ t('shared.unavailable.startAnyway') }}
+        </button>
+        <button
+          type="button"
+          class="btn ghost"
+          @click="run.dismissSharedWarning(instance.id)"
+        >
+          {{ t('common.cancel') }}
+        </button>
+      </div>
     </div>
 
     <p v-if="profile?.fallback" class="hint bad">{{ t('run.fallback') }}</p>

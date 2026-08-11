@@ -6,6 +6,7 @@ import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
 import InstanceFields from '../components/InstanceFields.vue';
 import LaunchPanel from '../components/LaunchPanel.vue';
+import SharedPanel from '../components/SharedPanel.vue';
 import StatusPill from '../components/StatusPill.vue';
 import type { InstanceEdit } from '../bindings';
 import { accentVar, useFormat } from '../lib/format';
@@ -128,6 +129,8 @@ function openFolder(): void {
         </div>
 
         <LaunchPanel :instance="instance" />
+
+        <SharedPanel :instance="instance" />
 
         <div v-if="instance.description" class="card-desc">
           {{ instance.description }}

@@ -128,7 +128,7 @@ export const useRunStore = defineStore('run', () => {
         if (res.error.code === 'shared.rootUnavailable') {
           sharedWarning.value = {
             ...sharedWarning.value,
-            [id]: { path: res.error.params.reason ?? res.error.params.path ?? '', profileId },
+            [id]: { path: res.error.params.path ?? '', profileId },
           };
           return;
         }

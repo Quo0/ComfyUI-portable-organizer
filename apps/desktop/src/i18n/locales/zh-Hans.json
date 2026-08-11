@@ -262,6 +262,17 @@
       "notRunning": "这个实例未在运行。",
       "readyTimeout": "服务器在 {secs} 秒内没有就绪。",
       "cancelled": "启动已取消。"
+    },
+    "shared": {
+      "rootUnavailable": "共享模型文件夹不可用：{path}",
+      "noRoots": "尚未设置共享模型文件夹。",
+      "foreignConfig": "该安装已有自己的配置：{path}",
+      "fileUnreadable": "无法读取该安装中的配置，因此未做改动：{path}",
+      "writeFailed": "无法写入配置：{reason}",
+      "backupFailed": "无法保存现有配置的副本：{reason}",
+      "removeFailed": "无法删除配置：{reason}",
+      "restoreFailed": "无法恢复先前的配置：{reason}",
+      "scanFailed": "无法读取共享文件夹：{reason}"
     }
   },
   "run": {
@@ -316,6 +327,40 @@
       "show": "显示生成的配置",
       "hide": "隐藏生成的配置",
       "title": "extra_model_paths.yaml"
+    },
+    "instance": {
+      "label": "共享模型",
+      "hint": "让此安装访问共享文件夹，无需复制任何内容。",
+      "noRoot": "尚未设置共享文件夹。",
+      "setUp": "去设置",
+      "badge": "共享模型",
+      "needsRestart": "该安装仅在启动时读取此设置。请重启以使更改生效。",
+      "backupMade": "先前的配置已保存为 {path}"
+    },
+    "mode": {
+      "label": "应用方式",
+      "flag": {
+        "title": "不修改安装目录",
+        "short": "未修改安装目录",
+        "hint": "配置文件保存在应用这边，启动时传给该安装。不会向其目录写入任何内容。"
+      },
+      "instanceFile": {
+        "title": "写入文件到安装目录",
+        "short": "文件位于安装目录内",
+        "hint": "当您用该安装自带的 .bat 启动、绕过本应用时，共享模型仍然有效。"
+      }
+    },
+    "foreign": {
+      "title": "此安装已有自己的配置",
+      "body": "文件 {path} 并非本应用创建。未经您决定不会改动它。",
+      "whatsThere": "文件当前内容",
+      "replace": "替换并保留副本",
+      "useFlag": "保留它并改用另一种方式"
+    },
+    "unavailable": {
+      "title": "共享模型文件夹不可用",
+      "body": "无法访问 {path}。现在启动意味着该安装只能看到自己的模型。",
+      "startAnyway": "不使用共享模型启动"
     }
   }
 }
