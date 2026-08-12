@@ -236,7 +236,11 @@
     "comfy": {
       "spawnFailed": "No se ha podido iniciar ComfyUI: {reason}",
       "alreadyRunning": "ComfyUI ya está en marcha.",
-      "readyTimeout": "ComfyUI no ha estado listo en {secs} segundos."
+      "readyTimeout": "ComfyUI no ha estado listo en {secs} segundos.",
+      "unreachable": "La instalación no responde: {reason}",
+      "badResponse": "La instalación respondió algo inesperado: {reason}",
+      "notFound": "La instalación no tiene esto.",
+      "uploadFailed": "No se pudo colocar el flujo en la instalación: {reason}"
     },
     "webview": {
       "embedFailed": "No se ha podido abrir la pestaña de ComfyUI: {reason}"
@@ -279,6 +283,14 @@
       "removeFailed": "No se pudo eliminar la configuración: {reason}",
       "restoreFailed": "No se pudo restaurar la configuración anterior: {reason}",
       "scanFailed": "No se pudo leer la carpeta compartida: {reason}"
+    },
+    "workflows": {
+      "notAWorkflow": "Este archivo no es un flujo: {path}",
+      "nameTaken": "La biblioteca ya tiene un flujo llamado {path}",
+      "readFailed": "No se pudo leer el flujo: {reason}",
+      "writeFailed": "No se pudo escribir el flujo: {reason}",
+      "scanFailed": "No se pudo leer la biblioteca: {reason}",
+      "manifestWriteFailed": "No se pudieron guardar las etiquetas y notas: {reason}"
     }
   },
   "run": {
@@ -373,5 +385,46 @@
       "body": "No se puede acceder a {path}. Iniciar ahora significa que la instalación verá solo sus propios modelos.",
       "startAnyway": "Iniciar sin modelos compartidos"
     }
+  },
+  "library": {
+    "title": "Biblioteca de flujos",
+    "path": {
+      "label": "Carpeta de la biblioteca",
+      "empty": "Aún no se ha definido la carpeta de la biblioteca.",
+      "howto": "Elija cualquier carpeta para sus flujos favoritos. Puede estar vacía y funciona con o sin modelos compartidos.",
+      "unavailable": "La carpeta de la biblioteca no está disponible ahora.",
+      "suggested": "Junto a la carpeta de modelos compartidos es un buen lugar: ese disco suele tener espacio.",
+      "useSuggested": "Usar esta",
+      "setUp": "Configurar la biblioteca",
+      "portable": "Las etiquetas, notas y favoritos se guardan dentro de la propia carpeta, así que sobreviven a la reinstalación de la aplicación y al traslado a otro equipo."
+    },
+    "summary": "{n} flujo | {n} flujos",
+    "manifestBroken": "No se pudieron leer las etiquetas ni las notas, así que aparecen vacías. Los flujos en sí están intactos.",
+    "search": "Buscar por nombre y etiquetas",
+    "favoritesOnly": "Solo favoritos",
+    "nothingFound": "No hay coincidencias.",
+    "pickOne": "Elija un flujo para ver dónde se abrirá.",
+    "lost": "perdido",
+    "lostTitle": "El archivo ya no está",
+    "lostBody": "{path} ya no está en la carpeta de la biblioteca, pero sus etiquetas y su nota siguen aquí. Eliminar la entrada no toca ningún archivo.",
+    "forget": "Eliminar la entrada",
+    "broken": "ilegible",
+    "brokenBody": "Este archivo no se pudo leer como flujo. Se deja exactamente como está.",
+    "compat": "Dónde se abrirá",
+    "compatOk": "todos los nodos presentes",
+    "compatCached": "todos presentes, según la última ejecución",
+    "compatMissing": "falta {n} nodo | faltan {n} nodos",
+    "compatUnknown": "desconocido: esta instalación aún no se ha ejecutado",
+    "noInstances": "Aún no hay instalaciones registradas.",
+    "note": "Etiquetas y nota",
+    "noNote": "Aún no hay nota.",
+    "tagsPlaceholder": "Etiquetas separadas por comas",
+    "star": "Añadir a favoritos",
+    "unstar": "Quitar de favoritos",
+    "add": {
+      "file": "Añadir un archivo",
+      "done": "Añadido a la biblioteca"
+    },
+    "retry": "Intentar de nuevo"
   }
 }

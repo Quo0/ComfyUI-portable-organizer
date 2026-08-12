@@ -56,6 +56,11 @@ export const router = createRouter({
           name: 'settings-shared-models',
           component: () => import('../views/settings/SharedModelsView.vue'),
         },
+        {
+          path: 'workflow-library',
+          name: 'settings-workflow-library',
+          component: () => import('../views/settings/WorkflowLibraryView.vue'),
+        },
       ],
     },
     {

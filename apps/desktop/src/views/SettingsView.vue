@@ -19,9 +19,9 @@ const { t } = useI18n();
       <RouterLink class="nav-item" active-class="on" to="/settings/shared-models">
         <span>{{ t('settings.section.sharedModels') }}</span>
       </RouterLink>
-      <span class="nav-item" aria-disabled="true">
+      <RouterLink class="nav-item" active-class="on" to="/settings/workflow-library">
         <span>{{ t('settings.section.library') }}</span>
-      </span>
+      </RouterLink>
       <span class="nav-item" aria-disabled="true">
         <span>{{ t('settings.section.archives') }}</span>
       </span>

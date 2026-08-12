@@ -236,7 +236,11 @@
     "comfy": {
       "spawnFailed": "无法启动 ComfyUI：{reason}",
       "alreadyRunning": "ComfyUI 已在运行。",
-      "readyTimeout": "ComfyUI 在 {secs} 秒内没有就绪。"
+      "readyTimeout": "ComfyUI 在 {secs} 秒内没有就绪。",
+      "unreachable": "该安装无响应：{reason}",
+      "badResponse": "该安装返回了意外的响应：{reason}",
+      "notFound": "该安装中没有此项。",
+      "uploadFailed": "无法将工作流放入该安装：{reason}"
     },
     "webview": {
       "embedFailed": "无法打开 ComfyUI 标签页：{reason}"
@@ -279,6 +283,14 @@
       "removeFailed": "无法删除配置：{reason}",
       "restoreFailed": "无法恢复先前的配置：{reason}",
       "scanFailed": "无法读取共享文件夹：{reason}"
+    },
+    "workflows": {
+      "notAWorkflow": "该文件不是工作流：{path}",
+      "nameTaken": "库中已存在名为 {path} 的工作流",
+      "readFailed": "无法读取工作流：{reason}",
+      "writeFailed": "无法写入工作流：{reason}",
+      "scanFailed": "无法读取库：{reason}",
+      "manifestWriteFailed": "无法保存标签和备注：{reason}"
     }
   },
   "run": {
@@ -373,5 +385,46 @@
       "body": "无法访问 {path}。现在启动意味着该安装只能看到自己的模型。",
       "startAnyway": "不使用共享模型启动"
     }
+  },
+  "library": {
+    "title": "工作流库",
+    "path": {
+      "label": "库文件夹",
+      "empty": "尚未设置库文件夹。",
+      "howto": "为收藏的工作流选择任意文件夹。它可以是空的，且不依赖共享模型是否已设置。",
+      "unavailable": "库文件夹当前不可用。",
+      "suggested": "放在共享模型文件夹旁边是个不错的选择——那个磁盘通常空间充足。",
+      "useSuggested": "使用此文件夹",
+      "setUp": "设置库",
+      "portable": "标签、备注和收藏保存在库文件夹内部，因此重装应用或将文件夹移到另一台电脑后仍然保留。"
+    },
+    "summary": "{n} 个工作流",
+    "manifestBroken": "无法读取标签和备注，因此显示为空。工作流本身未受影响。",
+    "search": "按名称和标签搜索",
+    "favoritesOnly": "仅收藏",
+    "nothingFound": "没有匹配项。",
+    "pickOne": "选择一个工作流，查看它能在哪里打开。",
+    "lost": "已丢失",
+    "lostTitle": "文件已不存在",
+    "lostBody": "{path} 已不在库文件夹中，但它的标签和备注仍在。删除该条目不会改动任何文件。",
+    "forget": "删除条目",
+    "broken": "无法读取",
+    "brokenBody": "该文件无法作为工作流读取。它被原样保留。",
+    "compat": "可在何处打开",
+    "compatOk": "所有节点齐全",
+    "compatCached": "根据上次运行，全部齐全",
+    "compatMissing": "缺少 {n} 个节点",
+    "compatUnknown": "未知——该安装尚未运行过",
+    "noInstances": "尚未注册任何安装。",
+    "note": "标签与备注",
+    "noNote": "暂无备注。",
+    "tagsPlaceholder": "标签，用逗号分隔",
+    "star": "加入收藏",
+    "unstar": "取消收藏",
+    "add": {
+      "file": "添加文件",
+      "done": "已加入库"
+    },
+    "retry": "重试"
   }
 }

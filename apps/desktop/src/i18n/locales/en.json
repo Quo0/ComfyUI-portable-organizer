@@ -236,7 +236,11 @@
     "comfy": {
       "spawnFailed": "Could not start ComfyUI: {reason}",
       "alreadyRunning": "ComfyUI is already running.",
-      "readyTimeout": "ComfyUI did not become ready within {secs} seconds."
+      "readyTimeout": "ComfyUI did not become ready within {secs} seconds.",
+      "unreachable": "The build is not answering: {reason}",
+      "badResponse": "The build answered with something unexpected: {reason}",
+      "notFound": "The build does not have this.",
+      "uploadFailed": "Could not put the workflow into the build: {reason}"
     },
     "webview": {
       "embedFailed": "Could not open the ComfyUI tab: {reason}"
@@ -279,6 +283,14 @@
       "removeFailed": "Could not remove the config: {reason}",
       "restoreFailed": "Could not restore the previous config: {reason}",
       "scanFailed": "Could not read the shared folder: {reason}"
+    },
+    "workflows": {
+      "notAWorkflow": "This file is not a workflow: {path}",
+      "nameTaken": "The library already has a workflow named {path}",
+      "readFailed": "Could not read the workflow: {reason}",
+      "writeFailed": "Could not write the workflow: {reason}",
+      "scanFailed": "Could not read the library: {reason}",
+      "manifestWriteFailed": "Could not save tags and notes: {reason}"
     }
   },
   "run": {
@@ -373,5 +385,46 @@
       "body": "{path} cannot be reached. Starting now means this build will see only its own models.",
       "startAnyway": "Start without shared models"
     }
+  },
+  "library": {
+    "title": "Workflow library",
+    "path": {
+      "label": "Library folder",
+      "empty": "The library folder is not set yet.",
+      "howto": "Pick any folder for your favourite workflows. It can be empty, and it works whether or not shared models are set up.",
+      "unavailable": "The library folder is not available right now.",
+      "suggested": "Next to the shared models folder is a sensible place — that drive usually has room.",
+      "useSuggested": "Use this one",
+      "setUp": "Set up the library",
+      "portable": "Tags, notes and favourites are stored inside the library folder itself, so they survive reinstalling the app and moving the folder to another computer."
+    },
+    "summary": "{n} workflow | {n} workflows",
+    "manifestBroken": "Tags and notes could not be read, so they are shown empty. The workflows themselves are untouched.",
+    "search": "Search by name and tags",
+    "favoritesOnly": "Favourites only",
+    "nothingFound": "Nothing matches.",
+    "pickOne": "Pick a workflow to see where it will open.",
+    "lost": "lost",
+    "lostTitle": "The file is gone",
+    "lostBody": "{path} is no longer in the library folder, but its tags and note are still here. Removing the entry does not touch any files.",
+    "forget": "Remove the entry",
+    "broken": "unreadable",
+    "brokenBody": "This file could not be read as a workflow. It is left exactly as it is.",
+    "compat": "Where it will open",
+    "compatOk": "all nodes present",
+    "compatCached": "all present, per the last run",
+    "compatMissing": "{n} node missing | {n} nodes missing",
+    "compatUnknown": "unknown — this build has not run yet",
+    "noInstances": "No builds registered yet.",
+    "note": "Tags and note",
+    "noNote": "No note yet.",
+    "tagsPlaceholder": "Tags, separated by commas",
+    "star": "Add to favourites",
+    "unstar": "Remove from favourites",
+    "add": {
+      "file": "Add a file",
+      "done": "Added to the library"
+    },
+    "retry": "Try again"
   }
 }
