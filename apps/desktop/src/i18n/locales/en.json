@@ -432,7 +432,8 @@
       "action": "Add here",
       "done": "Added to the build",
       "doneRunning": "Added. The build shows it after you refresh the ComfyUI page.",
-      "replace": "The build already has a workflow named {name}. Replace it?"
+      "replace": "The build already has a workflow named {name}. Replace it?",
+      "added": "added"
     },
     "pull": {
       "done": "{name} is now in the library",

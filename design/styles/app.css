@@ -567,6 +567,15 @@ h3.sub {
   font-family: var(--font-ui); font-size: var(--text-base);
   display: flex; align-items: center; min-width: 0;
 }
+/* Многострочное поле. `display: block` обязателен: у `.input` стоит `flex`
+   с центрированием по вертикали, и `<textarea>` он давит в одну строку —
+   атрибут `rows` при жёсткой высоте ничего не решает. */
+.input.area {
+  display: block; height: auto; width: 100%;
+  min-height: calc(var(--leading-normal) * 4em);
+  padding: var(--space-2); line-height: var(--leading-normal);
+  resize: vertical;
+}
 .input.mono { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-secondary); }
 .input.num { font-variant-numeric: tabular-nums; width: 92px; }
 .input.bad { border-color: var(--state-crashed); }
@@ -708,15 +717,48 @@ h3.sub {
 /* Запись есть в манифесте, а файла нет. Не прячем и не удаляем молча:
    пользователь мог убрать файл через проводник и должен это увидеть. */
 .wf-row.lost .nm { color: var(--ink-muted); text-decoration: line-through; }
-.star { color: var(--state-starting); font-size: var(--text-sm); }
+/* Звёздочка избранного. Состояние — классом `.off`, как у `.toggle`:
+   цвет и есть ответ на вопрос «в избранном или нет».
+   Обвязка кнопки сброшена, потому что звёздочка бывает и `<span>`
+   в строке списка, и `<button>` в заголовке панели. */
+.star {
+  color: var(--state-starting); font-size: var(--text-sm);
+  appearance: none; background: none; border: 0; padding: 0;
+  line-height: 1; cursor: pointer;
+}
 .star.off { color: var(--line-strong); }
+.star.lg { font-size: var(--text-md); }
+.star:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
 /* Два столбца, которые схлопываются в один на узком окне. */
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); align-items: start; }
 
 .compat { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
-.compat-row { display: grid; grid-template-columns: 16px minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
-.compat-note { font-size: var(--text-xs); color: var(--ink-muted); }
+
+/* Строка о совместимости с одной сборкой: имя вверху, подпись под ним,
+   действие справа во всю высоту.
+   Подпись живёт на своей строке не для красоты. В один ряд с именем она
+   помещалась только при коротком тексте: «неизвестно — эта сборка ещё
+   не запускалась» забирала почти всю ширину, имя ужималось до нуля
+   и вытекало поверх подписи. Подпись выровнена по имени — так же, как
+   выравнивается `.missing` под ней. */
+.compat-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  grid-template-areas: "chip name action" ".   note action";
+  gap: 2px var(--space-3); align-items: center;
+  background: var(--surface); padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+.compat-row .chip { grid-area: chip; }
+/* Обрезка повторена здесь намеренно: правило для списка объявлено
+   как `.wf-row .nm` и до этой сетки не достаёт. */
+.compat-row .nm {
+  grid-area: name; font-size: var(--text-sm);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.compat-row .btn { grid-area: action; }
+.compat-note { grid-area: note; font-size: var(--text-xs); color: var(--ink-muted); }
 .compat-row.ok .compat-note { color: var(--state-running); }
 .compat-row.warn .compat-note { color: var(--state-starting); }
 .missing { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); padding: 0 var(--space-3) var(--space-2) calc(16px + var(--space-3) + var(--space-3)); background: var(--surface); }

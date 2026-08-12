@@ -432,7 +432,8 @@
       "action": "添加到这里",
       "done": "已添加到该安装",
       "doneRunning": "已添加。刷新 ComfyUI 页面后即可看到。",
-      "replace": "该安装中已有名为 {name} 的工作流。要替换吗？"
+      "replace": "该安装中已有名为 {name} 的工作流。要替换吗？",
+      "added": "已添加"
     },
     "pull": {
       "done": "{name} 已加入库",

@@ -4,7 +4,7 @@
 // Две области прокрутки на экране — оговорённое исключение из правила
 // «одна на экран»: список слева и детали справа скроллятся порознь, иначе
 // панель деталей уезжала бы вместе с двумя сотнями воркфлоу.
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { useI18n } from 'vue-i18n';
@@ -57,6 +57,18 @@ async function saveMeta(item: LibItem): Promise<void> {
 const pushing = ref<string | null>(null);
 
 /**
+ * Куда этот воркфлоу уже положили.
+ *
+ * Подпись о совместимости после переноса не меняется, и это правильно:
+ * она про наличие нод, а не про наличие файла. Но без всякого отклика
+ * нажатие читается как «ничего не произошло» — отклик даёт кнопка.
+ */
+const pushed = ref<Set<string>>(new Set());
+
+// Отметки относятся к выбранному воркфлоу и вместе с ним и сбрасываются.
+watch(() => library.selected, () => (pushed.value = new Set()));
+
+/**
  * Кладёт выбранный воркфлоу в сборку.
  *
  * Конфликт имён возвращается развилкой, а не ошибкой, и молчаливой
@@ -87,6 +99,7 @@ async function push(instanceId: string, overwrite = false): Promise<void> {
     // Запущенная сборка перечитывает список воркфлоу при обновлении
     // страницы, а не сама. Сказать это обязательно: иначе пользователь
     // решит, что добавление не сработало.
+    pushed.value = new Set(pushed.value).add(instanceId);
     const running = run.statusOf(instanceId)?.state === 'running';
     ui.pushOk(running ? t('library.push.doneRunning') : t('library.push.done'));
   } finally {
@@ -232,13 +245,18 @@ onUnmounted(() => unlisten?.());
         <div class="pane">
           <div v-if="library.current" class="pane-head">
             <span class="title">{{ library.current.name }}</span>
+            <!-- Значок, а не подпись: по надписи «В избранное» не понять,
+                 текущее это состояние или предлагаемое действие. Цвет
+                 звёздочки отвечает на вопрос сразу, а что произойдёт
+                 по нажатию — говорит подсказка. -->
             <button
               type="button"
-              class="btn ghost"
+              class="star lg"
+              :class="{ off: !library.current.meta.favorite }"
+              :aria-pressed="library.current.meta.favorite"
+              :title="library.current.meta.favorite ? t('library.unstar') : t('library.star')"
               @click="library.toggleFavorite(library.current)"
-            >
-              {{ library.current.meta.favorite ? t('library.unstar') : t('library.star') }}
-            </button>
+            >★</button>
           </div>
 
           <div class="scroll">
@@ -363,25 +381,27 @@ onUnmounted(() => unlisten?.());
                                     : t('library.compatOk')
                             }}
                           </span>
-                        </div>
-                        <div
-                          v-if="(library.compatOf(instance.id)?.missing.length ?? 0) > 0"
-                          class="missing"
-                        >
-                          {{ library.compatOf(instance.id)!.missing.join(' · ') }}
-                        </div>
-                        <!-- Нехватка нод предупреждает, но не запрещает:
-                             пользователь вправе положить воркфлоу и
-                             доустановить ноды потом. -->
-                        <div class="missing">
+                          <!-- Нехватка нод предупреждает, но не запрещает:
+                               пользователь вправе положить воркфлоу и
+                               доустановить ноды потом. Кнопка живёт в самой
+                               строке — своя полоса под каждым инстансом
+                               удваивала список и выглядела как заголовок. -->
                           <button
                             type="button"
                             class="btn ghost"
                             :disabled="pushing === instance.id"
                             @click="push(instance.id)"
                           >
-                            {{ t('library.push.action') }}
+                            {{ pushed.has(instance.id)
+                              ? `✓ ${t('library.push.added')}`
+                              : t('library.push.action') }}
                           </button>
+                        </div>
+                        <div
+                          v-if="(library.compatOf(instance.id)?.missing.length ?? 0) > 0"
+                          class="missing"
+                        >
+                          {{ library.compatOf(instance.id)!.missing.join(' · ') }}
                         </div>
                       </template>
                     </div>
@@ -396,7 +416,7 @@ onUnmounted(() => unlisten?.());
                         class="input"
                         :placeholder="t('library.tagsPlaceholder')"
                       />
-                      <textarea v-model="noteDraft" class="input" rows="3"></textarea>
+                      <textarea v-model="noteDraft" class="input area" rows="4"></textarea>
                       <div class="row">
                         <button
                           type="button"
