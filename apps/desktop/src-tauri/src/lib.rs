@@ -12,6 +12,7 @@
 
 // Модули публичные: по ним ходят примеры в examples/, которыми
 // проверяется распаковка на реальном архиве.
+pub mod comfy_api;
 pub mod discovery;
 pub mod error;
 pub mod installer;

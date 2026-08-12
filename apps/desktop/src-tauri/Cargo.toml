@@ -29,6 +29,10 @@ tauri-plugin-os = "2.3.2"
 dunce = "1.0.5"
 tauri-plugin-dialog = "2.7.2"
 sevenz-rust2 = "0.21.4"
+# HTTP к работающему ComfyUI. Без TLS: ходим только на 127.0.0.1, шифровать
+# нечего, а с ним крейт тянул бы rustls со всей его роднёй. Синхронный —
+# ложится на правило «логика в обычных функциях, команды — тонкие обёртки».
+ureq = { version = "3.4.0", default-features = false }
 
 [target."cfg(windows)".dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security"] }
