@@ -444,6 +444,14 @@
       "noLibrary": "There is nowhere to take them: the library folder is not set.",
       "fromRunning": "The list comes from the running build, so it includes what it saved a minute ago.",
       "fromDisk": "The build is stopped, so the list is read from its folder."
+    },
+    "bulk": {
+      "title": "{n} workflow marked | {n} workflows marked",
+      "into": "put them here",
+      "toAll": "Into all {n} builds",
+      "clear": "Clear the marks",
+      "progress": "{done} of {total} done",
+      "failed": "{n} did not go through | {n} did not go through"
     }
   }
 }

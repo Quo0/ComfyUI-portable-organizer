@@ -444,6 +444,14 @@
       "noLibrary": "No hay dónde llevarlos: la carpeta de la biblioteca no está definida.",
       "fromRunning": "La lista viene de la instalación en ejecución, así que incluye lo que guardó hace un minuto.",
       "fromDisk": "La instalación está detenida, así que la lista se lee de su carpeta."
+    },
+    "bulk": {
+      "title": "{n} flujo marcado | {n} flujos marcados",
+      "into": "colocarlos aquí",
+      "toAll": "En las {n} instalaciones",
+      "clear": "Quitar las marcas",
+      "progress": "{done} de {total} hechos",
+      "failed": "{n} no se completó | {n} no se completaron"
     }
   }
 }

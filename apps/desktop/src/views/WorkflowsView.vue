@@ -167,7 +167,14 @@ async function addFile(): Promise<void> {
                   :class="{ on: item.path === library.selected, lost: item.lost }"
                   @click="library.select(item.path)"
                 >
-                  <span class="star" :class="{ off: !item.meta.favorite }">★</span>
+                  <!-- Отметка для массовой операции. Не вложенная кнопка:
+                       кнопка внутри кнопки невалидна, поэтому это span
+                       с собственным обработчиком и остановкой всплытия. -->
+                  <span
+                    class="star"
+                    :class="{ off: !item.meta.favorite && !library.marked.has(item.path) }"
+                    @click.stop="library.toggleMark(item.path)"
+                  >{{ library.marked.has(item.path) ? '☑' : '★' }}</span>
                   <span class="nm">{{ item.name }}</span>
                   <span class="tags">
                     <span v-for="tag in item.meta.tags" :key="tag" class="tag">{{ tag }}</span>
@@ -196,9 +203,76 @@ async function addFile(): Promise<void> {
 
           <div class="scroll">
             <div class="scroll-pad">
-              <p v-if="!library.current" class="empty">{{ t('library.pickOne') }}</p>
+              <!-- Массовая операция перекрывает разбор одного воркфлоу:
+                   пока идёт перенос двадцати, разглядывать один незачем. -->
+              <div v-if="library.marked.size" class="group">
+                <p class="t-md">{{ t('library.bulk.title', library.marked.size) }}</p>
 
-              <template v-else>
+                <template v-if="library.bulk">
+                  <p class="t-sm">
+                    {{ t('library.bulk.progress', {
+                      done: library.bulk.done,
+                      total: library.bulk.total,
+                    }) }}
+                  </p>
+                  <div class="bar">
+                    <i :style="{ width: `${(library.bulk.done / library.bulk.total) * 100}%` }"></i>
+                  </div>
+                  <p v-if="library.bulk.failed.length" class="hint bad">
+                    {{ t('library.bulk.failed', library.bulk.failed.length) }}:
+                    {{ library.bulk.failed.map((f) => f.name).join(', ') }}
+                  </p>
+                  <div class="row">
+                    <button
+                      v-if="library.bulk.done < library.bulk.total"
+                      type="button"
+                      class="btn danger"
+                      @click="library.cancel()"
+                    >
+                      {{ t('common.cancel') }}
+                    </button>
+                    <button v-else type="button" class="btn ghost" @click="library.clearBulk()">
+                      {{ t('common.close') }}
+                    </button>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div class="compat">
+                    <button
+                      v-for="instance in targets"
+                      :key="instance.id"
+                      type="button"
+                      class="compat-row"
+                      @click="library.pushMany([instance.id])"
+                    >
+                      <span
+                        class="chip"
+                        :style="{ '--instance-accent': accentVar(instance.accent) }"
+                      ></span>
+                      <span class="nm">{{ instance.name }}</span>
+                      <span class="compat-note">{{ t('library.bulk.into') }}</span>
+                    </button>
+                  </div>
+                  <div class="row">
+                    <button
+                      type="button"
+                      class="btn primary"
+                      :disabled="!targets.length"
+                      @click="library.pushMany(targets.map((i) => i.id))"
+                    >
+                      {{ t('library.bulk.toAll', targets.length) }}
+                    </button>
+                    <button type="button" class="btn ghost" @click="library.clearMarks()">
+                      {{ t('library.bulk.clear') }}
+                    </button>
+                  </div>
+                </template>
+              </div>
+
+              <p v-else-if="!library.current" class="empty">{{ t('library.pickOne') }}</p>
+
+              <template v-else-if="library.current">
                 <!-- Файла нет, а запись осталась. Единственное разумное
                      действие — убрать запись, файлов это не касается. -->
                 <div v-if="library.current.lost" class="group">

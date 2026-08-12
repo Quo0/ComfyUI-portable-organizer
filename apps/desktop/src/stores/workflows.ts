@@ -174,6 +174,77 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     await rescan();
   }
 
+  // --- массовые операции --------------------------------------------------
+
+  /** Отмеченные для массовой операции. */
+  const marked = ref<Set<string>>(new Set());
+
+  function toggleMark(rel: string): void {
+    const next = new Set(marked.value);
+    if (!next.delete(rel)) next.add(rel);
+    marked.value = next;
+  }
+
+  function clearMarks(): void {
+    marked.value = new Set();
+  }
+
+  /**
+   * Ход массовой операции.
+   *
+   * Считается по парам «воркфлоу × сборка»: пользователь может выбрать
+   * три воркфлоу и две сборки, и честное «сделано 4 из 6» получается
+   * только так.
+   */
+  const bulk = ref<{
+    done: number;
+    total: number;
+    ok: string[];
+    failed: { name: string; reason: string }[];
+  } | null>(null);
+
+  /** Прерывание. Уже добавленное остаётся на месте — откатывать нечего. */
+  let cancelBulk = false;
+  function cancel(): void {
+    cancelBulk = true;
+  }
+
+  /**
+   * Кладёт отмеченные воркфлоу в выбранные сборки.
+   *
+   * Отказ по одной паре не отменяет остальные: инстансы независимы,
+   * и «конфликт имён на втором из двадцати» не повод бросить всё.
+   * Конфликты в массовой операции не спрашиваются поштучно — это двадцать
+   * вопросов подряд; они собираются в отчёт как неудачи с причиной.
+   */
+  async function pushMany(instanceIds: string[]): Promise<void> {
+    const rels = [...marked.value];
+    if (rels.length === 0 || instanceIds.length === 0) return;
+
+    cancelBulk = false;
+    bulk.value = { done: 0, total: rels.length * instanceIds.length, ok: [], failed: [] };
+
+    for (const rel of rels) {
+      for (const id of instanceIds) {
+        if (cancelBulk) return;
+        const res = await commands.pushWorkflow(id, path.value, rel, false);
+        const label = `${rel} → ${id}`;
+        if (res.status === 'error') {
+          bulk.value.failed.push({ name: label, reason: res.error.code });
+        } else if (res.data === 'conflict') {
+          bulk.value.failed.push({ name: label, reason: 'workflows.nameTaken' });
+        } else {
+          bulk.value.ok.push(label);
+        }
+        bulk.value.done += 1;
+      }
+    }
+  }
+
+  function clearBulk(): void {
+    bulk.value = null;
+  }
+
   /** Кладёт файл с диска в библиотеку. `false` — отказ, уже сообщённый. */
   async function addFile(source: string, overwrite = false): Promise<boolean> {
     const res = await commands.addWorkflowFile(path.value, source, null, overwrite);
@@ -209,5 +280,12 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     toggleFavorite,
     forget,
     addFile,
+    marked,
+    toggleMark,
+    clearMarks,
+    bulk,
+    pushMany,
+    cancel,
+    clearBulk,
   };
 });

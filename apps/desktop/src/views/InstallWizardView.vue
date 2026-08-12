@@ -12,9 +12,11 @@ import { errorText } from '../lib/errors';
 import { accentVar, useFormat } from '../lib/format';
 import { useInstallerStore } from '../stores/installer';
 import { useSharedStore } from '../stores/shared';
+import { useWorkflowsStore } from '../stores/workflows';
 
 const wizard = useInstallerStore();
 const shared = useSharedStore();
+const library = useWorkflowsStore();
 const { t } = useI18n();
 const { bytes, moment } = useFormat();
 
@@ -32,12 +34,19 @@ const ACCENTS = [
 onMounted(() => {
   if (!wizard.info) void wizard.loadHistory();
   if (!shared.loaded) void shared.load();
+  if (!library.loaded) void library.load();
 });
 
 /** Общий корень задаётся прямо здесь — уходить в настройки не нужно. */
 async function pickSharedRoot(): Promise<void> {
   const picked = await open({ directory: true, multiple: false });
   if (typeof picked === 'string') await shared.setRoot(picked);
+}
+
+/** То же для библиотеки воркфлоу: она независима от общих моделей. */
+async function pickLibrary(): Promise<void> {
+  const picked = await open({ directory: true, multiple: false });
+  if (typeof picked === 'string') await library.setPath(picked);
 }
 
 /**
@@ -425,6 +434,25 @@ const needed = computed(() =>
               </button>
             </div>
             <p class="hint">{{ t(`shared.mode.${wizard.sharedMode}.hint`) }}</p>
+          </div>
+
+          <!-- Библиотека воркфлоу — второй общий ресурс, и подключается
+               тем же шагом: уводить за ней в настройки посреди установки
+               незачем. -->
+          <div class="field">
+            <span class="t-label">{{ t('library.path.label') }}</span>
+            <div class="path-row">
+              <div class="input mono">
+                <span>{{ library.path || t('library.path.empty') }}</span>
+              </div>
+              <button class="btn secondary" type="button" @click="pickLibrary">
+                {{ t('common.browse') }}
+              </button>
+            </div>
+            <p v-if="library.configured && library.available" class="hint">
+              {{ t('library.summary', library.items.length) }}
+            </p>
+            <p v-else-if="!library.configured" class="hint">{{ t('library.path.howto') }}</p>
           </div>
 
           <p class="hint">{{ t('install.run.note') }}</p>
