@@ -4,8 +4,9 @@
 // Две области прокрутки на экране — оговорённое исключение из правила
 // «одна на экран»: список слева и детали справа скроллятся порознь, иначе
 // панель деталей уезжала бы вместе с двумя сотнями воркфлоу.
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { open } from '@tauri-apps/plugin-dialog';
+import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { useI18n } from 'vue-i18n';
 
 import type { LibItem } from '../stores/workflows';
@@ -101,12 +102,51 @@ async function addFile(): Promise<void> {
   if (typeof picked !== 'string') return;
   if (await library.addFile(picked)) ui.pushOk(t('library.add.done'));
 }
+
+/** Файл тащат на окно. */
+const dragging = ref(false);
+
+/**
+ * Перетаскивание идёт через событие Tauri, а не через `ondrop`.
+ *
+ * У главного окна свой нативный обработчик дропа, и на Windows он
+ * перехватывает событие раньше HTML — обычный `ondrop` просто не сработает.
+ * Конфликта с холстом ComfyUI нет: у дочернего вебвью дроп отключён
+ * через `disable_drag_drop_handler()`, там он принадлежит канвасу.
+ */
+onMounted(async () => {
+  unlisten = await getCurrentWebview().onDragDropEvent(async (event) => {
+    if (event.payload.type === 'over') {
+      dragging.value = library.configured && library.available;
+      return;
+    }
+    if (event.payload.type === 'leave') {
+      dragging.value = false;
+      return;
+    }
+    dragging.value = false;
+    if (!library.configured || !library.available) return;
+
+    let added = 0;
+    for (const file of event.payload.paths) {
+      // Отсев по расширению до чтения: тащат папками, и объяснять про
+      // каждый .png, что он не воркфлоу, — не помощь, а шум.
+      if (!file.toLowerCase().endsWith('.json')) continue;
+      if (await library.addFile(file)) added += 1;
+    }
+    if (added > 0) ui.pushOk(t('library.add.dropped', added));
+  });
+});
+
+let unlisten: (() => void) | null = null;
+onUnmounted(() => unlisten?.());
 </script>
 
 <template>
   <section class="screen">
     <header class="screen-head">
-      <h1 class="t-lg">{{ t('workflows.title') }}</h1>
+      <h1 class="t-lg">{{ t("workflows.title") }}</h1>
+      <span v-if="dragging" class="tag">{{ t("library.add.drop") }}</span>
       <span class="head-spacer"></span>
       <button
         type="button"

@@ -423,7 +423,9 @@
     "unstar": "Remove from favourites",
     "add": {
       "file": "Add a file",
-      "done": "Added to the library"
+      "done": "Added to the library",
+      "drop": "Drop to add",
+      "dropped": "{n} workflow added | {n} workflows added"
     },
     "retry": "Try again",
     "push": {

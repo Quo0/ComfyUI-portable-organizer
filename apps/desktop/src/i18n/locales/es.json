@@ -423,7 +423,9 @@
     "unstar": "Quitar de favoritos",
     "add": {
       "file": "Añadir un archivo",
-      "done": "Añadido a la biblioteca"
+      "done": "Añadido a la biblioteca",
+      "drop": "Suelte para añadir",
+      "dropped": "{n} flujo añadido | {n} flujos añadidos"
     },
     "retry": "Intentar de nuevo",
     "push": {
