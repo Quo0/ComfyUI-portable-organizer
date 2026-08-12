@@ -23,6 +23,7 @@ pub mod run;
 pub mod settings;
 pub mod shared_models;
 pub mod supervise;
+pub mod workflows;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;

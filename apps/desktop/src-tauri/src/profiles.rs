@@ -124,6 +124,42 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
     }
 }
 
+/// Где эта сборка хранит свои воркфлоу.
+///
+/// **Предполагать путь нельзя.** `--user-directory` (`comfy/cli_args.py:254`)
+/// переносит весь `user/` куда угодно, и сборка с таким флагом хранит
+/// воркфлоу не там, где мы бы решили. Резолвим из аргументов профиля,
+/// и только при их отсутствии берём умолчание `<instance>\ComfyUI\user`.
+///
+/// Относительный путь во флаге считается от рабочей папки, а она у нас —
+/// директория `.bat`, ровно как при запуске двойным кликом.
+///
+/// Папки может не существовать: ComfyUI создаёт её лениво, при первом
+/// сохранении. Проверять существование здесь не наша забота — вызывающий
+/// либо создаёт дерево, либо считает пустым.
+pub fn workflows_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
+    let mut user_dir = None;
+    let mut args = profile.args.iter();
+
+    while let Some(arg) = args.next() {
+        if arg == "--user-directory" {
+            user_dir = args.next().cloned();
+        } else if let Some(value) = arg.strip_prefix("--user-directory=") {
+            user_dir = Some(value.to_string());
+        }
+    }
+
+    let base = match user_dir {
+        Some(value) => resolve(Path::new(&profile.cwd), &value),
+        None => instance_root.join("ComfyUI").join("user"),
+    };
+
+    // `default` — публичная папка пользователя по умолчанию
+    // (`app/user_manager.py:79`). Многопользовательский режим ComfyUI
+    // мы не поддерживаем и не притворяемся, что поддерживаем.
+    base.join("default").join("workflows")
+}
+
 /// Разбивает строку на токены, уважая кавычки.
 ///
 /// Кавычки нужны не для красоты: путь вида `"C:\Program Files\..."`
