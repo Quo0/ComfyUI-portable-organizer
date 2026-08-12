@@ -425,6 +425,25 @@
       "file": "Añadir un archivo",
       "done": "Añadido a la biblioteca"
     },
-    "retry": "Intentar de nuevo"
+    "retry": "Intentar de nuevo",
+    "push": {
+      "action": "Añadir aquí",
+      "done": "Añadido a la instalación",
+      "doneRunning": "Añadido. La instalación lo mostrará tras recargar la página de ComfyUI.",
+      "replace": "La instalación ya tiene un flujo llamado {name}. ¿Reemplazarlo?"
+    },
+    "pull": {
+      "done": "{name} ya está en la biblioteca",
+      "replace": "La biblioteca ya tiene un flujo llamado {name}. ¿Reemplazarlo?"
+    },
+    "instance": {
+      "title": "Flujos de esta instalación",
+      "pull": "Llevar a la biblioteca",
+      "already": "en la biblioteca",
+      "empty": "Esta instalación aún no tiene flujos guardados.",
+      "noLibrary": "No hay dónde llevarlos: la carpeta de la biblioteca no está definida.",
+      "fromRunning": "La lista viene de la instalación en ejecución, así que incluye lo que guardó hace un minuto.",
+      "fromDisk": "La instalación está detenida, así que la lista se lee de su carpeta."
+    }
   }
 }

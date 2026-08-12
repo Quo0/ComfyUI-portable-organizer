@@ -425,6 +425,25 @@
       "file": "添加文件",
       "done": "已加入库"
     },
-    "retry": "重试"
+    "retry": "重试",
+    "push": {
+      "action": "添加到这里",
+      "done": "已添加到该安装",
+      "doneRunning": "已添加。刷新 ComfyUI 页面后即可看到。",
+      "replace": "该安装中已有名为 {name} 的工作流。要替换吗？"
+    },
+    "pull": {
+      "done": "{name} 已加入库",
+      "replace": "库中已有名为 {name} 的工作流。要替换吗？"
+    },
+    "instance": {
+      "title": "此安装中的工作流",
+      "pull": "取入库中",
+      "already": "已在库中",
+      "empty": "此安装尚无已保存的工作流。",
+      "noLibrary": "无处可取：尚未设置库文件夹。",
+      "fromRunning": "该列表来自正在运行的安装，因此包含它刚刚保存的内容。",
+      "fromDisk": "该安装已停止，因此列表读取自其文件夹。"
+    }
   }
 }

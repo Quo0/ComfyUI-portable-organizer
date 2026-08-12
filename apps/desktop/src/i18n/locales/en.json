@@ -425,6 +425,25 @@
       "file": "Add a file",
       "done": "Added to the library"
     },
-    "retry": "Try again"
+    "retry": "Try again",
+    "push": {
+      "action": "Add here",
+      "done": "Added to the build",
+      "doneRunning": "Added. The build shows it after you refresh the ComfyUI page.",
+      "replace": "The build already has a workflow named {name}. Replace it?"
+    },
+    "pull": {
+      "done": "{name} is now in the library",
+      "replace": "The library already has a workflow named {name}. Replace it?"
+    },
+    "instance": {
+      "title": "Workflows in this build",
+      "pull": "Take into the library",
+      "already": "in the library",
+      "empty": "This build has no saved workflows yet.",
+      "noLibrary": "There is nowhere to take them: the library folder is not set.",
+      "fromRunning": "The list comes from the running build, so it includes what it saved a minute ago.",
+      "fromDisk": "The build is stopped, so the list is read from its folder."
+    }
   }
 }

@@ -9,13 +9,16 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { useI18n } from 'vue-i18n';
 
 import type { LibItem } from '../stores/workflows';
+import { commands } from '../bindings';
 import { accentVar } from '../lib/format';
+import { useRunStore } from '../stores/run';
 import { useInstancesStore } from '../stores/instances';
 import { useUiStore } from '../stores/ui';
 import { useWorkflowsStore } from '../stores/workflows';
 
 const library = useWorkflowsStore();
 const instances = useInstancesStore();
+const run = useRunStore();
 const ui = useUiStore();
 const { t } = useI18n();
 
@@ -48,6 +51,46 @@ async function saveMeta(item: LibItem): Promise<void> {
       .filter(Boolean),
   });
   editing.value = false;
+}
+
+const pushing = ref<string | null>(null);
+
+/**
+ * Кладёт выбранный воркфлоу в сборку.
+ *
+ * Конфликт имён возвращается развилкой, а не ошибкой, и молчаливой
+ * перезаписи не происходит ни при запущенной сборке (409 от ComfyUI),
+ * ни при остановленной (наша проверка).
+ */
+async function push(instanceId: string, overwrite = false): Promise<void> {
+  const item = library.current;
+  if (!item) return;
+  pushing.value = instanceId;
+  try {
+    const res = await commands.pushWorkflow(
+      instanceId,
+      library.path,
+      item.path,
+      overwrite,
+    );
+    if (res.status === 'error') {
+      ui.pushError(res.error);
+      return;
+    }
+    if (res.data === 'conflict') {
+      if (window.confirm(t('library.push.replace', { name: item.path }))) {
+        await push(instanceId, true);
+      }
+      return;
+    }
+    // Запущенная сборка перечитывает список воркфлоу при обновлении
+    // страницы, а не сама. Сказать это обязательно: иначе пользователь
+    // решит, что добавление не сработало.
+    const running = run.statusOf(instanceId)?.state === 'running';
+    ui.pushOk(running ? t('library.push.doneRunning') : t('library.push.done'));
+  } finally {
+    pushing.value = null;
+  }
 }
 
 async function addFile(): Promise<void> {
@@ -191,7 +234,7 @@ async function addFile(): Promise<void> {
                             class="chip"
                             :style="{ '--instance-accent': accentVar(instance.accent) }"
                           ></span>
-                          <span>{{ instance.name }}</span>
+                          <span class="nm">{{ instance.name }}</span>
                           <!-- Три состояния, и «неизвестно» не выдаётся
                                за «всё хорошо»: зелёная галочка без оснований
                                хуже её отсутствия. -->
@@ -212,6 +255,19 @@ async function addFile(): Promise<void> {
                           class="missing"
                         >
                           {{ library.compatOf(instance.id)!.missing.join(' · ') }}
+                        </div>
+                        <!-- Нехватка нод предупреждает, но не запрещает:
+                             пользователь вправе положить воркфлоу и
+                             доустановить ноды потом. -->
+                        <div class="missing">
+                          <button
+                            type="button"
+                            class="btn ghost"
+                            :disabled="pushing === instance.id"
+                            @click="push(instance.id)"
+                          >
+                            {{ t('library.push.action') }}
+                          </button>
                         </div>
                       </template>
                     </div>
