@@ -27,6 +27,10 @@ tools/fixtures/fake-instance/python_embeded/
 # скриптом make-shared-root.mjs. В истории им делать нечего.
 tools/fixtures/shared-models/
 
+# Стенд библиотеки воркфлоу, по той же причине: воспроизводится
+# скриптом make-workflow-library.mjs.
+tools/fixtures/workflow-library/
+
 # Локальное окружение
 .env
 .env.local
