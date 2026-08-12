@@ -23,6 +23,9 @@ const KEY_UI: &str = "ui";
 /// это настройка данных, а не оформления, и переживать сброс оформления
 /// она обязана.
 const KEY_SHARED: &str = "sharedModels";
+/// Библиотека воркфлоу. Отдельно от общих моделей: она работает и без них,
+/// и связывать их одним ключом значило бы связать и судьбы настроек.
+const KEY_LIBRARY: &str = "workflowLibrary";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
@@ -122,6 +125,41 @@ pub fn save_shared(app: &tauri::AppHandle, shared: &SharedSettings) -> Result<()
         .map_err(|e| AppError::because("settings.saveFailed", e))?;
 
     store.set(KEY_SHARED, value);
+    store
+        .save()
+        .map_err(|e| AppError::because("settings.saveFailed", e))
+}
+
+/// Настройки библиотеки воркфлоу.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase", default)]
+pub struct LibrarySettings {
+    /// Пусто — библиотека не задана. Дефолт не подставляем в модель:
+    /// «не выбирал» и «выбрал вот это» обязаны различаться, иначе смена
+    /// корня общих моделей молча уводила бы библиотеку следом.
+    pub path: String,
+}
+
+pub fn load_library(app: &tauri::AppHandle) -> Result<LibrarySettings, AppError> {
+    let store = app
+        .store(STORE_FILE)
+        .map_err(|e| AppError::because("settings.loadFailed", e))?;
+
+    Ok(store
+        .get(KEY_LIBRARY)
+        .and_then(|v| serde_json::from_value(v).ok())
+        .unwrap_or_default())
+}
+
+pub fn save_library(app: &tauri::AppHandle, library: &LibrarySettings) -> Result<(), AppError> {
+    let store = app
+        .store(STORE_FILE)
+        .map_err(|e| AppError::because("settings.saveFailed", e))?;
+
+    let value = serde_json::to_value(library)
+        .map_err(|e| AppError::because("settings.saveFailed", e))?;
+
+    store.set(KEY_LIBRARY, value);
     store
         .save()
         .map_err(|e| AppError::because("settings.saveFailed", e))

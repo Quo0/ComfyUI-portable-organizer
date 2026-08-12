@@ -155,6 +155,58 @@ impl Client {
     }
 }
 
+/// Снимок доступных нод инстанса.
+///
+/// У остановленной сборки спросить не у кого, а ответ «неизвестно» на каждый
+/// вопрос о совместимости бесполезен. Поэтому при каждом успешном старте
+/// кладём набор классов рядом, и для остановленной отвечаем по нему,
+/// честно помечая ответ как данные последнего запуска.
+///
+/// Кэш производный: потеря безболезненна, восстановится при первом же
+/// старте. Отсюда `app_local_data_dir`, а не папка данных — при чистом
+/// удалении приложения его не жалко.
+pub mod cache {
+    use std::collections::BTreeSet;
+    use std::path::{Path, PathBuf};
+
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Snapshot {
+        pub taken_at: f64,
+        pub nodes: BTreeSet<String>,
+    }
+
+    fn path(dir: &Path, instance_id: &str) -> PathBuf {
+        // Имя инстанса в путь не идёт: оно произвольное и меняется.
+        // Идентификатор наш, из реестра, и безопасен как имя файла.
+        dir.join("nodes").join(format!("{instance_id}.json"))
+    }
+
+    pub fn write(dir: &Path, instance_id: &str, nodes: &BTreeSet<String>) {
+        let snapshot = Snapshot {
+            taken_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as f64)
+                .unwrap_or(0.0),
+            nodes: nodes.clone(),
+        };
+        let file = path(dir, instance_id);
+        // Молча: не сумели записать кэш — потеряли удобство, а не данные.
+        if let Some(parent) = file.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Ok(text) = serde_json::to_string(&snapshot) {
+            let _ = std::fs::write(file, text);
+        }
+    }
+
+    pub fn read(dir: &Path, instance_id: &str) -> Option<Snapshot> {
+        let text = std::fs::read_to_string(path(dir, instance_id)).ok()?;
+        serde_json::from_str(&text).ok()
+    }
+}
+
 /// Процентное кодирование сегмента пути.
 ///
 /// Слэш обязан превратиться в `%2F`: путь идёт одним сегментом URL,

@@ -47,7 +47,8 @@ use crate::instances::{
 };
 use crate::process::{RunState, RunStatus, Runtime};
 use crate::profiles::LaunchProfile;
-use crate::settings::{Bootstrap, UiSettings};
+use crate::settings::{Bootstrap, LibrarySettings, UiSettings};
+use crate::workflows::{LibraryScan, WorkflowMeta};
 use crate::shared_models::{
     ApplyMode, InstanceFileInfo, InstanceFileState, InstanceShared, RootScan, SharedSettings,
 };
@@ -318,6 +319,380 @@ async fn run_log(
         .map(|cell| cell.lock().unwrap().log.snapshot())
         .unwrap_or_default())
 }
+
+// ------------------------------------------------- библиотека воркфлоу
+
+/// Куда положить свежую библиотеку, если пользователь не выбрал сам.
+///
+/// Рядом с корнем общих моделей — они обычно лежат на просторном диске,
+/// и держать воркфлоу там же логично. Жёсткой связи нет: библиотека
+/// работает и без общих моделей, поэтому при их отсутствии просто молчим.
+#[tauri::command]
+#[specta::specta]
+async fn suggest_library_path(app: tauri::AppHandle) -> Result<Option<String>, AppError> {
+    let shared = settings::load_shared(&app)?;
+    Ok(shared
+        .roots
+        .first()
+        .and_then(|r| std::path::Path::new(&r.path).parent().map(|p| p.to_path_buf()))
+        .map(|p| p.join("workflows").display().to_string()))
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn load_library_settings(app: tauri::AppHandle) -> Result<LibrarySettings, AppError> {
+    settings::load_library(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn save_library_settings(
+    app: tauri::AppHandle,
+    library: LibrarySettings,
+) -> Result<(), AppError> {
+    settings::save_library(&app, &library)
+}
+
+/// Читает библиотеку целиком.
+///
+/// В блокирующем потоке: обход дерева на паре сотен воркфлоу — тысячи
+/// обращений к диску плюс разбор каждого JSON ради списка нод.
+#[tauri::command]
+#[specta::specta]
+async fn scan_library(path: String) -> Result<LibraryScan, AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        workflows::scan_library(std::path::Path::new(&path))
+    })
+    .await
+    .map_err(|e| AppError::because("workflows.scanFailed", e))
+}
+
+/// Кладёт файл с диска в библиотеку.
+///
+/// Не воркфлоу — отказ с объяснением: библиотека обязана оставаться
+/// библиотекой воркфлоу, а не свалкой JSON.
+#[tauri::command]
+#[specta::specta]
+async fn add_workflow_file(
+    library: String,
+    source: String,
+    rel: Option<String>,
+    overwrite: bool,
+) -> Result<String, AppError> {
+    let content = std::fs::read_to_string(&source)
+        .map_err(|e| AppError::because("workflows.readFailed", e))?;
+
+    if workflows::node_types(&content).is_none() {
+        return Err(AppError::with("workflows.notAWorkflow", "path", &source));
+    }
+
+    let name = rel.unwrap_or_else(|| {
+        std::path::Path::new(&source)
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_else(|| "workflow.json".to_string())
+    });
+
+    let target = std::path::Path::new(&library).join(&name);
+    if target.exists() && !overwrite {
+        return Err(AppError::with("workflows.nameTaken", "path", &name));
+    }
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+    }
+    std::fs::write(&target, content)
+        .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+
+    Ok(name)
+}
+
+/// Правит запись манифеста: избранное, теги, заметка.
+#[tauri::command]
+#[specta::specta]
+async fn set_workflow_meta(
+    library: String,
+    rel: String,
+    meta: WorkflowMeta,
+) -> Result<(), AppError> {
+    let root = std::path::Path::new(&library);
+    let (mut manifest, _) = workflows::read_manifest(root);
+    manifest.items.insert(rel, meta);
+    workflows::write_manifest(root, &manifest)
+}
+
+/// Убирает потерянную запись из манифеста.
+///
+/// Только запись: файлов эта команда не касается вовсе — она и вызывается
+/// лишь тогда, когда файла уже нет.
+#[tauri::command]
+#[specta::specta]
+async fn forget_workflow(library: String, rel: String) -> Result<(), AppError> {
+    let root = std::path::Path::new(&library);
+    let (mut manifest, _) = workflows::read_manifest(root);
+    manifest.items.remove(&rel);
+    workflows::write_manifest(root, &manifest)
+}
+
+/// Воркфлоу, лежащие в сборке.
+///
+/// У запущенной спрашиваем по API, у остановленной читаем папку. Разница
+/// не косметическая: у запущенной ответ учитывает то, что она сохранила
+/// минуту назад, а у остановленной другого источника и нет.
+#[tauri::command]
+#[specta::specta]
+async fn instance_workflows(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+) -> Result<Vec<String>, AppError> {
+    let instance = find_instance(&app, &id)?;
+    let port = running_port(&runtime, &id);
+
+    tauri::async_runtime::spawn_blocking(move || match port {
+        Some(port) => Ok(comfy_api::Client::new(port)
+            .list_workflows()?
+            .into_iter()
+            .map(|f| f.path)
+            .collect()),
+        None => Ok(local_workflow_names(&instance)),
+    })
+    .await
+    .map_err(|e| AppError::because("workflows.scanFailed", e))?
+}
+
+/// Забирает воркфлоу из сборки в библиотеку. Исходный остаётся на месте.
+#[tauri::command]
+#[specta::specta]
+async fn pull_workflow(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+    rel: String,
+    library: String,
+    overwrite: bool,
+) -> Result<String, AppError> {
+    let instance = find_instance(&app, &id)?;
+    let port = running_port(&runtime, &id);
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let content = match port {
+            Some(port) => comfy_api::Client::new(port).read_workflow(&rel)?,
+            None => {
+                let path = local_workflows_dir(&instance).join(&rel);
+                std::fs::read_to_string(&path)
+                    .map_err(|e| AppError::because("workflows.readFailed", e))?
+            }
+        };
+
+        if workflows::node_types(&content).is_none() {
+            return Err(AppError::with("workflows.notAWorkflow", "path", &rel));
+        }
+
+        let target = std::path::Path::new(&library).join(&rel);
+        if target.exists() && !overwrite {
+            return Err(AppError::with("workflows.nameTaken", "path", &rel));
+        }
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+        }
+        std::fs::write(&target, content)
+            .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+
+        // Помним, откуда взяли: через полгода это единственный способ
+        // понять, почему воркфлоу требует именно этих нод.
+        let root = std::path::Path::new(&library);
+        let (mut manifest, _) = workflows::read_manifest(root);
+        let entry = manifest.items.entry(rel.clone()).or_default();
+        entry.source_instance_id = Some(id.clone());
+        if entry.added_at.is_none() {
+            entry.added_at = Some(now_ms());
+        }
+        workflows::write_manifest(root, &manifest)?;
+
+        Ok(rel)
+    })
+    .await
+    .map_err(|e| AppError::because("workflows.writeFailed", e))?
+}
+
+/// Кладёт воркфлоу из библиотеки в сборку.
+///
+/// У запущенной — через API с `overwrite=false`, и **409 возвращается как
+/// развилка**, а не как ошибка: молча затирать чужой воркфлоу нельзя.
+/// У остановленной — файлом, с той же проверкой существования.
+#[tauri::command]
+#[specta::specta]
+async fn push_workflow(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+    library: String,
+    rel: String,
+    overwrite: bool,
+) -> Result<PushOutcome, AppError> {
+    let instance = find_instance(&app, &id)?;
+    if !instance.available {
+        return Err(AppError::with("instances.missing", "path", &instance.path));
+    }
+    let port = running_port(&runtime, &id);
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let content = std::fs::read_to_string(std::path::Path::new(&library).join(&rel))
+            .map_err(|e| AppError::because("workflows.readFailed", e))?;
+
+        match port {
+            Some(port) => {
+                match comfy_api::Client::new(port).upload_workflow(&rel, &content, overwrite)? {
+                    comfy_api::UploadOutcome::Written => Ok(PushOutcome::Written),
+                    comfy_api::UploadOutcome::Conflict => Ok(PushOutcome::Conflict),
+                }
+            }
+            None => {
+                let dir = local_workflows_dir(&instance);
+                let target = dir.join(&rel);
+                if target.exists() && !overwrite {
+                    return Ok(PushOutcome::Conflict);
+                }
+                // Папки может не быть вовсе: ComfyUI создаёт её лениво,
+                // при первом сохранении. Создаём сами.
+                if let Some(parent) = target.parent() {
+                    std::fs::create_dir_all(parent)
+                        .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+                }
+                std::fs::write(&target, content)
+                    .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+                Ok(PushOutcome::Written)
+            }
+        }
+    })
+    .await
+    .map_err(|e| AppError::because("workflows.writeFailed", e))?
+}
+
+/// Совместимость воркфлоу со всеми зарегистрированными сборками.
+///
+/// Считается для всех разом: пользователь выбирает, куда класть, и сравнить
+/// он должен на одном экране, а не обходя инстансы по одному.
+#[tauri::command]
+#[specta::specta]
+async fn workflow_compat(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    nodes: Vec<String>,
+) -> Result<Vec<InstanceCompat>, AppError> {
+    let instances = instances::list(&app)?;
+    let cache_dir = app
+        .path()
+        .app_local_data_dir()
+        .map_err(|e| AppError::because("workflows.scanFailed", e))?;
+
+    let ports: Vec<(String, Option<u16>)> =
+        instances.iter().map(|i| (i.id.clone(), running_port(&runtime, &i.id))).collect();
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut out = Vec::new();
+        for (instance, (_, port)) in instances.iter().zip(ports) {
+            // Три состояния, и третье нельзя выдавать за первое: сборка,
+            // о которой мы ничего не знаем, — это «неизвестно», а не
+            // «всё хорошо». Зелёная галочка без оснований хуже её отсутствия.
+            let (available, source) = match port {
+                Some(port) => match comfy_api::Client::new(port).object_info_keys() {
+                    Ok(keys) => {
+                        comfy_api::cache::write(&cache_dir, &instance.id, &keys);
+                        (Some(keys), CompatSource::Live)
+                    }
+                    Err(_) => (None, CompatSource::Unknown),
+                },
+                None => match comfy_api::cache::read(&cache_dir, &instance.id) {
+                    Some(snapshot) => (Some(snapshot.nodes), CompatSource::Cached),
+                    None => (None, CompatSource::Unknown),
+                },
+            };
+
+            out.push(InstanceCompat {
+                instance_id: instance.id.clone(),
+                source,
+                missing: available
+                    .as_ref()
+                    .map(|keys| workflows::missing_nodes(&nodes, keys))
+                    .unwrap_or_default(),
+            });
+        }
+        Ok(out)
+    })
+    .await
+    .map_err(|e| AppError::because("workflows.scanFailed", e))?
+}
+
+/// Откуда взяты сведения о нодах сборки.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum CompatSource {
+    /// Спросили у работающей сборки прямо сейчас.
+    Live,
+    /// По снимку с последнего запуска.
+    Cached,
+    /// Сборка не запущена и ни разу не запускалась при нас.
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct InstanceCompat {
+    pub instance_id: String,
+    pub source: CompatSource,
+    /// Пусто при `Unknown` — и это не «всё на месте», а «неизвестно».
+    /// Различать обязан интерфейс, а не читатель.
+    pub missing: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum PushOutcome {
+    Written,
+    /// Имя занято. Развилка, а не ошибка: спрашиваем пользователя.
+    Conflict,
+}
+
+/// Порт работающей сборки, если она работает.
+fn running_port(runtime: &Runtime, id: &str) -> Option<u16> {
+    runtime
+        .get(id)
+        .and_then(|cell| {
+            let running = cell.lock().unwrap();
+            matches!(running.status.state, RunState::Running).then_some(running.status.port)
+        })
+        .flatten()
+}
+
+/// Папка воркфлоу остановленной сборки, по её первому профилю.
+fn local_workflows_dir(instance: &Instance) -> std::path::PathBuf {
+    let root = std::path::Path::new(&instance.path);
+    match run::profiles_of(instance).first() {
+        Some(profile) => profiles::workflows_dir(profile, root),
+        // Профилей нет вовсе — берём умолчание ComfyUI.
+        None => root.join("ComfyUI").join("user").join("default").join("workflows"),
+    }
+}
+
+/// Имена воркфлоу остановленной сборки. Папки может не быть — это пусто,
+/// а не ошибка.
+fn local_workflow_names(instance: &Instance) -> Vec<String> {
+    let dir = local_workflows_dir(instance);
+    let scan = workflows::scan_library(&dir);
+    scan.items.into_iter().filter(|i| !i.lost).map(|i| i.path).collect()
+}
+
+fn now_ms() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as f64)
+        .unwrap_or(0.0)
+}
+
+// ------------------------------------------------------- общие модели
 
 #[tauri::command]
 #[specta::specta]
@@ -1033,6 +1408,17 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             run_install,
             cancel_install,
             instance_profiles,
+            suggest_library_path,
+            load_library_settings,
+            save_library_settings,
+            scan_library,
+            add_workflow_file,
+            set_workflow_meta,
+            forget_workflow,
+            instance_workflows,
+            pull_workflow,
+            push_workflow,
+            workflow_compat,
             load_shared_settings,
             save_shared_settings,
             scan_shared_root,
