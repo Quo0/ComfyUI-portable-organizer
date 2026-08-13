@@ -47,7 +47,8 @@
 [1.5](plan/notes/phase-15-installer.md) ·
 [2](plan/notes/phase-2-run.md) ·
 [2.5](plan/notes/phase-25-shared-models.md) ·
-[2.6](plan/notes/phase-26-workflows.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
+[2.6](plan/notes/phase-26-workflows.md) ·
+[3](plan/notes/phase-3-tabs.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
 
 ---
 
