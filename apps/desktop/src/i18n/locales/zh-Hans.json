@@ -77,7 +77,10 @@
       "sizeMeasuring": "正在统计…",
       "sizeMeasuredAt": "测量于 {when}",
       "recalculate": "重新统计",
-      "source": "于 {when} 从 {archive} 解压"
+      "source": "于 {when} 从 {archive} 解压",
+      "lastRun": "上次启动：{when}",
+      "lastRunNever": "尚未从这里启动过",
+      "accentCustom": "选择自定义颜色"
     },
     "unavailable": {
       "title": "文件夹已不存在",
@@ -93,6 +96,20 @@
       "added": "已添加 {name}",
       "updated": "已保存 {name}",
       "removed": "已从列表移除 {name}"
+    },
+    "search": "按名称搜索",
+    "nothingFound": "没有匹配的结果。",
+    "sort": {
+      "label": "排序",
+      "name": "按名称",
+      "lastRun": "按上次启动",
+      "size": "按大小"
+    },
+    "tab": {
+      "overview": "概览",
+      "models": "模型",
+      "workflows": "工作流",
+      "settings": "参数"
     }
   },
   "install": {
@@ -154,7 +171,9 @@
     "shared": {
       "title": "将新安装连接到共享模型",
       "body": "一个 checkpoint 有 2 到 20 GB。所有安装共用一份副本，正是共享文件夹的意义所在。",
-      "connect": "连接全部 {n} 个新安装"
+      "connect": "连接全部 {n} 个新安装",
+      "models": "共享模型",
+      "workflows": "工作流库"
     }
   },
   "workflows": {
@@ -168,7 +187,7 @@
       "sharedModels": "共享模型",
       "library": "工作流库",
       "archives": "安装包",
-      "duplicates": "重复文件"
+      "report": "磁盘报告"
     },
     "appearance": {
       "title": "外观",
@@ -245,7 +264,8 @@
       "notFound": "找不到标识为 {id} 的实例。",
       "emptyName": "名称不能为空。",
       "portRange": "端口不能小于 {min}。",
-      "missing": "文件夹 {path} 已不存在。"
+      "missing": "文件夹 {path} 已不存在。",
+      "badAccent": "应用无法使用该颜色：{value}"
     },
     "comfy": {
       "unreachable": "该安装无响应：{reason}",
@@ -340,7 +360,10 @@
       "anyway": "仍然启动"
     },
     "adopt": "重新连接",
-    "adopted": "已重新连接到端口 {port} 上的服务器。"
+    "adopted": "已重新连接到端口 {port} 上的服务器。",
+    "showLog": "显示日志",
+    "hideLog": "收起日志",
+    "lines": "{n} 行"
   },
   "shared": {
     "title": "共享模型",
@@ -487,8 +510,15 @@
       "toAll": "放入全部 {n} 个安装",
       "clear": "清除标记",
       "progress": "已完成 {done}/{total}",
-      "failed": "有 {n} 项未完成"
-    }
+      "failed": "有 {n} 项未完成",
+      "mark": "标记以进行批量操作"
+    },
+    "side": {
+      "where": "可在何处打开",
+      "note": "备注",
+      "tags": "标签"
+    },
+    "noTags": "还没有标签。"
   },
   "migrate": {
     "title": "此安装的模型",
@@ -572,5 +602,9 @@
     "skipped": "已跳过，文件夹不可用：{list}",
     "cancelled": "扫描被中断，因此报告并不完整。",
     "noAction": "释放这些空间是一个独立且需要确认的操作：打开某个整合包，使用“该整合包的模型”面板。"
+  },
+  "archives": {
+    "lead": "安装向导见过的压缩包。“忘记”只会移除记录，文件本身仍留在你下载的位置。",
+    "empty": "还没有压缩包——向导会在你使用时记住它们。"
   }
 }

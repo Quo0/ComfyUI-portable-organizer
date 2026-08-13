@@ -67,7 +67,11 @@ async function applyPending(): Promise<void> {
     </header>
 
     <div class="screen-body">
-      <div class="screen-pad">
+      <!-- Две колонки на широком окне: слева то, что настраивают, справа
+           то, что этим настройкам отвечает. Одной лентой экран заставлял
+           скроллить при пустой правой половине. -->
+      <div class="screen-pad wide cols">
+        <div>
         <div class="field">
           <label class="t-label" for="shared-root">{{ t('shared.root.label') }}</label>
           <div class="path-row">
@@ -159,7 +163,11 @@ async function applyPending(): Promise<void> {
               {{ t('shared.missing.create') }}
             </button>
           </div>
+        </template>
+        </div>
 
+        <div>
+        <template v-if="shared.configured && shared.available">
           <div class="toggle-row">
             <button
               class="toggle"
@@ -180,7 +188,12 @@ async function applyPending(): Promise<void> {
           </div>
 
           <div class="group">
-            <button class="btn ghost" type="button" @click="showYaml = !showYaml">
+            <button
+              class="btn ghost"
+              type="button"
+              :aria-pressed="showYaml"
+              @click="showYaml = !showYaml"
+            >
               {{ showYaml ? t('shared.yaml.hide') : t('shared.yaml.show') }}
             </button>
             <div v-if="showYaml" class="pane">
@@ -193,6 +206,7 @@ async function applyPending(): Promise<void> {
             </div>
           </div>
         </template>
+        </div>
       </div>
     </div>
   </section>

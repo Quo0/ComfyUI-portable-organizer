@@ -28,6 +28,14 @@ const noteDraft = ref('');
 const tagsDraft = ref('');
 const editing = ref(false);
 
+/**
+ * Вкладки правой панели. Триста пикселей на совместимость, заметку и теги
+ * разом — это столбик, в котором ничего не видно целиком.
+ */
+type Side = 'where' | 'note' | 'tags';
+const SIDES: Side[] = ['where', 'note', 'tags'];
+const side = ref<Side>('where');
+
 onMounted(async () => {
   if (!library.loaded) await library.load();
   if (!instances.loaded) await instances.load();
@@ -207,19 +215,26 @@ onUnmounted(() => unlisten?.());
       <div v-else class="split-master">
         <div class="pane">
           <div class="pane-head">
+            <!-- Поиск тянется на всю ширину панели: в поле на 190 пикселей
+                 обрезалась даже подсказка. -->
             <input
               v-model="library.query"
-              class="input"
+              class="input search"
               type="search"
               :placeholder="t('library.search')"
             />
+            <!-- Нажатое состояние красится по `aria-pressed`: правило
+                 добавлено в дизайн-систему, потому что без него включённый
+                 фильтр ничем не отличался от выключенного. -->
             <button
               type="button"
               class="btn ghost"
               :aria-pressed="library.favoritesOnly"
+              :title="t('library.favoritesOnly')"
+              :aria-label="t('library.favoritesOnly')"
               @click="library.favoritesOnly = !library.favoritesOnly"
             >
-              {{ t('library.favoritesOnly') }}
+              <span class="star" :class="{ off: !library.favoritesOnly }">★</span>
             </button>
           </div>
 
@@ -234,14 +249,25 @@ onUnmounted(() => unlisten?.());
                   :class="{ on: item.path === library.selected, lost: item.lost }"
                   @click="library.select(item.path)"
                 >
-                  <!-- Отметка для массовой операции. Не вложенная кнопка:
-                       кнопка внутри кнопки невалидна, поэтому это span
-                       с собственным обработчиком и остановкой всплытия. -->
+                  <!-- Отметка и избранное — разные органы. Раньше это был
+                       один значок: показывал избранное, а по клику ставил
+                       отметку, то есть отвечал не на тот вопрос, который
+                       задавал.
+                       Не вложенные кнопки: кнопка внутри кнопки невалидна,
+                       поэтому это span'ы со своим обработчиком и остановкой
+                       всплытия. -->
+                  <span
+                    class="mark"
+                    :class="{ on: library.marked.has(item.path) }"
+                    :title="t('library.bulk.mark')"
+                    @click.stop="library.toggleMark(item.path)"
+                  >✓</span>
                   <span
                     class="star"
-                    :class="{ off: !item.meta.favorite && !library.marked.has(item.path) }"
-                    @click.stop="library.toggleMark(item.path)"
-                  >{{ library.marked.has(item.path) ? '☑' : '★' }}</span>
+                    :class="{ off: !item.meta.favorite }"
+                    :title="item.meta.favorite ? t('library.unstar') : t('library.star')"
+                    @click.stop="library.toggleFavorite(item)"
+                  >★</span>
                   <span class="nm">{{ item.name }}</span>
                   <span class="tags">
                     <span v-for="tag in item.meta.tags" :key="tag" class="tag">{{ tag }}</span>
@@ -272,6 +298,25 @@ onUnmounted(() => unlisten?.());
               @click="library.toggleFavorite(library.current)"
             >★</button>
           </div>
+
+          <!-- Три набора данных в панели на 320 пикселей не помещаются
+               столбиком: совместимость сама по себе длинная, а заметка
+               и теги под ней оказывались за краем экрана. -->
+          <nav v-if="library.current && !library.marked.size" class="tabs" role="tablist">
+            <button
+              v-for="item in SIDES"
+              :key="item"
+              type="button"
+              role="tab"
+              :aria-selected="side === item"
+              @click="side = item"
+            >
+              {{ t(`library.side.${item}`) }}
+              <span v-if="item === 'tags' && library.current.meta.tags.length" class="n">
+                {{ library.current.meta.tags.length }}
+              </span>
+            </button>
+          </nav>
 
           <div class="scroll">
             <div class="scroll-pad">
@@ -364,8 +409,7 @@ onUnmounted(() => unlisten?.());
                 </p>
 
                 <template v-else>
-                  <div class="group">
-                    <span class="t-label">{{ t('library.compat') }}</span>
+                  <div v-if="side === 'where'" class="group">
                     <div v-if="targets.length" class="compat">
                       <template v-for="instance in targets" :key="instance.id">
                         <div
@@ -426,15 +470,12 @@ onUnmounted(() => unlisten?.());
                     <p v-else class="hint">{{ t('library.noInstances') }}</p>
                   </div>
 
-                  <div class="group">
-                    <span class="t-label">{{ t('library.note') }}</span>
+                  <!-- Заметка и теги правятся одной формой: они лежат
+                       в одной записи манифеста, и сохранять их порознь
+                       значило бы писать файл дважды подряд. -->
+                  <div v-else-if="side === 'note'" class="group">
                     <template v-if="editing">
-                      <input
-                        v-model="tagsDraft"
-                        class="input"
-                        :placeholder="t('library.tagsPlaceholder')"
-                      />
-                      <textarea v-model="noteDraft" class="input area" rows="4"></textarea>
+                      <textarea v-model="noteDraft" class="input area" rows="6"></textarea>
                       <div class="row">
                         <button
                           type="button"
@@ -450,6 +491,45 @@ onUnmounted(() => unlisten?.());
                     </template>
                     <template v-else>
                       <p class="t-sm">{{ library.current.meta.note || t('library.noNote') }}</p>
+                      <button
+                        type="button"
+                        class="btn ghost"
+                        @click="startEdit(library.current)"
+                      >
+                        {{ t('common.edit') }}
+                      </button>
+                    </template>
+                  </div>
+
+                  <div v-else class="group">
+                    <template v-if="editing">
+                      <input
+                        v-model="tagsDraft"
+                        class="input"
+                        :placeholder="t('library.tagsPlaceholder')"
+                      />
+                      <div class="row">
+                        <button
+                          type="button"
+                          class="btn primary"
+                          @click="saveMeta(library.current)"
+                        >
+                          {{ t('common.save') }}
+                        </button>
+                        <button type="button" class="btn ghost" @click="editing = false">
+                          {{ t('common.cancel') }}
+                        </button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div v-if="library.current.meta.tags.length" class="row">
+                        <span
+                          v-for="tag in library.current.meta.tags"
+                          :key="tag"
+                          class="tag"
+                        >{{ tag }}</span>
+                      </div>
+                      <p v-else class="hint">{{ t('library.noTags') }}</p>
                       <button
                         type="button"
                         class="btn ghost"

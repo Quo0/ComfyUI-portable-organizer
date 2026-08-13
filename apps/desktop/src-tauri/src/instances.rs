@@ -26,32 +26,40 @@ const KEY_LIST: &str = "instances";
 /// Порт по умолчанию — тот же, что у самого ComfyUI.
 pub const DEFAULT_PORT: u16 = 8188;
 
-/// Акцентный цвет инстанса. Хранится именем токена, а не значением:
-/// в тёмной теме у каждого своё значение, и записанный hex оказался бы
-/// нечитаемым в одной из тем.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "lowercase")]
-pub enum Accent {
-    Ember,
-    Amber,
-    Moss,
-    Teal,
-    Azure,
-    Indigo,
-    Orchid,
-    Rose,
+/// Акцентный цвет инстанса.
+///
+/// Хранится либо именем токена палитры, либо значением `#rrggbb`, если
+/// пользователь выбрал свой. Имя лучше и остаётся выбором по умолчанию:
+/// у токена своё значение в каждой теме, и читаемость проверена. Свой
+/// цвет одинаков в обеих темах, и отвечает за него уже пользователь —
+/// но запрещать ему собственный цвет не за что.
+///
+/// Кортежная структура, а не перечисление: `serde` пишет её прозрачно,
+/// то есть реестр, записанный до этой правки, читается как был,
+/// а `specta` экспортирует её самим внутренним типом.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+pub struct Accent(pub String);
+
+impl Accent {
+    pub fn named(name: &str) -> Self {
+        Self(name.to_string())
+    }
+
+    /// Цвет из палитры или свой в виде `#rrggbb`. Всё прочее — отказ:
+    /// в разметку это значение попадает как есть.
+    fn valid(&self) -> bool {
+        if PALETTE.contains(&self.0.as_str()) {
+            return true;
+        }
+        let hex = self.0.strip_prefix('#').unwrap_or("");
+        hex.len() == 6 && hex.chars().all(|c| c.is_ascii_hexdigit())
+    }
 }
 
 /// Порядок выдачи цветов новым инстансам: подряд, по кругу.
-const ACCENT_CYCLE: [Accent; 8] = [
-    Accent::Teal,
-    Accent::Indigo,
-    Accent::Ember,
-    Accent::Moss,
-    Accent::Azure,
-    Accent::Orchid,
-    Accent::Rose,
-    Accent::Amber,
+/// Он же — список имён, которые считаются валидными.
+pub const PALETTE: [&str; 8] = [
+    "teal", "indigo", "ember", "moss", "azure", "orchid", "rose", "amber",
 ];
 
 /// Откуда взялся инстанс. Заполняет мастер установки в Фазе 1.5;
@@ -96,6 +104,13 @@ pub struct Instance {
     /// реестр, записанный до этой фазы, поля не содержит.
     #[serde(default)]
     pub custom_profiles: Vec<CustomProfile>,
+
+    /// Когда сборку запускали в последний раз, в миллисекундах эпохи.
+    ///
+    /// `None` — ни разу с тех пор, как приложение это записывает. Дату
+    /// форматирует фронт: она обязана следовать выбранному языку.
+    #[serde(default)]
+    pub last_started_at: Option<f64>,
 
     /// Размер на диске. `f64`, а не `u64`: specta запрещает экспорт целых,
     /// не помещающихся в число JavaScript без потери точности. Байты
@@ -257,7 +272,7 @@ fn suggest_port(list: &[Instance]) -> u16 {
 }
 
 fn next_accent(list: &[Instance]) -> Accent {
-    ACCENT_CYCLE[list.len() % ACCENT_CYCLE.len()]
+    Accent::named(PALETTE[list.len() % PALETTE.len()])
 }
 
 pub fn suggest_accent(app: &tauri::AppHandle) -> Result<Accent, AppError> {
@@ -294,6 +309,7 @@ pub fn add(
         source,
         shared: InstanceShared::default(),
         custom_profiles: Vec::new(),
+        last_started_at: None,
         size_bytes: None,
         size_measured_at: None,
         available: true,
@@ -345,6 +361,25 @@ pub fn set_shared(
         .ok_or_else(|| AppError::with("instances.notFound", "id", id))?;
 
     instance.shared = shared;
+    write_all(app, &list)
+}
+
+/// Отмечает, что сборку запустили.
+///
+/// Пишется при удачном старте, а не при попытке: «последний запуск»
+/// в списке отвечает на вопрос «когда я этим пользовался», и неудачная
+/// попытка ответа на него не даёт.
+///
+/// Ошибку записи глотаем на уровне вызывающего: не сумели запомнить дату —
+/// не повод не запускать сборку.
+pub fn mark_started(app: &tauri::AppHandle, id: &str) -> Result<(), AppError> {
+    let mut list = read_all(app)?;
+    let instance = list
+        .iter_mut()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", id))?;
+
+    instance.last_started_at = Some(now_ms());
     write_all(app, &list)
 }
 
@@ -417,6 +452,11 @@ pub fn remove(app: &tauri::AppHandle, id: &str) -> Result<(), AppError> {
 fn validate(edit: &InstanceEdit) -> Result<(), AppError> {
     if edit.name.trim().is_empty() {
         return Err(AppError::new("instances.emptyName"));
+    }
+    // Цвет уходит прямо в разметку значением CSS-переменной, и пускать
+    // туда произвольную строку нельзя.
+    if !edit.accent.valid() {
+        return Err(AppError::with("instances.badAccent", "value", &edit.accent.0));
     }
     // Порты ниже 1024 требуют прав администратора, а ноль означает
     // «любой свободный» — предпочтением он быть не может.

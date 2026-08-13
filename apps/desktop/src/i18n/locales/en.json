@@ -77,7 +77,10 @@
       "sizeMeasuring": "counting…",
       "sizeMeasuredAt": "measured {when}",
       "recalculate": "Recount",
-      "source": "Unpacked from {archive} on {when}"
+      "source": "Unpacked from {archive} on {when}",
+      "lastRun": "Last run: {when}",
+      "lastRunNever": "Not started from here yet",
+      "accentCustom": "Pick your own colour"
     },
     "unavailable": {
       "title": "The folder is gone",
@@ -93,6 +96,20 @@
       "added": "{name} added",
       "updated": "{name} saved",
       "removed": "{name} removed from the list"
+    },
+    "search": "Search by name",
+    "nothingFound": "Nothing matches the search.",
+    "sort": {
+      "label": "Order",
+      "name": "by name",
+      "lastRun": "by last run",
+      "size": "by size"
+    },
+    "tab": {
+      "overview": "Overview",
+      "models": "Models",
+      "workflows": "Workflows",
+      "settings": "Settings"
     }
   },
   "install": {
@@ -154,7 +171,9 @@
     "shared": {
       "title": "Connect the new builds to shared models",
       "body": "A checkpoint weighs from two to twenty gigabytes. Keeping one copy for all builds is the whole point of a shared folder.",
-      "connect": "Connect the new build | Connect all {n} new builds"
+      "connect": "Connect the new build | Connect all {n} new builds",
+      "models": "Shared models",
+      "workflows": "Workflow library"
     }
   },
   "workflows": {
@@ -168,7 +187,7 @@
       "sharedModels": "Shared models",
       "library": "Workflow library",
       "archives": "Installer archives",
-      "duplicates": "Duplicates"
+      "report": "Disk report"
     },
     "appearance": {
       "title": "Appearance",
@@ -245,7 +264,8 @@
       "notFound": "No instance with id {id}.",
       "emptyName": "The name cannot be empty.",
       "portRange": "The port must be {min} or higher.",
-      "missing": "The folder {path} is not there any more."
+      "missing": "The folder {path} is not there any more.",
+      "badAccent": "That is not a colour the app can use: {value}"
     },
     "comfy": {
       "unreachable": "The build is not answering: {reason}",
@@ -340,7 +360,10 @@
       "anyway": "Start anyway"
     },
     "adopt": "Reconnect",
-    "adopted": "Reconnected to the server on port {port}."
+    "adopted": "Reconnected to the server on port {port}.",
+    "showLog": "Show the log",
+    "hideLog": "Hide the log",
+    "lines": "{n} line | {n} lines"
   },
   "shared": {
     "title": "Shared models",
@@ -487,8 +510,15 @@
       "toAll": "Into all {n} builds",
       "clear": "Clear the marks",
       "progress": "{done} of {total} done",
-      "failed": "{n} did not go through | {n} did not go through"
-    }
+      "failed": "{n} did not go through | {n} did not go through",
+      "mark": "Mark for a bulk action"
+    },
+    "side": {
+      "where": "Where it opens",
+      "note": "Note",
+      "tags": "Tags"
+    },
+    "noTags": "No tags yet."
   },
   "migrate": {
     "title": "Models of this build",
@@ -572,5 +602,9 @@
     "skipped": "Skipped, folder unavailable: {list}",
     "cancelled": "The scan was interrupted, so the report is incomplete.",
     "noAction": "Freeing this space is a separate, deliberate step: open a build and use the “Models of this build” panel."
+  },
+  "archives": {
+    "lead": "Archives the install wizard has seen. Forgetting one removes the entry only — the file itself stays where you downloaded it.",
+    "empty": "No archives yet — the wizard remembers them as you use them."
   }
 }

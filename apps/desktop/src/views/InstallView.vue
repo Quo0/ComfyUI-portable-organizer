@@ -15,29 +15,25 @@ const { t } = useI18n();
     </header>
 
     <div class="screen-body">
-      <div class="screen-pad">
+      <div class="screen-pad wide">
         <p class="t-sm">{{ t('install.lead') }}</p>
 
-        <div class="pane">
-          <div class="pane-head">
-            <span class="title">{{ t('install.existing.title') }}</span>
-          </div>
-          <div class="scroll-pad">
-            <p class="t-sm">{{ t('install.existing.body') }}</p>
+        <!-- Две дорожки рядом, а не одна под другой: это развилка, и обе
+             ветки должны быть видны разом, чтобы выбирать было из чего. -->
+        <div class="forks">
+          <div class="fork">
+            <b>{{ t('install.existing.title') }}</b>
+            <p>{{ t('install.existing.body') }}</p>
             <div class="row">
-              <RouterLink class="btn primary" to="/instances/add">
+              <RouterLink class="btn secondary" to="/instances/add">
                 {{ t('install.existing.action') }}
               </RouterLink>
             </div>
           </div>
-        </div>
 
-        <div class="pane">
-          <div class="pane-head">
-            <span class="title">{{ t('install.wizard.title') }}</span>
-          </div>
-          <div class="scroll-pad">
-            <p class="t-sm">{{ t('install.wizard.body') }}</p>
+          <div class="fork">
+            <b>{{ t('install.wizard.title') }}</b>
+            <p>{{ t('install.wizard.body') }}</p>
             <div class="row">
               <RouterLink class="btn primary" to="/install/wizard">
                 {{ t('install.archive.choose') }}

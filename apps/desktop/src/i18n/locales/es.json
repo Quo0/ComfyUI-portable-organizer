@@ -77,7 +77,10 @@
       "sizeMeasuring": "calculando…",
       "sizeMeasuredAt": "medido {when}",
       "recalculate": "Recalcular",
-      "source": "Descomprimida de {archive} el {when}"
+      "source": "Descomprimida de {archive} el {when}",
+      "lastRun": "Último arranque: {when}",
+      "lastRunNever": "Todavía no se ha arrancado desde aquí",
+      "accentCustom": "Elegir tu propio color"
     },
     "unavailable": {
       "title": "La carpeta ha desaparecido",
@@ -93,6 +96,20 @@
       "added": "{name} añadida",
       "updated": "{name} guardada",
       "removed": "{name} quitada de la lista"
+    },
+    "search": "Buscar por nombre",
+    "nothingFound": "La búsqueda no encuentra nada.",
+    "sort": {
+      "label": "Orden",
+      "name": "por nombre",
+      "lastRun": "por último arranque",
+      "size": "por tamaño"
+    },
+    "tab": {
+      "overview": "Resumen",
+      "models": "Modelos",
+      "workflows": "Flujos",
+      "settings": "Ajustes"
     }
   },
   "install": {
@@ -154,7 +171,9 @@
     "shared": {
       "title": "Conectar las nuevas instalaciones a los modelos compartidos",
       "body": "Un checkpoint pesa de dos a veinte gigabytes. Tener una sola copia para todas las instalaciones es justo el propósito de la carpeta compartida.",
-      "connect": "Conectar la nueva instalación | Conectar las {n} instalaciones nuevas"
+      "connect": "Conectar la nueva instalación | Conectar las {n} instalaciones nuevas",
+      "models": "Modelos compartidos",
+      "workflows": "Biblioteca de flujos"
     }
   },
   "workflows": {
@@ -168,7 +187,7 @@
       "sharedModels": "Modelos compartidos",
       "library": "Biblioteca de flujos",
       "archives": "Archivos del instalador",
-      "duplicates": "Duplicados"
+      "report": "Informe de disco"
     },
     "appearance": {
       "title": "Apariencia",
@@ -245,7 +264,8 @@
       "notFound": "No hay ninguna instancia con el identificador {id}.",
       "emptyName": "El nombre no puede estar vacío.",
       "portRange": "El puerto debe ser {min} o mayor.",
-      "missing": "La carpeta {path} ya no está."
+      "missing": "La carpeta {path} ya no está.",
+      "badAccent": "La aplicación no puede usar ese color: {value}"
     },
     "comfy": {
       "unreachable": "La instalación no responde: {reason}",
@@ -340,7 +360,10 @@
       "anyway": "Arrancar de todos modos"
     },
     "adopt": "Reconectar",
-    "adopted": "Reconectado al servidor en el puerto {port}."
+    "adopted": "Reconectado al servidor en el puerto {port}.",
+    "showLog": "Mostrar el registro",
+    "hideLog": "Ocultar el registro",
+    "lines": "{n} línea | {n} líneas"
   },
   "shared": {
     "title": "Modelos compartidos",
@@ -487,8 +510,15 @@
       "toAll": "En las {n} instalaciones",
       "clear": "Quitar las marcas",
       "progress": "{done} de {total} hechos",
-      "failed": "{n} no se completó | {n} no se completaron"
-    }
+      "failed": "{n} no se completó | {n} no se completaron",
+      "mark": "Marcar para una acción en lote"
+    },
+    "side": {
+      "where": "Dónde se abre",
+      "note": "Nota",
+      "tags": "Etiquetas"
+    },
+    "noTags": "Todavía no hay etiquetas."
   },
   "migrate": {
     "title": "Modelos de esta instalación",
@@ -572,5 +602,9 @@
     "skipped": "Omitido, carpeta no disponible: {list}",
     "cancelled": "El recorrido se interrumpió, así que el informe está incompleto.",
     "noAction": "Liberar ese espacio es un paso aparte y deliberado: abre una instalación y usa el panel «Modelos de esta instalación»."
+  },
+  "archives": {
+    "lead": "Archivos que ha visto el asistente de instalación. «Olvidar» solo borra la entrada: el archivo sigue donde lo descargaste.",
+    "empty": "Todavía no hay archivos: el asistente los recuerda a medida que los usas."
   }
 }

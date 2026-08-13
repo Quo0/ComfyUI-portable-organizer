@@ -76,12 +76,15 @@ async function submit(): Promise<void> {
 <template>
   <section class="screen">
     <header class="screen-head">
-      <RouterLink class="btn ghost" to="/instances">{{ t('common.back') }}</RouterLink>
+      <RouterLink class="btn ghost" to="/instances">
+        <svg class="ico"><use href="#i-back" /></svg>
+        {{ t('common.back') }}
+      </RouterLink>
       <h1 class="t-lg">{{ t('instances.add.title') }}</h1>
     </header>
 
     <div class="screen-body">
-      <div class="screen-pad">
+      <div class="screen-pad wide">
         <p class="t-sm">{{ t('instances.add.lead') }}</p>
 
         <div class="field">
@@ -109,52 +112,66 @@ async function submit(): Promise<void> {
             </RouterLink>
           </div>
 
-          <template v-else>
-            <div class="group">
-              <span class="t-label">{{ t('instances.field.profiles') }}</span>
-              <div v-if="probe.probe.profiles.length" class="row">
-                <span
-                  v-for="profile in probe.probe.profiles"
-                  :key="profile.id"
-                  class="pill stopped"
-                  :title="profile.id"
-                >
-                  {{ profile.name }}
-                  <em v-if="profile.advanced" class="advanced">
-                    {{ t('instances.field.profilesAdvanced') }}
-                  </em>
-                </span>
+          <!-- Две колонки: слева то, что прочитали в папке, справа то,
+               что заполняет пользователь. Одним свитком прочитанное
+               оттесняло форму вниз, за край экрана. -->
+          <div v-else class="cols">
+            <div>
+              <div class="paths">
+                <div class="path-item keep">
+                  <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
+                  <span class="val">
+                    {{ probe.probe.comfyVersion ?? t('common.unknown') }}
+                  </span>
+                </div>
+                <div class="path-item keep">
+                  <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
+                  <span class="val">
+                    {{ probe.probe.pythonVersion ?? t('common.unknown') }}
+                  </span>
+                </div>
+                <div class="path-item">
+                  <span class="lbl">{{ t('instances.field.profiles') }}</span>
+                  <span class="val">{{ probe.probe.profiles.length }}</span>
+                </div>
               </div>
-              <p v-else class="hint">{{ t('instances.field.profilesNone') }}</p>
+
+              <div class="group">
+                <div v-if="probe.probe.profiles.length" class="row">
+                  <span
+                    v-for="profile in probe.probe.profiles"
+                    :key="profile.id"
+                    class="pill stopped"
+                    :title="profile.id"
+                  >
+                    {{ profile.name }}
+                    <em v-if="profile.advanced" class="advanced">
+                      {{ t('instances.field.profilesAdvanced') }}
+                    </em>
+                  </span>
+                </div>
+                <p v-else class="hint">{{ t('instances.field.profilesNone') }}</p>
+              </div>
             </div>
 
-            <div class="meta">
-              <span>
-                {{ t('instances.field.comfyVersion') }}:
-                {{ probe.probe.comfyVersion ?? t('common.unknown') }}
-              </span>
-              <span>
-                {{ t('instances.field.pythonVersion') }}:
-                {{ probe.probe.pythonVersion ?? t('common.unknown') }}
-              </span>
-            </div>
+            <div>
+              <InstanceFields v-model="edit" />
 
-            <InstanceFields v-model="edit" />
-
-            <div class="row">
-              <button
-                type="button"
-                class="btn primary"
-                :disabled="saving || edit.name.trim() === ''"
-                @click="submit"
-              >
-                {{ t('instances.add.submit') }}
-              </button>
-              <RouterLink class="btn ghost" to="/instances">
-                {{ t('common.cancel') }}
-              </RouterLink>
+              <div class="row">
+                <button
+                  type="button"
+                  class="btn primary"
+                  :disabled="saving || edit.name.trim() === ''"
+                  @click="submit"
+                >
+                  {{ t('instances.add.submit') }}
+                </button>
+                <RouterLink class="btn ghost" to="/instances">
+                  {{ t('common.cancel') }}
+                </RouterLink>
+              </div>
             </div>
-          </template>
+          </div>
         </template>
       </div>
     </div>

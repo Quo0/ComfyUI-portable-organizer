@@ -9,7 +9,8 @@ import { open } from '@tauri-apps/plugin-dialog';
 
 import type { ArchiveRecord, InstallTarget } from '../bindings';
 import { errorText } from '../lib/errors';
-import { accentVar, useFormat } from '../lib/format';
+import { accentVar, isCustomAccent, useFormat } from '../lib/format';
+import type { WizardStep } from '../stores/installer';
 import { useInstallerStore } from '../stores/installer';
 import { useSharedStore } from '../stores/shared';
 import { useWorkflowsStore } from '../stores/workflows';
@@ -19,6 +20,10 @@ const shared = useSharedStore();
 const library = useWorkflowsStore();
 const { t } = useI18n();
 const { bytes, moment } = useFormat();
+
+/** Порядок шагов. Он же порядок показа в полосе состояния мастера. */
+const STEPS: WizardStep[] = ['archive', 'targets', 'shared', 'running', 'done'];
+const current = computed(() => STEPS.indexOf(wizard.step));
 
 const ACCENTS = [
   'teal',
@@ -149,17 +154,52 @@ const needed = computed(() =>
 </script>
 
 <template>
-  <section class="screen">
+  <section class="screen wizard-screen">
     <header class="screen-head">
-      <RouterLink class="btn ghost" to="/install">{{ t('common.back') }}</RouterLink>
+      <RouterLink class="btn ghost" to="/install">
+        <svg class="ico"><use href="#i-back" /></svg>
+        {{ t('common.back') }}
+      </RouterLink>
       <h1 class="t-lg">{{ t('install.wizard.title') }}</h1>
-      <span class="t-sm">{{
-        t(`install.wizard.step.${wizard.step}`)
-      }}</span>
     </header>
 
+    <!-- Шаги видны целиком: мастер, который не говорит, сколько ещё
+         впереди, читается как бесконечный. -->
+    <nav class="steps">
+      <template v-for="(name, index) in STEPS" :key="name">
+        <span v-if="index" class="step-sep"></span>
+        <span
+          class="step"
+          :class="{ now: name === wizard.step, done: index < current }"
+        >
+          <u>{{ index < current ? '✓' : index + 1 }}</u>
+          {{ t(`install.wizard.step.${name}`) }}
+        </span>
+      </template>
+    </nav>
+
+    <!-- Шапка шага назначений закреплена вместе с кнопкой «Далее»:
+         блоков «куда распаковать» бывает несколько, и кнопка уезжала
+         из виду ровно тогда, когда становилась нужна. -->
+    <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
+      <div class="meta">
+        <span>{{ wizard.info.label }}</span>
+        <span>{{ t('install.archive.files', wizard.info.files) }}</span>
+        <span>
+          {{ t('install.archive.unpacked', {
+            size: bytes(wizard.info.totalUncompressed),
+          }) }}
+        </span>
+        <span>{{ t('install.targets.needed', { size: needed }) }}</span>
+      </div>
+      <p v-if="wizard.info.singleRoot" class="hint">
+        {{ t('install.archive.root', { name: wizard.info.singleRoot }) }}
+      </p>
+      <p v-else class="hint">{{ t('install.archive.noRoot') }}</p>
+    </div>
+
     <div class="screen-body">
-      <div class="screen-pad">
+      <div class="screen-pad wide">
         <!-- ------------------------------------------------ шаг «архив» -->
         <template v-if="wizard.step === 'archive'">
           <div class="row">
@@ -229,25 +269,8 @@ const needed = computed(() =>
         <!-- --------------------------------------------- шаг «назначения» -->
         <template v-else-if="wizard.step === 'targets' && wizard.info">
           <div class="group">
-            <div class="meta">
-              <span>{{ wizard.info.label }}</span>
-              <span>{{ t('install.archive.files', wizard.info.files) }}</span>
-              <span>
-                {{ t('install.archive.unpacked', {
-                  size: bytes(wizard.info.totalUncompressed),
-                }) }}
-              </span>
-            </div>
-            <p v-if="wizard.info.singleRoot" class="hint">
-              {{ t('install.archive.root', { name: wizard.info.singleRoot }) }}
-            </p>
-            <p v-else class="hint">{{ t('install.archive.noRoot') }}</p>
-          </div>
-
-          <div class="group">
             <span class="t-label">{{ t('install.targets.title') }}</span>
             <p class="hint">{{ t('install.targets.hint') }}</p>
-            <p class="hint">{{ t('install.targets.needed', { size: needed }) }}</p>
           </div>
 
           <div
@@ -331,6 +354,21 @@ const needed = computed(() =>
                     :aria-pressed="target.accent === accent"
                     @click="target.accent = accent"
                   ></button>
+                  <!-- Свой цвет — там же, где палитра, и на том же экране,
+                       где заводят сборку: возвращаться за ним потом
+                       в редактирование незачем. -->
+                  <label
+                    class="swatch-custom"
+                    :class="{ on: isCustomAccent(target.accent) }"
+                    :title="t('instances.field.accentCustom')"
+                  >
+                    <input
+                      type="color"
+                      :value="isCustomAccent(target.accent) ? target.accent : '#4db6a5'"
+                      :aria-label="t('instances.field.accentCustom')"
+                      @input="target.accent = ($event.target as HTMLInputElement).value"
+                    />
+                  </label>
                 </div>
               </div>
 
@@ -354,17 +392,6 @@ const needed = computed(() =>
           </div>
 
           <p class="hint">{{ t('install.run.note') }}</p>
-
-          <div class="row">
-            <button
-              type="button"
-              class="btn primary lg"
-              :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
-              @click="wizard.step = 'shared'"
-            >
-              {{ t('install.wizard.next') }}
-            </button>
-          </div>
         </template>
 
         <!-- ---------------------------------------- шаг «общие ресурсы» -->
@@ -374,6 +401,14 @@ const needed = computed(() =>
             <p class="t-sm">{{ t('install.shared.body') }}</p>
           </div>
 
+          <!-- Ресурса два, и они про разное: модели и воркфлоу. Раньше всё
+               шло одним списком полей, и понять, к чему относится очередной
+               путь, можно было только по подписи. -->
+          <div class="pane">
+          <div class="pane-head">
+            <span class="title">{{ t('install.shared.models') }}</span>
+          </div>
+          <div class="scroll-pad">
           <div class="field">
             <span class="t-label">{{ t('shared.root.label') }}</span>
             <div class="path-row">
@@ -435,10 +470,17 @@ const needed = computed(() =>
             </div>
             <p class="hint">{{ t(`shared.mode.${wizard.sharedMode}.hint`) }}</p>
           </div>
+          </div>
+          </div>
 
           <!-- Библиотека воркфлоу — второй общий ресурс, и подключается
                тем же шагом: уводить за ней в настройки посреди установки
                незачем. -->
+          <div class="pane">
+          <div class="pane-head">
+            <span class="title">{{ t('install.shared.workflows') }}</span>
+          </div>
+          <div class="scroll-pad">
           <div class="field">
             <span class="t-label">{{ t('library.path.label') }}</span>
             <div class="path-row">
@@ -454,6 +496,8 @@ const needed = computed(() =>
             </p>
             <p v-else-if="!library.configured" class="hint">{{ t('library.path.howto') }}</p>
           </div>
+          </div>
+          </div>
 
           <p class="hint">{{ t('install.run.note') }}</p>
 
@@ -462,6 +506,7 @@ const needed = computed(() =>
               {{ t('install.run.start') }}
             </button>
             <button type="button" class="btn ghost" @click="wizard.step = 'targets'">
+              <svg class="ico"><use href="#i-back" /></svg>
               {{ t('common.back') }}
             </button>
           </div>
@@ -552,12 +597,98 @@ const needed = computed(() =>
         </template>
       </div>
     </div>
+
+    <!-- Подвал вне области прокрутки: кнопка «Далее» обязана быть видна
+         всегда, сколько бы блоков назначения ни завели. -->
+    <div v-if="wizard.step === 'targets'" class="wizard-foot">
+      <button type="button" class="btn ghost" @click="wizard.step = 'archive'">
+        <svg class="ico"><use href="#i-back" /></svg>
+        {{ t('common.back') }}
+      </button>
+      <button
+        type="button"
+        class="btn primary lg"
+        :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
+        @click="wizard.step = 'shared'"
+      >
+        {{ t('install.wizard.next') }}
+      </button>
+    </div>
   </section>
 </template>
 
 <style scoped>
+/* Колонка, а не сетка с посчитанными строками: закреплённая шапка
+   и подвал есть только на шаге назначений, и числу строк меняться
+   вместе с шагом нельзя. */
+.wizard-screen {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-screen .screen-body {
+  flex: 1;
+}
+
+.steps {
+  padding: 0 var(--space-5) var(--space-2);
+}
+
+.pinned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-5) var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.wizard-foot {
+  padding: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
 .target {
   display: block;
+}
+
+/* Квадрат выбора своего цвета — тот же, что в полях инстанса.
+   Повторён здесь, а не вынесен в дизайн-систему, потому что это
+   единственные два места, и оба знают о нём всё. */
+.swatch-custom {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  display: block;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
+  background: conic-gradient(
+    #e5534b,
+    #d9a441,
+    #6fbf73,
+    #4db6a5,
+    #5b8def,
+    #a77bd6,
+    #e5534b
+  );
+}
+
+.swatch-custom.on {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.swatch-custom input {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+.swatch-custom:focus-within {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 .current {
   color: var(--ink-muted);

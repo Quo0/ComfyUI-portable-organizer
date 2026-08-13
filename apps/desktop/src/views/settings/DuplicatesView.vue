@@ -64,12 +64,14 @@ async function cancel(): Promise<void> {
 
 <template>
   <div class="screen">
+    <!-- Экран называется отчётом, а не «дубликатами»: дубликаты — это
+         то, что он нашёл, а не то, чем он является. -->
     <header class="screen-head">
-      <h1 class="t-lg">{{ t('dups.title') }}</h1>
+      <h1 class="t-lg">{{ t('settings.section.report') }}</h1>
     </header>
 
     <div class="screen-body">
-      <div class="screen-pad">
+      <div class="screen-pad wide">
         <p class="t-sm">{{ t('dups.lead') }}</p>
 
         <div class="row">
@@ -95,22 +97,23 @@ async function cancel(): Promise<void> {
             <span class="t-label">
               {{ t('dups.wasted', { size: bytes(report.wastedBytes) }) }}
             </span>
-            <div class="wf-list">
-              <div v-for="group in report.duplicates" :key="group.category + group.name" class="wf-row">
+            <!-- Строка отчёта: имя, категория, где лежит, сколько впустую.
+                 Список «подпись — значение» здесь не годится — колонок
+                 четыре, и места, где лежат копии, важнее размера. -->
+            <div class="dup-list">
+              <div
+                v-for="group in report.duplicates"
+                :key="group.category + group.name"
+                class="dup-row"
+              >
                 <!-- Имена файлов и категорий не переводятся. -->
                 <span class="nm">{{ group.name }}</span>
-                <span class="hint">{{ group.category }}</span>
+                <span class="tag">{{ group.category }}</span>
                 <span class="t-mono">{{ bytes(group.wastedBytes) }}</span>
-                <span class="hint">
-                  {{ t('dups.copies', { count: group.copies.length }) }}
+                <span class="where hint">
+                  {{ group.copies.map((c) => c.source).join(' · ') }}
                 </span>
               </div>
-            </div>
-            <div class="places">
-              <p v-for="group in report.duplicates" :key="group.category + group.name" class="hint">
-                <b>{{ group.name }}</b>:
-                {{ group.copies.map((c) => c.source).join(' · ') }}
-              </p>
             </div>
             <p class="hint">{{ t('dups.noAction') }}</p>
           </div>
@@ -119,11 +122,16 @@ async function cancel(): Promise<void> {
           <div v-if="report.nameClashes.length" class="group">
             <span class="t-label">{{ t('dups.clashes') }}</span>
             <p class="hint">{{ t('dups.clashesHint') }}</p>
-            <div class="wf-list">
-              <div v-for="group in report.nameClashes" :key="group.category + group.name" class="wf-row">
+            <div class="dup-list">
+              <div
+                v-for="group in report.nameClashes"
+                :key="group.category + group.name"
+                class="dup-row"
+              >
                 <span class="nm">{{ group.name }}</span>
-                <span class="hint">{{ group.category }}</span>
-                <span class="hint">
+                <span class="tag">{{ group.category }}</span>
+                <span class="t-mono"></span>
+                <span class="where hint">
                   {{ group.copies.map((c) => `${c.source} · ${bytes(c.sizeBytes)}`).join(' · ') }}
                 </span>
               </div>
@@ -140,9 +148,36 @@ async function cancel(): Promise<void> {
 </template>
 
 <style scoped>
-.places {
+/* Отступы у строк обязательны: без них содержимое упирается в рамку
+   и читается как обрезанное. */
+.dup-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.dup-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1.2fr);
+  gap: var(--space-3);
+  align-items: center;
+  background: var(--surface);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.dup-row .nm,
+.dup-row .where {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dup-row .t-mono {
+  font-variant-numeric: tabular-nums;
 }
 </style>

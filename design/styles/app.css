@@ -278,7 +278,7 @@ h3.sub {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  height: 30px;
+  height: var(--rail-item-h);
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
   color: var(--ink-secondary);
@@ -303,7 +303,7 @@ h3.sub {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  height: 30px;
+  height: var(--rail-item-h);
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
@@ -346,6 +346,16 @@ h3.sub {
 
 /* ------------------------------------------------ карточка инстанса */
 .cards { display: flex; flex-direction: column; gap: var(--space-2); }
+/* Сетка карточек на широком окне. Порог 340px — ширина, при которой имя
+   сборки, состояние и строка метаданных ещё помещаются без переносов.
+   `grid-auto-rows: 1fr` равняет высоту всех карточек, а не только соседей
+   по ряду: разнокалиберные плитки читаются как беспорядок. */
+.cards.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--space-3);
+}
 .card {
   display: grid;
   grid-template-columns: 3px minmax(0,1fr);
@@ -358,7 +368,18 @@ h3.sub {
 .card-in { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .card-top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .card-name { font-weight: var(--weight-medium); font-size: var(--text-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-desc { color: var(--ink-secondary); font-size: var(--text-sm); }
+/* Состояние — к правому краю: глаз ищет его в одном месте, а не там,
+   куда его сдвинуло имя. Всё, что стоит после, уезжает вправо вместе
+   с ним и читается как одна группа. */
+.card-top .pill { margin-left: auto; }
+/* Описание занимает строку даже когда его нет: иначе строки версий
+   в соседних карточках стоят на разной высоте, и сетка выглядит
+   рассыпавшейся. Одна строка, дальше — многоточие. */
+.card-desc {
+  color: var(--ink-secondary); font-size: var(--text-sm);
+  min-height: calc(var(--text-sm) * var(--leading-normal));
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .pill {
   flex: none;
   display: inline-flex; align-items: center; gap: 5px;
@@ -379,9 +400,13 @@ h3.sub {
   font-family: var(--font-mono); font-size: var(--text-xs);
   color: var(--ink-muted); font-variant-numeric: tabular-nums;
 }
+/* Подвал карточки: источник, последний запуск. Прибит к низу —
+   в карточках разной наполненности он обязан стоять на одной линии,
+   иначе взгляд ищет его заново в каждой. */
 .src {
   font-size: var(--text-xs); color: var(--ink-muted);
   border-top: 1px solid var(--line-faint); padding-top: var(--space-2);
+  margin-top: auto;
 }
 .src code { font-family: var(--font-mono); }
 .card.gone { border-style: dashed; background: transparent; }
@@ -439,6 +464,10 @@ h3.sub {
 .inst-toolbar .port { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); white-space: nowrap; }
 .inst-toolbar .spacer { margin-left: auto; }
 .inst-toolbar .tools { display: flex; gap: var(--space-2); flex: none; }
+/* Кнопка-значок в тулбаре: квадрат по высоте контрола, без полей.
+   Слова у этих действий живут в подсказке — шесть подписей в ряд
+   не помещались на узком окне. */
+.inst-toolbar .tools .btn.ghost { width: var(--control-h); padding: 0; }
 
 /* ------------------------------------------------------- кнопки */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
@@ -458,6 +487,17 @@ h3.sub {
 .btn.ghost { background: transparent; color: var(--ink-secondary); }
 .btn.ghost:hover { background: var(--surface-hover); color: var(--ink); }
 .btn.danger { background: transparent; color: var(--state-crashed); border-color: var(--state-crashed); }
+/* Кнопка-переключатель: «только избранное» и подобные.
+   Красится по `aria-pressed`, как `.seg`, а не по классу: у одиночной
+   кнопки состояние ровно одно и дублировать его классом незачем.
+   Без этого правила нажатое состояние не видно вовсе — ARIA сама
+   по себе не рисует ничего, и это уже второй раз, когда мы на этом
+   попадаемся. */
+.btn[aria-pressed="true"] {
+  background: var(--surface-active);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
 .btn[aria-disabled="true"] { opacity: .45; cursor: default; }
 .spin {
   width: 12px; height: 12px; flex: none;
@@ -547,6 +587,11 @@ h3.sub {
   font-size: var(--text-sm);
 }
 .pane-head { border-bottom: 1px solid var(--line); }
+/* Поиск в шапке панели занимает всё свободное место: в узком поле
+   обрезается даже подсказка, не говоря о самом запросе. */
+.pane-head .search { flex: 1; min-width: 0; }
+/* Панель с вкладками: шапка, вкладки, данные, подвал. */
+.pane:has(> .tabs) { grid-template-rows: auto auto minmax(0, 1fr) auto; }
 .pane-foot { border-top: 1px solid var(--line); justify-content: flex-end; }
 .pane-head .title { font-weight: var(--weight-medium); margin-right: auto; }
 
@@ -577,10 +622,15 @@ h3.sub {
 
 /* Раскладка «список — детали»: два независимых региона рядом.
    Единственное место, где вложенная прокрутка допустима. */
+/* Мастер-детейл. Поля обязательны: без них панели упираются в рейл слева
+   и в край окна справа, хотя весь остальной контент от краёв отступает.
+   Правая колонка тянется вместе с окном — на 2K триста пикселей под
+   карточку выглядят как случайность. */
 .split-master {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 28%);
   gap: var(--space-3);
+  padding: var(--space-3) var(--space-5) var(--space-4);
   min-height: 0;
 }
 .split-master > * { min-height: 0; }
@@ -725,6 +775,63 @@ h3.sub {
 .step-sep { width: 14px; height: 1px; background: var(--line-strong); }
 .wizard-foot { display: flex; gap: var(--space-2); justify-content: flex-end; border-top: 1px solid var(--line); padding-top: var(--space-3); }
 
+/* Шапка раздела с поиском. Поле тянется, а не сидит в 190 пикселях:
+   в узком поле обрезается даже подсказка, не говоря о запросе. */
+.lib-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+}
+.lib-head h3 { margin-right: var(--space-2); }
+.lib-head .search { flex: 1; max-width: 420px; }
+
+/* ------------------------------------------- список «подпись — значение» */
+/* Версии, размеры, порты, пути. Не таблица: колонок ровно две, и вторая
+ * всегда моноширинная — это значение, которое читают глазами и копируют.
+ * `.keep` подсвечивает то, что подтверждено и не изменится. */
+.paths { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.path-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); }
+.path-item .lbl { font-size: var(--text-sm); }
+.path-item .val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.path-item.keep { background: var(--state-running-bg); }
+.path-item.keep .lbl { color: var(--state-running); }
+
+/* ---------------------------------------------------------- вкладки */
+/* Вкладки экрана. Нужны там, где у одной сущности несколько независимых
+ * наборов данных: у сборки это запуск, модели, воркфлоу и параметры.
+ * Свиток на тысячу строк вместо них заставляет искать нужное прокруткой.
+ *
+ * Выбранная красится по `aria-selected` — так же, как `.seg` смотрит
+ * на `aria-pressed`. Атрибут здесь обязателен и по смыслу: без него
+ * программа чтения с экрана не назовёт вкладку выбранной.
+ */
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--line);
+}
+.tabs > * {
+  appearance: none; background: none; border: 0;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-ui); font-size: var(--text-base);
+  color: var(--ink-secondary);
+  white-space: nowrap; cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+}
+.tabs > *:hover { color: var(--ink); }
+.tabs > [aria-selected="true"] {
+  color: var(--ink);
+  font-weight: var(--weight-medium);
+  border-bottom-color: var(--btn-primary-bg);
+}
+.tabs > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+/* Счётчик рядом с названием вкладки: сколько там внутри. */
+.tabs .n {
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--ink-muted); font-variant-numeric: tabular-nums;
+}
+
 /* ------------------------------------------- категории моделей */
 .cats { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
 .cat { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
@@ -748,11 +855,25 @@ h3.sub {
  */
 .wf-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
 .wf-row {
-  display: grid; grid-template-columns: auto minmax(0,1fr) auto auto;
+  display: grid; grid-template-columns: auto auto minmax(0,1fr) auto;
   gap: var(--space-3); align-items: center;
   background: var(--surface); padding: var(--space-2) var(--space-3);
   width: 100%; text-align: left; appearance: none; border: 0;
   font: inherit; color: inherit; cursor: pointer;
+}
+/* Отметка для массовой операции. Отдельный орган от звёздочки: раньше
+   это был один значок — показывал избранное, а по клику ставил отметку,
+   то есть отвечал не на тот вопрос, который задавал. */
+.wf-row .mark {
+  flex: none; width: 15px; height: 15px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  background: var(--surface);
+  display: grid; place-items: center;
+  font-size: 10px; line-height: 1; color: transparent;
+}
+.wf-row .mark.on {
+  background: var(--btn-primary-bg); border-color: var(--btn-primary-bg);
+  color: var(--btn-primary-ink);
 }
 .wf-row:hover { background: var(--surface-hover); }
 .wf-row.on { background: var(--surface-hover); box-shadow: inset 2px 0 0 var(--btn-primary-bg); }
@@ -777,6 +898,25 @@ h3.sub {
 
 /* Два столбца, которые схлопываются в один на узком окне. */
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); align-items: start; }
+
+/* Раскладка экрана в колонки на широком окне.
+ *
+ * Приложение разворачивают на 2K, а лента блоков шириной в 720 пикселей
+ * заставляет скроллить по вертикали при пустой правой половине. `.cols`
+ * складывает содержимое в колонки, когда место есть, и схлопывает
+ * в одну, когда его нет.
+ *
+ * Порог 480px — не круглое число ради красоты: две колонки уже 480
+ * заставляют переносить строки в полях и подписях, и выигрыш в высоте
+ * съедается проигрышем в читаемости.
+ */
+.cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+.cols > * { min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
 
 .compat { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
 

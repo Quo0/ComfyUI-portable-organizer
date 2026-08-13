@@ -37,7 +37,7 @@ fn main() {
             path: path.clone(),
             name: format!("Спайк {}", i + 1),
             description: String::new(),
-            accent: Accent::Teal,
+            accent: Accent::named("teal"),
             preferred_port: 8188 + i as u16,
         })
         .collect();

@@ -97,6 +97,72 @@
     >
       <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
     </symbol>
+    <!-- Возврат. Стрелка с чертой, а не голая шпилька: голую путают
+         со свёрткой рейла, у которой ровно такая же форма. -->
+    <symbol
+      id="i-back"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M12.5 8h-9" />
+      <path d="M7 3.5 2.5 8 7 12.5" />
+    </symbol>
+    <!-- Тулбар встроенной вкладки: лог, папка результатов, браузер,
+         перезагрузка страницы. Подписи там не помещаются, поэтому смысл
+         несут значки, а слова уходят в подсказку. -->
+    <symbol
+      id="i-log"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3 4.5h10" />
+      <path d="M3 8h7" />
+      <path d="M3 11.5h9" />
+    </symbol>
+    <symbol
+      id="i-folder"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M2 12V4.5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+    </symbol>
+    <symbol
+      id="i-external"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M12.5 9v3a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12V5A1.5 1.5 0 0 1 4 3.5h3" />
+      <path d="M9.5 2.5h4v4" />
+      <path d="M13.5 2.5 7.5 8.5" />
+    </symbol>
+    <symbol
+      id="i-reload"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M13 8a5 5 0 1 1-1.6-3.7" />
+      <path d="M13.2 2.5v3h-3" />
+    </symbol>
     <symbol
       id="i-collapse"
       viewBox="0 0 16 16"

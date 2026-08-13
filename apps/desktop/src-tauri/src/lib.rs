@@ -239,7 +239,7 @@ fn register_targets(
         let edit = InstanceEdit {
             name: target.name.clone(),
             description: target.description.clone(),
-            accent: target.accent,
+            accent: target.accent.clone(),
             preferred_port: target.preferred_port,
         };
         created.push(instances::add(app, probe, edit, Some(source.clone()))?);
@@ -1174,6 +1174,9 @@ fn start_inner(
     })?;
 
     runtime.insert(&id, outcome.cell.clone());
+    // Дата последнего запуска — справочная, и провал её записи запуску
+    // не помеха: сборка уже стартовала.
+    let _ = instances::mark_started(app, &id);
     let _ = RunChanged(outcome.status.clone()).emit(app);
 
     // Готовность ждём в фоне: команда обязана вернуться сразу, иначе

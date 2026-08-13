@@ -71,13 +71,36 @@ function removeArg(index: number): void {
 /**
  * Предпросмотр считает Rust, а не фронт: мутацию аргументов делает он,
  * и повторять её здесь значило бы завести вторую правду о команде.
+ *
+ * Пока профиль не сохранён, Rust о черновике не знает — поэтому от него
+ * берётся только хвост, дописываемый при запуске, а сами аргументы
+ * подставляются из черновика. Иначе предпросмотр показывал бы то,
+ * что лежит в `.bat`, а не то, что пользователь только что набрал.
  */
 async function refreshPreview(): Promise<void> {
-  const source = draft.value.id || draft.value.baseId;
+  const source = draft.value.baseId;
   if (!source) return;
   const res = await commands.previewCommand(props.id, source);
-  preview.value = res.status === 'ok' ? res.data : [];
+  if (res.status !== 'ok') {
+    preview.value = [];
+    return;
+  }
+  const base = run.profiles[props.id]?.find((p) => p.id === source);
+  const added = res.data.slice(1 + (base?.args.length ?? 0));
+  preview.value = [
+    res.data[0],
+    ...draft.value.args.filter((a) => a.trim() !== ''),
+    ...added,
+  ];
 }
+
+// Реактивность вместо кнопки «обновить»: предпросмотр обязан отвечать
+// на каждый набранный символ.
+watch(
+  () => [draft.value.args.join(' '), draft.value.baseId],
+  () => void refreshPreview(),
+  { deep: true },
+);
 
 async function save(): Promise<void> {
   const res = await commands.saveCustomProfile(props.id, {
@@ -112,6 +135,7 @@ async function remove(profile: CustomProfile): Promise<void> {
   <section v-if="instance" class="screen">
     <header class="screen-head">
       <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
+        <svg class="ico"><use href="#i-back" /></svg>
         {{ t('common.back') }}
       </RouterLink>
       <h1 class="t-lg">{{ t('args.title') }}</h1>
@@ -162,12 +186,9 @@ async function remove(profile: CustomProfile): Promise<void> {
         <div class="group">
           <span class="t-label">{{ t('args.list') }}</span>
           <div v-for="(_, index) in draft.args" :key="index" class="path-row">
-            <input
-              v-model="draft.args[index]"
-              class="input mono"
-              type="text"
-              @change="refreshPreview"
-            />
+            <!-- Предпросмотр обновляется на каждый ввод, а не по потере
+                 фокуса: правишь аргумент — сразу видишь команду. -->
+            <input v-model="draft.args[index]" class="input mono" type="text" />
             <button
               type="button"
               class="btn ghost"

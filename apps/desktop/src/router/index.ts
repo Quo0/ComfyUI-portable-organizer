@@ -90,6 +90,11 @@ export const router = createRouter({
           name: 'settings-duplicates',
           component: () => import('../views/settings/DuplicatesView.vue'),
         },
+        {
+          path: 'archives',
+          name: 'settings-archives',
+          component: () => import('../views/settings/ArchivesView.vue'),
+        },
       ],
     },
     {

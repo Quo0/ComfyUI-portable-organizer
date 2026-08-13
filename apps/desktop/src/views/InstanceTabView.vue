@@ -188,6 +188,7 @@ function fail(error: AppError): void {
   <section v-if="instance" class="screen tab-screen">
     <div class="inst-toolbar">
       <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
+        <svg class="ico"><use href="#i-back" /></svg>
         {{ t('common.back') }}
       </RouterLink>
       <span
@@ -199,29 +200,48 @@ function fail(error: AppError): void {
       <span v-if="status?.port" class="port">127.0.0.1:{{ status.port }}</span>
       <StatusPill :status="state" />
       <span class="spacer"></span>
+      <!-- Значки, а не подписи: шесть текстовых кнопок в ряд не помещались
+           на узком окне. Словами остались только остановка и перезапуск —
+           у них цена ошибки выше, чем экономия места. -->
       <div class="tools">
-        <button type="button" class="btn ghost" @click="showLog = !showLog">
-          {{ showLog ? t('tab.canvas') : t('tab.logs') }}
+        <button
+          type="button"
+          class="btn ghost"
+          :aria-pressed="showLog"
+          :title="showLog ? t('tab.canvas') : t('tab.logs')"
+          :aria-label="showLog ? t('tab.canvas') : t('tab.logs')"
+          @click="showLog = !showLog"
+        >
+          <svg class="ico"><use href="#i-log" /></svg>
         </button>
         <button
           type="button"
           class="btn ghost"
           :disabled="!outputDir"
           :title="outputDir ?? t('tab.outputMissing')"
+          :aria-label="t('tab.output')"
           @click="openOutput"
         >
-          {{ t('tab.output') }}
+          <svg class="ico"><use href="#i-folder" /></svg>
         </button>
-        <button type="button" class="btn ghost" @click="openInBrowser">
-          {{ t('run.openInBrowser') }}
+        <button
+          type="button"
+          class="btn ghost"
+          :title="t('run.openInBrowser')"
+          :aria-label="t('run.openInBrowser')"
+          @click="openInBrowser"
+        >
+          <svg class="ico"><use href="#i-external" /></svg>
         </button>
         <button
           type="button"
           class="btn ghost"
           :disabled="state !== 'running'"
+          :title="t('tab.reload')"
+          :aria-label="t('tab.reload')"
           @click="reload"
         >
-          {{ t('tab.reload') }}
+          <svg class="ico"><use href="#i-reload" /></svg>
         </button>
         <button type="button" class="btn secondary" :disabled="busy" @click="restart">
           {{ t('run.restart') }}

@@ -124,12 +124,9 @@
    они понадобились приложению, а здесь оставались оформлением страницы
    образцов и до приложения не доезжали. */
 
-.paths { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
-.path-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); }
-.path-item .lbl { font-size: var(--text-sm); }
-.path-item .val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.path-item.keep { background: var(--state-running-bg); }
-.path-item.keep .lbl { color: var(--state-running); }
+/* .paths и .path-item переехали в design/styles/app.css: список
+   «подпись — значение» понадобился экрану сборки, а отсюда он
+   в приложение не доезжает. */
 
 </style>
 </head>
@@ -158,6 +155,27 @@
   </symbol>
   <symbol id="i-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3.5 8.5 6.5 11.5 12.5 4.5"/>
+  </symbol>
+  <!-- Возврат. Стрелка с чертой, а не голая шпилька: голую путают
+       со свёрткой рейла, у которой ровно такая же форма. -->
+  <symbol id="i-back" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12.5 8h-9"/><path d="M7 3.5 2.5 8 7 12.5"/>
+  </symbol>
+  <!-- Тулбар встроенной вкладки: лог, папка результатов, браузер,
+       перезагрузка страницы. Подписи там не помещаются, поэтому смысл
+       несут значки, а слова уходят в подсказку. -->
+  <symbol id="i-log" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 4.5h10"/><path d="M3 8h7"/><path d="M3 11.5h9"/>
+  </symbol>
+  <symbol id="i-folder" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 12V4.5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+  </symbol>
+  <symbol id="i-external" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12.5 9v3a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12V5A1.5 1.5 0 0 1 4 3.5h3"/>
+    <path d="M9.5 2.5h4v4"/><path d="M13.5 2.5 7.5 8.5"/>
+  </symbol>
+  <symbol id="i-reload" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.5v3h-3"/>
   </symbol>
 </svg>
 
@@ -252,6 +270,119 @@
                   <b>Установить ComfyUI</b>
                   <p>Понадобится скачанный архив портабл-сборки. Распакуем сразу в одну или несколько папок.</p>
                   <span class="btn primary">Открыть мастер</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ ревизия · список сборок -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">ревизия</span>
+      <h2>Инстансы: список</h2>
+      <span class="jtag">US-REG-04</span><span class="jtag">US-RUN-05</span>
+    </div>
+    <p class="aside">
+      Карточки идут сеткой: на развёрнутом окне колонка во всю ширину
+      оставляла справа пустоту, а вниз уходило то, что помещается рядом.
+      В шапке поиск и порядок — при пяти-восьми сборках список перестаёт
+      читаться глазами.
+    </p>
+    <p class="aside">
+      Кнопки «Добавить» здесь нет: раздел «Установка» и есть место, где
+      сборки заводят, и двух дверей в одно место быть не должно.
+      В карточке — то, по чему сборки различают: состояние, порт, версия,
+      размер и когда её запускали в последний раз.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="row">
+              <h3>Инстансы</h3>
+              <span class="t-sm" style="color:var(--ink-muted)">5</span>
+              <span style="margin-left:auto"></span>
+              <div class="input" style="width:220px">Поиск по имени</div>
+              <div class="seg">
+                <span aria-pressed="true">по имени</span>
+                <span>по запуску</span>
+                <span>по размеру</span>
+              </div>
+            </div>
+
+            <div class="cards grid">
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+                    <div class="card-name">SDXL стабильная</div>
+                    <span class="pill running"><i></i>Работает</span>
+                  </div>
+                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+                  <div class="meta">
+                    <span>0.30.2</span><span>:8188</span><span>52,4 ГБ</span>
+                    <span class="tag">общие модели</span>
+                  </div>
+                  <div class="src">Последний запуск: сегодня, 14:20</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-indigo)">F</span>
+                    <div class="card-name">Flux тест</div>
+                    <span class="pill starting"><i></i>Стартует</span>
+                  </div>
+                  <div class="card-desc">Новые ноды проверяю здесь</div>
+                  <div class="meta">
+                    <span>0.31.0</span><span>:8189</span><span>38,1 ГБ</span>
+                    <span class="tag">общие модели</span>
+                  </div>
+                  <div class="src">Последний запуск: только что</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-moss)"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-moss)">Э</span>
+                    <div class="card-name">Эксперименты</div>
+                    <span class="pill stopped"><i></i>Остановлен</span>
+                  </div>
+                  <!-- Описания нет, но строка есть: без неё версии
+                       в соседних карточках встали бы на разной высоте. -->
+                  <div class="card-desc"></div>
+                  <div class="meta">
+                    <span>0.29.4</span><span>:8190</span><span>12,8 ГБ</span>
+                  </div>
+                  <div class="src">Последний запуск: 3 дня назад</div>
+                </div>
+              </div>
+              <div class="card gone">
+                <div class="card-accent"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip">В</span>
+                    <div class="card-name">Видео</div>
+                    <span class="pill gone"><i></i>Папка не найдена</span>
+                  </div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>E:\comfy\video</span></div>
+                  <div class="src">Последний запуск: 12 марта</div>
                 </div>
               </div>
             </div>
@@ -671,6 +802,156 @@ Import times for custom nodes:
     </div>
   </section>
 
+  <!-- ============================================ ревизия · экран сборки -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">ревизия</span>
+      <h2>Экран сборки: вкладки</h2>
+      <span class="jtag">US-RUN-01</span><span class="jtag">US-REG-04</span>
+    </div>
+    <p class="aside">
+      До ревизии здесь была одна лента: запуск, общие модели, модели сборки,
+      воркфлоу, путь, версии, размер, профили, источник, форма
+      редактирования и удаление — подряд, примерно на тысячу строк вёрстки.
+      Найти нужное можно было только прокруткой.
+    </p>
+    <p class="aside">
+      Вкладки разводят четыре независимых набора данных. Шапка со сборкой
+      и кнопкой запуска закреплена: она нужна на любой вкладке. На широком
+      окне содержимое раскладывается в две колонки — приложение
+      разворачивают на 2K, и лента в 720 пикселей оставляет половину окна
+      пустой.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+              <h3 style="margin-right:auto">SDXL стабильная</h3>
+              <span class="pill stopped"><i></i>Остановлен</span>
+              <span class="btn primary lg">Запустить</span>
+              <span class="btn secondary">run_nvidia_gpu ▾</span>
+            </div>
+
+            <div class="tabs">
+              <span aria-selected="true">Обзор</span>
+              <span>Модели <span class="n">14</span></span>
+              <span>Воркфлоу <span class="n">6</span></span>
+              <span>Параметры</span>
+            </div>
+
+            <div class="cols">
+              <div>
+                <div class="field">
+                  <label>Последний запуск</label>
+                  <div class="paths">
+                    <div class="path-item keep"><span class="lbl">Сегодня, 14:20</span><span class="val">готов за 54 с</span></div>
+                    <div class="path-item"><span class="lbl">Порт</span><span class="val">8188</span></div>
+                    <div class="path-item"><span class="lbl">Профиль</span><span class="val">run_nvidia_gpu</span></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Лог последнего запуска</label>
+                  <div class="row">
+                    <span class="btn secondary">Показать лог</span>
+                    <span class="hint">1 482 строки · раскроется на всю область</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Общие модели</label>
+                  <div class="toggle-row">
+                    <span class="toggle"></span>
+                    <div>
+                      <div>Подключены, режим «флаг»</div>
+                      <div class="hint">D:/AI/_shared_models · 26 категорий</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="field">
+                  <label>Папка сборки</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\program_files\comfyui\SDXL</span></div>
+                    <span class="btn secondary">Открыть</span>
+                  </div>
+                </div>
+                <div class="paths">
+                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
+                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12 · встроенный</span></div>
+                  <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52,4 ГБ</span></div>
+                  <div class="path-item"><span class="lbl">Профилей запуска</span><span class="val">4 + 1 свой</span></div>
+                </div>
+                <div class="src">Развёрнут из ComfyUI_windows_portable_nvidia.7z · 12 марта</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Лог раскрыт</b><span>та же вкладка, кнопка нажата</span></div>
+    <p class="aside">
+      Лог не висит куском в 260 пикселей посреди свитка и не показывается
+      всегда: он раскрывается кнопкой на всю область данных и сворачивается
+      обратно. При старте раскрывается сам — там он и есть содержимое
+      экрана.
+    </p>
+    <div class="frame">
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em><i class="dot" style="background:var(--state-starting)"></i></div>
+          </nav>
+          <div class="content framed no-foot">
+            <div class="pinned">
+              <div class="row">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+                <h3 style="margin-right:auto">SDXL стабильная</h3>
+                <span class="pill starting"><i></i>Стартует</span>
+                <span class="btn danger">Отмена</span>
+                <span class="btn secondary">Свернуть лог</span>
+              </div>
+              <div class="track indet"><i></i></div>
+            </div>
+            <div class="data">
+              <div class="log">
+<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Loading custom nodes: 47 found
+  ComfyUI-Manager 3.19.4
+  ComfyUI_IPAdapter_plus
+<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
+                <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================================ J-01 · 6 -->
   <section class="screen">
     <div class="screen-head">
@@ -823,28 +1104,50 @@ Import times for custom nodes:
             <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
+          <!-- Две колонки на широком окне: слева то, что настраивают,
+               справа то, что этим настройкам отвечает. Одной лентой этот
+               экран заставлял скроллить при пустой правой половине. -->
           <div class="content">
             <div class="crumb">Настройки → Общие модели</div>
-            <div class="field">
-              <label>Общий корень моделей</label>
-              <div class="path-row">
-                <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                <span class="btn secondary">Обзор</span>
-              </div>
-              <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
-            </div>
-            <div class="cats">
-              <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
-              <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
-              <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
-              <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
-              <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-            </div>
-            <div class="toggle-row">
-              <span class="toggle"></span>
+            <div class="cols">
               <div>
-                <div class="t-base">Скачивать новые модели в общую папку</div>
-                <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                <div class="field">
+                  <label>Общий корень моделей</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
+                </div>
+                <div class="cats">
+                  <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+                  <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="toggle-row">
+                  <span class="toggle"></span>
+                  <div>
+                    <div class="t-base">Скачивать новые модели в общую папку</div>
+                    <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Что получит ComfyUI</label>
+<div class="console" style="max-height:200px">cpo_shared_0:
+  base_path: D:/AI/_shared/models
+  is_default: true
+  checkpoints: checkpoints/
+  loras: loras/
+  vae: vae/
+  text_encoders: |
+    text_encoders/
+    clip/</div>
+                  <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1121,43 +1424,62 @@ Import times for custom nodes:
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
-          <div class="content">
-            <div class="row">
-              <h3 style="margin-right:auto">Библиотека воркфлоу</h3>
-              <div class="input" style="width:190px">Поиск по имени и тегам</div>
-              <span class="btn ghost">Только избранное</span>
+          <div class="content flush">
+            <div class="lib-head">
+              <h3>Библиотека воркфлоу</h3>
+              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <span class="btn ghost" aria-pressed="true"><span class="star">★</span>Только избранное</span>
+              <span class="btn secondary">Добавить файл</span>
             </div>
-            <div class="wf-list">
-              <div class="wf-row"><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span><span class="tag">upscale</span></span><span class="star">★</span></div>
-              <div class="wf-row"><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span><span class="star">★</span></div>
-              <div class="wf-row"><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span><span></span></div>
-            </div>
-            <div class="two">
-              <div>
-                <div class="t-label" style="margin-bottom:var(--space-2)">Выбран: flux / portrait-v3.json</div>
-                <div class="compat">
-                  <div class="compat-row ok">
-                    <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
-                    <span class="act on"><svg class="ico"><use href="#i-check"/></svg></span>
-                    <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
-                  </div>
-                  <div class="compat-row warn">
-                    <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
-                    <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
-                    <span class="nm">Flux тест</span><span class="compat-note">нет 2 нод</span>
-                  </div>
-                  <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
-                  <div class="compat-row">
-                    <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
-                    <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
-                    <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
-                  </div>
+            <div class="split-master">
+              <div class="pane">
+                <div class="pane-head">
+                  <span class="title">14 воркфлоу · отмечено 2</span>
+                  <span class="btn ghost">Снять отметки</span>
+                  <span class="btn secondary">Добавить отмеченные</span>
                 </div>
+                <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                  <!-- Отметка и избранное — разные органы. Раньше это был
+                       один значок: показывал избранное, а по клику ставил
+                       отметку. -->
+                  <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span><span class="tag">upscale</span></span></div>
+                  <div class="wf-row on"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                  <div class="wf-row"><span class="mark on">✓</span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
+                  <div class="wf-row lost"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-draft.json</span><span class="tags"><span class="tag stop">файла нет</span></span></div>
+                </div></div>
               </div>
-              <div class="stack" style="gap:var(--space-2)">
-                <div class="t-label">Заметка</div>
-                <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
-                <div class="row"><span class="btn primary">Добавить в инстанс</span><span class="btn ghost">Забрать из инстанса</span></div>
+
+              <div class="pane">
+                <div class="pane-head">
+                  <span class="title">portrait-v3.json</span>
+                  <span class="star lg">★</span>
+                </div>
+                <div class="tabs">
+                  <span aria-selected="true">Где откроется</span>
+                  <span>Заметка</span>
+                  <span>Теги <span class="n">1</span></span>
+                </div>
+                <div class="scroll"><div class="scroll-pad">
+                  <div class="compat">
+                    <div class="compat-row ok">
+                      <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
+                      <span class="act on"><svg class="ico"><use href="#i-check"/></svg></span>
+                      <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
+                    </div>
+                    <div class="compat-row warn">
+                      <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
+                      <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
+                      <span class="nm">Flux тест</span><span class="compat-note">нет 2 нод</span>
+                    </div>
+                    <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
+                    <div class="compat-row">
+                      <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
+                      <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
+                      <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
+                    </div>
+                  </div>
+                </div></div>
+                <div class="pane-foot"><span class="btn ghost">Забрать из инстанса</span></div>
               </div>
             </div>
           </div>

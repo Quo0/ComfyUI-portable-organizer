@@ -43,7 +43,11 @@ function open(path: string): void {
     </header>
 
     <div class="screen-body">
-      <div class="screen-pad">
+      <!-- Две колонки по смыслу: слева наше, справа ваше. Одним столбцом
+           это была простыня одинаковых полей, в которой не видно границы
+           между тем, что приложение вправе удалить, и тем, что не вправе. -->
+      <div class="screen-pad wide cols">
+        <div>
         <div class="group">
           <span class="t-label">{{ t('about.version') }}</span>
           <span class="t-mono">{{ ui.version }}</span>
@@ -79,6 +83,13 @@ function open(path: string): void {
           </div>
         </div>
 
+        <div class="group">
+          <span class="t-label">{{ t('about.uninstall.title') }}</span>
+          <p class="t-sm">{{ t('about.uninstall.body') }}</p>
+        </div>
+        </div>
+
+        <div>
         <div class="group">
           <span class="t-label">{{ t('about.content.title') }}</span>
           <p class="t-sm">{{ t('about.content.body') }}</p>
@@ -137,10 +148,6 @@ function open(path: string): void {
           <span class="t-label">{{ t('about.written.title') }}</span>
           <p class="t-sm">{{ t('about.written.body') }}</p>
         </div>
-
-        <div class="group">
-          <span class="t-label">{{ t('about.uninstall.title') }}</span>
-          <p class="t-sm">{{ t('about.uninstall.body') }}</p>
         </div>
       </div>
     </div>
