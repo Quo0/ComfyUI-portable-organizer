@@ -291,6 +291,15 @@
       "writeFailed": "Could not write the workflow: {reason}",
       "scanFailed": "Could not read the library: {reason}",
       "manifestWriteFailed": "Could not save tags and notes: {reason}"
+    },
+    "migrate": {
+      "instanceRunning": "The build is running. Stop it before moving its files.",
+      "notConnected": "The build is not connected to the shared models, so removing its copies would leave it without them.",
+      "noSpace": "Not enough free space in {path}",
+      "readFailed": "Could not read the file: {reason}",
+      "writeFailed": "Could not write to the shared folder: {reason}",
+      "verifyFailed": "The copy did not match the original, so nothing was removed.",
+      "removeFailed": "Could not remove the file: {reason}"
     }
   },
   "run": {
@@ -456,5 +465,35 @@
       "progress": "{done} of {total} done",
       "failed": "{n} did not go through | {n} did not go through"
     }
+  },
+  "migrate": {
+    "title": "Models of this build",
+    "noRoot": "There is nowhere to move them: the shared models folder is not set.",
+    "entries": "{n} item | {n} items",
+    "summary": "Will move {files} files, {size}. What came with the build stays: the placeholder markers and the model configs folder.",
+    "mustStop": "Stop the build first: its files cannot be taken while it is running.",
+    "action": "Move to the shared folder",
+    "empty": "Nothing to move: this build has no models of its own.",
+    "moved": "Moved {n}, {size} freed in the build.",
+    "failed": "{n} could not be moved | {n} could not be moved",
+    "dup": {
+      "title": "{n} duplicate found | {n} duplicates found",
+      "body": "The shared folder already has the same files, so the build takes them from there. Removing the local copies frees {size}.",
+      "remove": "Remove the local copies",
+      "needsConnection": "Connect this build to the shared models first — otherwise removing the copies would simply leave it without those models."
+    },
+    "diff": {
+      "title": "{n} name clash, not a duplicate | {n} name clashes, not duplicates",
+      "body": "The shared folder has files with these names, but the contents differ. They were not moved and are not offered for removal."
+    },
+    "verdict": {
+      "duplicate": "same file",
+      "likelyDuplicate": "looks the same",
+      "different": "different content"
+    },
+    "cleanup": {
+      "done": "Freed {size}"
+    },
+    "pickedUpOnStart": "Connected builds see new categories from their next start — nothing else to do."
   }
 }

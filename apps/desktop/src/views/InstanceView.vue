@@ -6,6 +6,7 @@ import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
 import InstanceFields from '../components/InstanceFields.vue';
 import LaunchPanel from '../components/LaunchPanel.vue';
+import ModelsPanel from '../components/ModelsPanel.vue';
 import WorkflowPanel from '../components/WorkflowPanel.vue';
 import SharedPanel from '../components/SharedPanel.vue';
 import StatusPill from '../components/StatusPill.vue';
@@ -132,6 +133,8 @@ function openFolder(): void {
         <LaunchPanel :instance="instance" />
 
         <SharedPanel :instance="instance" />
+
+        <ModelsPanel :instance="instance" />
 
         <WorkflowPanel :instance="instance" />
 

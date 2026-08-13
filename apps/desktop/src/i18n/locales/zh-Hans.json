@@ -291,6 +291,15 @@
       "writeFailed": "无法写入工作流：{reason}",
       "scanFailed": "无法读取库：{reason}",
       "manifestWriteFailed": "无法保存标签和备注：{reason}"
+    },
+    "migrate": {
+      "instanceRunning": "该安装正在运行。请先停止再移动其文件。",
+      "notConnected": "该安装未连接到共享模型，删除其副本会让它失去这些模型。",
+      "noSpace": "{path} 中空间不足",
+      "readFailed": "无法读取文件：{reason}",
+      "writeFailed": "无法写入共享文件夹：{reason}",
+      "verifyFailed": "副本与原文件不一致，因此未删除任何内容。",
+      "removeFailed": "无法删除文件：{reason}"
     }
   },
   "run": {
@@ -456,5 +465,35 @@
       "progress": "已完成 {done}/{total}",
       "failed": "有 {n} 项未完成"
     }
+  },
+  "migrate": {
+    "title": "此安装的模型",
+    "noRoot": "无处可移：尚未设置共享模型文件夹。",
+    "entries": "{n} 项",
+    "summary": "将移动 {files} 个文件，共 {size}。随安装附带的内容会保留：占位标记文件和模型配置文件夹。",
+    "mustStop": "请先停止该安装：运行时无法取走其文件。",
+    "action": "移动到共享文件夹",
+    "empty": "没有可移动的内容：此安装没有自己的模型。",
+    "moved": "已移动 {n} 项，在该安装中释放了 {size}。",
+    "failed": "有 {n} 项无法移动",
+    "dup": {
+      "title": "发现 {n} 个重复项",
+      "body": "共享文件夹中已有相同文件，该安装会从那里读取。删除本地副本可释放 {size}。",
+      "remove": "删除本地副本",
+      "needsConnection": "请先将此安装连接到共享模型——否则删除副本只会让它失去这些模型。"
+    },
+    "diff": {
+      "title": "{n} 处同名但并非重复",
+      "body": "共享文件夹中存在同名文件，但内容不同。它们未被移动，也不会提供删除。"
+    },
+    "verdict": {
+      "duplicate": "相同文件",
+      "likelyDuplicate": "看起来相同",
+      "different": "内容不同"
+    },
+    "cleanup": {
+      "done": "已释放 {size}"
+    },
+    "pickedUpOnStart": "已连接的安装会在下次启动时看到新类别——无需其他操作。"
   }
 }

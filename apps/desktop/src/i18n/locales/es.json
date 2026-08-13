@@ -291,6 +291,15 @@
       "writeFailed": "No se pudo escribir el flujo: {reason}",
       "scanFailed": "No se pudo leer la biblioteca: {reason}",
       "manifestWriteFailed": "No se pudieron guardar las etiquetas y notas: {reason}"
+    },
+    "migrate": {
+      "instanceRunning": "La instalación está en ejecución. Deténgala antes de mover sus archivos.",
+      "notConnected": "La instalación no está conectada a los modelos compartidos, así que quitar sus copias la dejaría sin ellos.",
+      "noSpace": "No hay espacio suficiente en {path}",
+      "readFailed": "No se pudo leer el archivo: {reason}",
+      "writeFailed": "No se pudo escribir en la carpeta compartida: {reason}",
+      "verifyFailed": "La copia no coincidió con el original, así que no se eliminó nada.",
+      "removeFailed": "No se pudo eliminar el archivo: {reason}"
     }
   },
   "run": {
@@ -456,5 +465,35 @@
       "progress": "{done} de {total} hechos",
       "failed": "{n} no se completó | {n} no se completaron"
     }
+  },
+  "migrate": {
+    "title": "Modelos de esta instalación",
+    "noRoot": "No hay dónde moverlos: la carpeta de modelos compartidos no está definida.",
+    "entries": "{n} elemento | {n} elementos",
+    "summary": "Se moverán {files} archivos, {size}. Lo que vino con la instalación se queda: los archivos marcadores y la carpeta de configuraciones.",
+    "mustStop": "Detenga la instalación primero: no se pueden tomar sus archivos mientras se ejecuta.",
+    "action": "Mover a la carpeta compartida",
+    "empty": "Nada que mover: esta instalación no tiene modelos propios.",
+    "moved": "Movidos {n}, se liberaron {size} en la instalación.",
+    "failed": "{n} no se pudo mover | {n} no se pudieron mover",
+    "dup": {
+      "title": "{n} duplicado encontrado | {n} duplicados encontrados",
+      "body": "La carpeta compartida ya tiene los mismos archivos y la instalación los toma de allí. Quitar las copias locales libera {size}.",
+      "remove": "Quitar las copias locales",
+      "needsConnection": "Conecte primero esta instalación a los modelos compartidos: de lo contrario, quitar las copias la dejaría sin esos modelos."
+    },
+    "diff": {
+      "title": "{n} coincidencia de nombre, no duplicado | {n} coincidencias de nombre, no duplicados",
+      "body": "La carpeta compartida tiene archivos con esos nombres, pero el contenido difiere. No se movieron ni se ofrecen para eliminar."
+    },
+    "verdict": {
+      "duplicate": "mismo archivo",
+      "likelyDuplicate": "parece el mismo",
+      "different": "contenido distinto"
+    },
+    "cleanup": {
+      "done": "Se liberaron {size}"
+    },
+    "pickedUpOnStart": "Las instalaciones conectadas verán las nuevas categorías en su próximo inicio; no hay nada más que hacer."
   }
 }
