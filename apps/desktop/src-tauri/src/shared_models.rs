@@ -67,19 +67,23 @@ const KNOWN: [&str; 26] = [
     "vae_approx",
 ];
 
-/// Что стоит предложить создать в пустом корне. Подмножество `KNOWN`:
-/// звать пользователя заводить двадцать шесть папок, из которых он
-/// воспользуется пятью, — вредный совет.
-const SUGGESTED: [&str; 8] = [
-    "checkpoints",
-    "loras",
-    "vae",
-    "controlnet",
-    "upscale_models",
-    "embeddings",
-    "text_encoders",
-    "diffusion_models",
-];
+/// Что предлагается создать в общем корне.
+///
+/// Весь известный набор, кроме устаревших имён: общая папка, повторяющая
+/// дерево моделей ComfyUI, — это то, чего пользователь и ждёт. Прежде
+/// предлагалось восемь штук из соображения «незачем заводить лишнее»,
+/// и выглядело это так, будто приложение создаёт не все нужные папки.
+///
+/// Устаревшие `unet` и `clip` исключены: их закрывают канонические
+/// `diffusion_models` и `text_encoders`, а заводить обе пары значит
+/// заводить путаницу.
+fn suggested() -> Vec<&'static str> {
+    KNOWN
+        .iter()
+        .copied()
+        .filter(|name| !LEGACY.iter().any(|(legacy, _)| legacy == name))
+        .collect()
+}
 
 /// Устаревшие имена папок. `folder_paths.py:111-114` сводит их к каноническим,
 /// поэтому и мы отдаём такую папку под каноническим ключом. Если в корне лежат
@@ -216,7 +220,7 @@ pub fn scan_root(path: &Path) -> RootScan {
             path: display,
             available: false,
             categories: Vec::new(),
-            missing: SUGGESTED.iter().map(|s| s.to_string()).collect(),
+            missing: suggested().into_iter().map(String::from).collect(),
             total_files: 0,
             total_bytes: 0.0,
         };
@@ -234,7 +238,7 @@ pub fn scan_root(path: &Path) -> RootScan {
                 path: display,
                 available: false,
                 categories: Vec::new(),
-                missing: SUGGESTED.iter().map(|s| s.to_string()).collect(),
+                missing: suggested().into_iter().map(String::from).collect(),
                 total_files: 0,
                 total_bytes: 0.0,
             }
@@ -277,15 +281,15 @@ pub fn scan_root(path: &Path) -> RootScan {
         rank(a.status).cmp(&rank(b.status)).then(a.folder.cmp(&b.folder))
     });
 
-    let missing = SUGGESTED
-        .iter()
+    let missing = suggested()
+        .into_iter()
         .filter(|s| !present.iter().any(|p| p == *s))
         // Устаревшая папка закрывает потребность канонической: если лежит
         // `unet/`, предлагать завести `diffusion_models/` незачем.
         .filter(|s| {
             !LEGACY
                 .iter()
-                .any(|(legacy, target)| target == *s && present.iter().any(|p| p == legacy))
+                .any(|(legacy, target)| target == s && present.iter().any(|p| p == legacy))
         })
         .map(|s| s.to_string())
         .collect();

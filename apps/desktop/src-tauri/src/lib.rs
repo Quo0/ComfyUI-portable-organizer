@@ -49,6 +49,7 @@ use crate::instances::{
 use crate::process::{RunState, RunStatus, Runtime};
 use crate::profiles::LaunchProfile;
 use crate::settings::{Bootstrap, LibrarySettings, UiSettings};
+use crate::migrate::ModelsScan;
 use crate::workflows::{LibraryScan, WorkflowMeta};
 use crate::shared_models::{
     ApplyMode, InstanceFileInfo, InstanceFileState, InstanceShared, RootScan, SharedSettings,
@@ -319,6 +320,127 @@ async fn run_log(
         .get(&id)
         .map(|cell| cell.lock().unwrap().log.snapshot())
         .unwrap_or_default())
+}
+
+// -------------------------------------------- перенос моделей в общую
+
+/// Модели этой сборки и что из них уже есть в общей папке.
+#[tauri::command]
+#[specta::specta]
+async fn scan_instance_models(
+    app: tauri::AppHandle,
+    id: String,
+) -> Result<ModelsScan, AppError> {
+    let (models, shared) = migrate_paths(&app, &id)?;
+    tauri::async_runtime::spawn_blocking(move || migrate::scan(&models, &shared))
+        .await
+        .map_err(|e| AppError::because("migrate.readFailed", e))
+}
+
+/// Переносит выбранные категории в общую папку.
+///
+/// Отказывает у работающей сборки: забирать файлы из-под работающего
+/// ComfyUI нельзя — он держит их открытыми и уже разобрал пути при старте.
+#[tauri::command]
+#[specta::specta]
+async fn migrate_models(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    cancel: tauri::State<'_, migrate::MigrateCancel>,
+    id: String,
+    categories: Vec<String>,
+) -> Result<migrate::MigrateOutcome, AppError> {
+    if running_port(&runtime, &id).is_some() {
+        return Err(AppError::new("migrate.instanceRunning"));
+    }
+    let (models, shared) = migrate_paths(&app, &id)?;
+    cancel.reset();
+
+    // Место проверяется до начала, а не на середине: узнать о нехватке
+    // на девятнадцатом гигабайте из двадцати — худшее из возможного.
+    let scan = migrate::scan(&models, &shared);
+    let need: f64 = scan
+        .categories
+        .iter()
+        .filter(|c| categories.iter().any(|w| w == &c.folder))
+        .flat_map(|c| c.entries.iter().filter(|e| e.same_name.is_none()))
+        .map(|e| e.size_bytes)
+        .sum();
+    if !migrate::enough_space(&shared, need) {
+        return Err(AppError::with("migrate.noSpace", "path", shared.display()));
+    }
+
+    // Перенос десятков гигабайт уходит в отдельный поток, а не на воркер
+    // асинхронного рантайма: иначе отмена соревнуется за тот же воркер.
+    let emitter = app.clone();
+    let flag = cancel.share();
+    tauri::async_runtime::spawn_blocking(move || {
+        migrate::move_all(&models, &shared, &categories, &flag, |progress| {
+            let _ = progress.emit(&emitter);
+        })
+    })
+    .await
+    .map_err(|e| AppError::because("migrate.writeFailed", e))
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn cancel_migrate(cancel: tauri::State<'_, migrate::MigrateCancel>) -> Result<(), AppError> {
+    cancel.cancel();
+    Ok(())
+}
+
+/// Убирает из сборки то, что уже лежит в общей папке.
+///
+/// Три условия проверяются здесь, а не только на экране: сборка
+/// остановлена, подключена к общим моделям, и каждый элемент заново
+/// признан дубликатом внутри `remove_duplicates`. Удаление — не то место,
+/// где можно доверять входным данным.
+#[tauri::command]
+#[specta::specta]
+async fn remove_duplicate_models(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+    items: Vec<(String, String)>,
+) -> Result<migrate::CleanupOutcome, AppError> {
+    if running_port(&runtime, &id).is_some() {
+        return Err(AppError::new("migrate.instanceRunning"));
+    }
+    let instance = find_instance(&app, &id)?;
+    if !instance.shared.enabled {
+        // Не подключена — удаление лишило бы её моделей вовсе.
+        // Это не уборка, а поломка.
+        return Err(AppError::new("migrate.notConnected"));
+    }
+
+    let (models, shared) = migrate_paths(&app, &id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        migrate::remove_duplicates(&models, &shared, &items)
+    })
+    .await
+    .map_err(|e| AppError::because("migrate.removeFailed", e))
+}
+
+/// Папка моделей сборки и общий корень.
+fn migrate_paths(
+    app: &tauri::AppHandle,
+    id: &str,
+) -> Result<(std::path::PathBuf, std::path::PathBuf), AppError> {
+    let instance = find_instance(app, id)?;
+    if !instance.available {
+        return Err(AppError::with("instances.missing", "path", &instance.path));
+    }
+
+    let shared = migrate::first_root(&settings::load_shared(app)?)
+        .ok_or_else(|| AppError::new("shared.noRoots"))?;
+
+    let root = std::path::Path::new(&instance.path);
+    let models = match run::profiles_of(&instance).first() {
+        Some(profile) => profiles::models_dir(profile, root),
+        None => root.join("ComfyUI").join("models"),
+    };
+    Ok((models, shared))
 }
 
 // ------------------------------------------------- библиотека воркфлоу
@@ -1420,6 +1542,10 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             run_install,
             cancel_install,
             instance_profiles,
+            scan_instance_models,
+            migrate_models,
+            cancel_migrate,
+            remove_duplicate_models,
             suggest_library_path,
             load_library_settings,
             save_library_settings,
@@ -1453,6 +1579,7 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             SpikeLog,
             SpikeReady,
             InstallProgress,
+            migrate::MigrateProgress,
             RunLog,
             RunChanged
         ])
@@ -1499,6 +1626,7 @@ pub fn run() {
         .manage(SizeJobs::default())
         .manage(InstallLock::default())
         .manage(InstallCancel::default())
+        .manage(migrate::MigrateCancel::default())
         .manage(Runtime::default())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
