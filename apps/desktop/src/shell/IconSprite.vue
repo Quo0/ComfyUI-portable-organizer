@@ -73,6 +73,30 @@
       <path d="M8 7.2v3.6" />
       <path d="M8 5.2v.1" />
     </symbol>
+    <!-- Значки действия в строке совместимости: положить сюда / уже здесь. -->
+    <symbol
+      id="i-plus"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M8 3.5v9" />
+      <path d="M3.5 8h9" />
+    </symbol>
+    <symbol
+      id="i-check"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
+    </symbol>
     <symbol
       id="i-collapse"
       viewBox="0 0 16 16"

@@ -143,7 +143,9 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     const item = items.value.find((i) => i.path === rel);
     if (!item || item.lost || item.broken) return;
 
-    const res = await commands.workflowCompat(item.nodes);
+    // Путь идёт вместе с нодами: бэкенд по нему же отвечает, лежит ли
+    // этот воркфлоу в каждой из сборок.
+    const res = await commands.workflowCompat(item.path, item.nodes);
     if (res.status === 'ok') compat.value = res.data;
   }
 

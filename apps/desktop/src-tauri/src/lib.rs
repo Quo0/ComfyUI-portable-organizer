@@ -580,6 +580,7 @@ async fn push_workflow(
 async fn workflow_compat(
     app: tauri::AppHandle,
     runtime: tauri::State<'_, Runtime>,
+    rel: String,
     nodes: Vec<String>,
 ) -> Result<Vec<InstanceCompat>, AppError> {
     let instances = instances::list(&app)?;
@@ -618,6 +619,10 @@ async fn workflow_compat(
                     .as_ref()
                     .map(|keys| workflows::missing_nodes(&nodes, keys))
                     .unwrap_or_default(),
+                // Спрашивать по HTTP незачем даже у запущенной сборки:
+                // ComfyUI хранит воркфлоу файлами, и ответ одинаково даёт
+                // файловая система в обоих состояниях.
+                present: local_workflows_dir(instance).join(&rel).is_file(),
             });
         }
         Ok(out)
@@ -646,6 +651,12 @@ pub struct InstanceCompat {
     /// Пусто при `Unknown` — и это не «всё на месте», а «неизвестно».
     /// Различать обязан интерфейс, а не читатель.
     pub missing: Vec<String>,
+    /// Этот воркфлоу уже лежит в сборке.
+    ///
+    /// Считается, а не запоминается. Прежде интерфейс знал только о наших
+    /// собственных нажатиях в текущем сеансе и после перезахода показывал
+    /// «добавить» у сборки, где файл уже был.
+    pub present: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]

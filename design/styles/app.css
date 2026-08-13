@@ -294,7 +294,10 @@ h3.sub {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
 }
-.nav-item .ico { flex: none; width: 16px; height: 16px; }
+/* Размер иконки задан классом, а не местом: правило было привязано
+   к `.nav-item`, и вне рейла иконка оставалась без размеров вовсе —
+   та же ловушка, что была с `.nm` вне списка. */
+.ico { flex: none; width: 16px; height: 16px; }
 .nav-sep { height: 1px; background: var(--line); margin: var(--space-2) var(--space-1); }
 .nav-run {
   display: flex;
@@ -744,24 +747,45 @@ h3.sub {
    выравнивается `.missing` под ней. */
 .compat-row {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
-  grid-template-areas: "chip name action" ".   note action";
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-areas: "chip name" "action note";
   gap: 2px var(--space-3); align-items: center;
   background: var(--surface); padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
 }
-.compat-row .chip { grid-area: chip; }
+/* Левая колонка держит опознавательный квадрат сверху и значок действия
+   под ним. Имя и подпись занимают всю оставшуюся ширину: имя рядом
+   с кнопкой ужималось, а на длинных именах обрезалось почти целиком. */
+.compat-row .chip { grid-area: chip; justify-self: center; }
+.compat-row .act { grid-area: action; justify-self: center; }
 /* Обрезка повторена здесь намеренно: правило для списка объявлено
    как `.wf-row .nm` и до этой сетки не достаёт. */
 .compat-row .nm {
   grid-area: name; font-size: var(--text-sm);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.compat-row .btn { grid-area: action; }
 .compat-note { grid-area: note; font-size: var(--text-xs); color: var(--ink-muted); }
+
+/* Значок-действие: квадрат в 20 пикселей.
+   Не `.btn`: у того высота `--control-h` в 28, и в колонку рядом
+   с опознавательным квадратом он не помещается. */
+.act {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; flex: none;
+  appearance: none; background: none; border: 0; padding: 0;
+  border-radius: var(--radius-sm); cursor: pointer; color: var(--ink-muted);
+}
+.act:hover { background: var(--surface-hover); color: var(--ink); }
+/* «Уже здесь» — тем же зелёным, каким покрашена подпись у совместимой
+   сборки. Новых значений цвета на этом экране не заводится. */
+.act.on { color: var(--state-running); }
+.act:disabled { opacity: .5; cursor: default; }
+.act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .compat-row.ok .compat-note { color: var(--state-running); }
 .compat-row.warn .compat-note { color: var(--state-starting); }
-.missing { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); padding: 0 var(--space-3) var(--space-2) calc(16px + var(--space-3) + var(--space-3)); background: var(--surface); }
+/* Левый отступ повторяет левую колонку строки: список недостающих нод
+   обязан начинаться там же, где имя сборки, к которой он относится. */
+.missing { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); padding: 0 var(--space-3) var(--space-2) calc(20px + var(--space-3) + var(--space-3)); background: var(--surface); }
 
 /* ------------------------------------------------- строка проверки */
 .longform {

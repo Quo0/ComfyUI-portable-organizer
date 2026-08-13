@@ -433,7 +433,7 @@
       "done": "Añadido a la instalación",
       "doneRunning": "Añadido. La instalación lo mostrará tras recargar la página de ComfyUI.",
       "replace": "La instalación ya tiene un flujo llamado {name}. ¿Reemplazarlo?",
-      "added": "añadido"
+      "again": "La instalación ya lo tiene: colocarlo de nuevo"
     },
     "pull": {
       "done": "{name} ya está en la biblioteca",

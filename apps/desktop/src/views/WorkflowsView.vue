@@ -57,16 +57,22 @@ async function saveMeta(item: LibItem): Promise<void> {
 const pushing = ref<string | null>(null);
 
 /**
- * Куда этот воркфлоу уже положили.
+ * Куда положили прямо сейчас, нашим же нажатием.
  *
- * Подпись о совместимости после переноса не меняется, и это правильно:
- * она про наличие нод, а не про наличие файла. Но без всякого отклика
- * нажатие читается как «ничего не произошло» — отклик даёт кнопка.
+ * Наложение поверх ответа бэкенда, а не замена ему: даёт мгновенный отклик,
+ * не дожидаясь повторного опроса. Правду про «уже там» знает `present`
+ * из `workflow_compat` — он считается по файловой системе и переживает
+ * перезаход на экран.
  */
 const pushed = ref<Set<string>>(new Set());
 
 // Отметки относятся к выбранному воркфлоу и вместе с ним и сбрасываются.
 watch(() => library.selected, () => (pushed.value = new Set()));
+
+/** Воркфлоу уже в этой сборке. */
+function added(instanceId: string): boolean {
+  return library.compatOf(instanceId)?.present === true || pushed.value.has(instanceId);
+}
 
 /**
  * Кладёт выбранный воркфлоу в сборку.
@@ -383,18 +389,22 @@ onUnmounted(() => unlisten?.());
                           </span>
                           <!-- Нехватка нод предупреждает, но не запрещает:
                                пользователь вправе положить воркфлоу и
-                               доустановить ноды потом. Кнопка живёт в самой
-                               строке — своя полоса под каждым инстансом
-                               удваивала список и выглядела как заголовок. -->
+                               доустановить ноды потом. Значок вместо
+                               подписи: состояние видно цветом и формой,
+                               а что произойдёт — говорит подсказка. -->
                           <button
                             type="button"
-                            class="btn ghost"
+                            class="act"
+                            :class="{ on: added(instance.id) }"
                             :disabled="pushing === instance.id"
+                            :title="added(instance.id)
+                              ? t('library.push.again')
+                              : t('library.push.action')"
                             @click="push(instance.id)"
                           >
-                            {{ pushed.has(instance.id)
-                              ? `✓ ${t('library.push.added')}`
-                              : t('library.push.action') }}
+                            <svg class="ico">
+                              <use :href="added(instance.id) ? '#i-check' : '#i-plus'" />
+                            </svg>
                           </button>
                         </div>
                         <div
