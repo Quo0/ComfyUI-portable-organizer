@@ -234,16 +234,14 @@
       "missing": "La carpeta {path} ya no está."
     },
     "comfy": {
-      "spawnFailed": "No se ha podido iniciar ComfyUI: {reason}",
-      "alreadyRunning": "ComfyUI ya está en marcha.",
-      "readyTimeout": "ComfyUI no ha estado listo en {secs} segundos.",
       "unreachable": "La instalación no responde: {reason}",
       "badResponse": "La instalación respondió algo inesperado: {reason}",
       "notFound": "La instalación no tiene esto.",
       "uploadFailed": "No se pudo colocar el flujo en la instalación: {reason}"
     },
     "webview": {
-      "embedFailed": "No se ha podido abrir la pestaña de ComfyUI: {reason}"
+      "embedFailed": "No se ha podido abrir la pestaña de ComfyUI: {reason}",
+      "noTab": "Esta instancia no tiene ninguna pestaña de ComfyUI abierta."
     },
     "installer": {
       "archiveUnreadable": "No se ha podido leer el archivo: {reason}",
@@ -495,5 +493,15 @@
       "done": "Se liberaron {size}"
     },
     "pickedUpOnStart": "Las instalaciones conectadas verán las nuevas categorías en su próximo inicio; no hay nada más que hacer."
+  },
+  "tab": {
+    "logs": "Registro",
+    "canvas": "Volver a ComfyUI",
+    "output": "Carpeta de salida",
+    "outputMissing": "ComfyUI crea esta carpeta en la primera generación: todavía no hay nada que abrir.",
+    "reload": "Recargar",
+    "open": "Abrir ComfyUI",
+    "starting": "La instalación está arrancando. La interfaz se abrirá en cuanto el servidor esté listo.",
+    "retry": "Reintentar"
   }
 }

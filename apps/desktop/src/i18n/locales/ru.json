@@ -234,16 +234,14 @@
       "missing": "Папки {path} больше нет."
     },
     "comfy": {
-      "spawnFailed": "Не удалось запустить ComfyUI: {reason}",
-      "alreadyRunning": "ComfyUI уже запущен.",
-      "readyTimeout": "ComfyUI не пришёл в готовность за {secs} секунд.",
       "unreachable": "Сборка не отвечает: {reason}",
       "badResponse": "Сборка ответила чем-то неожиданным: {reason}",
       "notFound": "У сборки этого нет.",
       "uploadFailed": "Не удалось положить воркфлоу в сборку: {reason}"
     },
     "webview": {
-      "embedFailed": "Не удалось открыть вкладку ComfyUI: {reason}"
+      "embedFailed": "Не удалось открыть вкладку ComfyUI: {reason}",
+      "noTab": "Открытой вкладки ComfyUI у этого инстанса нет."
     },
     "installer": {
       "archiveUnreadable": "Не удалось прочитать архив: {reason}",
@@ -495,5 +493,15 @@
       "done": "Освобождено {size}"
     },
     "pickedUpOnStart": "Подключённые сборки увидят новые категории при следующем запуске — делать больше ничего не нужно."
+  },
+  "tab": {
+    "logs": "Логи",
+    "canvas": "К ComfyUI",
+    "output": "Папка output",
+    "outputMissing": "ComfyUI создаёт эту папку при первой генерации — открывать пока нечего.",
+    "reload": "Обновить",
+    "open": "Открыть ComfyUI",
+    "starting": "Сборка стартует. Интерфейс откроется, как только сервер придёт в готовность.",
+    "retry": "Повторить"
   }
 }

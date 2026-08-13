@@ -291,6 +291,39 @@ fn main() {
         profiles::models_dir(&models, instance).display().to_string(),
     );
 
+    // --- папка результатов --------------------------------------------------
+    //
+    // Нужна кнопке «Папка output» в тулбаре встроенной вкладки. Цепочка
+    // та же самая, и ошибка в ней открыла бы пользователю чужую папку.
+
+    check(
+        "без флагов результаты в ComfyUI\\output",
+        profiles::output_dir(&plain, instance) == instance.join("ComfyUI").join("output"),
+        profiles::output_dir(&plain, instance).display().to_string(),
+    );
+    check(
+        "--base-directory уводит и папку результатов",
+        profiles::output_dir(&based, instance) == PathBuf::from(r"E:\comfy-base\output"),
+        profiles::output_dir(&based, instance).display().to_string(),
+    );
+
+    let outputs = profile(
+        vec![
+            "-s",
+            "ComfyUI\\main.py",
+            "--base-directory",
+            r"E:\comfy-base",
+            "--output-directory",
+            r"..\generated",
+        ],
+        r"D:\builds\comfy\advanced",
+    );
+    check(
+        "--output-directory бьёт --base-directory и считается от рабочей папки",
+        profiles::output_dir(&outputs, instance) == PathBuf::from(r"D:\builds\comfy\generated"),
+        profiles::output_dir(&outputs, instance).display().to_string(),
+    );
+
     println!("\nПроверок провалено: {failures}");
     if failures > 0 {
         std::process::exit(1);

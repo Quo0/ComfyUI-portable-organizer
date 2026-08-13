@@ -194,6 +194,22 @@ pub fn models_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     }
 }
 
+/// Куда эта сборка складывает результаты генерации.
+///
+/// Та же цепочка: `--output-directory` бьёт `--base-directory`
+/// (`cli_args.py:72`, `main.py:147`), иначе `<base>\output`
+/// (`folder_paths.py:69`).
+///
+/// Папки может не существовать: до первой генерации ComfyUI её
+/// не создаёт. Создавать её за пользователя мы не будем — внутри чужой
+/// установки ничего не появляется по нашей воле.
+pub fn output_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
+    match flag_value(profile, "--output-directory") {
+        Some(value) => resolve(Path::new(&profile.cwd), &value),
+        None => base_dir(profile, instance_root).join("output"),
+    }
+}
+
 /// Разбивает строку на токены, уважая кавычки.
 ///
 /// Кавычки нужны не для красоты: путь вида `"C:\Program Files\..."`

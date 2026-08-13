@@ -26,6 +26,15 @@ export const router = createRouter({
       component: () => import('../views/InstanceView.vue'),
       props: true,
     },
+    // Встроенная вкладка — свой роут, а не режим экрана инстанса: панели
+    // сборки должны оставаться доступны при работающем сервере, а вход
+    // и выход из роута дают естественные точки показа и скрытия вебвью.
+    {
+      path: '/instances/:id/tab',
+      name: 'instance-tab',
+      component: () => import('../views/InstanceTabView.vue'),
+      props: true,
+    },
     {
       path: '/install',
       name: 'install',
@@ -67,14 +76,6 @@ export const router = createRouter({
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),
-    },
-    // Спайк Фазы 0. В рейле его нет намеренно: это стенд, а не раздел.
-    // Живёт здесь до Фазы 3 как единственный способ проверить, что
-    // встроенная вкладка переезжает вслед за сворачиванием рейла.
-    {
-      path: '/dev/spike',
-      name: 'dev-spike',
-      component: () => import('../views/DevSpikeView.vue'),
     },
     { path: '/:pathMatch(.*)*', redirect: '/instances' },
   ],

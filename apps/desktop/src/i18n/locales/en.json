@@ -234,16 +234,14 @@
       "missing": "The folder {path} is not there any more."
     },
     "comfy": {
-      "spawnFailed": "Could not start ComfyUI: {reason}",
-      "alreadyRunning": "ComfyUI is already running.",
-      "readyTimeout": "ComfyUI did not become ready within {secs} seconds.",
       "unreachable": "The build is not answering: {reason}",
       "badResponse": "The build answered with something unexpected: {reason}",
       "notFound": "The build does not have this.",
       "uploadFailed": "Could not put the workflow into the build: {reason}"
     },
     "webview": {
-      "embedFailed": "Could not open the ComfyUI tab: {reason}"
+      "embedFailed": "Could not open the ComfyUI tab: {reason}",
+      "noTab": "There is no open ComfyUI tab for this instance."
     },
     "installer": {
       "archiveUnreadable": "Could not read the archive: {reason}",
@@ -495,5 +493,15 @@
       "done": "Freed {size}"
     },
     "pickedUpOnStart": "Connected builds see new categories from their next start — nothing else to do."
+  },
+  "tab": {
+    "logs": "Log",
+    "canvas": "Back to ComfyUI",
+    "output": "Output folder",
+    "outputMissing": "ComfyUI creates this folder on the first generation — there is nothing to open yet.",
+    "reload": "Reload",
+    "open": "Open ComfyUI",
+    "starting": "The build is starting. The interface opens as soon as the server is ready.",
+    "retry": "Try again"
   }
 }

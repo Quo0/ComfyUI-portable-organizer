@@ -3,10 +3,11 @@
 //
 // Выпадашка профилей рендерится, пока вебвью ещё не создан, поэтому
 // конфликта с ним нет — так и записано в дисциплине z-order.
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
+import LogConsole from './LogConsole.vue';
 import type { Instance } from '../bindings';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
@@ -17,9 +18,6 @@ const run = useRunStore();
 const { t } = useI18n();
 
 const chosen = ref<string | null>(null);
-const console = ref<HTMLPreElement | null>(null);
-/** Прокрутка следует за логом, пока пользователь сам не отмотал вверх. */
-const follow = ref(true);
 
 const status = computed(() => run.statusOf(props.instance.id));
 const state = computed(() => displayStatus(props.instance, status.value));
@@ -40,27 +38,7 @@ onMounted(async () => {
   await run.loadProfiles(props.instance.id);
   await run.loadLog(props.instance.id);
   chosen.value = profiles.value[0]?.id ?? null;
-  scrollDown();
 });
-
-watch(
-  () => lines.value.length,
-  () => scrollDown(),
-);
-
-async function scrollDown(): Promise<void> {
-  if (!follow.value) return;
-  await nextTick();
-  const el = console.value;
-  if (el) el.scrollTop = el.scrollHeight;
-}
-
-function onScroll(): void {
-  const el = console.value;
-  if (!el) return;
-  // Отступ в пару строк: точное сравнение ломается на дробной высоте строки.
-  follow.value = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-}
 
 function openInBrowser(): void {
   const port = status.value?.port;
@@ -99,9 +77,18 @@ function openInBrowser(): void {
       </template>
 
       <template v-else>
+        <!-- Ради вкладки всё и затевалось, поэтому она — главное действие
+             работающей сборки, а не пункт где-то сбоку. -->
+        <RouterLink
+          v-if="state === 'running' || state === 'starting'"
+          class="btn primary lg"
+          :to="`/instances/${instance.id}/tab`"
+        >
+          {{ t('tab.open') }}
+        </RouterLink>
         <button
           type="button"
-          class="btn danger lg"
+          class="btn danger"
           :disabled="busy || state === 'stopping'"
           @click="run.stop(instance.id)"
         >
@@ -161,12 +148,7 @@ function openInBrowser(): void {
     <div v-if="lines.length" class="group">
       <span class="t-label">{{ t('run.console') }}</span>
       <div class="log">
-        <pre ref="console" class="console" @scroll="onScroll"><span
-          v-for="(line, i) in lines"
-          :key="i"
-          :class="{ dim: line.stream === 'stdout' }"
-        >{{ line.text }}
-</span></pre>
+        <LogConsole :lines="lines" />
       </div>
     </div>
   </div>
@@ -175,9 +157,7 @@ function openInBrowser(): void {
 <style scoped>
 .log {
   height: 260px;
-}
-.console {
-  margin: 0;
-  overflow: auto;
+  display: grid;
+  min-height: 0;
 }
 </style>

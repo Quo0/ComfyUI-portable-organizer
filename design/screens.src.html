@@ -88,26 +88,12 @@
 .content > p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); max-width: 60ch; }
 .crumb { font-size: var(--text-xs); color: var(--ink-muted); }
 
-.banner {
-  display: flex; gap: var(--space-2); align-items: baseline;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--state-starting);
-  background: var(--state-starting-bg);
-  color: var(--state-starting);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-}
-.banner b { font-weight: var(--weight-medium); }
+/* .banner переехал туда же, куда и .inst-toolbar: понадобился экрану
+   встроенной вкладки, где плавающий тост оказался бы под нативным окном. */
 
-.inst-toolbar {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
-}
-.inst-toolbar .name { font-weight: var(--weight-medium); }
-.inst-toolbar .port { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); }
-.inst-toolbar .spacer { margin-left: auto; }
+/* .inst-toolbar переехал в design/styles/app.css: он понадобился
+   приложению в Фазе 3 и должен доезжать до него вместе с остальными
+   компонентами, а не оставаться оформлением этой страницы. */
 
 /* Заглушка встроенной вкладки: это область, которую занимает нативное
    окно ComfyUI. Наш интерфейс не может ничего поверх неё показать. */

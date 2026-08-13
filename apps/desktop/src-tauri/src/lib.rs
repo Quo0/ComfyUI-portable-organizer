@@ -1,14 +1,7 @@
-//! Точка сборки приложения.
+//! Точка сборки приложения: команды Tauri тонкими обёртками над модулями.
 //!
-//! Здесь же пока живёт спайк Фазы 0 — он доказал четыре вещи, на которых
-//! держится весь замысел:
-//!   1. ComfyUI запускается напрямую через python.exe, без .bat;
-//!   2. браузер при этом не открывается и окно консоли не всплывает;
-//!   3. stderr стримится в интерфейс живьём, а не после завершения;
-//!   4. дочерний вебвью грузит ComfyUI без 403 от origin-middleware.
-//!
-//! Спайк остаётся до Фазы 3 как единственный способ проверить встраивание:
-//! путь захардкожен, состояние примитивное. Настоящая архитектура — с Фазы 1.
+//! Здесь же — список команд и событий для `tauri-specta`, из которого
+//! генерируется `src/bindings.ts`.
 
 // Модули публичные: по ним ходят примеры в examples/, которыми
 // проверяется распаковка на реальном архиве.
@@ -25,16 +18,11 @@ pub mod run;
 pub mod settings;
 pub mod shared_models;
 pub mod supervise;
+pub mod webview;
 pub mod workflows;
 
-use std::io::{BufRead, BufReader, Read, Write};
-use std::net::TcpStream;
-use std::process::{Child, Command, Stdio};
-use std::sync::Mutex;
-use std::time::{Duration, Instant};
-
 use serde::{Deserialize, Serialize};
-use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
+use tauri::Manager;
 use tauri_specta::Event;
 
 use crate::discovery::windows_portable::WindowsPortable;
@@ -1038,11 +1026,21 @@ async fn start_instance(
     profile_id: Option<String>,
     without_shared: bool,
 ) -> Result<RunStatus, AppError> {
+    start_inner(&app, &runtime, id, profile_id, without_shared)
+}
+
+fn start_inner(
+    app: &tauri::AppHandle,
+    runtime: &Runtime,
+    id: String,
+    profile_id: Option<String>,
+    without_shared: bool,
+) -> Result<RunStatus, AppError> {
     if runtime.is_busy(&id) {
         return Err(AppError::new("run.alreadyRunning"));
     }
 
-    let instance = instances::list(&app)?
+    let instance = instances::list(app)?
         .into_iter()
         .find(|i| i.id == id)
         .ok_or_else(|| AppError::with("instances.notFound", "id", &id))?;
@@ -1058,7 +1056,7 @@ async fn start_instance(
         .ok_or_else(|| AppError::new("run.noProfiles"))?
         .clone();
 
-    let shared_config = prepare_shared(&app, &instance, without_shared)?;
+    let shared_config = prepare_shared(app, &instance, without_shared)?;
 
     let emitter = app.clone();
     let on_line = std::sync::Arc::new({
@@ -1075,7 +1073,7 @@ async fn start_instance(
     })?;
 
     runtime.insert(&id, outcome.cell.clone());
-    let _ = RunChanged(outcome.status.clone()).emit(&app);
+    let _ = RunChanged(outcome.status.clone()).emit(app);
 
     // Готовность ждём в фоне: команда обязана вернуться сразу, иначе
     // интерфейс не покажет ни строчки до конца холодного старта.
@@ -1116,6 +1114,7 @@ fn finish(app: &tauri::AppHandle, id: &str, exit: run::Exit) {
     let runtime = app.state::<Runtime>();
     let Some(cell) = runtime.get(id) else { return };
     let mut running = cell.lock().unwrap();
+    let detached = matches!(exit, run::Exit::Detached);
 
     match exit {
         run::Exit::Requested => {
@@ -1134,6 +1133,16 @@ fn finish(app: &tauri::AppHandle, id: &str, exit: run::Exit) {
             running.status.pid = None;
         }
     }
+
+    // Вкладку закрывает тот, кто знает про конец процесса. Порт умер
+    // вместе с ним, и оставленная вкладка показала бы страницу ошибки
+    // WebView2 вместо интерфейса. Исключение — `Detached`: там сервер
+    // на порту жив, просто управляет им уже не наш хэндл, и отбирать
+    // у пользователя работающий интерфейс не за что.
+    if !detached {
+        webview::close(app, id);
+    }
+
     let _ = RunChanged(running.status.clone()).emit(app);
 }
 
@@ -1144,15 +1153,48 @@ async fn stop_instance(
     runtime: tauri::State<'_, Runtime>,
     id: String,
 ) -> Result<(), AppError> {
+    stop_inner(&app, &runtime, &id)
+}
+
+fn stop_inner(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Result<(), AppError> {
     let cell = runtime
-        .get(&id)
+        .get(id)
         .ok_or_else(|| AppError::new("run.notRunning"))?;
     let _ = RunChanged(RunStatus {
         state: RunState::Stopping,
         ..cell.lock().unwrap().status.clone()
     })
-    .emit(&app);
+    .emit(app);
     run::stop(&cell)
+}
+
+/// Останавливает и поднимает инстанс заново тем же профилем.
+///
+/// Делается в Rust, а не двумя вызовами с фронта: `stop` возвращается,
+/// как только освободился порт, а состояние в `Stopped` переводит поток
+/// ожидания процесса — и старт, посланный сразу следом, наткнулся бы
+/// на `run.alreadyRunning`. Здесь мы просто дожидаемся конца перехода.
+#[tauri::command]
+#[specta::specta]
+async fn restart_instance(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+) -> Result<RunStatus, AppError> {
+    let profile_id = runtime
+        .get(&id)
+        .and_then(|cell| cell.lock().unwrap().status.profile_id.clone());
+
+    stop_inner(&app, &runtime, &id)?;
+
+    // Ждём, пока поток ожидания процесса разберётся, чем тот кончился.
+    // Порт к этому моменту уже отпущен: за этим следит `run::stop`.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    while runtime.is_busy(&id) && std::time::Instant::now() < deadline {
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+
+    start_inner(&app, &runtime, id, profile_id, false)
 }
 
 /// Считает размер инстанса на диске.
@@ -1169,356 +1211,82 @@ async fn measure_instance_size(
     instances::measure_size(&app, &jobs, &id)
 }
 
-/// Реальная установка для спайка. Захардкожена намеренно: реестр появится в Фазе 1.
-const INSTANCE_DIR: &str =
-    r"d:\program_files\comfyui\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable";
-const PORT: u16 = 8188;
+// -------------------------------------------------- встроенная вкладка
 
-/// Скрывает окно консоли у дочернего процесса. Без него при каждом запуске
-/// поверх интерфейса всплывал бы чёрный терминал.
-#[cfg(windows)]
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-
-#[derive(Default)]
-struct SpikeState {
-    child: Mutex<Option<Child>>,
-}
-
-/// Событие с строкой лога спайка.
+/// Показывает вкладку инстанса, создавая её при первом вызове.
 ///
-/// Имя с префиксом Spike не для красоты: tauri-specta выводит имя
-/// события из имени структуры, и совпадение с LogLine из process.rs
-/// роняло экспорт типов.
-///
-/// Типы генерируются в `src/bindings.ts`: описывать одну и ту же модель
-/// на Rust и на TypeScript руками — верный способ получить молчаливое
-/// расхождение, а этих моделей дальше будет много.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-struct SpikeLog {
-    stream: String,
-    text: String,
-}
-
-/// Сервер поднялся и готов принимать запросы.
-///
-/// Автопрогон не встраивает вкладку сам: прямоугольник знает только фронт,
-/// у которого есть `ResizeObserver`. Захардкоженный размер в Rust дал бы
-/// вкладку не по месту.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-struct SpikeReady {
-    port: u16,
-    secs: u32,
-}
-
-/// Запускает ComfyUI и стримит его вывод событиями `comfy-log`.
-///
-/// Ключевые флаги: `--disable-auto-launch` не даёт открыться браузеру
-/// (в cli_args.py он применяется после `--windows-standalone-build`
-/// и всегда побеждает), `--port` фиксирует порт.
-/// Команды объявлены `async` намеренно.
-///
-/// Синхронная команда Tauri выполняется в главном потоке. Для `wait_ready`
-/// это заморозило бы интерфейс на все минуты холодного старта, а для
-/// `embed_comfy` дало бы взаимную блокировку: `add_child` изнутри ставит
-/// задачу в главный поток и ждёт её результата.
+/// Команды встраивания обязаны быть `async`. Синхронная команда Tauri
+/// выполняется в главном потоке, а `add_child` изнутри ставит задачу
+/// в тот же поток и ждёт её результата — получается взаимная блокировка
+/// без единой ошибки в логе.
 #[tauri::command]
 #[specta::specta]
-async fn start_comfy(
+async fn show_comfy(
     app: tauri::AppHandle,
-    state: tauri::State<'_, SpikeState>,
-) -> Result<u16, AppError> {
-    spawn_comfy(&app, &state)
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+    rect: webview::Rect,
+) -> Result<(), AppError> {
+    // Порт берём из состояния запуска, а не с фронта: он выдан нами
+    // и меняется при каждом старте.
+    let port = runtime
+        .get(&id)
+        .and_then(|cell| cell.lock().unwrap().status.port)
+        .ok_or_else(|| AppError::new("run.notRunning"))?;
+    webview::show(&app, &id, port, rect)
 }
 
-fn spawn_comfy(app: &tauri::AppHandle, state: &SpikeState) -> Result<u16, AppError> {
-    if state.child.lock().unwrap().is_some() {
-        return Err(AppError::new("comfy.alreadyRunning"));
-    }
-
-    let python = format!(r"{INSTANCE_DIR}\python_embeded\python.exe");
-    let main_py = format!(r"{INSTANCE_DIR}\ComfyUI\main.py");
-
-    let mut cmd = Command::new(&python);
-    cmd.args([
-        "-s",
-        &main_py,
-        "--windows-standalone-build",
-        "--port",
-        &PORT.to_string(),
-        "--disable-auto-launch",
-    ])
-    .current_dir(INSTANCE_DIR)
-    // Без этого stdout буферизуется блоками при перенаправлении в пайп,
-    // и первые минуты старта выглядят как зависание.
-    .env("PYTHONUNBUFFERED", "1")
-    .env("PYTHONIOENCODING", "utf-8")
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped());
-
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
-
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| AppError::because("comfy.spawnFailed", e))?;
-
-    // ComfyUI пишет основную часть старта в stderr, а не в stdout,
-    // поэтому читаем оба потока.
-    if let Some(out) = child.stdout.take() {
-        pump(app.clone(), out, "stdout");
-    }
-    if let Some(err) = child.stderr.take() {
-        pump(app.clone(), err, "stderr");
-    }
-
-    *state.child.lock().unwrap() = Some(child);
-    Ok(PORT)
-}
-
-/// Читает поток построчно в отдельном треде и шлёт каждую строку во фронт.
-///
-/// Первая строка дополнительно печатается в терминал: по ней видно,
-/// действительно ли стриминг живой, или вывод пришёл пачкой в конце.
-fn pump<R: Read + Send + 'static>(app: tauri::AppHandle, stream: R, name: &'static str) {
-    std::thread::spawn(move || {
-        let started = Instant::now();
-        let mut first = true;
-        let reader = BufReader::new(stream);
-        for line in reader.lines() {
-            let Ok(text) = line else { break };
-            if first {
-                first = false;
-                report(&format!(
-                    "первая строка {name} через {:.1} с: {}",
-                    started.elapsed().as_secs_f32(),
-                    text.chars().take(60).collect::<String>()
-                ));
-            }
-            let _ = SpikeLog { stream: name.to_string(), text }.emit(&app);
-        }
-    });
-}
-
-/// Печатает факт спайка в терминал `tauri dev` с приметным префиксом,
-/// чтобы результаты было видно среди логов сборки.
-fn report(msg: &str) {
-    println!("[СПАЙК] {msg}");
-}
-
-/// Опрашивает `/system_stats`, пока сервер не ответит.
-///
-/// Реализовано на голом TcpStream осознанно: тянуть HTTP-клиент ради
-/// одного запроса в спайк — лишние минуты компиляции.
+/// Переставляет вкладку вслед за областью контента.
 #[tauri::command]
 #[specta::specta]
-async fn wait_ready(port: u16, timeout_secs: u32) -> Result<u32, AppError> {
-    wait_ready_inner(port, timeout_secs)
-}
-
-fn wait_ready_inner(port: u16, timeout_secs: u32) -> Result<u32, AppError> {
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs.into());
-    let started = Instant::now();
-
-    while Instant::now() < deadline {
-        if probe(port) {
-            return Ok(started.elapsed().as_secs() as u32);
-        }
-        std::thread::sleep(Duration::from_millis(500));
-    }
-    Err(AppError::with("comfy.readyTimeout", "secs", timeout_secs))
-}
-
-fn probe(port: u16) -> bool {
-    let addr = format!("127.0.0.1:{port}");
-    let Ok(mut sock) = TcpStream::connect_timeout(
-        &addr.parse().expect("валидный адрес"),
-        Duration::from_millis(500),
-    ) else {
-        return false;
-    };
-    let _ = sock.set_read_timeout(Some(Duration::from_millis(1500)));
-
-    let req = format!("GET /system_stats HTTP/1.1\r\nHost: {addr}\r\nConnection: close\r\n\r\n");
-    if sock.write_all(req.as_bytes()).is_err() {
-        return false;
-    }
-    let mut head = [0u8; 32];
-    match sock.read(&mut head) {
-        Ok(n) => String::from_utf8_lossy(&head[..n]).contains("200"),
-        Err(_) => false,
-    }
-}
-
-/// Главная проверка фазы: ComfyUI внутри нашего окна.
-///
-/// `<iframe>` здесь получил бы 403 — origin_only_middleware режет всё
-/// с `Sec-Fetch-Site: cross-site`. Дочерний вебвью грузит страницу как
-/// навигацию верхнего уровня, и middleware пропускает без единого
-/// послабления в настройках сервера.
-#[tauri::command]
-#[specta::specta]
-async fn embed_comfy(
+async fn place_comfy(
     app: tauri::AppHandle,
-    port: u16,
-    x: f64,
-    y: f64,
-    w: f64,
-    h: f64,
+    id: String,
+    rect: webview::Rect,
 ) -> Result<(), AppError> {
-    embed_inner(&app, port, x, y, w, h)
+    webview::place(&app, &id, rect)
 }
 
-fn embed_inner(
-    app: &tauri::AppHandle,
-    port: u16,
-    x: f64,
-    y: f64,
-    w: f64,
-    h: f64,
-) -> Result<(), AppError> {
-    let embed_failed = |e: tauri::Error| AppError::because("webview.embedFailed", e);
-
-    let window = app
-        .get_window("main")
-        .ok_or_else(|| AppError::because("webview.embedFailed", "нет окна main"))?;
-
-    if let Some(existing) = app.get_webview("comfy") {
-        existing
-            .set_position(LogicalPosition::new(x, y))
-            .map_err(embed_failed)?;
-        existing
-            .set_size(LogicalSize::new(w, h))
-            .map_err(embed_failed)?;
-        // Возврат на экран инстанса: вкладку показываем и ставим на место
-        // одним действием, иначе она мигнёт на старом прямоугольнике.
-        existing.show().map_err(embed_failed)?;
-        return Ok(());
-    }
-
-    let url = format!("http://127.0.0.1:{port}")
-        .parse()
-        .map_err(|_| AppError::because("webview.embedFailed", "плохой URL"))?;
-
-    let probe_app = app.clone();
-    let title_app = app.clone();
-
-    let builder = tauri::webview::WebviewBuilder::new("comfy", WebviewUrl::External(url))
-        // Иначе Tauri перехватит системный дроп, и перетаскивание картинок
-        // и воркфлоу на холст ComfyUI перестанет работать.
-        .disable_drag_drop_handler()
-        .on_page_load(move |view, payload| {
-            report(&format!("вкладка загрузила {}", payload.url()));
-            let _ = SpikeLog {
-                stream: "webview".into(),
-                text: format!("страница загружена: {}", payload.url()),
-            }
-            .emit(&probe_app);
-            // Заголовок — единственный канал обратно из чужого origin:
-            // наш IPC там не доступен. Кладём в него начало текста страницы,
-            // чтобы увидеть, отдал ли сервер интерфейс или 403.
-            let _ = view.eval(
-                "document.title = 'CPO|' + document.title + '|' \
-                 + (document.body ? document.body.innerText.slice(0, 90) : '(нет body)')",
-            );
-        })
-        .on_document_title_changed(move |_view, title| {
-            if let Some(rest) = title.strip_prefix("CPO|") {
-                // Главный результат фазы: что реально отдал сервер вкладке.
-                // Если бы origin-middleware отбила запрос, здесь было бы 403.
-                report(&format!("вкладка видит: {rest}"));
-                let _ = SpikeLog {
-                    stream: "webview".into(),
-                    text: format!("вебвью видит: {rest}"),
-                }
-                .emit(&title_app);
-            }
-        });
-
-    window
-        .add_child(
-            builder,
-            LogicalPosition::new(x, y),
-            LogicalSize::new(w, h),
-        )
-        .map_err(embed_failed)?;
-
-    Ok(())
-}
-
-/// Прячет вкладку, не останавливая сервер.
-///
-/// Уход с экрана инстанса в любой другой раздел обязан скрыть дочерний
-/// вебвью: он нативное окно поверх нашего HTML и иначе закроет собой
-/// открытый раздел. Процесс при этом продолжает работать — останавливает
-/// его только явная команда.
+/// Прячет все вкладки: уход в другой раздел, открытие консоли логов.
 #[tauri::command]
 #[specta::specta]
 async fn hide_comfy(app: tauri::AppHandle) -> Result<(), AppError> {
-    if let Some(view) = app.get_webview("comfy") {
-        view.hide()
-            .map_err(|e| AppError::because("webview.embedFailed", e))?;
-    }
+    webview::hide_all(&app);
     Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
-async fn stop_comfy(
-    app: tauri::AppHandle,
-    state: tauri::State<'_, SpikeState>,
-) -> Result<(), AppError> {
-    if let Some(view) = app.get_webview("comfy") {
-        let _ = view.close();
-    }
-    if let Some(mut child) = state.child.lock().unwrap().take() {
-        // На Windows послать SIGINT чужому процессу нельзя, поэтому
-        // в Фазе 2 здесь будет taskkill /T /F. Для спайка достаточно kill.
-        let _ = child.kill();
-        let _ = child.wait();
-    }
-    Ok(())
+async fn reload_comfy(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
+    webview::reload(&app, &id)
 }
 
-/// Прогоняет спайк целиком без участия человека.
+/// Папка результатов генерации у инстанса.
 ///
-/// Включается переменной `CPO_SPIKE=1`. Нужен потому, что проверить
-/// результат кликом по кнопке можно только руками, а решение фазы
-/// хочется получать воспроизводимо и в логе.
-fn autorun(app: tauri::AppHandle) {
-    std::thread::spawn(move || {
-        report("автопрогон включён (CPO_SPIKE=1)");
-        let state = app.state::<SpikeState>();
+/// `None` означает «папки ещё нет»: до первой генерации ComfyUI её
+/// не создаёт, и открывать нечего. Создавать её за пользователя мы
+/// не будем — внутри чужой установки не появляется ничего по нашей воле.
+#[tauri::command]
+#[specta::specta]
+async fn instance_output_dir(
+    app: tauri::AppHandle,
+    id: String,
+    profile_id: Option<String>,
+) -> Result<Option<String>, AppError> {
+    let instance = instances::list(&app)?
+        .into_iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", &id))?;
 
-        let port = match spawn_comfy(&app, &state) {
-            Ok(p) => {
-                report(&format!("процесс запущен, порт {p}"));
-                p
-            }
-            Err(e) => {
-                report(&format!("ПРОВАЛ: не удалось запустить: {}", e.code));
-                return;
-            }
-        };
+    let all = run::profiles_of(&instance);
+    let profile = profile_id
+        .as_deref()
+        .and_then(|want| all.iter().find(|p| p.id == want))
+        .or_else(|| all.first())
+        .ok_or_else(|| AppError::new("run.noProfiles"))?;
 
-        let secs = match wait_ready_inner(port, 300) {
-            Ok(secs) => {
-                report(&format!("сервер готов за {secs} с"));
-                secs
-            }
-            Err(e) => {
-                report(&format!("ПРОВАЛ: {}", e.code));
-                return;
-            }
-        };
-
-        // Встраивание отдаём фронту: прямоугольник знает он.
-        if let Err(e) = (SpikeReady { port, secs }).emit(&app) {
-            report(&format!("ПРОВАЛ: не удалось сообщить о готовности: {e}"));
-        }
-    });
+    let dir = profiles::output_dir(profile, std::path::Path::new(&instance.path));
+    Ok(dir.is_dir().then(|| dir.display().to_string()))
 }
 
 /// Единый список команд и событий: и обработчик вызовов, и генератор типов
@@ -1569,15 +1337,14 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             run_log,
             start_instance,
             stop_instance,
-            start_comfy,
-            wait_ready,
-            embed_comfy,
+            restart_instance,
+            show_comfy,
+            place_comfy,
             hide_comfy,
-            stop_comfy
+            reload_comfy,
+            instance_output_dir
         ])
         .events(tauri_specta::collect_events![
-            SpikeLog,
-            SpikeReady,
             InstallProgress,
             migrate::MigrateProgress,
             RunLog,
@@ -1622,7 +1389,6 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        .manage(SpikeState::default())
         .manage(SizeJobs::default())
         .manage(InstallLock::default())
         .manage(InstallCancel::default())
@@ -1639,10 +1405,6 @@ pub fn run() {
             // видеопамять.
             if let Err(e) = supervise::windows::install_job_object() {
                 eprintln!("[CPO] job object не создан: {e}. Дочерние процессы могут пережить приложение.");
-            }
-
-            if std::env::var("CPO_SPIKE").as_deref() == Ok("1") {
-                autorun(app.handle().clone());
             }
             Ok(())
         })

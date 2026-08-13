@@ -398,6 +398,48 @@ h3.sub {
   .bar.indet > i { animation: none; width: 100%; opacity: .4; }
 }
 
+/* -------------------------------------------------------- баннер */
+/* Сообщение в потоке экрана, а не поверх него. Нужен там, где тост
+ * невозможен: на экране встроенной вкладки он оказался бы под нативным
+ * окном ComfyUI, то есть невидим.
+ *
+ * По умолчанию предупреждение; `.bad` — то, что не получилось.
+ */
+.banner {
+  display: flex; gap: var(--space-2); align-items: baseline;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--state-starting);
+  background: var(--state-starting-bg);
+  color: var(--state-starting);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+.banner b { font-weight: var(--weight-medium); }
+.banner.bad { border-color: var(--state-crashed); background: var(--state-crashed-bg); color: var(--state-crashed); }
+
+/* --------------------------------------------- тулбар инстанса */
+/* Полоса над встроенной вкладкой. Единственное место, откуда можно
+ * управлять сборкой, не уходя с её экрана: положить что-либо поверх
+ * области ComfyUI нельзя — там нативное окно.
+ *
+ * Кнопок шесть, и в русском с испанским они заметно длиннее английских.
+ * Поэтому сжимается имя инстанса, а группа кнопок не переносится:
+ * перенос увёл бы высоту тулбара и сдвинул прямоугольник вебвью.
+ */
+.inst-toolbar {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.inst-toolbar .name {
+  font-weight: var(--weight-medium);
+  min-width: 3ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.inst-toolbar .port { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); white-space: nowrap; }
+.inst-toolbar .spacer { margin-left: auto; }
+.inst-toolbar .tools { display: flex; gap: var(--space-2); flex: none; }
+
 /* ------------------------------------------------------- кнопки */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .btn {

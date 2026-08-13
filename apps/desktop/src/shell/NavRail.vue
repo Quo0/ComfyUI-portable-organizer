@@ -44,6 +44,16 @@ const attention = computed(() =>
     .filter((row) => needsAttention(row.status)),
 );
 
+/**
+ * Работающая сборка ведёт прямо на свою вкладку: ради неё пользователь
+ * сюда и жмёт. У упавшей и недоступной вкладки нет — там нужен экран
+ * инстанса с логом и кнопкой запуска.
+ */
+function target(row: (typeof attention.value)[number]): string {
+  const inTab = row.status === 'running' || row.status === 'starting';
+  return `/instances/${row.instance.id}${inTab ? '/tab' : ''}`;
+}
+
 const toggleLabel = computed(() =>
   ui.railCollapsed ? t('nav.expand') : t('nav.collapse'),
 );
@@ -75,7 +85,7 @@ const toggleLabel = computed(() =>
           :key="row.instance.id"
           class="nav-run"
           :class="{ alert: row.status === 'crashed' || row.status === 'detached' }"
-          :to="`/instances/${row.instance.id}`"
+          :to="target(row)"
           :title="row.instance.name"
         >
           <span

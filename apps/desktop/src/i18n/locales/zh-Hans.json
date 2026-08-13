@@ -234,16 +234,14 @@
       "missing": "文件夹 {path} 已不存在。"
     },
     "comfy": {
-      "spawnFailed": "无法启动 ComfyUI：{reason}",
-      "alreadyRunning": "ComfyUI 已在运行。",
-      "readyTimeout": "ComfyUI 在 {secs} 秒内没有就绪。",
       "unreachable": "该安装无响应：{reason}",
       "badResponse": "该安装返回了意外的响应：{reason}",
       "notFound": "该安装中没有此项。",
       "uploadFailed": "无法将工作流放入该安装：{reason}"
     },
     "webview": {
-      "embedFailed": "无法打开 ComfyUI 标签页：{reason}"
+      "embedFailed": "无法打开 ComfyUI 标签页：{reason}",
+      "noTab": "该实例没有已打开的 ComfyUI 标签页。"
     },
     "installer": {
       "archiveUnreadable": "无法读取压缩包：{reason}",
@@ -495,5 +493,15 @@
       "done": "已释放 {size}"
     },
     "pickedUpOnStart": "已连接的安装会在下次启动时看到新类别——无需其他操作。"
+  },
+  "tab": {
+    "logs": "日志",
+    "canvas": "返回 ComfyUI",
+    "output": "输出文件夹",
+    "outputMissing": "ComfyUI 会在首次生成时创建该文件夹，目前还没有内容可打开。",
+    "reload": "刷新",
+    "open": "打开 ComfyUI",
+    "starting": "该整合包正在启动。服务器就绪后界面会自动打开。",
+    "retry": "重试"
   }
 }
