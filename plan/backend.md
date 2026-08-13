@@ -22,7 +22,9 @@ apps/desktop/src-tauri/src/
   process.rs          — стейт-машина, кольцевой буфер логов, readiness-поллинг
   ports.rs            — выдача свободного порта
   webview.rs          — создание/показ/скрытие/ресайз child webview, внешние ссылки
+  tray.rs             — трей, закрытие окна при работающих серверах
   migrate.rs          — перенос моделей в общую папку и уборка дубликатов
+  duplicates.rs       — отчёт о дублях по всем сборкам; ничего не удаляет
   comfy_api.rs        — HTTP к работающей сборке
   lib.rs              — tauri::command слой, список команд и событий для specta
 ```
@@ -59,6 +61,7 @@ apps/desktop/src-tauri/src/
 - **Readiness.** Опрос `GET http://127.0.0.1:<port>/system_stats` раз в 500 мс, таймаут 5 минут (холодный старт с кучей кастомных нод — это реально минуты). Параллельно ловим в логе `To see the GUI go to`.
 - **Стейт-машина:** `Stopped → Starting → Running → Stopping → Stopped | Crashed`.
 - **Остановка.** На Windows нельзя послать SIGINT чужому процессу. Используем `taskkill /PID <pid> /T /F`, затем ждём освобождения порта.
+- **Владелец порта.** `GetExtendedTcpTable` с `TCP_TABLE_OWNER_PID_LISTENER` отдаёт PID процесса, слушающего порт. Нужен ровно для переподключения к серверу, который ComfyUI-Manager перезапустил сам: старый PID ушёл вместе с процессом, и без этого состояние `Detached` было тупиком. Порт в таблице лежит в сетевом порядке байт.
 
 ### ports.rs
 
