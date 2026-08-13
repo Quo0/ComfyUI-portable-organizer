@@ -49,7 +49,8 @@
 [2.5](plan/notes/phase-25-shared-models.md) ·
 [2.6](plan/notes/phase-26-workflows.md) ·
 [3](plan/notes/phase-3-tabs.md) ·
-[4а](plan/notes/phase-4a-polish.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
+[4а](plan/notes/phase-4a-polish.md) ·
+[4б](plan/notes/phase-4b-ui.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
 
 ---
 
