@@ -20,6 +20,7 @@ const { t } = useI18n();
 const chosen = ref<string | null>(null);
 
 const status = computed(() => run.statusOf(props.instance.id));
+const busyWarning = computed(() => run.busyWarning[props.instance.id]);
 const state = computed(() => displayStatus(props.instance, status.value));
 const profiles = computed(() => run.profiles[props.instance.id] ?? []);
 const lines = computed(() => run.logs[props.instance.id] ?? []);
@@ -74,6 +75,9 @@ function openInBrowser(): void {
             {{ p.name }}{{ p.advanced ? ' · ' + t('instances.field.profilesAdvanced') : '' }}
           </option>
         </select>
+        <RouterLink class="btn ghost" :to="`/instances/${instance.id}/args`">
+          {{ t('args.edit') }}
+        </RouterLink>
       </template>
 
       <template v-else>
@@ -122,7 +126,7 @@ function openInBrowser(): void {
         <button
           type="button"
           class="btn secondary"
-          @click="run.start(instance.id, warning.profileId, true)"
+          @click="run.start(instance.id, warning.profileId, { withoutShared: true, allowMultiple: false })"
         >
           {{ t('shared.unavailable.startAnyway') }}
         </button>
@@ -136,12 +140,63 @@ function openInBrowser(): void {
       </div>
     </div>
 
+    <!-- Соседняя сборка уже держит видеопамять. Тоже развилка, а не ошибка:
+         запретить второй запуск нельзя (бывает две видеокарты), молчать
+         тоже — вторая сборка упадёт посреди генерации. -->
+    <div v-if="busyWarning" class="group danger-zone">
+      <p class="t-md">{{ t('run.otherRunning.title') }}</p>
+      <p class="t-sm">
+        {{ t('run.otherRunning.body', { name: busyWarning.other }) }}
+      </p>
+      <div class="row">
+        <button
+          type="button"
+          class="btn secondary"
+          @click="run.stopOthersAndStart(instance.id, busyWarning.profileId)"
+        >
+          {{ t('run.otherRunning.stopIt') }}
+        </button>
+        <button
+          type="button"
+          class="btn ghost"
+          @click="run.start(instance.id, busyWarning.profileId, { withoutShared: false, allowMultiple: true })"
+        >
+          {{ t('run.otherRunning.anyway') }}
+        </button>
+        <button
+          type="button"
+          class="btn ghost"
+          @click="run.dismissBusyWarning(instance.id)"
+        >
+          {{ t('common.cancel') }}
+        </button>
+      </div>
+    </div>
+
     <p v-if="profile?.fallback" class="hint bad">{{ t('run.fallback') }}</p>
 
     <p v-if="state === 'crashed'" class="hint bad">
       {{ t('run.crashed', { code: status?.exitCode ?? '—' }) }}
     </p>
-    <p v-if="state === 'detached'" class="hint bad">{{ t('run.detached') }}</p>
+
+    <!-- Сервер перезапустился сам. Кнопка возвращает над ним контроль:
+         PID нового процесса ищется по владельцу порта. -->
+    <div v-if="state === 'detached'" class="group">
+      <p class="hint bad">{{ t('run.detached') }}</p>
+      <div class="row">
+        <button
+          type="button"
+          class="btn secondary"
+          :disabled="busy"
+          @click="run.adopt(instance.id)"
+        >
+          {{ t('run.adopt') }}
+        </button>
+        <button type="button" class="btn ghost" @click="openInBrowser">
+          {{ t('run.openInBrowser') }}
+        </button>
+      </div>
+    </div>
 
     <!-- Консоль появляется вместе с первым запуском и остаётся после него:
          именно в ней лежит трейсбек, если сборка не поднялась. -->

@@ -35,6 +35,21 @@ export const router = createRouter({
       component: () => import('../views/InstanceTabView.vue'),
       props: true,
     },
+    // Редактор аргументов — отдельный роут по той же причине, что
+    // и настройки: модалку поверх области контента положить нельзя.
+    {
+      path: '/instances/:id/args',
+      name: 'instance-args',
+      component: () => import('../views/ArgsEditorView.vue'),
+      props: true,
+    },
+    // Закрытие окна при работающих серверах. Не диалог, а экран: у
+    // работающей сборки поверх нашего HTML лежит нативное окно вкладки.
+    {
+      path: '/quit',
+      name: 'quit',
+      component: () => import('../views/QuitView.vue'),
+    },
     {
       path: '/install',
       name: 'install',
@@ -69,6 +84,11 @@ export const router = createRouter({
           path: 'workflow-library',
           name: 'settings-workflow-library',
           component: () => import('../views/settings/WorkflowLibraryView.vue'),
+        },
+        {
+          path: 'duplicates',
+          name: 'settings-duplicates',
+          component: () => import('../views/settings/DuplicatesView.vue'),
         },
       ],
     },

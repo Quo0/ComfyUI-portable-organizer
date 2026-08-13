@@ -22,28 +22,7 @@ fn main() {
     let root = fixture_root();
     println!("[ПРОВЕРКА] стенд: {}", root.display());
 
-    let probe = WindowsPortable
-        .probe(&root)
-        .expect("стенд не прошёл валидацию — соберите его make-fixture.mjs");
-
-    let instance = Instance {
-        id: "fixture".into(),
-        name: "Стенд".into(),
-        description: String::new(),
-        path: probe.path.clone(),
-        accent: Accent::Teal,
-        preferred_port: 8231,
-        comfy_version: probe.comfy_version.clone(),
-        python_version: probe.python_version.clone(),
-        profiles: probe.profiles.clone(),
-        created_at: 0.0,
-        source: None,
-        shared: Default::default(),
-        size_bytes: None,
-        size_measured_at: None,
-        available: true,
-    };
-
+    let instance = instance_at(&root, 8231);
     let profiles = run::profiles_of(&instance);
     println!("[ПРОВЕРКА] профилей найдено: {}", profiles.len());
     for p in &profiles {
@@ -55,6 +34,9 @@ fn main() {
     failures += scenario_crash(&instance, &profiles);
     failures += scenario_hang(&instance, &profiles);
     failures += scenario_restart(&instance, &profiles);
+    failures += scenario_odd_path();
+    failures += scenario_custom_profile(&instance);
+    failures += scenario_owner_of_port();
 
     println!();
     if failures == 0 {
@@ -214,6 +196,133 @@ fn scenario_restart(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::
     failures
 }
 
+/// Путь с пробелом и кириллицей.
+///
+/// Грабля названа в плане отдельной строкой, а проверки на неё не было.
+/// Ломается на ней ровно то, что не ломается больше нигде: квотирование
+/// при спавне и резолв `..\` из `advanced\`.
+fn scenario_odd_path() -> u32 {
+    println!("\n[ПРОВЕРКА] --- путь с пробелом и кириллицей");
+    let root = odd_fixture_root();
+    let Some(root) = root else {
+        println!("ПРОВАЛ копии стенда нет — соберите её `node tools/fixtures/make-fixture.mjs`");
+        return 1;
+    };
+    println!("       {}", root.display());
+
+    let instance = instance_at(&root, 8241);
+    let profiles = run::profiles_of(&instance);
+    let mut failures = 0;
+
+    // Внутри `advanced\` интерпретатор указан как `..\python_embeded\...`,
+    // и от корня инстанса он не нашёлся бы.
+    let deep = pick(&profiles, r"advanced\run_fake_hang.bat");
+    failures += check(
+        "интерпретатор из advanced резолвится по пути с пробелом",
+        std::path::Path::new(&deep.python_path).is_file(),
+    );
+
+    let profile = pick(&profiles, "run_fake.bat");
+    let (lines, sink) = collector();
+    let (tx, rx) = mpsc::channel();
+
+    let outcome = run::start(&instance, profile, None, sink, move |exit| {
+        let _ = tx.send(exit);
+    })
+    .expect("не запустился");
+
+    let port = outcome.status.port.expect("порт не выдан");
+    let cell = outcome.cell.clone();
+    let ready = process::wait_ready(port, Duration::from_secs(60), || {
+        matches!(cell.lock().unwrap().status.state, RunState::Starting)
+    });
+
+    failures += check("сборка по такому пути стартовала", ready.is_ok());
+    failures += check(
+        "лог читается",
+        lines.lock().unwrap().iter().any(|l| l.text.contains("To see the GUI go to")),
+    );
+
+    run::stop(&outcome.cell).expect("не остановился");
+    let exit = rx.recv_timeout(Duration::from_secs(20));
+    failures += check(
+        "остановка опознана как штатная",
+        matches!(exit, Ok(run::Exit::Requested)),
+    );
+    failures += check("порт освободился", ports::is_free(port));
+    failures
+}
+
+/// Свой профиль: имя и аргументы свои, всё остальное — базового.
+fn scenario_custom_profile(instance: &Instance) -> u32 {
+    println!("\n[ПРОВЕРКА] --- свой профиль поверх .bat");
+    let mut with_custom = instance.clone();
+    with_custom.custom_profiles = vec![
+        cpo_desktop_lib::instances::CustomProfile {
+            id: "custom:1".into(),
+            name: "Свой".into(),
+            base_id: "run_fake.bat".into(),
+            args: vec!["-s".into(), "ComfyUI\\main.py".into(), "--lowvram".into()],
+        },
+        // Базовый исчез: такой профиль запускать наугад нельзя.
+        cpo_desktop_lib::instances::CustomProfile {
+            id: "custom:2".into(),
+            name: "Сирота".into(),
+            base_id: "нет-такого.bat".into(),
+            args: vec!["--cpu".into()],
+        },
+    ];
+
+    let all = run::profiles_of(&with_custom);
+    let mut failures = 0;
+    let mine = all.iter().find(|p| p.id == "custom:1");
+    failures += check("свой профиль появился в списке", mine.is_some());
+
+    if let Some(mine) = mine {
+        let base = pick(&run::profiles_of(instance), "run_fake.bat").clone();
+        failures += check(
+            "интерпретатор взят у базового",
+            mine.python_path == base.python_path,
+        );
+        failures += check("рабочая папка взята у базового", mine.cwd == base.cwd);
+        failures += check(
+            "аргументы свои",
+            mine.args.iter().any(|a| a == "--lowvram"),
+        );
+    }
+
+    failures += check(
+        "профиль с исчезнувшим базовым не подставляет чужой",
+        !all.iter().any(|p| p.id == "custom:2"),
+    );
+    failures
+}
+
+/// Владелец порта по таблице соединений.
+///
+/// На этом держится переподключение к серверу, который ComfyUI-Manager
+/// перезапустил сам: PID процесса мы потеряли, и взять его больше неоткуда.
+/// Проверяем на себе — слушаем порт сами и ждём собственный идентификатор.
+fn scenario_owner_of_port() -> u32 {
+    println!("\n[ПРОВЕРКА] --- владелец порта");
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("порт не занялся");
+    let port = listener.local_addr().unwrap().port();
+
+    let found = cpo_desktop_lib::supervise::windows::pid_listening_on(port);
+    let mut failures = 0;
+    failures += check(
+        &format!("свой слушающий порт {port} опознан как наш ({found:?})"),
+        found == Some(std::process::id()),
+    );
+
+    drop(listener);
+    failures += check(
+        "у освободившегося порта владельца нет",
+        cpo_desktop_lib::supervise::windows::pid_listening_on(port).is_none(),
+    );
+    failures
+}
+
 type Lines = Arc<std::sync::Mutex<Vec<LogLine>>>;
 
 fn collector() -> (Lines, Arc<dyn Fn(LogLine) + Send + Sync>) {
@@ -240,11 +349,54 @@ fn check(what: &str, ok: bool) -> u32 {
     u32::from(!ok)
 }
 
+/// Инстанс поверх любой папки стенда.
+fn instance_at(root: &std::path::Path, port: u16) -> Instance {
+    let probe = WindowsPortable
+        .probe(root)
+        .expect("стенд не прошёл валидацию — соберите его make-fixture.mjs");
+
+    Instance {
+        id: "fixture".into(),
+        name: "Стенд".into(),
+        description: String::new(),
+        path: probe.path.clone(),
+        accent: Accent::Teal,
+        preferred_port: port,
+        comfy_version: probe.comfy_version.clone(),
+        python_version: probe.python_version.clone(),
+        profiles: probe.profiles.clone(),
+        created_at: 0.0,
+        source: None,
+        shared: Default::default(),
+        custom_profiles: Vec::new(),
+        size_bytes: None,
+        size_measured_at: None,
+        available: true,
+    }
+}
+
 fn fixture_root() -> PathBuf {
     let _ = HashMap::<String, String>::new();
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../tools/fixtures/fake-instance")
-        .canonicalize()
-        .map(|p| PathBuf::from(p.display().to_string().trim_start_matches(r"\\?\")))
+    fixtures().join("fake-instance").canonicalize()
+        .map(strip_verbatim)
         .expect("стенд не найден")
+}
+
+/// Копия стенда по пути с пробелом и кириллицей. Её может не быть, если
+/// стенд собирали до появления этой проверки.
+fn odd_fixture_root() -> Option<PathBuf> {
+    fixtures()
+        .join("стенд с пробелом")
+        .canonicalize()
+        .ok()
+        .map(strip_verbatim)
+}
+
+fn fixtures() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../tools/fixtures")
+}
+
+/// `canonicalize` отдаёт verbatim-путь `\\?\`, показывать который нельзя.
+fn strip_verbatim(p: PathBuf) -> PathBuf {
+    PathBuf::from(p.display().to_string().trim_start_matches(r"\\?\"))
 }

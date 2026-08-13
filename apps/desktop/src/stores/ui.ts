@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
 import { commands, type AppError, type ThemeChoice } from '../bindings';
-import { applyLocale, detectLocale, LOCALES, type Locale } from '../i18n';
+import { applyLocale, detectLocale, i18n, LOCALES, type Locale } from '../i18n';
 import { errorDetails, errorText } from '../lib/errors';
 
 export type ToastKind = 'ok' | 'err';
@@ -33,6 +33,7 @@ export const useUiStore = defineStore('ui', () => {
 
   /** Пути и версия для раздела «О приложении». */
   const appDataDir = ref('');
+  const appLocalDataDir = ref('');
   const version = ref('');
 
   /** Тёмная ли тема в Windows прямо сейчас. */
@@ -85,6 +86,7 @@ export const useUiStore = defineStore('ui', () => {
     theme.value = boot.settings.theme;
     railCollapsed.value = boot.settings.railCollapsed;
     appDataDir.value = boot.appDataDir;
+    appLocalDataDir.value = boot.appLocalDataDir;
     version.value = boot.version;
 
     const stored = boot.settings.locale;
@@ -97,7 +99,24 @@ export const useUiStore = defineStore('ui', () => {
 
     applyTheme();
     applyLocale(locale.value);
+    void syncTray();
     ready.value = true;
+  }
+
+  /**
+   * Подписи меню трея.
+   *
+   * Меню нативное, и `t()` до него не дотягивается: строки приходится
+   * отправлять в Rust. Зато перевод остаётся в локалях, а не расползается
+   * по двум языкам, и меню следует за сменой языка вместе со всем остальным.
+   */
+  async function syncTray(): Promise<void> {
+    const t = i18n.global.t as unknown as (k: string) => string;
+    await commands.setTrayLabels({
+      show: t('tray.show'),
+      stopAll: t('tray.stopAll'),
+      quit: t('tray.quit'),
+    });
   }
 
   function setTheme(value: ThemeChoice): void {
@@ -109,6 +128,7 @@ export const useUiStore = defineStore('ui', () => {
     locale.value = value;
     localeChosen.value = true;
     applyLocale(value);
+    void syncTray();
   }
 
   function toggleRail(): void {
@@ -170,6 +190,7 @@ export const useUiStore = defineStore('ui', () => {
     railCollapsed,
     toasts,
     appDataDir,
+    appLocalDataDir,
     version,
     effectiveTheme,
     systemDark,

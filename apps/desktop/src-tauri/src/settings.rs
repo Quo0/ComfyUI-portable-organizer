@@ -68,6 +68,10 @@ pub struct Bootstrap {
     pub system_locale: Option<String>,
     /// Показывается в разделе «О приложении» вместе с кнопкой «открыть папку».
     pub app_data_dir: String,
+    /// Производное: кэш снимков нод и данные WebView2. Отдельной строкой,
+    /// потому что папки две, и удаляются они тоже обе — пользователь
+    /// не должен догадываться о существовании второй.
+    pub app_local_data_dir: String,
     pub version: String,
 }
 
@@ -89,6 +93,12 @@ pub fn load(app: &tauri::AppHandle) -> Result<Bootstrap, AppError> {
         .map(|p| p.display().to_string())
         .unwrap_or_default();
 
+    let app_local_data_dir = app
+        .path()
+        .app_local_data_dir()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+
     let shared_models = store
         .get(KEY_SHARED)
         .and_then(|v| serde_json::from_value(v).ok())
@@ -99,6 +109,7 @@ pub fn load(app: &tauri::AppHandle) -> Result<Bootstrap, AppError> {
         shared_models,
         system_locale: tauri_plugin_os::locale(),
         app_data_dir,
+        app_local_data_dir,
         version: app.package_info().version.to_string(),
     })
 }

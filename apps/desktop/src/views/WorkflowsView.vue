@@ -113,10 +113,15 @@ async function push(instanceId: string, overwrite = false): Promise<void> {
   }
 }
 
+/** Что библиотека принимает: сам граф и картинку, которая носит его в себе. */
+const ACCEPTED = ['.json', '.png'];
+
 async function addFile(): Promise<void> {
   const picked = await open({
     multiple: false,
-    filters: [{ name: 'JSON', extensions: ['json'] }],
+    // Картинка из папки output носит граф в текстовом чанке, и «перетащить
+    // удачную генерацию» — самый частый способ к ней вернуться.
+    filters: [{ name: 'JSON, PNG', extensions: ['json', 'png'] }],
   });
   if (typeof picked !== 'string') return;
   if (await library.addFile(picked)) ui.pushOk(t('library.add.done'));
@@ -149,8 +154,11 @@ onMounted(async () => {
     let added = 0;
     for (const file of event.payload.paths) {
       // Отсев по расширению до чтения: тащат папками, и объяснять про
-      // каждый .png, что он не воркфлоу, — не помощь, а шум.
-      if (!file.toLowerCase().endsWith('.json')) continue;
+      // каждый посторонний файл, что он не воркфлоу, — не помощь, а шум.
+      // Картинка без графа внутри отсеется уже с объяснением: её притащили
+      // осознанно, и промолчать здесь было бы хуже.
+      const lower = file.toLowerCase();
+      if (!ACCEPTED.some((ext) => lower.endsWith(ext))) continue;
       if (await library.addFile(file)) added += 1;
     }
     if (added > 0) ui.pushOk(t('library.add.dropped', added));

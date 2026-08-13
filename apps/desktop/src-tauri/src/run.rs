@@ -17,17 +17,36 @@ use crate::process::{
 use crate::profiles::{self, LaunchProfile};
 use crate::supervise::{windows::WindowsSupervisor, ProcessSupervisor, SpawnRequest};
 
-/// Профили инстанса, разобранные из его `.bat`.
+/// Профили инстанса: разобранные из `.bat` плюс собранные пользователем.
 ///
-/// Читаются каждый раз заново, а не берутся из реестра: пользователь мог
-/// поправить `.bat` руками, и показывать ему устаревший разбор — врать.
+/// Разбор читается каждый раз заново, а не берётся из реестра: пользователь
+/// мог поправить `.bat` руками, и показывать ему устаревший разбор — врать.
+///
+/// Свой профиль хранит только имя и аргументы, всё остальное берёт
+/// у базового — здесь и сейчас, по той же причине.
 pub fn profiles_of(instance: &Instance) -> Vec<LaunchProfile> {
     let root = Path::new(&instance.path);
-    instance
+    let base: Vec<LaunchProfile> = instance
         .profiles
         .iter()
         .map(|found| profiles::parse_bat(root, &found.id, found.advanced))
-        .collect()
+        .collect();
+
+    let mut all = base.clone();
+    for custom in &instance.custom_profiles {
+        // Базовый `.bat` мог исчезнуть вместе с обновлением сборки.
+        // Тихо подставлять другой нельзя: запустится не то, что просили.
+        let Some(source) = base.iter().find(|p| p.id == custom.base_id) else {
+            continue;
+        };
+        all.push(LaunchProfile {
+            id: custom.id.clone(),
+            name: custom.name.clone(),
+            args: custom.args.clone(),
+            ..source.clone()
+        });
+    }
+    all
 }
 
 /// Что делать дальше после того, как процесс завершился.

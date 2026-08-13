@@ -167,7 +167,8 @@
       "appearance": "Apariencia",
       "sharedModels": "Modelos compartidos",
       "library": "Biblioteca de flujos",
-      "archives": "Archivos del instalador"
+      "archives": "Archivos del instalador",
+      "duplicates": "Duplicados"
     },
     "appearance": {
       "title": "Apariencia",
@@ -197,11 +198,24 @@
     "version": "Versión",
     "paths": {
       "title": "Dónde guarda sus datos la aplicación",
-      "appData": "Datos de la aplicación"
+      "appData": "Datos de la aplicación",
+      "localData": "Caché y datos del navegador"
     },
     "uninstall": {
       "title": "Qué se borra al desinstalar",
       "body": "La desinstalación se lleva la aplicación y sus propios ajustes. Tus modelos, las plantillas compartidas y las carpetas de ComfyUI se quedan donde están."
+    },
+    "content": {
+      "title": "Tu contenido",
+      "body": "Estas carpetas son tuyas. Desinstalar la aplicación no las toca.",
+      "shared": "Modelos compartidos",
+      "library": "Biblioteca de flujos",
+      "instances": "Instalaciones en el registro",
+      "notSet": "sin definir"
+    },
+    "written": {
+      "title": "Lo que la aplicación escribió dentro de tus instalaciones",
+      "body": "Solo por orden tuya y solo dos tipos de archivo: extra_model_paths.yaml cuando los modelos compartidos se aplican como archivo, y copias de flujos añadidos a una instalación. Ambos permanecen tras desinstalar: están dentro de una instalación ajena y no nos corresponde retirarlos."
     }
   },
   "toast": {
@@ -269,7 +283,10 @@
       "alreadyRunning": "Esta instancia ya está en marcha.",
       "notRunning": "Esta instancia no está en marcha.",
       "readyTimeout": "El servidor no ha estado listo en {secs} segundos.",
-      "cancelled": "Se ha cancelado el arranque."
+      "cancelled": "Se ha cancelado el arranque.",
+      "otherRunning": "{name} ya está en marcha.",
+      "notDetached": "Esta instalación no está en estado «reiniciada por su cuenta».",
+      "ownerUnknown": "No se ha podido averiguar qué proceso ocupa el puerto {port}. La interfaz sigue funcionando, pero ya no se puede detener el servidor desde aquí."
     },
     "shared": {
       "rootUnavailable": "La carpeta de modelos compartidos no está disponible: {path}",
@@ -288,7 +305,8 @@
       "readFailed": "No se pudo leer el flujo: {reason}",
       "writeFailed": "No se pudo escribir el flujo: {reason}",
       "scanFailed": "No se pudo leer la biblioteca: {reason}",
-      "manifestWriteFailed": "No se pudieron guardar las etiquetas y notas: {reason}"
+      "manifestWriteFailed": "No se pudieron guardar las etiquetas y notas: {reason}",
+      "noGraphInImage": "Esta imagen no lleva ningún flujo: {path}"
     },
     "migrate": {
       "instanceRunning": "La instalación está en ejecución. Deténgala antes de mover sus archivos.",
@@ -314,7 +332,15 @@
     "fallback": "Este perfil no se ha podido interpretar, así que se ejecuta a través de cmd. Detenerlo es menos fiable.",
     "crashed": "El servidor se ha detenido solo. Código de salida {code}. El registro de arriba se conserva.",
     "detached": "El servidor sigue respondiendo en su puerto, pero ahora lo controla otro proceso: lo más probable es que ComfyUI-Manager lo haya reiniciado tras instalar nodos. Ya no se puede detener desde aquí.",
-    "empty": "De momento el registro está vacío."
+    "empty": "De momento el registro está vacío.",
+    "otherRunning": {
+      "title": "Ya hay otra instalación en marcha",
+      "body": "{name} está ocupando la memoria de vídeo. Dos instalaciones en una misma GPU suelen acabar con un fallo de la segunda a mitad de la generación.",
+      "stopIt": "Detenerla y arrancar esta",
+      "anyway": "Arrancar de todos modos"
+    },
+    "adopt": "Reconectar",
+    "adopted": "Reconectado al servidor en el puerto {port}."
   },
   "shared": {
     "title": "Modelos compartidos",
@@ -503,5 +529,48 @@
     "open": "Abrir ComfyUI",
     "starting": "La instalación está arrancando. La interfaz se abrirá en cuanto el servidor esté listo.",
     "retry": "Reintentar"
+  },
+  "tray": {
+    "show": "Mostrar",
+    "stopAll": "Detener todo",
+    "quit": "Salir"
+  },
+  "quit": {
+    "title": "Todavía hay servidores en marcha",
+    "body": "Cerrar la aplicación detiene todos los servidores en marcha: son sus procesos hijos y se van con ella. Los grafos sin guardar y la cola de generación también.",
+    "stopAndExit": "Detener todo y salir",
+    "toTray": "Minimizar a la bandeja",
+    "trayHint": "La aplicación seguirá en el área de notificaciones: haz clic en su icono para volver."
+  },
+  "args": {
+    "title": "Argumentos de arranque",
+    "lead": "Los archivos .bat de la instalación nunca se modifican. Los cambios se guardan como un perfil propio basado en uno de ellos.",
+    "base": "Basado en",
+    "name": "Nombre del perfil",
+    "list": "Argumentos",
+    "add": "Añadir argumento",
+    "remove": "Quitar argumento",
+    "reset": "Restaurar como en el .bat",
+    "preview": "El comando que se ejecutará realmente",
+    "previewHint": "El puerto y --disable-auto-launch los añade la aplicación. El puerto real se asigna al arrancar, así que aquí se muestra el preferido.",
+    "saved": "Perfil {name} guardado.",
+    "removed": "Perfil {name} eliminado.",
+    "mine": "Tus perfiles",
+    "none": "Todavía no hay perfiles propios.",
+    "edit": "Editar argumentos"
+  },
+  "dups": {
+    "title": "Modelos duplicados",
+    "lead": "Un informe sobre todas las instalaciones registradas y la carpeta compartida. Solo cuenta: no borra, no mueve ni crea enlaces.",
+    "scan": "Generar el informe",
+    "scanning": "Revisando {place}…",
+    "wasted": "Desperdiciado en duplicados: {size}",
+    "empty": "No se han encontrado duplicados.",
+    "copies": "copias: {count}",
+    "clashes": "Mismo nombre, distinto tamaño",
+    "clashesHint": "No son duplicados: que coincida el nombre no dice nada del contenido. Se listan para que los revises tú.",
+    "skipped": "Omitido, carpeta no disponible: {list}",
+    "cancelled": "El recorrido se interrumpió, así que el informe está incompleto.",
+    "noAction": "Liberar ese espacio es un paso aparte y deliberado: abre una instalación y usa el panel «Modelos de esta instalación»."
   }
 }

@@ -7,6 +7,7 @@
 // проверяется распаковка на реальном архиве.
 pub mod comfy_api;
 pub mod discovery;
+pub mod duplicates;
 pub mod error;
 pub mod installer;
 pub mod migrate;
@@ -18,6 +19,7 @@ pub mod run;
 pub mod settings;
 pub mod shared_models;
 pub mod supervise;
+pub mod tray;
 pub mod webview;
 pub mod workflows;
 
@@ -288,6 +290,61 @@ async fn instance_profiles(
     Ok(run::profiles_of(&instance))
 }
 
+/// Итоговая команда запуска — та, что реально уйдёт системе.
+///
+/// Показывается в редакторе аргументов: `--port` и `--disable-auto-launch`
+/// дописываются нами, и без предпросмотра пользователь спорил бы
+/// с невидимым.
+#[tauri::command]
+#[specta::specta]
+async fn preview_command(
+    app: tauri::AppHandle,
+    id: String,
+    profile_id: String,
+) -> Result<Vec<String>, AppError> {
+    let instance = instances::list(&app)?
+        .into_iter()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", &id))?;
+
+    let all = run::profiles_of(&instance);
+    let profile = all
+        .iter()
+        .find(|p| p.id == profile_id)
+        .ok_or_else(|| AppError::new("run.noProfiles"))?;
+
+    // Порт показываем предпочитаемый: настоящий выдаётся при старте,
+    // и обещать конкретное число заранее нельзя.
+    let mut line = vec![profile.python_path.clone()];
+    line.extend(profiles::apply_runtime_args(
+        &profile.args,
+        instance.preferred_port,
+        None,
+    ));
+    Ok(line)
+}
+
+/// Сохраняет свой профиль запуска.
+#[tauri::command]
+#[specta::specta]
+async fn save_custom_profile(
+    app: tauri::AppHandle,
+    id: String,
+    profile: instances::CustomProfile,
+) -> Result<Instance, AppError> {
+    instances::save_profile(&app, &id, profile)
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn remove_custom_profile(
+    app: tauri::AppHandle,
+    id: String,
+    profile_id: String,
+) -> Result<Instance, AppError> {
+    instances::remove_profile(&app, &id, &profile_id)
+}
+
 #[tauri::command]
 #[specta::specta]
 async fn run_statuses(runtime: tauri::State<'_, Runtime>) -> Result<Vec<RunStatus>, AppError> {
@@ -480,6 +537,11 @@ async fn scan_library(path: String) -> Result<LibraryScan, AppError> {
 
 /// Кладёт файл с диска в библиотеку.
 ///
+/// Принимает и `.json`, и `.png`: картинка из папки `output` носит граф
+/// с собой, и «перетащить картинку» — самый частый способ вернуться
+/// к удачной генерации. В библиотеку в обоих случаях ложится `.json` —
+/// именно он потом уедет в инстанс.
+///
 /// Не воркфлоу — отказ с объяснением: библиотека обязана оставаться
 /// библиотекой воркфлоу, а не свалкой JSON.
 #[tauri::command]
@@ -490,18 +552,36 @@ async fn add_workflow_file(
     rel: Option<String>,
     overwrite: bool,
 ) -> Result<String, AppError> {
-    let content = std::fs::read_to_string(&source)
-        .map_err(|e| AppError::because("workflows.readFailed", e))?;
+    let path = std::path::Path::new(&source);
+    let is_png = path
+        .extension()
+        .map(|e| e.eq_ignore_ascii_case("png"))
+        .unwrap_or(false);
+
+    let content = if is_png {
+        let bytes = std::fs::read(path).map_err(|e| AppError::because("workflows.readFailed", e))?;
+        workflows::workflow_from_png(&bytes)
+            .ok_or_else(|| AppError::with("workflows.noGraphInImage", "path", &source))?
+    } else {
+        std::fs::read_to_string(path).map_err(|e| AppError::because("workflows.readFailed", e))?
+    };
 
     if workflows::node_types(&content).is_none() {
         return Err(AppError::with("workflows.notAWorkflow", "path", &source));
     }
 
     let name = rel.unwrap_or_else(|| {
-        std::path::Path::new(&source)
-            .file_name()
+        let stem = path
+            .file_stem()
             .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| "workflow.json".to_string())
+            .unwrap_or_else(|| "workflow".to_string());
+        if is_png {
+            format!("{stem}.json")
+        } else {
+            path.file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_else(|| "workflow.json".to_string())
+        }
     });
 
     let target = std::path::Path::new(&library).join(&name);
@@ -1009,14 +1089,29 @@ fn prepare_shared(
     Ok(Some(path.display().to_string()))
 }
 
+/// Согласия пользователя, без которых запуск отказывается идти.
+///
+/// Обе развилки устроены одинаково: первый вызов приходит с пустыми
+/// согласиями и получает отказ с кодом, фронт раскрывает выбор на месте,
+/// повторный вызов приходит уже с ответом. Модалку сюда положить нельзя
+/// (дисциплина z-order), а у тоста не бывает кнопок.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase", default)]
+pub struct StartOptions {
+    /// Запускаться, даже если общий корень моделей недоступен.
+    pub without_shared: bool,
+    /// Запускаться, даже если другая сборка уже работает.
+    pub allow_multiple: bool,
+}
+
 /// Запускает инстанс.
 ///
-/// `without_shared` — согласие запуститься без общих моделей.
-/// Недоступный корень не может просто игнорироваться: пользователь,
+/// Недоступный общий корень не может просто игнорироваться: пользователь,
 /// державший модели на внешнем диске, получил бы «model not found» посреди
-/// работы и решил бы, что сломалось приложение. Поэтому первый вызов
-/// отказывает кодом `shared.rootUnavailable`, фронт показывает выбор,
-/// и повторный вызов приходит уже с согласием.
+/// работы и решил бы, что сломалось приложение.
+///
+/// Вторая сборка на той же видеокарте — это отказ по нехватке видеопамяти
+/// уже в очереди генерации, и понять его со стороны ComfyUI невозможно.
 #[tauri::command]
 #[specta::specta]
 async fn start_instance(
@@ -1024,9 +1119,9 @@ async fn start_instance(
     runtime: tauri::State<'_, Runtime>,
     id: String,
     profile_id: Option<String>,
-    without_shared: bool,
+    options: StartOptions,
 ) -> Result<RunStatus, AppError> {
-    start_inner(&app, &runtime, id, profile_id, without_shared)
+    start_inner(&app, &runtime, id, profile_id, options)
 }
 
 fn start_inner(
@@ -1034,10 +1129,16 @@ fn start_inner(
     runtime: &Runtime,
     id: String,
     profile_id: Option<String>,
-    without_shared: bool,
+    options: StartOptions,
 ) -> Result<RunStatus, AppError> {
     if runtime.is_busy(&id) {
         return Err(AppError::new("run.alreadyRunning"));
+    }
+
+    if !options.allow_multiple {
+        if let Some(other) = other_running(app, runtime, &id) {
+            return Err(AppError::with("run.otherRunning", "name", other));
+        }
     }
 
     let instance = instances::list(app)?
@@ -1056,7 +1157,7 @@ fn start_inner(
         .ok_or_else(|| AppError::new("run.noProfiles"))?
         .clone();
 
-    let shared_config = prepare_shared(app, &instance, without_shared)?;
+    let shared_config = prepare_shared(app, &instance, options.without_shared)?;
 
     let emitter = app.clone();
     let on_line = std::sync::Arc::new({
@@ -1107,6 +1208,20 @@ fn start_inner(
     });
 
     Ok(outcome.status)
+}
+
+/// Имя другой работающей сборки, если такая есть.
+///
+/// Имя, а не идентификатор: сообщение показывается пользователю, и «i17550…»
+/// ему ничего не скажет. Инстанс мог исчезнуть из реестра — тогда
+/// довольствуемся идентификатором, лишь бы не промолчать.
+fn other_running(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Option<String> {
+    let busy = tray::busy(runtime);
+    let other = busy.into_iter().find(|other| other != id)?;
+    let name = instances::list(app)
+        .ok()
+        .and_then(|all| all.into_iter().find(|i| i.id == other).map(|i| i.name));
+    Some(name.unwrap_or(other))
 }
 
 /// Разбирает, чем кончился процесс, и сообщает наверх.
@@ -1168,6 +1283,52 @@ fn stop_inner(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Result<(),
     run::stop(&cell)
 }
 
+/// Забирает под своё управление сервер, перезапустившийся сам.
+///
+/// ComfyUI-Manager после установки нод гасит сервер и поднимает новый
+/// процесс. Наш хэндл теряется, состояние становится `Detached`, и дальше
+/// приложение умеет только смотреть: PID нового процесса ему неизвестен.
+///
+/// Находим владельца порта по таблице соединений и записываем его PID.
+/// После этого работает всё обычное — и остановка, и вкладка.
+#[tauri::command]
+#[specta::specta]
+async fn adopt_instance(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    id: String,
+) -> Result<RunStatus, AppError> {
+    let cell = runtime
+        .get(&id)
+        .ok_or_else(|| AppError::new("run.notRunning"))?;
+
+    let port = {
+        let running = cell.lock().unwrap();
+        if running.status.state != RunState::Detached {
+            return Err(AppError::new("run.notDetached"));
+        }
+        running.status.port.ok_or_else(|| AppError::new("run.notRunning"))?
+    };
+
+    // Порт мог освободиться, пока пользователь читал сообщение.
+    if !crate::process::probe(port) {
+        return Err(AppError::new("run.notRunning"));
+    }
+
+    let pid = supervise::windows::pid_listening_on(port)
+        .ok_or_else(|| AppError::with("run.ownerUnknown", "port", port))?;
+
+    let status = {
+        let mut running = cell.lock().unwrap();
+        running.status.state = RunState::Running;
+        running.status.pid = Some(pid);
+        running.status.exit_code = None;
+        running.status.clone()
+    };
+    let _ = RunChanged(status.clone()).emit(&app);
+    Ok(status)
+}
+
 /// Останавливает и поднимает инстанс заново тем же профилем.
 ///
 /// Делается в Rust, а не двумя вызовами с фронта: `stop` возвращается,
@@ -1194,7 +1355,16 @@ async fn restart_instance(
         std::thread::sleep(std::time::Duration::from_millis(50));
     }
 
-    start_inner(&app, &runtime, id, profile_id, false)
+    // Перезапуск — продолжение того, что уже шло: спрашивать заново про
+    // общие модели и про соседнюю сборку не за что, эти согласия
+    // пользователь уже дал, когда запускал.
+    start_inner(
+        &app,
+        &runtime,
+        id,
+        profile_id,
+        StartOptions { without_shared: false, allow_multiple: true },
+    )
 }
 
 /// Считает размер инстанса на диске.
@@ -1261,6 +1431,108 @@ async fn reload_comfy(app: tauri::AppHandle, id: String) -> Result<(), AppError>
     webview::reload(&app, &id)
 }
 
+// -------------------------------------------------- отчёт о дубликатах
+
+/// Строит отчёт о дублирующихся моделях по всем сборкам сразу.
+///
+/// Команда **ничего не делает с файлами** и делать не будет: уборка
+/// дублей живёт отдельной командой, на своём экране и со своим перечнем.
+#[tauri::command]
+#[specta::specta]
+async fn scan_duplicates(
+    app: tauri::AppHandle,
+    cancel: tauri::State<'_, duplicates::ScanCancel>,
+) -> Result<duplicates::DuplicatesReport, AppError> {
+    cancel.reset();
+
+    let mut places = Vec::new();
+    for instance in instances::list(&app)? {
+        if !instance.available {
+            // Недоступную папку молча пропустить нельзя: отчёт выглядел бы
+            // полным. Кладём её как место с несуществующим путём — сканер
+            // сам отнесёт её в пропущенные.
+            places.push(duplicates::Place {
+                name: instance.name.clone(),
+                models_dir: std::path::PathBuf::from(&instance.path),
+            });
+            continue;
+        }
+        let profiles = run::profiles_of(&instance);
+        let Some(profile) = profiles.first() else { continue };
+        places.push(duplicates::Place {
+            name: instance.name.clone(),
+            models_dir: profiles::models_dir(profile, std::path::Path::new(&instance.path)),
+        });
+    }
+
+    // Общая папка — такое же место: модель, лежащая и там, и в сборке,
+    // это дубль ровно в том же смысле.
+    let shared = settings::load_shared(&app)?;
+    if let Some(root) = migrate::first_root(&shared) {
+        places.push(duplicates::Place {
+            name: root.display().to_string(),
+            models_dir: root,
+        });
+    }
+
+    let emitter = app.clone();
+    Ok(duplicates::scan(&places, &cancel, move |progress| {
+        let _ = progress.emit(&emitter);
+    }))
+}
+
+#[tauri::command]
+#[specta::specta]
+async fn cancel_duplicates_scan(
+    cancel: tauri::State<'_, duplicates::ScanCancel>,
+) -> Result<(), AppError> {
+    cancel.cancel();
+    Ok(())
+}
+
+// ------------------------------------------------------ трей и выход
+
+/// Подписи меню трея под текущий язык.
+///
+/// Меню трея нативное, до `t()` ему не дотянуться, а переводить строки
+/// в Rust правилами проекта запрещено. Поэтому текст приходит с фронта —
+/// и приходит заново при каждой смене языка.
+#[tauri::command]
+#[specta::specta]
+async fn set_tray_labels(app: tauri::AppHandle, labels: tray::TrayLabels) -> Result<(), AppError> {
+    tray::set_labels(&app, &labels);
+    Ok(())
+}
+
+/// Инстансы, которые закрытие приложения унесёт с собой.
+#[tauri::command]
+#[specta::specta]
+async fn busy_instances(runtime: tauri::State<'_, Runtime>) -> Result<Vec<String>, AppError> {
+    Ok(tray::busy(&runtime))
+}
+
+/// Остановить всё и выйти.
+#[tauri::command]
+#[specta::specta]
+async fn stop_all_and_quit(app: tauri::AppHandle) -> Result<(), AppError> {
+    tray::stop_all(&app);
+    app.exit(0);
+    Ok(())
+}
+
+/// Свернуть в трей, оставив серверы работать.
+#[tauri::command]
+#[specta::specta]
+async fn hide_to_tray(app: tauri::AppHandle) -> Result<(), AppError> {
+    webview::hide_all(&app);
+    if let Some(window) = app.get_window("main") {
+        window
+            .hide()
+            .map_err(|e| AppError::because("webview.embedFailed", e))?;
+    }
+    Ok(())
+}
+
 /// Папка результатов генерации у инстанса.
 ///
 /// `None` означает «папки ещё нет»: до первой генерации ComfyUI её
@@ -1310,6 +1582,9 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             run_install,
             cancel_install,
             instance_profiles,
+            preview_command,
+            save_custom_profile,
+            remove_custom_profile,
             scan_instance_models,
             migrate_models,
             cancel_migrate,
@@ -1338,17 +1613,26 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             start_instance,
             stop_instance,
             restart_instance,
+            adopt_instance,
             show_comfy,
             place_comfy,
             hide_comfy,
             reload_comfy,
-            instance_output_dir
+            instance_output_dir,
+            scan_duplicates,
+            cancel_duplicates_scan,
+            set_tray_labels,
+            busy_instances,
+            stop_all_and_quit,
+            hide_to_tray
         ])
         .events(tauri_specta::collect_events![
             InstallProgress,
             migrate::MigrateProgress,
             RunLog,
-            RunChanged
+            RunChanged,
+            duplicates::DupProgress,
+            tray::QuitRequested
         ])
 }
 
@@ -1385,6 +1669,12 @@ pub fn run() {
     export_bindings(&builder);
 
     tauri::Builder::default()
+        // Первым по требованию плагина: второй экземпляр обязан узнать
+        // о первом раньше, чем успеет что-нибудь создать. Второе окно
+        // означало бы второй Job Object и вторую запись в тот же реестр.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            tray::reveal(app);
+        }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -1393,8 +1683,11 @@ pub fn run() {
         .manage(InstallLock::default())
         .manage(InstallCancel::default())
         .manage(migrate::MigrateCancel::default())
+        .manage(duplicates::ScanCancel::default())
         .manage(Runtime::default())
+        .manage(tray::TrayItems::default())
         .invoke_handler(builder.invoke_handler())
+        .on_window_event(tray::on_window_event)
         .setup(move |app| {
             // Обязательно: без mount_events типизированные события
             // не доедут до фронта.
@@ -1405,6 +1698,12 @@ pub fn run() {
             // видеопамять.
             if let Err(e) = supervise::windows::install_job_object() {
                 eprintln!("[CPO] job object не создан: {e}. Дочерние процессы могут пережить приложение.");
+            }
+
+            if let Err(e) = tray::install(app.handle()) {
+                // Без трея приложение работает, просто «свернуть» станет
+                // некуда. Ронять запуск из-за этого незачем.
+                eprintln!("[CPO] трей не создан: {e}");
             }
             Ok(())
         })

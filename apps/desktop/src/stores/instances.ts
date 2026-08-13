@@ -63,6 +63,17 @@ export const useInstancesStore = defineStore('instances', () => {
     return res.data;
   }
 
+  /**
+   * Кладёт на место инстанс, обновлённый другой командой.
+   *
+   * Нужен там, где реестр меняет не `update`: свои профили запуска правит
+   * своя команда, и перечитывать весь список ради одной записи незачем.
+   */
+  function replace(instance: Instance): void {
+    const at = items.value.findIndex((i) => i.id === instance.id);
+    if (at >= 0) items.value[at] = instance;
+  }
+
   /** Убирает из реестра. Папку на диске не трогает. */
   async function remove(id: string): Promise<boolean> {
     const res = await commands.removeInstance(id);
@@ -104,6 +115,7 @@ export const useInstancesStore = defineStore('instances', () => {
     suggestAccent,
     add,
     update,
+    replace,
     remove,
     measureSize,
   };

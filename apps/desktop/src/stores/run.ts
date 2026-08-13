@@ -7,7 +7,9 @@ import {
   type LaunchProfile,
   type LogLine,
   type RunStatus,
+  type StartOptions,
 } from '../bindings';
+import { i18n } from '../i18n';
 import { useUiStore } from './ui';
 
 /** Столько строк держим на экране. В Rust буфер тот же, менять их порознь нельзя. */
@@ -35,10 +37,25 @@ export const useRunStore = defineStore('run', () => {
     Record<string, { path: string; profileId: string | null }>
   >({});
 
+  /**
+   * Инстансы, запуск которых упёрся в уже работающую соседнюю сборку.
+   * Держим её имя и выбранный профиль: и то и другое понадобится, когда
+   * пользователь ответит.
+   */
+  const busyWarning = ref<
+    Record<string, { other: string; profileId: string | null }>
+  >({});
+
   function dismissSharedWarning(id: string): void {
     const next = { ...sharedWarning.value };
     delete next[id];
     sharedWarning.value = next;
+  }
+
+  function dismissBusyWarning(id: string): void {
+    const next = { ...busyWarning.value };
+    delete next[id];
+    busyWarning.value = next;
   }
 
   let listening = false;
@@ -106,24 +123,25 @@ export const useRunStore = defineStore('run', () => {
   }
 
   /**
-   * `withoutShared` — согласие стартовать без общих моделей.
+   * Две развилки запуска устроены одинаково: бэкенд отказывает кодом,
+   * экран инстанса раскрывает выбор на месте, и повторный вызов приходит
+   * с согласием. Тостом это сделать нельзя — у тоста нет кнопок, а модалку
+   * над областью контента положить невозможно (дисциплина z-order).
    *
-   * Недоступный общий корень не ошибка запуска, а развилка: бэкенд
-   * отказывает кодом `shared.rootUnavailable`, экран инстанса показывает
-   * выбор, и повторный вызов приходит с согласием. Тостом это сделать
-   * нельзя — у тоста нет кнопок, а модалку над областью контента положить
-   * невозможно (дисциплина z-order).
+   * `withoutShared` — согласие стартовать без общих моделей: недоступный
+   * корень дал бы «model not found» уже посреди работы.
+   * `allowMultiple` — согласие поднять вторую сборку на той же видеокарте.
    */
   async function start(
     id: string,
     profileId: string | null,
-    withoutShared = false,
+    options: StartOptions = { withoutShared: false, allowMultiple: false },
   ): Promise<void> {
     await listen();
     busy.value = { ...busy.value, [id]: true };
     logs.value = { ...logs.value, [id]: [] };
     try {
-      const res = await commands.startInstance(id, profileId, withoutShared);
+      const res = await commands.startInstance(id, profileId, options);
       if (res.status === 'error') {
         if (res.error.code === 'shared.rootUnavailable') {
           sharedWarning.value = {
@@ -132,10 +150,66 @@ export const useRunStore = defineStore('run', () => {
           };
           return;
         }
+        if (res.error.code === 'run.otherRunning') {
+          busyWarning.value = {
+            ...busyWarning.value,
+            [id]: { other: res.error.params.name ?? '', profileId },
+          };
+          return;
+        }
         ui.pushError(res.error);
         return;
       }
       dismissSharedWarning(id);
+      dismissBusyWarning(id);
+      statuses.value = { ...statuses.value, [id]: res.data };
+    } finally {
+      busy.value = { ...busy.value, [id]: false };
+    }
+  }
+
+  /** Остановить соседнюю сборку и запустить эту. */
+  async function stopOthersAndStart(
+    id: string,
+    profileId: string | null,
+  ): Promise<void> {
+    for (const status of active.value) {
+      if (status.instanceId !== id) await stop(status.instanceId);
+    }
+    await start(id, profileId, { withoutShared: false, allowMultiple: true });
+  }
+
+  /**
+   * Забрать под управление сервер, который перезапустился сам.
+   *
+   * PID нового процесса ищется по владельцу порта. Если не нашёлся —
+   * это не молчаливый провал: пользователю говорят, что именно перестало
+   * работать, а интерфейс сборки остаётся доступным.
+   */
+  async function adopt(id: string): Promise<void> {
+    busy.value = { ...busy.value, [id]: true };
+    try {
+      const res = await commands.adoptInstance(id);
+      if (res.status === 'error') {
+        ui.pushError(res.error);
+        return;
+      }
+      statuses.value = { ...statuses.value, [id]: res.data };
+      ui.pushOk(i18n.global.t('run.adopted', { port: res.data.port ?? 0 }));
+    } finally {
+      busy.value = { ...busy.value, [id]: false };
+    }
+  }
+
+  /** Перезапуск: остановка, ожидание порта и старт тем же профилем. */
+  async function restart(id: string): Promise<void> {
+    busy.value = { ...busy.value, [id]: true };
+    try {
+      const res = await commands.restartInstance(id);
+      if (res.status === 'error') {
+        ui.pushError(res.error);
+        return;
+      }
       statuses.value = { ...statuses.value, [id]: res.data };
     } finally {
       busy.value = { ...busy.value, [id]: false };
@@ -158,13 +232,18 @@ export const useRunStore = defineStore('run', () => {
     profiles,
     busy,
     sharedWarning,
+    busyWarning,
     dismissSharedWarning,
+    dismissBusyWarning,
     active,
     statusOf,
     load,
     loadProfiles,
     loadLog,
     start,
+    stopOthersAndStart,
+    adopt,
+    restart,
     stop,
   };
 });

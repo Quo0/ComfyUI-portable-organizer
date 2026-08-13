@@ -133,6 +133,54 @@ pub fn node_types(json: &str) -> Option<Vec<String>> {
     Some(types.into_iter().collect())
 }
 
+/// Достаёт граф из PNG, сгенерированного ComfyUI.
+///
+/// Картинка из папки `output` носит граф с собой: ComfyUI кладёт его
+/// в текстовый чанк `workflow` (`PngInfo.add_text` в `nodes.py`). Рядом
+/// лежит `prompt` — это API-формат, другой по структуре, и библиотеке
+/// он не нужен: в неё идёт то, что открывается в редакторе.
+///
+/// Разбор ручной, без единой зависимости: формат чанков PNG — это длина,
+/// тип, данные и CRC, и тянуть ради этого крейт-декодер изображений
+/// значило бы тянуть заодно zlib и полдюжины кодеков.
+///
+/// `None` — граф не найден. Битый или обрезанный файл сюда же: обход
+/// идёт по объявленным длинам и за пределы буфера не выходит.
+pub fn workflow_from_png(bytes: &[u8]) -> Option<String> {
+    const SIGNATURE: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
+    if bytes.len() < SIGNATURE.len() || bytes[..8] != SIGNATURE {
+        return None;
+    }
+
+    let mut at = SIGNATURE.len();
+    while at + 8 <= bytes.len() {
+        let len = u32::from_be_bytes(bytes[at..at + 4].try_into().ok()?) as usize;
+        let kind = &bytes[at + 4..at + 8];
+        let start = at + 8;
+        let end = start.checked_add(len)?;
+        if end > bytes.len() {
+            return None;
+        }
+
+        // tEXt: ключ, нулевой байт, значение. zTXt и iTXt сжаты — ComfyUI
+        // ими не пользуется, и разжимать их ради гипотезы мы не будем.
+        if kind == b"tEXt" {
+            let data = &bytes[start..end];
+            if let Some(sep) = data.iter().position(|b| *b == 0) {
+                if &data[..sep] == b"workflow" {
+                    return String::from_utf8(data[sep + 1..].to_vec()).ok();
+                }
+            }
+        }
+        if kind == b"IEND" {
+            return None;
+        }
+        // Плюс четыре байта CRC.
+        at = end + 4;
+    }
+    None
+}
+
 /// Чего не хватает в инстансе, чтобы открыть этот воркфлоу.
 ///
 /// Порядок сохраняется от `node_types`, то есть алфавитный: список идёт

@@ -167,7 +167,8 @@
       "appearance": "Appearance",
       "sharedModels": "Shared models",
       "library": "Workflow library",
-      "archives": "Installer archives"
+      "archives": "Installer archives",
+      "duplicates": "Duplicates"
     },
     "appearance": {
       "title": "Appearance",
@@ -197,11 +198,24 @@
     "version": "Version",
     "paths": {
       "title": "Where the app keeps its data",
-      "appData": "App data"
+      "appData": "App data",
+      "localData": "Cache and browser data"
     },
     "uninstall": {
       "title": "What uninstalling removes",
       "body": "Uninstalling removes the app and its own settings. Your models, shared templates and ComfyUI folders stay where they are."
+    },
+    "content": {
+      "title": "Your content",
+      "body": "These folders belong to you. Removing the app does not touch them.",
+      "shared": "Shared models",
+      "library": "Workflow library",
+      "instances": "Builds in the registry",
+      "notSet": "not set"
+    },
+    "written": {
+      "title": "What the app wrote inside your builds",
+      "body": "Only on your command, and only two kinds of file: extra_model_paths.yaml when shared models are applied as a file, and copies of workflows you added to a build. Both stay after the app is removed — they live inside someone else's installation, and taking them out is not ours to do."
     }
   },
   "toast": {
@@ -269,7 +283,10 @@
       "alreadyRunning": "This instance is already running.",
       "notRunning": "This instance is not running.",
       "readyTimeout": "The server did not become ready within {secs} seconds.",
-      "cancelled": "Startup was cancelled."
+      "cancelled": "Startup was cancelled.",
+      "otherRunning": "{name} is already running.",
+      "notDetached": "This build is not in the “restarted on its own” state.",
+      "ownerUnknown": "Could not find out which process is holding port {port}. The interface still works, but stopping the server from here is no longer possible."
     },
     "shared": {
       "rootUnavailable": "The shared models folder is not available: {path}",
@@ -288,7 +305,8 @@
       "readFailed": "Could not read the workflow: {reason}",
       "writeFailed": "Could not write the workflow: {reason}",
       "scanFailed": "Could not read the library: {reason}",
-      "manifestWriteFailed": "Could not save tags and notes: {reason}"
+      "manifestWriteFailed": "Could not save tags and notes: {reason}",
+      "noGraphInImage": "This image carries no workflow: {path}"
     },
     "migrate": {
       "instanceRunning": "The build is running. Stop it before moving its files.",
@@ -314,7 +332,15 @@
     "fallback": "This profile could not be parsed, so it runs through cmd. Stopping it is less reliable.",
     "crashed": "The server stopped on its own. Exit code {code}. The log above is kept.",
     "detached": "The server is still answering on its port, but a different process owns it now — most likely ComfyUI-Manager restarted it after installing nodes. Stopping it from here is no longer possible.",
-    "empty": "The log is empty so far."
+    "empty": "The log is empty so far.",
+    "otherRunning": {
+      "title": "Another build is already running",
+      "body": "{name} is holding the video memory. Two builds on one GPU usually end with the second one failing mid-generation.",
+      "stopIt": "Stop it and start this one",
+      "anyway": "Start anyway"
+    },
+    "adopt": "Reconnect",
+    "adopted": "Reconnected to the server on port {port}."
   },
   "shared": {
     "title": "Shared models",
@@ -503,5 +529,48 @@
     "open": "Open ComfyUI",
     "starting": "The build is starting. The interface opens as soon as the server is ready.",
     "retry": "Try again"
+  },
+  "tray": {
+    "show": "Show",
+    "stopAll": "Stop all",
+    "quit": "Quit"
+  },
+  "quit": {
+    "title": "Servers are still running",
+    "body": "Closing the app stops every running server: they are its child processes and leave with it. Unsaved graphs and the generation queue go with them.",
+    "stopAndExit": "Stop everything and exit",
+    "toTray": "Minimize to tray",
+    "trayHint": "The app keeps running in the notification area — click its icon to bring it back."
+  },
+  "args": {
+    "title": "Launch arguments",
+    "lead": "The .bat files of the build are never modified. Edits are saved as your own profile built on top of one of them.",
+    "base": "Based on",
+    "name": "Profile name",
+    "list": "Arguments",
+    "add": "Add argument",
+    "remove": "Remove argument",
+    "reset": "Reset to the .bat",
+    "preview": "The command that will actually run",
+    "previewHint": "The port and --disable-auto-launch are added by the app. The real port is assigned at startup, so the one shown is the preferred one.",
+    "saved": "Profile {name} saved.",
+    "removed": "Profile {name} removed.",
+    "mine": "Your profiles",
+    "none": "No profiles of your own yet.",
+    "edit": "Edit arguments"
+  },
+  "dups": {
+    "title": "Duplicate models",
+    "lead": "A report across every registered build and the shared folder. It only counts: nothing is deleted, moved or linked.",
+    "scan": "Build the report",
+    "scanning": "Looking through {place}…",
+    "wasted": "Wasted on duplicates: {size}",
+    "empty": "No duplicates found.",
+    "copies": "copies: {count}",
+    "clashes": "Same name, different size",
+    "clashesHint": "These are not duplicates: a matching name proves nothing about the contents. They are listed so you can look at them yourself.",
+    "skipped": "Skipped, folder unavailable: {list}",
+    "cancelled": "The scan was interrupted, so the report is incomplete.",
+    "noAction": "Freeing this space is a separate, deliberate step: open a build and use the “Models of this build” panel."
   }
 }

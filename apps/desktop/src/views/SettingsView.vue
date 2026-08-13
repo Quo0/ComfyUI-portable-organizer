@@ -22,6 +22,11 @@ const { t } = useI18n();
       <RouterLink class="nav-item" active-class="on" to="/settings/workflow-library">
         <span>{{ t('settings.section.library') }}</span>
       </RouterLink>
+      <!-- Отчёт о дублях — не настройка, но и не раздел рейла: рейл
+           фиксирован планом, а отчёт про то же, про что общие модели. -->
+      <RouterLink class="nav-item" active-class="on" to="/settings/duplicates">
+        <span>{{ t('settings.section.duplicates') }}</span>
+      </RouterLink>
       <span class="nav-item" aria-disabled="true">
         <span>{{ t('settings.section.archives') }}</span>
       </span>

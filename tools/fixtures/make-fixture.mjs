@@ -11,13 +11,23 @@
 // Запуск: node tools/fixtures/make-fixture.mjs
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const instance = join(here, 'fake-instance');
 const link = join(instance, 'python_embeded');
+
+/**
+ * Вторая копия стенда по пути с пробелом и кириллицей.
+ *
+ * Грабля названа в плане: `d:\program files\Модели ИИ\...` встречается
+ * у пользователей чаще, чем кажется, а ломается на ней квотирование при
+ * спавне и резолв `..\` внутри `advanced\`. Проверять это на английском
+ * пути без пробелов бессмысленно — там всё работает всегда.
+ */
+const oddInstance = join(here, 'стенд с пробелом');
 
 /** Папка установленного Python. Ищем сам интерпретатор и берём его директорию. */
 function findPython() {
@@ -39,8 +49,25 @@ function findPython() {
   return null;
 }
 
+/** Собирает копию стенда по пути с пробелом и кириллицей. */
+function makeOdd(pythonDir) {
+  rmSync(oddInstance, { recursive: true, force: true });
+  // Копируем всё, кроме junction: его нельзя скопировать как содержимое,
+  // да и не нужно — сделаем свой такой же.
+  cpSync(instance, oddInstance, {
+    recursive: true,
+    filter: (src) => !src.endsWith('python_embeded') && !src.includes('python_embeded'),
+  });
+  execFileSync('cmd', ['/c', 'mklink', '/J', join(oddInstance, 'python_embeded'), pythonDir], {
+    stdio: 'pipe',
+  });
+  console.log(`Копия с пробелом и кириллицей: ${oddInstance}`);
+}
+
 if (existsSync(link)) {
   console.log('Стенд уже собран:', link);
+  const pythonDir = findPython();
+  if (pythonDir && !existsSync(join(oddInstance, 'python_embeded'))) makeOdd(pythonDir);
   process.exit(0);
 }
 
@@ -68,3 +95,5 @@ const ok = existsSync(join(link, 'python.exe')) && existsSync(join(instance, 'Co
 console.log(`Стенд собран: ${instance}`);
 console.log(`  python_embeded -> ${pythonDir}`);
 console.log(`  валиден как инстанс: ${ok ? 'да' : 'НЕТ'}`);
+
+makeOdd(pythonDir);

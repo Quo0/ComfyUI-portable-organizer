@@ -142,3 +142,78 @@ pub fn install_job_object() -> Result<(), String> {
 pub fn install_job_object() -> Result<(), String> {
     Ok(())
 }
+
+/// Кто слушает этот порт на локальной петле.
+///
+/// Нужен ровно в одном случае: ComfyUI-Manager после установки нод гасит
+/// сервер и поднимает новый процесс. Наш хэндл при этом теряется, порт
+/// остаётся занятым, а PID мы не знаем — то есть остановить сборку
+/// из приложения больше нечем.
+///
+/// Таблица берётся целиком и один раз: соединений на машине сотни, но
+/// вызов стоит десятки микросекунд, а звать его приходится по одному разу
+/// на переподключение.
+#[cfg(windows)]
+pub fn pid_listening_on(port: u16) -> Option<u32> {
+    use std::mem::size_of;
+    use windows_sys::Win32::NetworkManagement::IpHelper::{
+        GetExtendedTcpTable, MIB_TCPTABLE_OWNER_PID, TCP_TABLE_OWNER_PID_LISTENER,
+    };
+    use windows_sys::Win32::Networking::WinSock::AF_INET;
+
+    // SAFETY: буфер выделяется под размер, который система же и назвала,
+    // и читается ровно столько записей, сколько она объявила в dwNumEntries.
+    unsafe {
+        let mut size: u32 = 0;
+        // Первый вызов только узнаёт нужный размер и потому обязан
+        // вернуть ошибку переполнения буфера.
+        GetExtendedTcpTable(
+            std::ptr::null_mut(),
+            &mut size,
+            0,
+            AF_INET as u32,
+            TCP_TABLE_OWNER_PID_LISTENER,
+            0,
+        );
+        if size == 0 {
+            return None;
+        }
+
+        let mut buffer = vec![0u8; size as usize];
+        let rc = GetExtendedTcpTable(
+            buffer.as_mut_ptr().cast(),
+            &mut size,
+            0,
+            AF_INET as u32,
+            TCP_TABLE_OWNER_PID_LISTENER,
+            0,
+        );
+        if rc != 0 {
+            return None;
+        }
+
+        let table = &*(buffer.as_ptr() as *const MIB_TCPTABLE_OWNER_PID);
+        let rows = std::slice::from_raw_parts(
+            buffer
+                .as_ptr()
+                .add(size_of::<u32>())
+                .cast::<windows_sys::Win32::NetworkManagement::IpHelper::MIB_TCPROW_OWNER_PID>(),
+            table.dwNumEntries as usize,
+        );
+
+        rows.iter()
+            .find(|row| local_port(row.dwLocalPort) == port)
+            .map(|row| row.dwOwningPid)
+    }
+}
+
+/// Порт в таблице лежит в сетевом порядке байт, да ещё и в 32-битном поле.
+#[cfg(windows)]
+fn local_port(raw: u32) -> u16 {
+    u16::from_be((raw & 0xFFFF) as u16)
+}
+
+#[cfg(not(windows))]
+pub fn pid_listening_on(_port: u16) -> Option<u32> {
+    None
+}

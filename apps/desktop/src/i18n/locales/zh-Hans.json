@@ -167,7 +167,8 @@
       "appearance": "外观",
       "sharedModels": "共享模型",
       "library": "工作流库",
-      "archives": "安装包"
+      "archives": "安装包",
+      "duplicates": "重复文件"
     },
     "appearance": {
       "title": "外观",
@@ -197,11 +198,24 @@
     "version": "版本",
     "paths": {
       "title": "应用数据的存放位置",
-      "appData": "应用数据"
+      "appData": "应用数据",
+      "localData": "缓存与浏览器数据"
     },
     "uninstall": {
       "title": "卸载会删除什么",
       "body": "卸载只会移除应用本身及其设置。你的模型、共享模板和 ComfyUI 文件夹都会原样保留。"
+    },
+    "content": {
+      "title": "你的内容",
+      "body": "这些文件夹属于你。卸载应用不会动它们。",
+      "shared": "共享模型",
+      "library": "工作流库",
+      "instances": "注册表中的整合包",
+      "notSet": "未设置"
+    },
+    "written": {
+      "title": "应用写入你的整合包中的内容",
+      "body": "仅在你下达指令时写入，且只有两类文件：以“写入文件”方式应用共享模型时的 extra_model_paths.yaml，以及你添加到整合包中的工作流副本。卸载应用后它们都会保留——它们位于别人的安装目录中，我们无权清理。"
     }
   },
   "toast": {
@@ -269,7 +283,10 @@
       "alreadyRunning": "这个实例已在运行。",
       "notRunning": "这个实例未在运行。",
       "readyTimeout": "服务器在 {secs} 秒内没有就绪。",
-      "cancelled": "启动已取消。"
+      "cancelled": "启动已取消。",
+      "otherRunning": "{name} 已在运行。",
+      "notDetached": "该整合包不处于“自行重启”状态。",
+      "ownerUnknown": "无法确定哪个进程占用了端口 {port}。界面仍可使用，但已无法从这里停止该服务器。"
     },
     "shared": {
       "rootUnavailable": "共享模型文件夹不可用：{path}",
@@ -288,7 +305,8 @@
       "readFailed": "无法读取工作流：{reason}",
       "writeFailed": "无法写入工作流：{reason}",
       "scanFailed": "无法读取库：{reason}",
-      "manifestWriteFailed": "无法保存标签和备注：{reason}"
+      "manifestWriteFailed": "无法保存标签和备注：{reason}",
+      "noGraphInImage": "这张图片不包含工作流：{path}"
     },
     "migrate": {
       "instanceRunning": "该安装正在运行。请先停止再移动其文件。",
@@ -314,7 +332,15 @@
     "fallback": "这个配置无法解析，因此通过 cmd 启动。停止它的可靠性较低。",
     "crashed": "服务器自行退出。退出代码 {code}。上方日志保留。",
     "detached": "端口上的服务器仍在响应，但现在它属于另一个进程——很可能是 ComfyUI-Manager 安装节点后重启了它。从这里已无法停止。",
-    "empty": "日志目前为空。"
+    "empty": "日志目前为空。",
+    "otherRunning": {
+      "title": "另一个整合包正在运行",
+      "body": "{name} 正占用显存。同一张显卡上跑两个整合包，通常会导致第二个在生成过程中失败。",
+      "stopIt": "停止它并启动这个",
+      "anyway": "仍然启动"
+    },
+    "adopt": "重新连接",
+    "adopted": "已重新连接到端口 {port} 上的服务器。"
   },
   "shared": {
     "title": "共享模型",
@@ -503,5 +529,48 @@
     "open": "打开 ComfyUI",
     "starting": "该整合包正在启动。服务器就绪后界面会自动打开。",
     "retry": "重试"
+  },
+  "tray": {
+    "show": "显示",
+    "stopAll": "全部停止",
+    "quit": "退出"
+  },
+  "quit": {
+    "title": "仍有服务器在运行",
+    "body": "关闭应用会停止所有正在运行的服务器：它们是应用的子进程，会随之退出。未保存的工作流和生成队列也会丢失。",
+    "stopAndExit": "停止全部并退出",
+    "toTray": "最小化到托盘",
+    "trayHint": "应用会留在通知区域，点击图标即可返回。"
+  },
+  "args": {
+    "title": "启动参数",
+    "lead": "整合包自带的 .bat 文件永远不会被改动。修改会保存为基于其中之一的自定义配置。",
+    "base": "基于",
+    "name": "配置名称",
+    "list": "参数",
+    "add": "添加参数",
+    "remove": "移除参数",
+    "reset": "恢复为 .bat 中的内容",
+    "preview": "实际执行的命令",
+    "previewHint": "端口和 --disable-auto-launch 由应用添加。真实端口在启动时分配，这里显示的是首选端口。",
+    "saved": "配置 {name} 已保存。",
+    "removed": "配置 {name} 已删除。",
+    "mine": "自定义配置",
+    "none": "还没有自定义配置。",
+    "edit": "编辑参数"
+  },
+  "dups": {
+    "title": "重复模型",
+    "lead": "针对所有已注册整合包和共享文件夹的报告。它只统计：不删除、不移动，也不创建链接。",
+    "scan": "生成报告",
+    "scanning": "正在检查 {place}…",
+    "wasted": "重复占用：{size}",
+    "empty": "没有发现重复。",
+    "copies": "副本数：{count}",
+    "clashes": "同名但大小不同",
+    "clashesHint": "它们不是重复文件：名称相同并不说明内容相同。列出来是为了让你自己核对。",
+    "skipped": "已跳过，文件夹不可用：{list}",
+    "cancelled": "扫描被中断，因此报告并不完整。",
+    "noAction": "释放这些空间是一个独立且需要确认的操作：打开某个整合包，使用“该整合包的模型”面板。"
   }
 }

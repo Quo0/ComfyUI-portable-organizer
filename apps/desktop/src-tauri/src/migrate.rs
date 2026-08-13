@@ -130,7 +130,7 @@ pub struct Failed {
 ///
 /// Отличаем по имени и нулевому размеру сразу: пользовательский файл
 /// с таким именем возможен, но не нулевой.
-fn is_placeholder(path: &Path, size: u64) -> bool {
+pub(crate) fn is_placeholder(path: &Path, size: u64) -> bool {
     size == 0
         && path
             .file_name()
@@ -140,7 +140,7 @@ fn is_placeholder(path: &Path, size: u64) -> bool {
 }
 
 /// Размер и число файлов в дереве. Каталог считается целиком.
-fn measure(path: &Path) -> (u64, u32) {
+pub(crate) fn measure(path: &Path) -> (u64, u32) {
     let Ok(meta) = std::fs::metadata(path) else {
         return (0, 0);
     };

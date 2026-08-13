@@ -88,6 +88,15 @@ pub struct Instance {
     #[serde(default)]
     pub shared: InstanceShared,
 
+    /// Профили, собранные пользователем поверх разобранных из `.bat`.
+    ///
+    /// Свои, а не правка чужих: `.bat` мы не трогаем никогда, а разбор
+    /// перечитывается при каждом запуске — правку в него было бы негде
+    /// удержать. `#[serde(default)]` по той же причине, что у `shared`:
+    /// реестр, записанный до этой фазы, поля не содержит.
+    #[serde(default)]
+    pub custom_profiles: Vec<CustomProfile>,
+
     /// Размер на диске. `f64`, а не `u64`: specta запрещает экспорт целых,
     /// не помещающихся в число JavaScript без потери точности. Байты
     /// до 9 петабайт в f64 представимы точно, этого хватит с запасом.
@@ -99,6 +108,24 @@ pub struct Instance {
     /// недоступным, но из списка не пропадает — иначе пользователь решит,
     /// что приложение потеряло его сборку.
     pub available: bool,
+}
+
+/// Свой профиль запуска.
+///
+/// Хранятся только имя и аргументы. Интерпретатор, рабочая папка и `env`
+/// берутся у базового профиля **в момент запуска**: пользователь мог
+/// поправить `.bat` руками, и запомненная копия однажды разошлась бы
+/// с тем, что лежит на диске.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomProfile {
+    /// `custom:<число>`. Префикс отличает свой профиль от имени `.bat`.
+    pub id: String,
+    pub name: String,
+    /// Профиль из `.bat`, у которого берётся всё остальное. Если он исчез —
+    /// свой профиль показывается сломанным, а не запускается наугад.
+    pub base_id: String,
+    pub args: Vec<String>,
 }
 
 /// Метаданные, которые правит пользователь. Отдельным типом, чтобы
@@ -266,6 +293,7 @@ pub fn add(
         created_at: now_ms(),
         source,
         shared: InstanceShared::default(),
+        custom_profiles: Vec::new(),
         size_bytes: None,
         size_measured_at: None,
         available: true,
@@ -318,6 +346,61 @@ pub fn set_shared(
 
     instance.shared = shared;
     write_all(app, &list)
+}
+
+/// Сохраняет свой профиль: новый или поверх существующего с тем же id.
+///
+/// Пустой `id` означает новый профиль — номер выдаём здесь, чтобы фронт
+/// не изобретал уникальность в обход реестра.
+pub fn save_profile(
+    app: &tauri::AppHandle,
+    id: &str,
+    mut profile: CustomProfile,
+) -> Result<Instance, AppError> {
+    if profile.name.trim().is_empty() {
+        return Err(AppError::new("instances.emptyName"));
+    }
+
+    let mut list = read_all(app)?;
+    let instance = list
+        .iter_mut()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", id))?;
+
+    if profile.id.is_empty() {
+        let mut n = instance.custom_profiles.len() + 1;
+        while instance.custom_profiles.iter().any(|p| p.id == format!("custom:{n}")) {
+            n += 1;
+        }
+        profile.id = format!("custom:{n}");
+    }
+
+    match instance.custom_profiles.iter_mut().find(|p| p.id == profile.id) {
+        Some(existing) => *existing = profile,
+        None => instance.custom_profiles.push(profile),
+    }
+
+    let updated = instance.clone();
+    write_all(app, &list)?;
+    Ok(updated)
+}
+
+/// Удаляет свой профиль. Профили из `.bat` удалить нельзя — их не мы завели.
+pub fn remove_profile(
+    app: &tauri::AppHandle,
+    id: &str,
+    profile_id: &str,
+) -> Result<Instance, AppError> {
+    let mut list = read_all(app)?;
+    let instance = list
+        .iter_mut()
+        .find(|i| i.id == id)
+        .ok_or_else(|| AppError::with("instances.notFound", "id", id))?;
+
+    instance.custom_profiles.retain(|p| p.id != profile_id);
+    let updated = instance.clone();
+    write_all(app, &list)?;
+    Ok(updated)
 }
 
 /// Убирает инстанс из реестра. Папку на диске не трогает — никогда.
