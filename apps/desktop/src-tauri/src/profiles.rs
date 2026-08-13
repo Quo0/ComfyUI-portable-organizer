@@ -124,12 +124,45 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
     }
 }
 
+/// Значение флага в аргументах профиля, в обеих формах записи.
+///
+/// Последнее вхождение побеждает — так же ведёт себя argparse.
+fn flag_value(profile: &LaunchProfile, name: &str) -> Option<String> {
+    let joined = format!("{name}=");
+    let mut found = None;
+    let mut args = profile.args.iter();
+
+    while let Some(arg) = args.next() {
+        if arg == name {
+            found = args.next().cloned();
+        } else if let Some(value) = arg.strip_prefix(&joined) {
+            found = Some(value.to_string());
+        }
+    }
+    found
+}
+
+/// Корень, от которого ComfyUI считает свои папки.
+///
+/// `--base-directory` (`comfy/cli_args.py:70`) переносит разом модели,
+/// `custom_nodes`, `input`, `output`, `temp` и `user`; без него корнем
+/// служит папка самого ComfyUI (`folder_paths.py:16-18`).
+fn base_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
+    match flag_value(profile, "--base-directory") {
+        Some(value) => resolve(Path::new(&profile.cwd), &value),
+        None => instance_root.join("ComfyUI"),
+    }
+}
+
 /// Где эта сборка хранит свои воркфлоу.
 ///
-/// **Предполагать путь нельзя.** `--user-directory` (`comfy/cli_args.py:254`)
-/// переносит весь `user/` куда угодно, и сборка с таким флагом хранит
-/// воркфлоу не там, где мы бы решили. Резолвим из аргументов профиля,
-/// и только при их отсутствии берём умолчание `<instance>\ComfyUI\user`.
+/// **Предполагать путь нельзя,** и флагов тут два, выстроенных цепочкой:
+/// `--user-directory` (`cli_args.py:254`) бьёт `--base-directory`, а тот
+/// задаёт корень, от которого считается `user/` (`folder_paths.py:72`).
+///
+/// Второе звено этой цепочки я в Фазе 2.6 пропустил: разбирался только
+/// `--user-directory`, и сборка, запущенная с одним `--base-directory`,
+/// хранила воркфлоу не там, где мы их искали.
 ///
 /// Относительный путь во флаге считается от рабочей папки, а она у нас —
 /// директория `.bat`, ровно как при запуске двойным кликом.
@@ -138,26 +171,27 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
 /// сохранении. Проверять существование здесь не наша забота — вызывающий
 /// либо создаёт дерево, либо считает пустым.
 pub fn workflows_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
-    let mut user_dir = None;
-    let mut args = profile.args.iter();
-
-    while let Some(arg) = args.next() {
-        if arg == "--user-directory" {
-            user_dir = args.next().cloned();
-        } else if let Some(value) = arg.strip_prefix("--user-directory=") {
-            user_dir = Some(value.to_string());
-        }
-    }
-
-    let base = match user_dir {
+    let user = match flag_value(profile, "--user-directory") {
         Some(value) => resolve(Path::new(&profile.cwd), &value),
-        None => instance_root.join("ComfyUI").join("user"),
+        None => base_dir(profile, instance_root).join("user"),
     };
 
     // `default` — публичная папка пользователя по умолчанию
     // (`app/user_manager.py:79`). Многопользовательский режим ComfyUI
     // мы не поддерживаем и не притворяемся, что поддерживаем.
-    base.join("default").join("workflows")
+    user.join("default").join("workflows")
+}
+
+/// Где эта сборка хранит свои модели.
+///
+/// Та же цепочка, что у воркфлоу, и в том же порядке
+/// (`folder_paths.py:20-23`): `--models-directory` бьёт
+/// `--base-directory`, тот задаёт корень, иначе `<instance>\ComfyUI\models`.
+pub fn models_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
+    match flag_value(profile, "--models-directory") {
+        Some(value) => resolve(Path::new(&profile.cwd), &value),
+        None => base_dir(profile, instance_root).join("models"),
+    }
 }
 
 /// Разбивает строку на токены, уважая кавычки.

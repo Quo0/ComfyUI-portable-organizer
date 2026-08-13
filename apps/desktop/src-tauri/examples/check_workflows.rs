@@ -226,6 +226,71 @@ fn main() {
         profiles::workflows_dir(&relative, instance).display().to_string(),
     );
 
+    // --- цепочка --base-directory ------------------------------------------
+    //
+    // Это второе звено я в Фазе 2.6 пропустил: разбирался только
+    // --user-directory, и сборка с одним --base-directory хранила воркфлоу
+    // не там, где мы искали.
+
+    let based = profile(
+        vec!["-s", "ComfyUI\\main.py", "--base-directory", r"E:\comfy-base"],
+        r"D:\builds\comfy",
+    );
+    check(
+        "--base-directory уводит и папку воркфлоу",
+        profiles::workflows_dir(&based, instance)
+            == PathBuf::from(r"E:\comfy-base\user\default\workflows"),
+        profiles::workflows_dir(&based, instance).display().to_string(),
+    );
+    check(
+        "--base-directory уводит и папку моделей",
+        profiles::models_dir(&based, instance) == PathBuf::from(r"E:\comfy-base\models"),
+        profiles::models_dir(&based, instance).display().to_string(),
+    );
+
+    // `--user-directory` объявлен как «Overrides --base-directory».
+    let both = profile(
+        vec![
+            "-s",
+            "ComfyUI\\main.py",
+            "--base-directory",
+            r"E:\comfy-base",
+            "--user-directory",
+            r"F:\only-user",
+        ],
+        r"D:\builds\comfy",
+    );
+    check(
+        "--user-directory бьёт --base-directory",
+        profiles::workflows_dir(&both, instance)
+            == PathBuf::from(r"F:\only-user\default\workflows"),
+        profiles::workflows_dir(&both, instance).display().to_string(),
+    );
+    check(
+        "но папку моделей он не трогает",
+        profiles::models_dir(&both, instance) == PathBuf::from(r"E:\comfy-base\models"),
+        profiles::models_dir(&both, instance).display().to_string(),
+    );
+
+    // --- папка моделей ------------------------------------------------------
+
+    check(
+        "без флагов модели в ComfyUI\\models",
+        profiles::models_dir(&plain, instance)
+            == instance.join("ComfyUI").join("models"),
+        profiles::models_dir(&plain, instance).display().to_string(),
+    );
+
+    let models = profile(
+        vec!["-s", "ComfyUI\\main.py", "--base-directory", r"E:\b", "--models-directory", r"G:\models"],
+        r"D:\builds\comfy",
+    );
+    check(
+        "--models-directory бьёт --base-directory",
+        profiles::models_dir(&models, instance) == PathBuf::from(r"G:\models"),
+        profiles::models_dir(&models, instance).display().to_string(),
+    );
+
     println!("\nПроверок провалено: {failures}");
     if failures > 0 {
         std::process::exit(1);
