@@ -348,7 +348,7 @@ fn volume_root(path: &Path) -> Option<String> {
 }
 
 #[cfg(windows)]
-fn free_space(root: &str) -> Option<f64> {
+pub(crate) fn free_space(root: &str) -> Option<f64> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
 
@@ -375,7 +375,7 @@ fn free_space(root: &str) -> Option<f64> {
 }
 
 #[cfg(not(windows))]
-fn free_space(_root: &str) -> Option<f64> {
+pub(crate) fn free_space(_root: &str) -> Option<f64> {
     None
 }
 

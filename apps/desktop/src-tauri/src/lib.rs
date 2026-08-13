@@ -16,6 +16,7 @@ pub mod comfy_api;
 pub mod discovery;
 pub mod error;
 pub mod installer;
+pub mod migrate;
 pub mod instances;
 pub mod ports;
 pub mod process;
