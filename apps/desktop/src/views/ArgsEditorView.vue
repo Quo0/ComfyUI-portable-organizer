@@ -133,15 +133,34 @@ async function remove(profile: CustomProfile): Promise<void> {
 
 <template>
   <section v-if="instance" class="screen">
-    <header class="screen-head">
-      <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
-        <svg class="ico"><use href="#i-back" /></svg>
-        {{ t('common.back') }}
-      </RouterLink>
-      <h1 class="t-lg">{{ t('args.title') }}</h1>
-      <span class="head-spacer"></span>
-      <span class="t-sm">{{ instance.name }}</span>
-    </header>
+    <!-- Ряд шага, как в мастере и на добавлении инстанса: экран линейный —
+         пришли сюда с экрана сборки, сохранили, вернулись. Поэтому «Назад»
+         здесь не навигация у левого края, а шаг назад рядом с действием,
+         и стоит левее его.
+
+         Внизу «Сохранить» уезжала из виду тем вернее, чем больше аргументов
+         правят: под ней скроллится их список. -->
+    <div class="step-bar">
+      <h2 class="title">{{ t('args.title') }}</h2>
+      <!-- Имя сборки при заголовке, а не у правого края: оно уточняет,
+           чьи аргументы правятся, и в отрыве читалось как чужая строка. -->
+      <span class="hint">{{ instance.name }}</span>
+      <span class="spacer"></span>
+      <span class="acts">
+        <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
+          <svg class="ico"><use href="#i-back" /></svg>
+          {{ t('common.back') }}
+        </RouterLink>
+        <button
+          type="button"
+          class="btn primary lg"
+          :disabled="draft.name.trim() === '' || !draft.baseId"
+          @click="save"
+        >
+          {{ t('common.save') }}
+        </button>
+      </span>
+    </div>
 
     <div class="screen-body">
       <div class="screen-pad">
@@ -189,15 +208,19 @@ async function remove(profile: CustomProfile): Promise<void> {
             <!-- Предпросмотр обновляется на каждый ввод, а не по потере
                  фокуса: правишь аргумент — сразу видишь команду. -->
             <input v-model="draft.args[index]" class="input mono" type="text" />
-            <button
-              type="button"
-              class="btn ghost"
-              :title="t('args.remove')"
-              :aria-label="t('args.remove')"
-              @click="removeArg(index)"
-            >
-              −
-            </button>
+            <!-- Тот же крестик, что убирает строку в списке назначений
+                 мастера: одна операция — один значок. -->
+            <span class="acts">
+              <button
+                type="button"
+                class="act"
+                :title="t('args.remove')"
+                :aria-label="t('args.remove')"
+                @click="removeArg(index)"
+              >
+                <svg class="ico"><use href="#i-close" /></svg>
+              </button>
+            </span>
           </div>
           <div class="row">
             <button type="button" class="btn secondary" @click="addArg">
@@ -216,28 +239,27 @@ async function remove(profile: CustomProfile): Promise<void> {
           <p class="hint">{{ t('args.previewHint') }}</p>
         </div>
 
-        <div class="row">
-          <button
-            type="button"
-            class="btn primary"
-            :disabled="draft.name.trim() === '' || !draft.baseId"
-            @click="save"
-          >
-            {{ t('common.save') }}
-          </button>
-        </div>
+        <!-- Кнопки под формой нет: действие уехало в ряд шага. -->
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
+/* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
+   без него заголовок прилипает к заголовку окна. */
+.step-bar {
+  padding-top: var(--space-4);
+}
+
+/* Своей прокрутки у предпросмотра нет: на экране одна область прокрутки,
+   а команду сюда приходят прочитать целиком. Перенос — `anywhere`,
+   а не `break-all`: тот рвал имя аргумента на краю строки даже тогда,
+   когда оно целиком влезало на следующую. */
 .preview {
   margin: 0;
   padding: var(--space-2);
-  max-height: 120px;
-  overflow: auto;
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 </style>
