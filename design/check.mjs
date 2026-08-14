@@ -86,31 +86,68 @@ const src = ['preview.src.html', 'screens.src.html']
 const manual = (src.match(/<figure class="panel/g) || []).length;
 if (manual) note(`пар, продублированных руками: ${manual} — используйте <template> и data-pair`);
 
-// 6. Переполнение ---------------------------------------------------------------
-// Окно фиксированной высоты — единственный способ показать переполнение.
+// 6. Кадры с прокруткой ---------------------------------------------------------
+// Окно фиксированной высоты — единственный способ показать прокрутку.
 // Без него макет просто вырастет, и демонстрировать будет нечего.
 const screens = readFileSync(join(DESIGN_DIR, 'screens.html'), 'utf8');
-const EXPECTED_OVERFLOW = 7;
+const EXPECTED_SCROLL = 7;
 
-const overflowCount = (screens.match(/data-overflow/g) || []).length;
-if (overflowCount !== EXPECTED_OVERFLOW) {
-  note(`макетов с переполнением: ${overflowCount}, ожидалось ${EXPECTED_OVERFLOW}`);
+const scrollCount = (screens.match(/data-scroll/g) || []).length;
+if (scrollCount !== EXPECTED_SCROLL) {
+  note(`макетов с прокруткой: ${scrollCount}, ожидалось ${EXPECTED_SCROLL}`);
 }
 
 // Каждый такой макет обязан иметь фиксированную высоту и область прокрутки.
-for (const m of screens.matchAll(/<div class="frame" data-overflow>[\s\S]{0,200}?<div class="win([^"]*)"/g)) {
-  if (!m[1].includes('fixed')) note('макет с переполнением без фиксированной высоты окна');
+for (const m of screens.matchAll(/<div class="frame" data-scroll>[\s\S]{0,200}?<div class="win([^"]*)"/g)) {
+  if (!m[1].includes('fixed')) note('макет с прокруткой без фиксированной высоты окна');
 }
+
+// Высота строк, чтобы считать содержимое в «единицах строки». Числа взяты
+// из самих компонентов: `.path-item` — две трети отступа плюс строка,
+// `.prog` — заголовок, полоса и путь, `.card` — три строки с полями.
+const ROW_UNITS = [
+  [/class="path-item[ "]/g, 1],
+  [/class="cat[ "]/g, 1],
+  [/class="wf-row[ "]/g, 1],
+  [/class="compat-row[ "]/g, 1],
+  [/class="prog"/g, 2],
+  [/class="card[ "]/g, 3],
+];
+// Область данных в окне на 560 пикселей — примерно 400. Порог с запасом:
+// полоса прокрутки, появляющаяся на два пикселя, ничего не доказывает.
+const MIN_UNITS = 14;
+
 // Область прокрутки ищется внутри контентной части, а не во всём макете:
 // прокручивающийся блок рейла есть в каждом окне и удовлетворил бы проверку,
 // даже если сами данные никуда не скроллятся.
-const overflowBlocks = screens.split('data-overflow').slice(1);
-overflowBlocks.forEach((block, i) => {
+const scrollBlocks = screens.split('data-scroll').slice(1);
+scrollBlocks.forEach((block, i) => {
   const frame = block.split('</section>')[0].split('variant-head')[0];
   const contentAt = frame.indexOf('class="content');
   const content = contentAt === -1 ? '' : frame.slice(contentAt);
   if (!/class="scroll"|class="log"/.test(content)) {
-    note(`макет с переполнением №${i + 1}: в контентной части нет области прокрутки`);
+    note(`макет с прокруткой №${i + 1}: в контентной части нет области прокрутки`);
+    return;
+  }
+
+  // Структура — половина дела: пока данных меньше области, прокрутки
+  // не возникает, и кадр доказывает ровно ничего. Пять таких кадров
+  // прошли проверку и висели пустыми, пока не заметили глазами.
+  let units = ROW_UNITS.reduce(
+    (sum, [re, weight]) => sum + (content.match(re) || []).length * weight,
+    0,
+  );
+  const consoleAt = content.indexOf('class="console"');
+  if (consoleAt !== -1) {
+    const text = content.slice(consoleAt, content.indexOf('</div>', consoleAt));
+    units += (text.match(/\n/g) || []).length * 0.6;
+  }
+
+  if (units < MIN_UNITS) {
+    note(
+      `макет с прокруткой №${i + 1}: данных на ${units.toFixed(1)} строки`
+      + ` при пороге ${MIN_UNITS} — прокрутки не будет`,
+    );
   }
 });
 

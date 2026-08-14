@@ -58,9 +58,11 @@
 }
 .tb-btns { margin-left: auto; display: flex; gap: 16px; color: var(--ink-muted); font-size: 11px; }
 .win-body { display: grid; grid-template-columns: auto minmax(0, 1fr); min-height: 430px; }
-/* Окно с фиксированной высотой — только так возникает переполнение,
-   ради которого макет и рисуется. min-height:0 обязателен на каждом
-   звене, иначе grid-элемент не сожмётся и скролл не появится. */
+/* Окно с фиксированной высотой — только так возникает прокрутка,
+   ради которой второй кадр и рисуется. min-height:0 обязателен на каждом
+   звене, иначе grid-элемент не сожмётся и прокрутка не появится.
+   Одной высоты мало: данных в кадре должно быть больше, чем помещается
+   в область, — это проверяет design/check.mjs. */
 .win.fixed { height: 560px; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 .win.fixed .win-body { min-height: 0; overflow: hidden; }
 .win.fixed .content { min-height: 0; }
@@ -75,15 +77,21 @@
 .data { min-height: 0; display: flex; flex-direction: column; }
 .data > .scroll { border: 1px solid var(--line); border-radius: var(--radius-md); }
 
-.overflow-tag {
-  font-family: var(--font-mono); font-size: 10px;
-  padding: 2px 6px; border-radius: 3px;
-  background: var(--page-mark); color: #fff;
-  white-space: nowrap;
-}
 .variant-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
 .variant-head b { font-size: 13px; font-weight: 600; }
-.variant-head span { font-size: 12.5px; color: var(--page-dim); }
+/* Подпись рядом с бейджем — но не сам бейдж: прежнее правило было
+   объявлено просто как `span`, било по бейджу специфичностью, и белый
+   текст на нём становился серым. Исключение написано здесь, а не
+   перебито третьим селектором сверху. */
+.variant-head > span:not(.scroll-tag) { font-size: 12.5px; color: var(--page-dim); }
+/* Бейдж кадра с прокруткой. Вид как у `.jtag` — это такая же пометка
+   о макете, а не ошибка: красным здесь пугать не за что. */
+.scroll-tag {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 2px 6px; border-radius: 3px;
+  background: var(--page-code); color: var(--page-fg);
+  white-space: nowrap;
+}
 .content h3 { font-family: var(--font-ui-display); font-size: var(--text-lg); font-weight: var(--weight-bold); margin: 0; }
 .content > p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); max-width: 60ch; }
 .crumb { font-size: var(--text-xs); color: var(--ink-muted); }
@@ -215,8 +223,10 @@
       двести воркфлоу, двадцать пять категорий моделей, тысячи строк лога.
       Поэтому <strong>окно не прокручивается целиком</strong>. Внутри контентной
       области ровно один вертикальный скролл — область данных, а всё, что
-      управляет экраном, из неё вынесено. Каждый экран ниже показан дважды:
-      с обычным объёмом и с реальным, где переполнение уже наступило.
+      управляет экраном, из неё вынесено. Часть экранов ниже показана дважды:
+      с обычным объёмом и с реальным — второй кадр помечен
+      <span class="scroll-tag">прокрутка</span> и нарисован в окне
+      фиксированной высоты, где данные заведомо не помещаются.
     </p>
     <div class="two" style="margin-top:16px">
       <div class="paths">
@@ -497,8 +507,8 @@
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>история архивов растёт с каждой новой версией</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>история архивов растёт с каждой новой версией</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -538,10 +548,14 @@
                 <div class="path-item"><span class="lbl">0.30.2 · 4 августа</span><span class="val">2.11 ГБ</span></div>
                 <div class="path-item"><span class="lbl">0.30.0 · 21 июля</span><span class="val">2.09 ГБ</span></div>
                 <div class="path-item"><span class="lbl">0.29.4 · 3 июля</span><span class="val">1.98 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.29.1 · 12 июня</span><span class="val">1.96 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.28.7 · 30 мая</span><span class="val">файл не найден</span></div>
-                <div class="path-item"><span class="lbl">0.28.2 · 14 мая</span><span class="val">1.91 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.27.9 · 2 мая</span><span class="val">1.88 ГБ</span></div>
+                <!-- История растёт с каждой новой версией сборки: за год
+                     их набирается два десятка. -->
+                <template data-repeat="4">
+                  <div class="path-item"><span class="lbl">0.29.1 · 12 июня</span><span class="val">1.96 ГБ</span></div>
+                  <div class="path-item"><span class="lbl">0.28.7 · 30 мая</span><span class="val">файл не найден</span></div>
+                  <div class="path-item"><span class="lbl">0.28.2 · 14 мая</span><span class="val">1.91 ГБ</span></div>
+                  <div class="path-item"><span class="lbl">0.27.9 · 2 мая</span><span class="val">1.88 ГБ</span></div>
+                </template>
               </div></div>
             </div>
             <div class="screen-foot"><span class="btn ghost">Отмена</span><span class="btn primary">Далее</span></div>
@@ -628,8 +642,8 @@
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>шесть папок назначения; ряд шага с «Дальше» закреплён</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>шесть папок назначения; ряд шага с «Дальше» закреплён</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -674,12 +688,14 @@
             </div>
             <div class="data">
               <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
-                <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
-                <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
-                <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
-                <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
-                <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
+                <template data-repeat="3">
+                  <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
+                  <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
+                  <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
+                  <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
+                  <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
+                  <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
+                </template>
               </div></div>
             </div>
           </div>
@@ -834,8 +850,8 @@
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>шесть целей; «Отменить установку» достижимо всегда</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>шесть целей; «Отменить установку» достижимо всегда</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -872,10 +888,12 @@
               <div class="scroll"><div class="scroll-pad" style="gap:var(--space-4)">
                 <div class="prog"><div class="prog-head"><span>D:\AI\Flux</span><span class="count">готово</span></div><div class="track"><i style="width:100%"></i></div></div>
                 <div class="prog"><div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">64%</span></div><div class="track"><i style="width:64%"></i></div><div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div></div>
-                <div class="prog"><div class="prog-head"><span>D:\AI\SDXL_new</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
-                <div class="prog"><div class="prog-head"><span>E:\AI\Sandbox</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
-                <div class="prog"><div class="prog-head"><span>D:\AI\Video</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
-                <div class="prog"><div class="prog-head"><span>E:\AI\Archive_030</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
+                <template data-repeat="3">
+                  <div class="prog"><div class="prog-head"><span>D:\AI\SDXL_new</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
+                  <div class="prog"><div class="prog-head"><span>E:\AI\Sandbox</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
+                  <div class="prog"><div class="prog-head"><span>D:\AI\Video</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
+                  <div class="prog"><div class="prog-head"><span>E:\AI\Archive_030</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
+                </template>
               </div></div>
             </div>
           </div>
@@ -1006,8 +1024,8 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>полторы тысячи строк; следование приостановлено</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>полторы тысячи строк; следование приостановлено</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -1041,6 +1059,9 @@ Loading custom nodes: 47 found
               <div class="track indet"><i></i></div>
             </div>
             <div class="data">
+              <!-- Полторы тысячи строк старта: сорока хватает, чтобы
+                   лог не помещался в область и полоса прокрутки была
+                   настоящей. -->
               <div class="log">
 <div class="console">Total VRAM 24564 MB, total RAM 65451 MB
 pytorch version: 2.13.0+cu130
@@ -1048,13 +1069,13 @@ Set vram state to: NORMAL_VRAM
 Device: cuda:0 NVIDIA GeForce RTX 4090
 Using pytorch attention
 Loading custom nodes: 47 found
-  ComfyUI-Manager 3.19.4
+<template data-repeat="6">  ComfyUI-Manager 3.19.4
   ComfyUI_IPAdapter_plus
   ComfyUI-VideoHelperSuite
   was-node-suite-comfyui
   ComfyUI-Impact-Pack
   comfyui_controlnet_aux
-Import times for custom nodes:
+</template>Import times for custom nodes:
    0.1 seconds: ComfyUI-Manager
    2.4 seconds: was-node-suite-comfyui</div>
                 <span class="log-follow">К последним строкам <span class="n">+128</span></span>
@@ -1418,8 +1439,8 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>двадцать пять категорий; тумблер загрузок закреплён сверху</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двадцать пять категорий; тумблер загрузок закреплён сверху</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -1595,8 +1616,8 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>восемь инстансов; рейл и заголовок закреплены</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>восемь инстансов; рейл и заголовок закреплены</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -1750,8 +1771,8 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>двести воркфлоу; панель деталей не уезжает вместе со списком</span></div>
-    <div class="frame" data-overflow>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двести воркфлоу; панель деталей не уезжает вместе со списком</span></div>
+    <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
@@ -1787,15 +1808,16 @@ Loading custom nodes: 47 found
                 <div class="pane">
                   <div class="pane-head"><span class="title">Все воркфлоу</span><span class="t-label">214</span></div>
                   <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                    <div class="wf-row"><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star">★</span></div>
-                    <div class="wf-row"><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span><span class="star">★</span></div>
-                    <div class="wf-row"><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span><span class="star"></span></div>
-                    <div class="wf-row"><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span><span class="star"></span></div>
-                    <div class="wf-row"><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span><span class="star"></span></div>
-                    <div class="wf-row"><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star"></span></div>
-                    <div class="wf-row"><span class="nm">sdxl / img2img-refine.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star">★</span></div>
-                    <div class="wf-row"><span class="nm">flux / lora-stack.json</span><span class="tags"><span class="tag">flux</span></span><span class="star"></span></div>
-                    <div class="wf-row"><span class="nm">video / interpolate.json</span><span class="tags"><span class="tag">video</span></span><span class="star"></span></div>
+                    <template data-repeat="3">
+                      <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                      <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / img2img-refine.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">flux / lora-stack.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                    </template>
                   </div></div>
                 </div>
                 <div class="pane">
@@ -1806,9 +1828,11 @@ Loading custom nodes: 47 found
                     <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
                     <div class="t-label">Совместимость</div>
                     <div class="compat">
-                      <div class="compat-row ok"><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">SDXL</span><span class="compat-note">ок</span></div>
-                      <div class="compat-row warn"><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Flux тест</span><span class="compat-note">нет 2</span></div>
-                      <div class="compat-row"><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Эксперименты</span><span class="compat-note">неизвестно</span></div>
+                      <template data-repeat="4">
+                        <div class="compat-row ok"><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">SDXL</span><span class="compat-note">ок</span></div>
+                        <div class="compat-row warn"><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Flux тест</span><span class="compat-note">нет 2</span></div>
+                        <div class="compat-row"><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Эксперименты</span><span class="compat-note">неизвестно</span></div>
+                      </template>
                     </div>
                   </div></div>
                   <div class="pane-foot"><span class="btn primary">Добавить</span></div>

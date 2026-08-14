@@ -108,6 +108,27 @@ function expandPairs(src) {
   return { out, count };
 }
 
+// ------------------------------------------------- строки для прокрутки
+// Кадр с прокруткой доказывает правило «прокручивается только область
+// данных», а доказать его можно лишь настоящим объёмом: содержимое обязано
+// быть выше области. Двадцать строк, выписанных руками, расходятся между
+// собой ровно как пары тем выше — и раздувают исходник, который и без того
+// на тысячу восемьсот строк.
+//
+// Содержимое пишется один раз, сборка повторяет его нужное число раз:
+//   <template data-repeat="5">…несколько разных строк…</template>
+function expandRepeats(src) {
+  let count = 0;
+  const out = src.replace(
+    /<template data-repeat="(\d+)">([\s\S]*?)<\/template>/g,
+    (_, times, body) => {
+      count++;
+      return body.repeat(Number(times));
+    },
+  );
+  return { out, count };
+}
+
 // Обе страницы делят один стилевой файл: копия стилей на второй странице
 // разошлась бы с первой, и компоненты в экранах перестали бы совпадать
 // с образцами.
@@ -178,7 +199,9 @@ function render(srcName, outName, artifactName) {
     .replace('/* @TOKENS@ */', () => previewTokens)
     .replace('<!-- @ACCENTS@ -->', () => swatches)
     .replace('<!-- @ROLES@ -->', () => rolesPair);
-  const { out: html, count } = expandPairs(substituted);
+  // Порядок не важен: пары и повторы независимы, вложенных шаблонов нет.
+  const { out: paired, count } = expandPairs(substituted);
+  const { out: html } = expandRepeats(paired);
 
   // Полный документ — для локального просмотра двойным кликом.
   writeFileSync(join(DESIGN_DIR, outName), html, 'utf8');
