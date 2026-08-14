@@ -92,7 +92,16 @@
   background: var(--page-code); color: var(--page-fg);
   white-space: nowrap;
 }
-.content h3 { font-family: var(--font-ui-display); font-size: var(--text-lg); font-weight: var(--weight-bold); margin: 0; }
+/* Ряд шага в макете не добавляет своих полей: их уже дал `.content`,
+   изображающий поля экрана. С обоими заголовок оказывался вдвинут
+   вправо относительно полосы шагов над ним и отбит снизу — в приложении
+   ни того, ни другого нет. */
+.step-bar { padding: 0; }
+/* Заголовок экрана в макете. Заголовок в ряду шага сюда не попадает:
+   его размер и насыщенность задаёт дизайн-система, а это правило стоит
+   позже и при равной специфичности перебивало бы её — в макете
+   заголовок шага выходил крупнее и жирнее, чем в приложении. */
+.content h3:not(.step-bar h3) { font-family: var(--font-ui-display); font-size: var(--text-lg); font-weight: var(--weight-bold); margin: 0; }
 .content > p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); max-width: 60ch; }
 .crumb { font-size: var(--text-xs); color: var(--ink-muted); }
 
