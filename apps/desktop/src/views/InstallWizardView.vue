@@ -35,10 +35,15 @@ const current = computed(() => STEPS.indexOf(wizard.step));
  *
  * У трёх шагов оно своё и говорит о деле («Куда распаковать»), у двух
  * совпадает с названием в полосе шагов — придумывать им второе имя
- * значило бы говорить об одном и том же двумя словами.
+ * значило бы говорить об одном и том же двумя словами. Запасного
+ * варианта тут быть не должно: раньше он подписывал первый шаг
+ * «Распаковкой», и не всплыло это лишь потому, что на первом шаге
+ * ряда шага не было вовсе.
  */
 const stepTitle = computed(() => {
   switch (wizard.step) {
+    case 'archive':
+      return t('install.wizard.step.archive');
     case 'targets':
       return t('install.targets.title');
     case 'shared':
@@ -163,13 +168,9 @@ const needed = computed(() =>
 
 <template>
   <section class="screen wizard-screen">
-    <header class="screen-head">
-      <RouterLink class="btn ghost" to="/install">
-        <svg class="ico"><use href="#i-back" /></svg>
-        {{ t('common.back') }}
-      </RouterLink>
-      <h1 class="t-lg">{{ t('install.wizard.title') }}</h1>
-    </header>
+    <!-- Шапки экрана здесь нет намеренно: её «Назад» и заголовок
+         повторяли то, что и так стоит в ряду шага, — два выхода
+         и два заголовка на одном экране. -->
 
     <!-- Шаги видны целиком: мастер, который не говорит, сколько ещё
          впереди, читается как бесконечный. -->
@@ -190,7 +191,7 @@ const needed = computed(() =>
          а не в подвале и не в области прокрутки: при нескольких
          назначениях «Дальше» уезжала из виду ровно тогда, когда
          становилась нужна. «Назад» всегда левее кнопки действия. -->
-    <div v-if="wizard.step !== 'archive'" class="step-bar">
+    <div class="step-bar">
       <h2 class="title">{{ stepTitle }}</h2>
       <span v-if="wizard.step === 'done'" class="t-label">
         {{ t('install.done.added', wizard.created.length) }}
@@ -202,7 +203,18 @@ const needed = computed(() =>
       </span>
       <span class="spacer"></span>
 
-      <span v-if="wizard.step === 'targets'" class="acts">
+      <!-- На первом шаге «Назад» выводит из мастера, а не переключает
+           шаг, — поэтому ссылка, а не кнопка. Состояние мастера при этом
+           не теряется: стор живёт отдельно от экрана ровно затем, чтобы
+           уход и возврат ничего не стирали. -->
+      <span v-if="wizard.step === 'archive'" class="acts">
+        <RouterLink class="btn ghost" to="/install">
+          <svg class="ico"><use href="#i-back" /></svg>
+          {{ t('common.back') }}
+        </RouterLink>
+      </span>
+
+      <span v-else-if="wizard.step === 'targets'" class="acts">
         <button type="button" class="btn ghost" @click="wizard.step = 'archive'">
           <svg class="ico"><use href="#i-back" /></svg>
           {{ t('common.back') }}
@@ -708,8 +720,10 @@ const needed = computed(() =>
   flex: 1;
 }
 
+/* Полоса шагов встала на место шапки экрана и берёт её верхнее поле:
+   без него она прилипает к заголовку окна. */
 .steps {
-  padding: 0 var(--space-5) var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-2);
 }
 
 .pinned {

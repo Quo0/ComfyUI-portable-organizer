@@ -472,6 +472,198 @@
     </div>
   </section>
 
+  <!-- =============================================== J-02 -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-02 · шаги 3-4</span>
+      <h2>Папка уже есть</h2>
+      <span class="jtag">US-REG-01</span><span class="jtag">US-REG-02</span>
+    </div>
+    <p class="aside">
+      Путь актора, у которого сборка уже работает. Приложение показывает, что
+      прочитало — версию, интерпретатор и профили запуска, — и обещает, что
+      ничего внутри не тронет. Это главный страх такого пользователя, поэтому
+      обещание стоит на экране, а не в документации.
+    </p>
+    <p class="aside">
+      Ряд шага такой же, как в мастере: обе дорожки «Установки» начинаются
+      одинаково. «Назад» ведёт в «Установку», а не в список сборок — сюда
+      приходят только оттуда, — и это единственный выход с экрана.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="step-bar">
+              <h3>Добавить инстанс</h3>
+              <span class="spacer"></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+            </div>
+            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
+            <div class="field">
+              <span class="t-label">Папка сборки</span>
+              <div class="path-row">
+                <div class="input mono"><span></span></div>
+                <span class="btn secondary">Выбрать папку…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Папка выбрана и прочитана</b><span>слева прочитанное, справа заполняемое</span></div>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="step-bar">
+              <h3>Добавить инстанс</h3>
+              <span class="spacer"></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+            </div>
+            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
+            <div class="field">
+              <span class="t-label">Папка сборки</span>
+              <div class="path-row">
+                <div class="input mono"><span>D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
+                <span class="btn secondary">Выбрать папку…</span>
+              </div>
+            </div>
+            <!-- Слева прочитанное, справа заполняемое: одним свитком
+                 прочитанное оттесняло форму вниз, за край экрана. -->
+            <div class="cols">
+              <div>
+                <div class="paths">
+                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
+                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12</span></div>
+                  <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">4</span></div>
+                </div>
+                <div class="row">
+                  <span class="pill stopped">nvidia_gpu</span><span class="pill stopped">fast_fp16</span>
+                  <span class="pill stopped">cpu</span><span class="pill stopped">disable_api_nodes</span>
+                </div>
+              </div>
+              <div>
+                <div class="field"><label>Имя</label><div class="input">SDXL стабильная</div></div>
+                <div class="field"><label>Описание</label><div class="input"></div></div>
+                <div class="field">
+                  <span class="t-label">Акцентный цвет</span>
+                  <div class="picker">
+                    <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
+                    <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                    <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
+                    <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                  </div>
+                </div>
+                <div class="field"><label>Порт</label><div class="input num">8188</div></div>
+                <!-- Внизу только действие: «Отмена» вела туда же, куда
+                     «Назад» в ряду шага, и появлялась лишь после разбора
+                     папки — два выхода, один из которых половину времени
+                     невидим. -->
+                <div class="row"><span class="btn primary">Добавить в список</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Папка не похожа на сборку</b><span>ошибка на месте, а не тостом: она про эту папку</span></div>
+    <p class="aside">
+      Самый частый промах — выбрать папку уровнем выше или ниже нужной.
+      Приложение не просто отказывает, а называет ту, которую имело в виду:
+      отличить <code>ComfyUI_windows_portable</code> от вложенной
+      <code>ComfyUI</code> со стороны невозможно.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="step-bar">
+              <h3>Добавить инстанс</h3>
+              <span class="spacer"></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+            </div>
+            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
+            <div class="field">
+              <span class="t-label">Папка сборки</span>
+              <div class="path-row">
+                <div class="input mono"><span>D:\program_files\comfyui</span></div>
+                <span class="btn secondary">Выбрать папку…</span>
+              </div>
+              <p class="hint bad">D:\program_files\comfyui не похож на портабл-сборку ComfyUI.</p>
+              <p class="hint bad">Почти: сборка уровнем ниже. Выберите D:\program_files\comfyui\ComfyUI_windows_portable.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Папка уже в списке</b><span>второй сборки из неё не появится</span></div>
+    <p class="aside">
+      Повторная регистрация той же папки не заводит вторую сборку: форма
+      не показывается вовсе, вместо неё — переход к уже заведённой
+      <code>US-REG-02</code>.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="step-bar">
+              <h3>Добавить инстанс</h3>
+              <span class="spacer"></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+            </div>
+            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
+            <div class="field">
+              <span class="t-label">Папка сборки</span>
+              <div class="path-row">
+                <div class="input mono"><span>D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
+                <span class="btn secondary">Выбрать папку…</span>
+              </div>
+            </div>
+            <div class="group">
+              <span class="btn primary">Эта папка уже в списке. Открыть её</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================================ J-01 · 2 -->
   <section class="screen">
     <div class="screen-head">
@@ -508,6 +700,14 @@
               <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
               <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
               <span class="step"><u>5</u>Готово</span>
+            </div>
+            <!-- Ряд шага есть и на первом шаге, ради единственного выхода
+                 из мастера. Отдельной шапки экрана у мастера нет: её
+                 «Назад» и заголовок повторяли бы этот ряд. -->
+            <div class="step-bar">
+              <h3>Архив</h3>
+              <span class="spacer"></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
             </div>
             <p>Архив портабл-сборки нужно скачать самостоятельно — приложение его не загружает.</p>
             <!-- Подпись о чтении оглавления — в том же ряду, что и кнопка:
@@ -579,6 +779,11 @@
           <div class="content framed no-foot">
             <div class="pinned">
               <div class="steps"><span class="step now"><u>1</u>Архив</span><span class="step-sep"></span><span class="step "><u>2</u>Назначения</span><span class="step-sep"></span><span class="step "><u>3</u>Общие ресурсы</span><span class="step-sep"></span><span class="step "><u>4</u>Распаковка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
+              <div class="step-bar">
+                <h3>Архив</h3>
+                <span class="spacer"></span>
+                <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+              </div>
               <p>Архив портабл-сборки нужно скачать самостоятельно — приложение его не загружает.</p>
               <div class="row">
                 <span class="btn primary">Выбрать архив .7z…</span>
@@ -1531,85 +1736,6 @@ Loading custom nodes: 47 found
     </div>
   </section>
 
-  <!-- =============================================== J-02 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-02 · шаг 3</span>
-      <h2>Указать существующую папку</h2>
-      <span class="jtag">US-REG-01</span><span class="jtag">US-REG-02</span>
-    </div>
-    <p class="aside">
-      Путь актора, у которого сборка уже работает. Приложение показывает, что
-      прочитало — версию, интерпретатор и профили запуска, — и обещает, что
-      ничего внутри не тронет. Это главный страх такого пользователя, поэтому
-      обещание стоит на экране, а не в документации.
-    </p>
-    <p class="aside">
-      И «Назад», и «Отмена» ведут в «Установку», а не в список сборок: этот
-      экран открывают только оттуда.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-          </nav>
-          <!-- «Назад» в шапке экрана и ведёт в «Установку»: сюда приходят
-               только оттуда. Подвала нет — в 4б кнопки из подвалов ушли. -->
-          <div class="content">
-            <div class="row">
-              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
-              <h3>Добавить инстанс</h3>
-            </div>
-            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
-            <div class="field">
-              <span class="t-label">Папка сборки</span>
-              <div class="path-row">
-                <div class="input mono"><span>D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
-                <span class="btn secondary">Выбрать папку…</span>
-              </div>
-            </div>
-            <!-- Слева прочитанное, справа заполняемое: одним свитком
-                 прочитанное оттесняло форму вниз, за край экрана. -->
-            <div class="cols">
-              <div>
-                <div class="paths">
-                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
-                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12</span></div>
-                  <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">4</span></div>
-                </div>
-                <div class="row">
-                  <span class="pill stopped">nvidia_gpu</span><span class="pill stopped">fast_fp16</span>
-                  <span class="pill stopped">cpu</span><span class="pill stopped">disable_api_nodes</span>
-                </div>
-              </div>
-              <div>
-                <div class="field"><label>Имя</label><div class="input">SDXL стабильная</div></div>
-                <div class="field"><label>Описание</label><div class="input"></div></div>
-                <div class="field">
-                  <span class="t-label">Акцентный цвет</span>
-                  <div class="picker">
-                    <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
-                    <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
-                    <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
-                    <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
-                  </div>
-                </div>
-                <div class="field"><label>Порт</label><div class="input num">8188</div></div>
-                <div class="row"><span class="btn primary">Добавить в список</span><span class="btn ghost">Отмена</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ============================================ J-03 · 1 -->
   <section class="screen">
     <div class="screen-head">
@@ -2143,7 +2269,7 @@ Loading custom nodes: 47 found
   <section class="closing">
     <h2>Полнота покрытия</h2>
     <p>
-      Двенадцать экранов покрывают все шесть сквозных сценариев из
+      Восемнадцать экранов покрывают все шесть сквозных сценариев из
       <code>specs/journeys.md</code>. Не показаны экраны, которые появляются
       только в исключительных ситуациях: разрешение конфликта, когда в инстансе
       уже лежит чужой файл настроек, и отчёт о дубликатах моделей — оба

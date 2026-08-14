@@ -75,13 +75,19 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="screen">
-    <header class="screen-head">
-      <RouterLink class="btn ghost" to="/install">
-        <svg class="ico"><use href="#i-back" /></svg>
-        {{ t('common.back') }}
-      </RouterLink>
-      <h1 class="t-lg">{{ t('instances.add.title') }}</h1>
-    </header>
+    <!-- Ряд шага, как в мастере: обе дорожки «Установки» начинаются
+         одинаково. «Назад» ведёт в «Установку», а не в список сборок:
+         сюда приходят только оттуда. -->
+    <div class="step-bar">
+      <h2 class="title">{{ t('instances.add.title') }}</h2>
+      <span class="spacer"></span>
+      <span class="acts">
+        <RouterLink class="btn ghost" to="/install">
+          <svg class="ico"><use href="#i-back" /></svg>
+          {{ t('common.back') }}
+        </RouterLink>
+      </span>
+    </div>
 
     <div class="screen-body">
       <div class="screen-pad wide">
@@ -157,6 +163,10 @@ async function submit(): Promise<void> {
             <div>
               <InstanceFields v-model="edit" />
 
+              <!-- Только действие. «Отмена» отсюда убрана: она вела туда
+                   же, куда «Назад» в ряду шага, и появлялась лишь после
+                   разбора папки — два выхода, один из которых половину
+                   времени невидим. -->
               <div class="row">
                 <button
                   type="button"
@@ -166,12 +176,6 @@ async function submit(): Promise<void> {
                 >
                   {{ t('instances.add.submit') }}
                 </button>
-                <!-- И «Назад», и «Отмена» ведут в «Установку», а не в список:
-                     этот экран открывают только оттуда, и возвращать надо
-                     туда, откуда пришли. -->
-                <RouterLink class="btn ghost" to="/install">
-                  {{ t('common.cancel') }}
-                </RouterLink>
               </div>
             </div>
           </div>
@@ -180,3 +184,11 @@ async function submit(): Promise<void> {
     </div>
   </section>
 </template>
+
+<style scoped>
+/* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
+   без него заголовок прилипает к заголовку окна. */
+.step-bar {
+  padding-top: var(--space-4);
+}
+</style>
