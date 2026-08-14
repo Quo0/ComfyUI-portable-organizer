@@ -22,6 +22,12 @@
   --page-line-soft: #efeee9;
   --page-code: #f0efea;
   --page-mark: #b23124;
+  /* Бейдж кадра с прокруткой. Свой цвет, а не общий `--page-code`:
+     на нём бейдж не отличался от меток сценариев рядом, а он про
+     другое — про то, как кадр читать. Розовый бледный: пометка
+     о макете, а не ошибка. */
+  --page-pink: #f9e3ea;
+  --page-pink-ink: #8c2f4d;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -34,6 +40,8 @@
     --page-line-soft: #232119;
     --page-code: #211f1b;
     --page-mark: #ec7565;
+    --page-pink: #3a222b;
+    --page-pink-ink: #f0a9c0;
   }
 }
 :root[data-theme="dark"] {
@@ -46,6 +54,8 @@
   --page-line-soft: #232119;
   --page-code: #211f1b;
   --page-mark: #ec7565;
+  --page-pink: #3a222b;
+  --page-pink-ink: #f0a9c0;
 }
 
 * { box-sizing: border-box; }

@@ -153,6 +153,93 @@ function expandRepeats(src) {
   return { out, count };
 }
 
+// ------------------------------------------------- номера и оглавление
+// Восемнадцать секций руками не пронумеровать: вставка одной в середину
+// сдвигает все следующие, а выписанное руками оглавление разойдётся
+// со страницей молча — ровно как расходились спрайт значков и пары тем.
+// Источник — сама разметка, три маркера, всё остальное считает сборка:
+//
+//   <div class="part">Установка</div>          открывает 2
+//   <div class="part sub">Из архива</div>      открывает 2.3
+//   <section class="screen" data-top>          сам себе верхний номер
+//   <section class="screen">                   очередной ребёнок группы
+function numberSections(src) {
+  const items = [];
+  let top = 0;
+  let mid = 0;
+  let low = 0;
+  // Второй уровень делят обычные секции и подгруппы, поэтому одного
+  // счётчика мало: без этого флага вторая секция группы считала себя
+  // ребёнком первой и уезжала на третий уровень.
+  let inSub = false;
+
+  const out = src.replace(
+    /<div class="part( sub)?"><b>([^<]*)<\/b>|<section class="screen"( data-top)?>\s*<div class="screen-head">\s*(?:<span class="jtag">[^<]*<\/span>\s*)*<h2>([^<]*)<\/h2>/g,
+    (match, isSub, partTitle, isTop, secTitle) => {
+      let num;
+      let title;
+      let level;
+
+      if (partTitle !== undefined) {
+        if (isSub) {
+          mid += 1;
+          low = 0;
+          inSub = true;
+          num = `${top}.${mid}`;
+          level = 2;
+        } else {
+          top += 1;
+          mid = 0;
+          low = 0;
+          inSub = false;
+          num = String(top);
+          level = 1;
+        }
+        title = partTitle;
+      } else if (isTop) {
+        top += 1;
+        mid = 0;
+        low = 0;
+        inSub = false;
+        num = String(top);
+        title = secTitle;
+        level = 1;
+      } else if (inSub) {
+        low += 1;
+        num = `${top}.${mid}.${low}`;
+        title = secTitle;
+        level = 3;
+      } else {
+        mid += 1;
+        num = `${top}.${mid}`;
+        title = secTitle;
+        level = 2;
+      }
+
+      const id = `s-${num.replace(/\./g, '-')}`;
+      items.push({ id, num, title, level });
+
+      // Номер вставляется первым элементом заголовка, а сам заголовок
+      // получает якорь. Разметка в исходнике об этом ничего не знает.
+      const badge = `<span class="sec-no">${num}</span>`;
+      return partTitle !== undefined
+        ? match.replace('<div class="part', `<div id="${id}" class="part`).replace('<b>', `${badge}<b>`)
+        : match
+          .replace('<section class="screen"', `<section id="${id}" class="screen"`)
+          .replace('<div class="screen-head">', `<div class="screen-head">${badge}`);
+    },
+  );
+
+  const toc = items
+    .map(
+      (i) =>
+        `      <a class="toc-${i.level}" href="#${i.id}"><span class="toc-no">${i.num}</span>${i.title}</a>`,
+    )
+    .join('\n');
+
+  return { out, toc, count: items.length };
+}
+
 // Обе страницы делят один стилевой файл: копия стилей на второй странице
 // разошлась бы с первой, и компоненты в экранах перестали бы совпадать
 // с образцами.
@@ -225,8 +312,12 @@ function render(srcName, outName, artifactName) {
     .replace('<!-- @ROLES@ -->', () => rolesPair)
     .replace('<!-- @ICON_SPRITE@ -->', () => iconSprite)
     .replace('<!-- @ICONS@ -->', () => iconGrid);
+  // Нумерация идёт первой: она считает секции, а пары и повторы
+  // размножают содержимое внутри них — посчитанное после развёртки
+  // сошлось бы вдвое.
+  const { out: numbered, toc, count: sections } = numberSections(substituted);
   // Порядок не важен: пары и повторы независимы, вложенных шаблонов нет.
-  const { out: paired, count } = expandPairs(substituted);
+  const { out: paired, count } = expandPairs(numbered.replace('<!-- @TOC@ -->', () => toc));
   const { out: html } = expandRepeats(paired);
 
   // Полный документ — для локального просмотра двойным кликом.
@@ -237,14 +328,14 @@ function render(srcName, outName, artifactName) {
   const styles = [...html.matchAll(/<style>[\s\S]*?<\/style>/g)].map((m) => m[0]).join('\n');
   const bodyInner = html.match(/<body>([\s\S]*)<\/body>/)[1];
   writeFileSync(join(DESIGN_DIR, 'dist', artifactName), styles + '\n' + bodyInner, 'utf8');
-  return count;
+  return { pairs: count, sections };
 }
 
-const pairCount = render('preview.src.html', 'preview.html', 'artifact.html');
-const screenCount = render('screens.src.html', 'screens.html', 'screens.html');
+const preview = render('preview.src.html', 'preview.html', 'artifact.html');
+const screens = render('screens.src.html', 'screens.html', 'screens.html');
 
 const metricCount = metricsBody.match(/--[\w-]+\s*:/g).length;
 console.log(`dist/tokens.css  — ${light.size} токенов на тему + ${metricCount} метрик`);
-console.log(`preview.html     — ${ACCENTS.length} акцентов, ${pairCount} пар «светлая/тёмная», ${icons.length} значков`);
-console.log(`screens.html     — экраны по сценариям`);
+console.log(`preview.html     — ${ACCENTS.length} акцентов, ${preview.pairs} пар «светлая/тёмная», ${icons.length} значков`);
+console.log(`screens.html     — ${screens.sections} пунктов в оглавлении`);
 console.log('dist/            — версии для публикации');

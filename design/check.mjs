@@ -198,7 +198,28 @@ for (const id of appIcons) if (!designIcons.has(id)) note(`значка нет �
 const usedIcons = new Set([...screens.matchAll(/href="#(i-[\w-]+)"/g)].map((m) => m[1]));
 for (const id of usedIcons) if (!designIcons.has(id)) note(`используется, но не нарисован: ${id}`);
 
-// 9. Строки проверки на длинных текстах ---------------------------------------
+// 9. Оглавление сходится со страницей ------------------------------------------
+// Оглавление собирается из разметки, но собирается регулярным выражением:
+// секция, у которой заголовок оформлен чуть иначе, молча выпадет из него
+// и станет недостижимой. Ссылка в никуда тоже молчит.
+const tocLinks = [...screens.matchAll(/<a class="toc-\d" href="#([^"]+)"/g)].map((m) => m[1]);
+const anchors = [...screens.matchAll(/<(?:section|div)[^>]*\sid="(s-[\d-]+)"/g)].map((m) => m[1]);
+
+const heads = (screens.match(/<section[^>]* class="screen"/g) || []).length
+  + (screens.match(/<div[^>]* class="part(?: sub)?"/g) || []).length;
+
+if (tocLinks.length !== heads) {
+  note(`пунктов оглавления ${tocLinks.length}, а секций и групп ${heads}`);
+}
+if (new Set(anchors).size !== anchors.length) note('якоря страницы повторяются');
+for (const href of tocLinks) {
+  if (!anchors.includes(href)) note(`пункт оглавления ведёт в никуда: #${href}`);
+}
+for (const id of anchors) {
+  if (!tocLinks.includes(id)) note(`секция не попала в оглавление: #${id}`);
+}
+
+// 10. Строки проверки на длинных текстах ---------------------------------------
 const MIN_LONGFORM = 6;
 const longRuns = (html.match(/data-longform/g) || []).length;
 if (longRuns < MIN_LONGFORM) {

@@ -26,6 +26,62 @@
 .seg button:focus-visible { outline: 2px solid var(--page-mark); outline-offset: -2px; }
 .switch span { font-size: 12px; color: var(--page-faint); }
 
+/* Страница шире, чем у компонентов: у окон `min-width: 940px`, и после
+   колонки оглавления на прежних 1180 кадры получили бы горизонтальную
+   прокрутку. Правило только здесь — `.wrap` делит страница компонентов,
+   и там колонок нет. */
+.wrap { max-width: 1440px; }
+.layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 32px; align-items: start; }
+.sections { min-width: 0; }
+
+/* Оглавление липнет ниже полосы переключателя тем: она тоже липкая,
+   и без отступа они наезжают друг на друга. */
+.toc {
+  position: sticky; top: 56px;
+  max-height: calc(100vh - 72px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 1px;
+  padding-top: 36px;
+  font-size: 12.5px;
+}
+.toc a {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px;
+  padding: 3px 6px; border-radius: 4px;
+  color: var(--page-dim); text-decoration: none;
+}
+.toc a:hover { background: var(--page-code); color: var(--page-fg); }
+.toc .toc-no { font-family: var(--font-mono); font-size: 11px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
+.toc .toc-1 { font-weight: 600; color: var(--page-fg); margin-top: 10px; }
+.toc .toc-2 { padding-left: 6px; }
+.toc .toc-3 { padding-left: 18px; }
+.toc .toc-3 .toc-no { font-size: 10px; }
+/* Текущий пункт. Класс, а не `:target`: подсветка должна ехать
+   за прокруткой, а не за последним кликом. */
+.toc a.here { background: var(--page-code); color: var(--page-fg); }
+.toc a.here .toc-no { color: var(--page-pink-ink); }
+
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .toc { position: static; max-height: none; padding: 24px 0 0; }
+  .toc .toc-1 { margin-top: 6px; }
+}
+
+/* Разделитель группы. Номер, название и одна строка о том, что внутри. */
+.part { margin: 56px 0 0; padding-top: 20px; border-top: 2px solid var(--page-line); display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 4px 12px; }
+.part b { font-family: var(--font-ui-display); font-size: 22px; font-weight: 700; }
+/* Номер — тоже `span`, и без исключения правило ниже утащило бы его
+   во вторую колонку, к названию. Тот же приём, что у бейджа
+   «прокрутка»: исключение в самом правиле, а не третий селектор сверху. */
+.part > span:not(.sec-no) { grid-column: 2; font-size: 13px; color: var(--page-dim); max-width: 66ch; }
+.part.sub { margin-top: 36px; border-top-width: 1px; }
+.part.sub b { font-size: 17px; }
+/* Номер секции слева от заголовка, той же моноширинной, что и метки:
+   он адрес, а не украшение. */
+.sec-no { font-family: var(--font-mono); font-size: 12px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
+.part .sec-no { font-size: 14px; align-self: baseline; }
+
+/* Якорям нужен запас сверху: полоса переключателя тем липкая,
+   и без него заголовок секции уезжает под неё. */
+.screen[id], .part[id] { scroll-margin-top: 64px; }
 .screen { padding: 36px 0; border-bottom: 1px solid var(--page-line); }
 .screen:last-of-type { border-bottom: 0; }
 .screen-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 6px; }
@@ -84,12 +140,14 @@
    текст на нём становился серым. Исключение написано здесь, а не
    перебито третьим селектором сверху. */
 .variant-head > span:not(.scroll-tag) { font-size: 12.5px; color: var(--page-dim); }
-/* Бейдж кадра с прокруткой. Вид как у `.jtag` — это такая же пометка
-   о макете, а не ошибка: красным здесь пугать не за что. */
+/* Бейдж кадра с прокруткой. Свой бледно-розовый, а не общий фон меток:
+   на `--page-code` он не отличался от меток сценариев рядом, а говорит
+   о другом — не «где это на пути», а «как читать этот кадр».
+   Красным при этом пугать не за что: это пометка о макете, не ошибка. */
 .scroll-tag {
   font-family: var(--font-mono); font-size: 10px; font-weight: 600;
   padding: 2px 6px; border-radius: 3px;
-  background: var(--page-code); color: var(--page-fg);
+  background: var(--page-pink); color: var(--page-pink-ink);
   white-space: nowrap;
 }
 /* Ряд шага в макете не добавляет своих полей: их уже дал `.content`,
@@ -223,12 +281,18 @@
 
   <header class="masthead">
     <p class="eyebrow">Дизайн · итерация 3 из 3</p>
-    <h1>Экраны по сценариям</h1>
+    <h1>Экраны приложения</h1>
     <p class="lede">
-      Двенадцать экранов, собранных из утверждённых компонентов и разложенных
-      по шести сквозным сценариям из <code>specs/journeys.md</code>.
-      Каждый подписан сценарием и шагом, поэтому по странице читается не список
-      экранов, а путь пользователя.
+      Восемнадцать экранов, собранных из утверждённых компонентов и разложенных
+      по разделам приложения — так же, как они разложены в рейле. Метки
+      сценариев <code>J-01…J-06</code> из <code>specs/journeys.md</code>
+      остались на каждом экране: они отвечают на другой вопрос — в каком месте
+      пути он встречается.
+    </p>
+    <p class="lede">
+      Часть экранов показана дважды: второй кадр помечен
+      <span class="scroll-tag">прокрутка</span> и нарисован в окне
+      фиксированной высоты с настоящим объёмом данных. Зачем — в 6.1.
     </p>
     <ul class="facts">
       <li><b>Компоненты</b>из общей библиотеки, не нарисованы заново</li>
@@ -245,37 +309,18 @@
     <span>Тема приложения на всех экранах сразу</span>
   </div>
 
-  <section class="screen">
-    <div class="screen-head">
-      <h2>Правило прокрутки</h2>
-      <span class="jtag">NFR-420</span><span class="jtag">NFR-430</span><span class="jtag">NFR-440</span>
-    </div>
-    <p class="aside">
-      Окно фиксированной высоты, а данные не ограничены: восемь инстансов,
-      двести воркфлоу, двадцать пять категорий моделей, тысячи строк лога.
-      Поэтому <strong>окно не прокручивается целиком</strong>. Внутри контентной
-      области ровно один вертикальный скролл — область данных, а всё, что
-      управляет экраном, из неё вынесено. Часть экранов ниже показана дважды:
-      с обычным объёмом и с реальным — второй кадр помечен
-      <span class="scroll-tag">прокрутка</span> и нарисован в окне
-      фиксированной высоты, где данные заведомо не помещаются.
-    </p>
-    <div class="two" style="margin-top:16px">
-      <div class="paths">
-        <div class="path-item"><span class="lbl">Рейл</span><span class="val">закреплён; список запущенных скроллится внутри себя</span></div>
-        <div class="path-item"><span class="lbl">Заголовок и действия</span><span class="val">закреплены сверху</span></div>
-        <div class="path-item"><span class="lbl">Область данных</span><span class="val">прокручивается</span></div>
-        <div class="path-item"><span class="lbl">Подвал мастера</span><span class="val">закреплён снизу</span></div>
-      </div>
-      <div class="paths">
-        <div class="path-item keep"><span class="lbl">Список — детали</span><span class="val">два независимых скролла, единственное исключение</span></div>
-        <div class="path-item keep"><span class="lbl">Консоль</span><span class="val">следование за лентой с паузой при прокрутке вверх</span></div>
-        <div class="path-item keep"><span class="lbl">Область ComfyUI</span><span class="val">не прокручивается никогда</span></div>
-      </div>
-    </div>
-  </section>
+  <!-- Оглавление и номера собирает build.mjs из самой разметки: страница
+       на восемнадцать секций в полный рост окна иначе листается наугад,
+       а выписанное руками оглавление разойдётся с ней на первой же
+       вставке — и промолчит. -->
+  <div class="layout">
+    <nav class="toc" aria-label="Оглавление">
+<!-- @TOC@ -->
+    </nav>
+    <div class="sections">
 
-  <!-- ============================================ J-01 · 1 -->
+
+  <div class="part"><b>Инстансы</b><span>Список сборок, экран одной сборки и всё, что с ней происходит.</span></div>
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 1</span>
@@ -320,12 +365,10 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ ревизия · список сборок -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">ревизия</span>
-      <h2>Инстансы: список</h2>
+      <h2>Список сборок</h2>
       <span class="jtag">US-REG-04</span><span class="jtag">US-RUN-05</span>
     </div>
     <p class="aside">
@@ -433,12 +476,515 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ ревизия · установка -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">ревизия</span>
-      <h2>Установка: две дорожки</h2>
+      <h2>Экран сборки: вкладки</h2>
+      <span class="jtag">US-RUN-01</span><span class="jtag">US-REG-04</span>
+    </div>
+    <p class="aside">
+      До ревизии здесь была одна лента: запуск, общие модели, модели сборки,
+      воркфлоу, путь, версии, размер, профили, источник, форма
+      редактирования и удаление — подряд, примерно на тысячу строк вёрстки.
+      Найти нужное можно было только прокруткой.
+    </p>
+    <p class="aside">
+      Вкладки разводят четыре независимых набора данных. Шапка со сборкой
+      и кнопкой запуска закреплена: она нужна на любой вкладке. На широком
+      окне содержимое раскладывается в две колонки — приложение
+      разворачивают на 2K, и лента в 720 пикселей оставляет половину окна
+      пустой.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+              <h3 style="margin-right:auto">SDXL стабильная</h3>
+              <span class="pill stopped"><i></i>Остановлен</span>
+              <span class="btn primary lg">Запустить</span>
+              <span class="btn secondary">run_nvidia_gpu ▾</span>
+            </div>
+
+            <div class="tabs">
+              <span aria-selected="true">Обзор</span>
+              <span>Модели <span class="n">14</span></span>
+              <span>Воркфлоу <span class="n">6</span></span>
+              <span>Параметры</span>
+            </div>
+
+            <div class="cols">
+              <div>
+                <div class="field">
+                  <label>Последний запуск</label>
+                  <div class="paths">
+                    <div class="path-item keep"><span class="lbl">Сегодня, 14:20</span><span class="val">готов за 54 с</span></div>
+                    <div class="path-item"><span class="lbl">Порт</span><span class="val">8188</span></div>
+                    <div class="path-item"><span class="lbl">Профиль</span><span class="val">run_nvidia_gpu</span></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Лог последнего запуска</label>
+                  <div class="row">
+                    <span class="btn secondary">Показать лог</span>
+                    <span class="hint">1 482 строки · раскроется на всю область</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Общие модели</label>
+                  <div class="toggle-row">
+                    <span class="toggle"></span>
+                    <div>
+                      <div>Подключены, режим «флаг»</div>
+                      <div class="hint">D:/AI/_shared_models · 26 категорий</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="field">
+                  <label>Папка сборки</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\program_files\comfyui\SDXL</span></div>
+                    <span class="btn secondary">Открыть</span>
+                  </div>
+                </div>
+                <div class="paths">
+                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
+                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12 · встроенный</span></div>
+                  <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52,4 ГБ</span></div>
+                  <div class="path-item"><span class="lbl">Профилей запуска</span><span class="val">4 + 1 свой</span></div>
+                </div>
+                <div class="src">Развёрнут из ComfyUI_windows_portable_nvidia.7z · 12 марта</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Лог раскрыт</b><span>та же вкладка, кнопка нажата</span></div>
+    <p class="aside">
+      Лог не висит куском в 260 пикселей посреди свитка и не показывается
+      всегда: он раскрывается кнопкой на всю область данных и сворачивается
+      обратно. При старте раскрывается сам — там он и есть содержимое
+      экрана.
+    </p>
+    <div class="frame">
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em><i class="dot" style="background:var(--state-starting)"></i></div>
+          </nav>
+          <div class="content framed no-foot">
+            <div class="pinned">
+              <div class="row">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+                <h3 style="margin-right:auto">SDXL стабильная</h3>
+                <span class="pill starting"><i></i>Стартует</span>
+                <span class="btn danger">Отмена</span>
+                <span class="btn secondary">Свернуть лог</span>
+              </div>
+              <div class="track indet"><i></i></div>
+            </div>
+            <div class="data">
+              <div class="log">
+<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Loading custom nodes: 47 found
+  ComfyUI-Manager 3.19.4
+  ComfyUI_IPAdapter_plus
+<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
+                <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-01 · шаг 8</span>
+      <h2>Инстанс стартует</h2>
+      <span class="jtag">US-RUN-03</span>
+    </div>
+    <p class="aside">
+      Холодный старт с большим набором нод занимает минуты, и это штатно.
+      Логи текут в реальном времени, потому что иначе первые минуты выглядят как
+      зависание. Строка загрузки моделей перерисовывается на месте, а не плодит
+      тысячи строк.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены</div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+          </nav>
+          <div class="content">
+            <div class="crumb">Инстансы → Flux тест</div>
+            <div class="row">
+              <h3 style="margin-right:auto">Flux тест</h3>
+              <span class="pill starting"><i></i>Стартует</span>
+              <span class="btn secondary">Отмена</span>
+            </div>
+            <div class="track indet"><i></i></div>
+<div class="console">D:\AI\Flux&gt;.\python_embeded\python.exe -s ComfyUI\main.py --port 8189 --disable-auto-launch
+Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Loading custom nodes: 47 found
+<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
+            <div class="hint">Порт 8189 — предпочитаемый 8188 занят другим инстансом</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>полторы тысячи строк; следование приостановлено</span></div>
+    <div class="frame" data-scroll>
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены · 8</div>
+            <div class="nav-runs">
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+            </div>
+          </nav>
+          <div class="content framed no-foot">
+            <div class="pinned">
+              <div class="crumb">Инстансы → Flux тест</div>
+              <div class="row">
+                <h3 style="margin-right:auto">Flux тест</h3>
+                <span class="pill starting"><i></i>Стартует</span>
+                <span class="btn secondary">Отмена</span>
+              </div>
+              <div class="track indet"><i></i></div>
+            </div>
+            <div class="data">
+              <!-- Полторы тысячи строк старта: сорока хватает, чтобы
+                   лог не помещался в область и полоса прокрутки была
+                   настоящей. -->
+              <div class="log">
+<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
+pytorch version: 2.13.0+cu130
+Set vram state to: NORMAL_VRAM
+Device: cuda:0 NVIDIA GeForce RTX 4090
+Using pytorch attention
+Loading custom nodes: 47 found
+<template data-repeat="6">  ComfyUI-Manager 3.19.4
+  ComfyUI_IPAdapter_plus
+  ComfyUI-VideoHelperSuite
+  was-node-suite-comfyui
+  ComfyUI-Impact-Pack
+  comfyui_controlnet_aux
+</template>Import times for custom nodes:
+   0.1 seconds: ComfyUI-Manager
+   2.4 seconds: was-node-suite-comfyui</div>
+                <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-01 · шаг 9</span>
+      <h2>Инстанс работает</h2>
+      <span class="jtag">US-TAB-02</span><span class="jtag">US-TAB-06</span>
+    </div>
+    <p class="aside">
+      Ради этого экрана всё и затевалось: ComfyUI внутри окна, а не во вкладке
+      браузера. Область холста занимает <strong>нативное окно поверх нашего
+      интерфейса</strong> — поэтому ни одно наше меню, всплывашка или тост не
+      может её перекрыть. Отсюда и вся раскладка: рейл слева, инструменты
+      инстанса полосой сверху, и ничего плавающего.
+    </p>
+    <p class="aside">
+      <strong>Единственный экран, где прокрутка запрещена.</strong> Позиция
+      нативного окна задаётся командой <code>set_webview_bounds</code>. Если бы
+      контейнер этой области прокручивался, прямоугольник разошёлся бы с
+      содержимым: вебвью осталось бы на месте, а разметка уползла. Поэтому
+      тулбар закреплён, холст занимает всё оставшееся место, и ни у одного
+      родителя нет собственной прокрутки.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer — SDXL стабильная</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em></div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux</em></div>
+            <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em></div>
+          </nav>
+          <div class="content flush">
+            <div class="inst-toolbar">
+              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+              <span class="name">SDXL стабильная</span>
+              <span class="port">127.0.0.1:8188</span>
+              <span class="pill running"><i></i>Работает</span>
+              <span class="spacer"></span>
+              <span class="btn ghost">Логи</span>
+              <span class="btn ghost">Папка output</span>
+              <span class="btn ghost">В браузере</span>
+              <span class="btn secondary">Остановить</span>
+            </div>
+            <div class="comfy">
+              <div class="comfy-node" style="left:8%; top:16%">
+                <b>Load Checkpoint</b><span>sdxl_base_1.0</span>
+              </div>
+              <div class="comfy-node" style="left:44%; top:34%">
+                <b>KSampler</b><span>steps 28 · cfg 6.5</span>
+              </div>
+              <div class="comfy-node" style="left:74%; top:14%">
+                <b>Save Image</b><span>ComfyUI_00042_</span>
+              </div>
+              <div class="comfy-wire" style="left:22%; top:26%; width:22%"></div>
+              <div class="comfy-wire" style="left:57%; top:26%; width:17%"></div>
+              <span class="comfy-label">область встроенной вкладки ComfyUI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-03 · шаг 4</span>
+      <h2>Подключение общих моделей</h2>
+      <span class="jtag">US-SHARED-03</span><span class="jtag">US-SHARED-05</span>
+    </div>
+    <p class="aside">
+      Плашка про перезапуск обязательна: конфиг читается только при старте, и без
+      предупреждения пользователь решит, что функция сломана
+      <code>US-SHARED-03/AC-7</code>. Способ применения по умолчанию не пишет
+      в папку инстанса ничего.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены</div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+          </nav>
+          <div class="content">
+            <div class="crumb">Инстансы → SDXL стабильная</div>
+            <div class="row">
+              <h3 style="margin-right:auto">SDXL стабильная</h3>
+              <span class="pill running"><i></i>Работает</span>
+            </div>
+            <div class="banner"><b>Нужен перезапуск.</b><span>Общие модели подключены, но инстанс прочитает настройку только при следующем старте.</span></div>
+            <div class="toggle-row">
+              <span class="toggle"></span>
+              <div>
+                <div class="t-base">Общие модели</div>
+                <div class="hint">D:\AI\_shared\models · способ: без изменения папки инстанса · <u>сменить</u></div>
+              </div>
+            </div>
+            <div class="paths">
+              <div class="path-item"><span class="lbl">Путь</span><span class="val">D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
+              <div class="path-item"><span class="lbl">Версия · Python · порт</span><span class="val">0.30.2 · 3.13.12 · 8188</span></div>
+              <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52.3 ГБ · измерено 12 минут назад</span></div>
+            </div>
+            <div class="row"><span class="btn secondary">Остановить</span><span class="btn ghost">Перезапустить</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-04 · шаг 5</span>
+      <h2>Две версии рядом</h2>
+      <span class="jtag">US-REG-03</span><span class="jtag">US-INST-07</span>
+    </div>
+    <p class="aside">
+      Приложение никогда не обновляет сборку на месте: новая версия
+      разворачивается рядом, старая остаётся нетронутой. Чтобы версии
+      различались без открывания папок, в карточке видно, из какого архива
+      развёрнут инстанс <code>US-INST-07/AC-5</code>.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены</div>
+            <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+          </nav>
+          <div class="content">
+            <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
+            <div class="cards">
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
+                  <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code> · 4 августа</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">SDXL новая версия</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc">Проверяю обновление перед переездом</div>
+                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>9.6 GB</span></div>
+                  <div class="src">Из архива <code>portable_nvidia_0.31.0.7z</code> · сегодня</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
+                <div class="card-in">
+                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>восемь инстансов; рейл и заголовок закреплены</span></div>
+    <div class="frame" data-scroll>
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены · 8</div>
+            <div class="nav-runs">
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+            </div>
+          </nav>
+          <div class="content framed no-foot">
+            <div class="pinned">
+              <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
+            </div>
+            <div class="data">
+              <div class="scroll"><div class="scroll-pad">
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-teal)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
+                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>18.7 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-ember)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-moss)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="meta"><span>ComfyUI 0.29.4</span><span>:8191</span><span>9.4 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-azure)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Видео</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8192</span><span>77.1 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-orchid)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Инпейнт</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="meta"><span>ComfyUI 0.30.0</span><span>:8193</span><span>12.8 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-rose)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Апскейл</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="meta"><span>ComfyUI 0.29.1</span><span>:8194</span><span>6.2 GB</span></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-amber)"></div><div class="card-in">
+                  <div class="card-top"><div class="card-name">Тесты нод</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8195</span><span>15.0 GB</span></div>
+                </div></div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="part"><b>Установка</b><span>Единственное место, где заводят сборки: две дорожки — папка уже есть или распаковать архив.</span></div>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">ревизия</span>
+      <h2>Две дорожки</h2>
       <span class="jtag">US-ONB-02</span><span class="jtag">US-REG-01</span>
     </div>
     <p class="aside">
@@ -480,8 +1026,6 @@
       </div>
     </div>
   </section>
-
-  <!-- =============================================== J-02 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-02 · шаги 3-4</span>
@@ -679,11 +1223,11 @@
     </div>
   </section>
 
-  <!-- ============================================ J-01 · 2 -->
+  <div class="part sub"><b>Распаковать из архива</b><span>Мастер из пяти шагов. Уход в другой раздел распаковку не прерывает.</span></div>
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 3</span>
-      <h2>Мастер: шаг 1 — архив</h2>
+      <h2>Архив</h2>
       <span class="jtag">US-INST-01</span><span class="jtag">US-INST-03</span>
     </div>
     <p class="aside">
@@ -838,12 +1382,10 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ J-01 · 3 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 4</span>
-      <h2>Мастер: шаг 2 — назначения</h2>
+      <h2>Назначения</h2>
       <span class="jtag">US-INST-02</span><span class="jtag">US-INST-08</span>
     </div>
     <p class="aside">
@@ -1142,12 +1684,10 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ ревизия · шаг 3 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 5</span>
-      <h2>Мастер: шаг 3 — общие ресурсы</h2>
+      <h2>Общие ресурсы</h2>
       <span class="jtag">US-SHARED-01</span><span class="jtag">US-WF-02</span>
     </div>
     <p class="aside">
@@ -1237,12 +1777,10 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ J-01 · 4 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 6</span>
-      <h2>Мастер: шаг 4 — распаковка</h2>
+      <h2>Распаковка</h2>
       <span class="jtag">US-INST-05</span>
     </div>
     <p class="aside">
@@ -1346,12 +1884,10 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ ревизия · шаг 5 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 7</span>
-      <h2>Мастер: шаг 5 — готово</h2>
+      <h2>Готово</h2>
       <span class="jtag">US-INST-06</span><span class="jtag">US-INST-07</span>
     </div>
     <p class="aside">
@@ -1421,659 +1957,7 @@
       </div>
     </div>
   </section>
-
-  <!-- ============================================ J-01 · 5 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-01 · шаг 8</span>
-      <h2>Инстанс стартует</h2>
-      <span class="jtag">US-RUN-03</span>
-    </div>
-    <p class="aside">
-      Холодный старт с большим набором нод занимает минуты, и это штатно.
-      Логи текут в реальном времени, потому что иначе первые минуты выглядят как
-      зависание. Строка загрузки моделей перерисовывается на месте, а не плодит
-      тысячи строк.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены</div>
-            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-          </nav>
-          <div class="content">
-            <div class="crumb">Инстансы → Flux тест</div>
-            <div class="row">
-              <h3 style="margin-right:auto">Flux тест</h3>
-              <span class="pill starting"><i></i>Стартует</span>
-              <span class="btn secondary">Отмена</span>
-            </div>
-            <div class="track indet"><i></i></div>
-<div class="console">D:\AI\Flux&gt;.\python_embeded\python.exe -s ComfyUI\main.py --port 8189 --disable-auto-launch
-Total VRAM 24564 MB, total RAM 65451 MB
-pytorch version: 2.13.0+cu130
-Set vram state to: NORMAL_VRAM
-Device: cuda:0 NVIDIA GeForce RTX 4090
-Loading custom nodes: 47 found
-<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
-            <div class="hint">Порт 8189 — предпочитаемый 8188 занят другим инстансом</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>полторы тысячи строк; следование приостановлено</span></div>
-    <div class="frame" data-scroll>
-      <div class="win fixed t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены · 8</div>
-            <div class="nav-runs">
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
-            </div>
-          </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="crumb">Инстансы → Flux тест</div>
-              <div class="row">
-                <h3 style="margin-right:auto">Flux тест</h3>
-                <span class="pill starting"><i></i>Стартует</span>
-                <span class="btn secondary">Отмена</span>
-              </div>
-              <div class="track indet"><i></i></div>
-            </div>
-            <div class="data">
-              <!-- Полторы тысячи строк старта: сорока хватает, чтобы
-                   лог не помещался в область и полоса прокрутки была
-                   настоящей. -->
-              <div class="log">
-<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
-pytorch version: 2.13.0+cu130
-Set vram state to: NORMAL_VRAM
-Device: cuda:0 NVIDIA GeForce RTX 4090
-Using pytorch attention
-Loading custom nodes: 47 found
-<template data-repeat="6">  ComfyUI-Manager 3.19.4
-  ComfyUI_IPAdapter_plus
-  ComfyUI-VideoHelperSuite
-  was-node-suite-comfyui
-  ComfyUI-Impact-Pack
-  comfyui_controlnet_aux
-</template>Import times for custom nodes:
-   0.1 seconds: ComfyUI-Manager
-   2.4 seconds: was-node-suite-comfyui</div>
-                <span class="log-follow">К последним строкам <span class="n">+128</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================ ревизия · экран сборки -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">ревизия</span>
-      <h2>Экран сборки: вкладки</h2>
-      <span class="jtag">US-RUN-01</span><span class="jtag">US-REG-04</span>
-    </div>
-    <p class="aside">
-      До ревизии здесь была одна лента: запуск, общие модели, модели сборки,
-      воркфлоу, путь, версии, размер, профили, источник, форма
-      редактирования и удаление — подряд, примерно на тысячу строк вёрстки.
-      Найти нужное можно было только прокруткой.
-    </p>
-    <p class="aside">
-      Вкладки разводят четыре независимых набора данных. Шапка со сборкой
-      и кнопкой запуска закреплена: она нужна на любой вкладке. На широком
-      окне содержимое раскладывается в две колонки — приложение
-      разворачивают на 2K, и лента в 720 пикселей оставляет половину окна
-      пустой.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win collapsed">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-          </nav>
-          <div class="content">
-            <div class="row">
-              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
-              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
-              <h3 style="margin-right:auto">SDXL стабильная</h3>
-              <span class="pill stopped"><i></i>Остановлен</span>
-              <span class="btn primary lg">Запустить</span>
-              <span class="btn secondary">run_nvidia_gpu ▾</span>
-            </div>
-
-            <div class="tabs">
-              <span aria-selected="true">Обзор</span>
-              <span>Модели <span class="n">14</span></span>
-              <span>Воркфлоу <span class="n">6</span></span>
-              <span>Параметры</span>
-            </div>
-
-            <div class="cols">
-              <div>
-                <div class="field">
-                  <label>Последний запуск</label>
-                  <div class="paths">
-                    <div class="path-item keep"><span class="lbl">Сегодня, 14:20</span><span class="val">готов за 54 с</span></div>
-                    <div class="path-item"><span class="lbl">Порт</span><span class="val">8188</span></div>
-                    <div class="path-item"><span class="lbl">Профиль</span><span class="val">run_nvidia_gpu</span></div>
-                  </div>
-                </div>
-                <div class="field">
-                  <label>Лог последнего запуска</label>
-                  <div class="row">
-                    <span class="btn secondary">Показать лог</span>
-                    <span class="hint">1 482 строки · раскроется на всю область</span>
-                  </div>
-                </div>
-                <div class="field">
-                  <label>Общие модели</label>
-                  <div class="toggle-row">
-                    <span class="toggle"></span>
-                    <div>
-                      <div>Подключены, режим «флаг»</div>
-                      <div class="hint">D:/AI/_shared_models · 26 категорий</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div class="field">
-                  <label>Папка сборки</label>
-                  <div class="path-row">
-                    <div class="input mono"><span>D:\program_files\comfyui\SDXL</span></div>
-                    <span class="btn secondary">Открыть</span>
-                  </div>
-                </div>
-                <div class="paths">
-                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
-                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12 · встроенный</span></div>
-                  <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52,4 ГБ</span></div>
-                  <div class="path-item"><span class="lbl">Профилей запуска</span><span class="val">4 + 1 свой</span></div>
-                </div>
-                <div class="src">Развёрнут из ComfyUI_windows_portable_nvidia.7z · 12 марта</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="variant-head"><b>Лог раскрыт</b><span>та же вкладка, кнопка нажата</span></div>
-    <p class="aside">
-      Лог не висит куском в 260 пикселей посреди свитка и не показывается
-      всегда: он раскрывается кнопкой на всю область данных и сворачивается
-      обратно. При старте раскрывается сам — там он и есть содержимое
-      экрана.
-    </p>
-    <div class="frame">
-      <div class="win fixed t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win collapsed">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em><i class="dot" style="background:var(--state-starting)"></i></div>
-          </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="row">
-                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
-                <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
-                <h3 style="margin-right:auto">SDXL стабильная</h3>
-                <span class="pill starting"><i></i>Стартует</span>
-                <span class="btn danger">Отмена</span>
-                <span class="btn secondary">Свернуть лог</span>
-              </div>
-              <div class="track indet"><i></i></div>
-            </div>
-            <div class="data">
-              <div class="log">
-<div class="console">Total VRAM 24564 MB, total RAM 65451 MB
-pytorch version: 2.13.0+cu130
-Set vram state to: NORMAL_VRAM
-Device: cuda:0 NVIDIA GeForce RTX 4090
-Loading custom nodes: 47 found
-  ComfyUI-Manager 3.19.4
-  ComfyUI_IPAdapter_plus
-<span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
-                <span class="log-follow">К последним строкам <span class="n">+128</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================ J-01 · 6 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-01 · шаг 9</span>
-      <h2>Инстанс работает</h2>
-      <span class="jtag">US-TAB-02</span><span class="jtag">US-TAB-06</span>
-    </div>
-    <p class="aside">
-      Ради этого экрана всё и затевалось: ComfyUI внутри окна, а не во вкладке
-      браузера. Область холста занимает <strong>нативное окно поверх нашего
-      интерфейса</strong> — поэтому ни одно наше меню, всплывашка или тост не
-      может её перекрыть. Отсюда и вся раскладка: рейл слева, инструменты
-      инстанса полосой сверху, и ничего плавающего.
-    </p>
-    <p class="aside">
-      <strong>Единственный экран, где прокрутка запрещена.</strong> Позиция
-      нативного окна задаётся командой <code>set_webview_bounds</code>. Если бы
-      контейнер этой области прокручивался, прямоугольник разошёлся бы с
-      содержимым: вебвью осталось бы на месте, а разметка уползла. Поэтому
-      тулбар закреплён, холст занимает всё оставшееся место, и ни у одного
-      родителя нет собственной прокрутки.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer — SDXL стабильная</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win collapsed">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL</em></div>
-            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux</em></div>
-            <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em></div>
-          </nav>
-          <div class="content flush">
-            <div class="inst-toolbar">
-              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
-              <span class="name">SDXL стабильная</span>
-              <span class="port">127.0.0.1:8188</span>
-              <span class="pill running"><i></i>Работает</span>
-              <span class="spacer"></span>
-              <span class="btn ghost">Логи</span>
-              <span class="btn ghost">Папка output</span>
-              <span class="btn ghost">В браузере</span>
-              <span class="btn secondary">Остановить</span>
-            </div>
-            <div class="comfy">
-              <div class="comfy-node" style="left:8%; top:16%">
-                <b>Load Checkpoint</b><span>sdxl_base_1.0</span>
-              </div>
-              <div class="comfy-node" style="left:44%; top:34%">
-                <b>KSampler</b><span>steps 28 · cfg 6.5</span>
-              </div>
-              <div class="comfy-node" style="left:74%; top:14%">
-                <b>Save Image</b><span>ComfyUI_00042_</span>
-              </div>
-              <div class="comfy-wire" style="left:22%; top:26%; width:22%"></div>
-              <div class="comfy-wire" style="left:57%; top:26%; width:17%"></div>
-              <span class="comfy-label">область встроенной вкладки ComfyUI</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================ J-03 · 1 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-03 · шаги 1-3</span>
-      <h2>Настройки: общие модели</h2>
-      <span class="jtag">US-SHARED-01</span><span class="jtag">US-SHARED-02</span><span class="jtag">US-SHARED-04</span>
-    </div>
-    <p class="aside">
-      Ради этого экрана проект и затевался: один чекпоинт весит до двадцати
-      гигабайт, и при пяти сборках дубли съедают сотни. Категории распознаются
-      по содержимому папки, а не по зашитому списку, — иначе конфиг устареет с
-      ближайшим обновлением ComfyUI.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-          </nav>
-          <!-- Две колонки на широком окне: слева то, что настраивают,
-               справа то, что этим настройкам отвечает. Одной лентой этот
-               экран заставлял скроллить при пустой правой половине. -->
-          <div class="content">
-            <div class="crumb">Настройки → Общие модели</div>
-            <div class="cols">
-              <div>
-                <div class="field">
-                  <label>Общий корень моделей</label>
-                  <div class="path-row">
-                    <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                    <span class="btn secondary">Обзор</span>
-                  </div>
-                  <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
-                </div>
-                <div class="cats">
-                  <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
-                  <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-                </div>
-              </div>
-              <div>
-                <div class="toggle-row">
-                  <span class="toggle"></span>
-                  <div>
-                    <div class="t-base">Скачивать новые модели в общую папку</div>
-                    <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
-                  </div>
-                </div>
-                <div class="field">
-                  <label>Что получит ComfyUI</label>
-<div class="console" style="max-height:200px">cpo_shared_0:
-  base_path: D:/AI/_shared/models
-  is_default: true
-  checkpoints: checkpoints/
-  loras: loras/
-  vae: vae/
-  text_encoders: |
-    text_encoders/
-    clip/</div>
-                  <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двадцать пять категорий; тумблер загрузок закреплён сверху</span></div>
-    <div class="frame" data-scroll>
-      <div class="win fixed t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены · 8</div>
-            <div class="nav-runs">
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
-            </div>
-          </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="crumb">Настройки → Общие модели</div>
-              <div class="field">
-                <div class="path-row">
-                  <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                  <span class="btn secondary">Обзор</span>
-                </div>
-                <div class="hint">Распознано 25 категорий · 231 ГБ · подключено 8 инстансов</div>
-              </div>
-              <div class="toggle-row">
-                <span class="toggle"></span>
-                <div><div class="t-base">Скачивать новые модели в общую папку</div></div>
-              </div>
-            </div>
-            <div class="data">
-              <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>controlnet</code><span class="n">9 файлов · 4.8 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>text_encoders</code><span class="n">4 файла · 3.2 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>diffusion_models</code><span class="n">3 файла · 22 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>clip_vision</code><span class="n">2 файла · 1.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>upscale_models</code><span class="n">11 файлов · 0.9 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>embeddings</code><span class="n">38 файлов · 0.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>style_models</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>hypernetworks</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>photomaker</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
-                <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-              </div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================ J-03 · 2 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-03 · шаг 4</span>
-      <h2>Инстанс: подключение общих моделей</h2>
-      <span class="jtag">US-SHARED-03</span><span class="jtag">US-SHARED-05</span>
-    </div>
-    <p class="aside">
-      Плашка про перезапуск обязательна: конфиг читается только при старте, и без
-      предупреждения пользователь решит, что функция сломана
-      <code>US-SHARED-03/AC-7</code>. Способ применения по умолчанию не пишет
-      в папку инстанса ничего.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены</div>
-            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-          </nav>
-          <div class="content">
-            <div class="crumb">Инстансы → SDXL стабильная</div>
-            <div class="row">
-              <h3 style="margin-right:auto">SDXL стабильная</h3>
-              <span class="pill running"><i></i>Работает</span>
-            </div>
-            <div class="banner"><b>Нужен перезапуск.</b><span>Общие модели подключены, но инстанс прочитает настройку только при следующем старте.</span></div>
-            <div class="toggle-row">
-              <span class="toggle"></span>
-              <div>
-                <div class="t-base">Общие модели</div>
-                <div class="hint">D:\AI\_shared\models · способ: без изменения папки инстанса · <u>сменить</u></div>
-              </div>
-            </div>
-            <div class="paths">
-              <div class="path-item"><span class="lbl">Путь</span><span class="val">D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
-              <div class="path-item"><span class="lbl">Версия · Python · порт</span><span class="val">0.30.2 · 3.13.12 · 8188</span></div>
-              <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52.3 ГБ · измерено 12 минут назад</span></div>
-            </div>
-            <div class="row"><span class="btn secondary">Остановить</span><span class="btn ghost">Перезапустить</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- =============================================== J-04 -->
-  <section class="screen">
-    <div class="screen-head">
-      <span class="jtag">J-04 · шаг 5</span>
-      <h2>Две версии рядом</h2>
-      <span class="jtag">US-REG-03</span><span class="jtag">US-INST-07</span>
-    </div>
-    <p class="aside">
-      Приложение никогда не обновляет сборку на месте: новая версия
-      разворачивается рядом, старая остаётся нетронутой. Чтобы версии
-      различались без открывания папок, в карточке видно, из какого архива
-      развёрнут инстанс <code>US-INST-07/AC-5</code>.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены</div>
-            <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-          </nav>
-          <div class="content">
-            <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
-            <div class="cards">
-              <div class="card">
-                <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
-                <div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
-                  <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code> · 4 августа</div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
-                <div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL новая версия</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="card-desc">Проверяю обновление перед переездом</div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>9.6 GB</span></div>
-                  <div class="src">Из архива <code>portable_nvidia_0.31.0.7z</code> · сегодня</div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
-                <div class="card-in">
-                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
-                  <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>восемь инстансов; рейл и заголовок закреплены</span></div>
-    <div class="frame" data-scroll>
-      <div class="win fixed t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены · 8</div>
-            <div class="nav-runs">
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
-            </div>
-          </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
-            </div>
-            <div class="data">
-              <div class="scroll"><div class="scroll-pad">
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-teal)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>18.7 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-ember)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-moss)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.29.4</span><span>:8191</span><span>9.4 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-azure)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Видео</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8192</span><span>77.1 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-orchid)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Инпейнт</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.0</span><span>:8193</span><span>12.8 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-rose)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Апскейл</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.29.1</span><span>:8194</span><span>6.2 GB</span></div>
-                </div></div>
-                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-amber)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Тесты нод</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8195</span><span>15.0 GB</span></div>
-                </div></div>
-              </div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- =============================================== J-05 -->
-  <section class="screen">
+  <section class="screen" data-top>
     <div class="screen-head">
       <span class="jtag">J-05 · шаги 4-5</span>
       <h2>Библиотека воркфлоу</h2>
@@ -2230,12 +2114,145 @@ Loading custom nodes: 47 found
       </div>
     </div>
   </section>
-
-  <!-- =============================================== J-06 -->
-  <section class="screen">
+  <section class="screen" data-top>
+    <div class="screen-head">
+      <span class="jtag">J-03 · шаги 1-3</span>
+      <h2>Настройки: общие модели</h2>
+      <span class="jtag">US-SHARED-01</span><span class="jtag">US-SHARED-02</span><span class="jtag">US-SHARED-04</span>
+    </div>
+    <p class="aside">
+      Ради этого экрана проект и затевался: один чекпоинт весит до двадцати
+      гигабайт, и при пяти сборках дубли съедают сотни. Категории распознаются
+      по содержимому папки, а не по зашитому списку, — иначе конфиг устареет с
+      ближайшим обновлением ComfyUI.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <!-- Две колонки на широком окне: слева то, что настраивают,
+               справа то, что этим настройкам отвечает. Одной лентой этот
+               экран заставлял скроллить при пустой правой половине. -->
+          <div class="content">
+            <div class="crumb">Настройки → Общие модели</div>
+            <div class="cols">
+              <div>
+                <div class="field">
+                  <label>Общий корень моделей</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
+                </div>
+                <div class="cats">
+                  <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+                  <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+                  <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="toggle-row">
+                  <span class="toggle"></span>
+                  <div>
+                    <div class="t-base">Скачивать новые модели в общую папку</div>
+                    <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Что получит ComfyUI</label>
+<div class="console" style="max-height:200px">cpo_shared_0:
+  base_path: D:/AI/_shared/models
+  is_default: true
+  checkpoints: checkpoints/
+  loras: loras/
+  vae: vae/
+  text_encoders: |
+    text_encoders/
+    clip/</div>
+                  <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двадцать пять категорий; тумблер загрузок закреплён сверху</span></div>
+    <div class="frame" data-scroll>
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены · 8</div>
+            <div class="nav-runs">
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+            </div>
+          </nav>
+          <div class="content framed no-foot">
+            <div class="pinned">
+              <div class="crumb">Настройки → Общие модели</div>
+              <div class="field">
+                <div class="path-row">
+                  <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                  <span class="btn secondary">Обзор</span>
+                </div>
+                <div class="hint">Распознано 25 категорий · 231 ГБ · подключено 8 инстансов</div>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle"></span>
+                <div><div class="t-base">Скачивать новые модели в общую папку</div></div>
+              </div>
+            </div>
+            <div class="data">
+              <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>controlnet</code><span class="n">9 файлов · 4.8 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>text_encoders</code><span class="n">4 файла · 3.2 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>diffusion_models</code><span class="n">3 файла · 22 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>clip_vision</code><span class="n">2 файла · 1.1 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>upscale_models</code><span class="n">11 файлов · 0.9 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>embeddings</code><span class="n">38 файлов · 0.1 ГБ</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>style_models</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>hypernetworks</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                <div class="cat"><code>photomaker</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+                <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen" data-top>
     <div class="screen-head">
       <span class="jtag">J-06 · шаг 1</span>
-      <h2>О приложении: что где лежит</h2>
+      <h2>О приложении</h2>
       <span class="jtag">US-DATA-01</span><span class="jtag">US-DATA-03</span>
     </div>
     <p class="aside">
@@ -2281,27 +2298,62 @@ Loading custom nodes: 47 found
     </div>
   </section>
 
-  <section class="closing">
-    <h2>Полнота покрытия</h2>
-    <p>
+  <div class="part"><b>Общее</b><span>Верно не для одного экрана, а для всего набора.</span></div>
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Правило прокрутки</h2>
+      <span class="jtag">NFR-420</span><span class="jtag">NFR-430</span><span class="jtag">NFR-440</span>
+    </div>
+    <p class="aside">
+      Окно фиксированной высоты, а данные не ограничены: восемь инстансов,
+      двести воркфлоу, двадцать пять категорий моделей, тысячи строк лога.
+      Поэтому <strong>окно не прокручивается целиком</strong>. Внутри контентной
+      области ровно один вертикальный скролл — область данных, а всё, что
+      управляет экраном, из неё вынесено. Часть экранов ниже показана дважды:
+      с обычным объёмом и с реальным — второй кадр помечен
+      <span class="scroll-tag">прокрутка</span> и нарисован в окне
+      фиксированной высоты, где данные заведомо не помещаются.
+    </p>
+    <div class="two" style="margin-top:16px">
+      <div class="paths">
+        <div class="path-item"><span class="lbl">Рейл</span><span class="val">закреплён; список запущенных скроллится внутри себя</span></div>
+        <div class="path-item"><span class="lbl">Заголовок и действия</span><span class="val">закреплены сверху</span></div>
+        <div class="path-item"><span class="lbl">Область данных</span><span class="val">прокручивается</span></div>
+        <div class="path-item"><span class="lbl">Подвал мастера</span><span class="val">закреплён снизу</span></div>
+      </div>
+      <div class="paths">
+        <div class="path-item keep"><span class="lbl">Список — детали</span><span class="val">два независимых скролла, единственное исключение</span></div>
+        <div class="path-item keep"><span class="lbl">Консоль</span><span class="val">следование за лентой с паузой при прокрутке вверх</span></div>
+        <div class="path-item keep"><span class="lbl">Область ComfyUI</span><span class="val">не прокручивается никогда</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Полнота покрытия</h2>
+    </div>
+    <p class="aside">
       Восемнадцать экранов покрывают все шесть сквозных сценариев из
       <code>specs/journeys.md</code>. Не показаны экраны, которые появляются
       только в исключительных ситуациях: разрешение конфликта, когда в инстансе
       уже лежит чужой файл настроек, и отчёт о дубликатах моделей — оба
       относятся к более поздним фазам.
     </p>
-    <p>
+    <p class="aside">
       Все компоненты взяты из общей библиотеки, а не нарисованы заново:
       стилевой файл у обеих страниц один. Значит, правка компонента в библиотеке
       автоматически меняет его на всех экранах.
     </p>
   </section>
 
+    </div>
+  </div>
+
 </div>
 
 <script>
-// Тема приложения переключается сразу на всех экранах: сравнивать двенадцать
-// макетов попарно бессмысленно, а вот увидеть весь путь в одной теме — нужно.
+// Тема приложения переключается сразу на всех экранах: сравнивать восемнадцать
+// макетов попарно бессмысленно, а вот увидеть весь набор в одной теме — нужно.
 const frames = document.querySelectorAll('.win');
 const buttons = document.querySelectorAll('[data-theme-btn]');
 for (const btn of buttons) {
@@ -2316,6 +2368,38 @@ for (const btn of buttons) {
     }
   });
 }
+
+// Подсветка текущего пункта оглавления. Наблюдатель, а не расчёт позиций
+// на каждый кадр прокрутки: секции высотой в окно, и считать их
+// прямоугольники восемнадцать раз в секунду незачем.
+//
+// Полоса `rootMargin` узкая и прижата к верху окна: «текущей» считается
+// та секция, чей заголовок только что прошёл под липкой шапкой. Иначе
+// при высоких кадрах в окне видно сразу две, и подсветка мигает между
+// ними на каждом движении колеса.
+const links = new Map(
+  [...document.querySelectorAll('.toc a')].map((a) => [a.getAttribute('href').slice(1), a]),
+);
+const anchors = document.querySelectorAll('.screen[id], .part[id]');
+let current = null;
+
+const spy = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const link = links.get(e.target.id);
+      if (!link || link === current) continue;
+      if (current) current.classList.remove('here');
+      link.classList.add('here');
+      current = link;
+      // Длинное оглавление само прокручивается за подсветкой: иначе
+      // текущий пункт уезжает за край колонки и толку от него нет.
+      link.scrollIntoView({ block: 'nearest' });
+    }
+  },
+  { rootMargin: '-64px 0px -85% 0px' },
+);
+for (const a of anchors) spy.observe(a);
 </script>
 
 </body>
