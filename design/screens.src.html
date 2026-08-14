@@ -31,7 +31,7 @@
    прокрутку. Правило только здесь — `.wrap` делит страница компонентов,
    и там колонок нет. */
 .wrap { max-width: 1440px; }
-.layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 32px; align-items: start; }
+.layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start; }
 .sections { min-width: 0; }
 
 /* Оглавление липнет ниже полосы переключателя тем: она тоже липкая,
@@ -44,15 +44,19 @@
   font-size: 12.5px;
 }
 .toc a {
-  display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 6px;
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px;
   padding: 3px 6px; border-radius: 4px;
   color: var(--page-dim); text-decoration: none;
 }
 .toc a:hover { background: var(--page-code); color: var(--page-fg); }
 .toc .toc-no { font-family: var(--font-mono); font-size: 11px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
+/* Ступенька на каждый уровень — по двенадцать пикселей, и одинаковая.
+   Раньше у второго уровня стояло ровно базовое поле, то есть ступеньки
+   не было вовсе: 1.1 и 2.1 висели под своими группами без сдвига,
+   а 2.3.1 сдвигался — и вложенным выглядел только третий уровень. */
 .toc .toc-1 { font-weight: 600; color: var(--page-fg); margin-top: 10px; }
-.toc .toc-2 { padding-left: 6px; }
-.toc .toc-3 { padding-left: 18px; }
+.toc .toc-2 { padding-left: 18px; }
+.toc .toc-3 { padding-left: 30px; }
 .toc .toc-3 .toc-no { font-size: 10px; }
 /* Текущий пункт. Класс, а не `:target`: подсветка должна ехать
    за прокруткой, а не за последним кликом. */
