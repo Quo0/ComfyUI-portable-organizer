@@ -419,6 +419,10 @@ h3.sub {
    движения читается как зависание. Кадры те же, что у .track.indet:
    заводить вторые ради одной и той же анимации незачем. */
 .bar.indet > i { width: 34%; animation: slide 1.4s ease-in-out infinite; }
+/* Полоса в ряду с кнопкой: занимает всё, что осталось до края блока.
+   Короткий индикатор рядом с кнопкой читается как значок, а не как
+   «идёт работа». */
+.bar.grow { flex: 1; min-width: 120px; }
 @media (prefers-reduced-motion: reduce) {
   .bar.indet > i { animation: none; width: 100%; opacity: .4; }
 }

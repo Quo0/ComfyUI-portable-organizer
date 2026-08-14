@@ -287,8 +287,10 @@ const needed = computed(() =>
               {{ t('install.archive.choose') }}
             </button>
             <template v-if="wizard.reading">
-              <span class="spin"></span>
               <span class="hint">{{ t('install.archive.reading') }}</span>
+              <!-- Полоса тянется до края блока: короткий индикатор рядом
+                   с кнопкой читается как значок, а не как «идёт работа». -->
+              <span class="bar indet grow"><i></i></span>
             </template>
           </div>
 
