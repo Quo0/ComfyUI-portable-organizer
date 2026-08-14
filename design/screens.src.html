@@ -392,17 +392,71 @@
     </div>
   </section>
 
+  <!-- ============================================ ревизия · установка -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">ревизия</span>
+      <h2>Установка: две дорожки</h2>
+      <span class="jtag">US-ONB-02</span><span class="jtag">US-REG-01</span>
+    </div>
+    <p class="aside">
+      Раздел постоянный, а не только для первого запуска, и это единственное
+      место, где заводят сборки: со списка инстансов кнопка «Добавить»
+      убрана, двух дверей в одну комнату быть не должно.
+    </p>
+    <p class="aside">
+      Дорожки идут слева направо, а не одна под другой: это развилка, и обе
+      ветки должны быть видны разом, чтобы выбирать было из чего.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <h3>Установка</h3>
+            <p>Две дорожки: указать папку с уже установленным ComfyUI или распаковать портабл-сборку из архива .7z в одно или несколько мест.</p>
+            <div class="forks">
+              <div class="fork">
+                <b>Папка уже есть</b>
+                <p>Зарегистрировать распакованную сборку. Папка остаётся нетронутой.</p>
+                <span class="btn secondary">Выбрать папку</span>
+              </div>
+              <div class="fork">
+                <b>Распаковать из архива</b>
+                <p>Распаковать портабл-сборку в одно или несколько мест и сразу их зарегистрировать.</p>
+                <span class="btn primary">Выбрать архив .7z…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============================================ J-01 · 2 -->
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 3</span>
-      <h2>Мастер: выбор архива</h2>
+      <h2>Мастер: шаг 1 — архив</h2>
       <span class="jtag">US-INST-01</span><span class="jtag">US-INST-03</span>
     </div>
     <p class="aside">
-      Состав архива и требуемое место показаны до того, как что-то начнётся.
-      Нехватка места останавливает установку здесь, а не на середине распаковки
-      <code>US-INST-03/AC-2</code>.
+      Выбор архива сразу уводит на второй шаг: состав архива и требуемое
+      место видны там, в закреплённой шапке, то есть до того, как что-то
+      начнётся. Нехватка места останавливает установку до распаковки,
+      а не на её середине <code>US-INST-03/AC-2</code>.
+    </p>
+    <p class="aside">
+      Разбор оглавления на пятьдесят шесть тысяч записей занимает больше
+      секунды, и подпись о нём стоит <strong>рядом с кнопкой</strong>,
+      которую только что нажали, а не отдельным блоком ниже.
     </p>
     <div class="frame">
       <div class="win t-dark">
@@ -420,25 +474,26 @@
               <span class="step now"><u>1</u>Архив</span><span class="step-sep"></span>
               <span class="step"><u>2</u>Назначения</span><span class="step-sep"></span>
               <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
-              <span class="step"><u>4</u>Установка</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
               <span class="step"><u>5</u>Готово</span>
             </div>
-            <h3>Откуда ставим</h3>
             <p>Архив портабл-сборки нужно скачать самостоятельно — приложение его не загружает.</p>
+            <!-- Подпись о чтении оглавления — в том же ряду, что и кнопка:
+                 отдельным блоком ниже она выглядела ответом на что-то
+                 другое. -->
+            <div class="row">
+              <span class="btn primary">Выбрать архив .7z…</span>
+              <span class="spin"></span>
+              <span class="hint">Читаем оглавление архива…</span>
+            </div>
             <div class="field">
-              <label>Архив портабл-сборки</label>
-              <div class="path-row">
-                <div class="input mono"><span>D:\Downloads\ComfyUI_windows_portable_nvidia.7z</span></div>
-                <span class="btn secondary">Выбрать другой</span>
+              <label>Недавние</label>
+              <div class="paths">
+                <div class="path-item keep"><span class="lbl">0.31.0 · сегодня</span><span class="val">2.18 ГБ</span></div>
+                <div class="path-item"><span class="lbl">0.30.2 · 4 августа</span><span class="val">2.11 ГБ</span></div>
+                <div class="path-item"><span class="lbl">0.28.7 · 30 мая</span><span class="val">файла нет</span></div>
               </div>
-              <div class="hint">Использован 4 августа · 2.11 ГБ · дата и размер совпадают с запомненными</div>
             </div>
-            <div class="paths">
-              <div class="path-item"><span class="lbl">Версия ComfyUI в архиве</span><span class="val">0.30.2</span></div>
-              <div class="path-item"><span class="lbl">Распакованный размер</span><span class="val">9.4 ГБ</span></div>
-              <div class="path-item keep"><span class="lbl">Свободно на диске D:</span><span class="val">318 ГБ — достаточно</span></div>
-            </div>
-            <div class="wizard-foot"><span class="btn ghost">Отмена</span><span class="btn primary">Далее</span></div>
           </div>
         </div>
       </div>
@@ -501,7 +556,7 @@
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 4</span>
-      <h2>Мастер: куда распаковать</h2>
+      <h2>Мастер: шаг 2 — назначения</h2>
       <span class="jtag">US-INST-02</span><span class="jtag">US-INST-08</span>
     </div>
     <p class="aside">
@@ -509,6 +564,13 @@
       один раз, остальные копии получаются копированием готового дерева.
       Предупреждение о длинном пути стоит здесь, а не после сбоя: часть файлов
       сборки вложена настолько глубоко, что упирается в ограничение Windows.
+    </p>
+    <p class="aside">
+      Кнопки перехода — <strong>в ряду с названием шага</strong>, а не
+      в подвале: при нескольких назначениях «Дальше» уезжала из виду ровно
+      тогда, когда становилась нужна. «Назад» всегда левее кнопки действия.
+      Под ними закреплена сводка по архиву — то, что раньше показывалось
+      отдельным шагом.
     </p>
     <div class="frame">
       <div class="win t-dark">
@@ -526,10 +588,23 @@
               <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
               <span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span>
               <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
-              <span class="step"><u>4</u>Установка</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
               <span class="step"><u>5</u>Готово</span>
             </div>
-            <h3>Куда распаковать</h3>
+            <div class="step-bar">
+              <h3>Куда распаковать</h3>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="btn primary lg">Дальше</span>
+              </span>
+            </div>
+            <div class="meta">
+              <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
+              <span>56 128 файлов</span>
+              <span>распакуется в 9,7 ГБ</span>
+              <span>нужно примерно 19,4 ГБ</span>
+            </div>
             <div class="two">
               <div class="field">
                 <label>Папка</label>
@@ -550,12 +625,11 @@
               <div class="path-item"><span class="lbl">Назначение 2</span><span class="val">E:\AI\Flux_clean — Flux чистый</span></div>
             </div>
             <div class="row"><span class="btn ghost">Добавить ещё папку</span></div>
-            <div class="wizard-foot"><span class="btn ghost">Назад</span><span class="btn primary">Далее</span></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>шесть папок назначения; подвал с «Далее» закреплён</span></div>
+    <div class="variant-head"><span class="overflow-tag">переполнение</span><b>Реальный объём данных</b><span>шесть папок назначения; ряд шага с «Дальше» закреплён</span></div>
     <div class="frame" data-overflow>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -579,10 +653,25 @@
               <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
             </div>
           </nav>
-          <div class="content framed">
+          <div class="content framed no-foot">
             <div class="pinned">
-              <div class="steps"><span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span><span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span><span class="step "><u>3</u>Общие ресурсы</span><span class="step-sep"></span><span class="step "><u>4</u>Установка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
-              <div class="row"><h3 style="margin-right:auto">Куда распаковать</h3><span class="btn ghost">Добавить папку</span></div>
+              <div class="steps"><span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span><span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span><span class="step "><u>3</u>Общие ресурсы</span><span class="step-sep"></span><span class="step "><u>4</u>Распаковка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
+              <!-- Кнопки перехода стоят здесь и никуда не уезжают:
+                   шесть назначений в области ниже прокручиваются, ряд шага
+                   остаётся на месте. -->
+              <div class="step-bar">
+                <h3>Куда распаковать</h3>
+                <span class="spacer"></span>
+                <span class="acts">
+                  <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                  <span class="btn primary lg">Дальше</span>
+                </span>
+              </div>
+              <div class="meta">
+                <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
+                <span>56 128 файлов</span>
+                <span>нужно примерно 58,2 ГБ</span>
+              </div>
             </div>
             <div class="data">
               <div class="scroll"><div class="scroll-pad" style="gap:1px">
@@ -594,7 +683,99 @@
                 <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
               </div></div>
             </div>
-            <div class="screen-foot"><span class="btn ghost">Назад</span><span class="btn primary">Далее</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ ревизия · шаг 3 -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-01 · шаг 5</span>
+      <h2>Мастер: шаг 3 — общие ресурсы</h2>
+      <span class="jtag">US-SHARED-01</span><span class="jtag">US-WF-02</span>
+    </div>
+    <p class="aside">
+      Ресурса два, и они про разное: модели и воркфлоу. Раньше всё шло одним
+      списком полей, и понять, к чему относится очередной путь, можно было
+      только по подписи — отсюда две отдельные панели.
+    </p>
+    <p class="aside">
+      Настраивается прямо здесь, теми же компонентами, что в «Настройках»:
+      уводить за одной папкой в другой раздел посреди установки незачем
+      <code>US-SHARED-01/AC-4</code>.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
+              <span class="step now"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
+              <span class="step"><u>5</u>Готово</span>
+            </div>
+            <div class="step-bar">
+              <h3>Подключить новые сборки к общим моделям</h3>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="btn primary lg">Распаковать</span>
+              </span>
+            </div>
+
+            <div class="pane">
+              <div class="pane-head"><span class="title">Общие модели</span></div>
+              <div class="scroll-pad">
+                <div class="field">
+                  <label>Общий корень моделей</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <div class="hint">Распознано 5 категорий · 231 ГБ</div>
+                </div>
+                <div class="toggle-row">
+                  <span class="toggle"></span>
+                  <div>
+                    <div class="t-base">Подключить обе новые сборки</div>
+                    <div class="hint">Модель, загруженная в одной сборке, станет видна всем</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="t-label">Как применить</span>
+                  <div class="seg">
+                    <span aria-pressed="true">Флагом при запуске</span>
+                    <span>Файлом в сборке</span>
+                  </div>
+                  <div class="hint">В папку сборки ничего не пишется; выключается снятием галки</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pane">
+              <div class="pane-head"><span class="title">Библиотека воркфлоу</span></div>
+              <div class="scroll-pad">
+                <div class="field">
+                  <label>Папка библиотеки</label>
+                  <div class="path-row">
+                    <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <div class="hint">14 воркфлоу</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -605,7 +786,7 @@
   <section class="screen">
     <div class="screen-head">
       <span class="jtag">J-01 · шаг 6</span>
-      <h2>Мастер: распаковка идёт</h2>
+      <h2>Мастер: шаг 4 — распаковка</h2>
       <span class="jtag">US-INST-05</span>
     </div>
     <p class="aside">
@@ -630,10 +811,16 @@
               <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
               <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
               <span class="step done"><u>✓</u>Общие ресурсы</span><span class="step-sep"></span>
-              <span class="step now"><u>4</u>Установка</span><span class="step-sep"></span>
+              <span class="step now"><u>4</u>Распаковка</span><span class="step-sep"></span>
               <span class="step"><u>5</u>Готово</span>
             </div>
-            <h3>Распаковка</h3>
+            <div class="step-bar">
+              <h3>Распаковка</h3>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn danger">Отменить</span>
+              </span>
+            </div>
             <div class="prog">
               <div class="prog-head"><span>D:\AI\Flux</span><span class="count">1 / 2</span></div>
               <div class="track"><i style="width:64%"></i></div>
@@ -644,7 +831,6 @@
               <div class="track"><i style="width:0"></i></div>
               <div class="prog-file">копированием готового дерева — быстрее повторной распаковки</div>
             </div>
-            <div class="wizard-foot"><span class="btn ghost">Отменить установку</span></div>
           </div>
         </div>
       </div>
@@ -673,10 +859,15 @@
               <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
             </div>
           </nav>
-          <div class="content framed">
+          <div class="content framed no-foot">
             <div class="pinned">
-              <div class="steps"><span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span><span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span><span class="step done"><u>✓</u>Общие ресурсы</span><span class="step-sep"></span><span class="step now"><u>4</u>Установка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
-              <div class="row"><h3 style="margin-right:auto">Распаковка</h3><span class="t-label">2 из 6</span></div>
+              <div class="steps"><span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span><span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span><span class="step done"><u>✓</u>Общие ресурсы</span><span class="step-sep"></span><span class="step now"><u>4</u>Распаковка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
+              <div class="step-bar">
+                <h3>Распаковка</h3>
+                <span class="t-label">2 из 6</span>
+                <span class="spacer"></span>
+                <span class="acts"><span class="btn danger">Отменить</span></span>
+              </div>
             </div>
             <div class="data">
               <div class="scroll"><div class="scroll-pad" style="gap:var(--space-4)">
@@ -688,7 +879,81 @@
                 <div class="prog"><div class="prog-head"><span>E:\AI\Archive_030</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
               </div></div>
             </div>
-            <div class="screen-foot"><span class="btn ghost">Отменить установку</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ ревизия · шаг 5 -->
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-01 · шаг 7</span>
+      <h2>Мастер: шаг 5 — готово</h2>
+      <span class="jtag">US-INST-06</span><span class="jtag">US-INST-07</span>
+    </div>
+    <p class="aside">
+      Итог показывает то, что появилось, а не то, что произошло: карточки
+      созданных сборок кликабельны и ведут на их экраны. Отсюда же —
+      сразу второй прогон, если ставили не всё, что собирались.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Распаковка</span><span class="step-sep"></span>
+              <span class="step now"><u>5</u>Готово</span>
+            </div>
+            <div class="step-bar">
+              <h3>Готово</h3>
+              <span class="t-label">Добавлено 2 инстанса</span>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn ghost">Установить ещё</span>
+                <span class="btn primary lg">К инстансам</span>
+              </span>
+            </div>
+
+            <div class="cards grid">
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-indigo)">F</span>
+                    <div class="card-name">Flux тест</div>
+                    <span class="pill stopped"><i></i>Остановлен</span>
+                  </div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.31.0</span><span>:8188</span><span class="tag">общие модели</span></div>
+                  <div class="src">D:\AI\Flux</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-accent" style="--instance-accent:var(--accent-moss)"></div>
+                <div class="card-in">
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-moss)">F</span>
+                    <div class="card-name">Flux чистый</div>
+                    <span class="pill stopped"><i></i>Остановлен</span>
+                  </div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.31.0</span><span>:8189</span><span class="tag">общие модели</span></div>
+                  <div class="src">E:\AI\Flux_clean</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

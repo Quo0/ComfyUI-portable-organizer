@@ -677,6 +677,11 @@ h3.sub {
 .input:focus-within { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
 .hint { font-size: var(--text-xs); color: var(--ink-muted); }
 .hint.bad { color: var(--state-crashed); }
+/* Распорка: отжимает всё, что после неё, к правому краю ряда.
+   Объявлена один раз и здесь — до этого она трижды повторялась
+   под конкретные экраны. */
+.spacer { margin-left: auto; }
+
 .path-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-2); }
 .path-row .input { overflow: hidden; }
 .path-row .input span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -766,6 +771,25 @@ h3.sub {
 
 /* ------------------------------------------------- шаги мастера */
 .steps { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+
+/* Ряд шага: название слева, кнопки перехода справа.
+ *
+ * Кнопки стоят здесь, а не в подвале, и не в области прокрутки: на шаге
+ * с несколькими назначениями «Дальше» уезжала из виду ровно тогда, когда
+ * становилась нужна. «Назад» всегда левее кнопки действия — порядок
+ * читается слева направо, как и сам мастер.
+ */
+.step-bar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-5) var(--space-3);
+}
+.step-bar h3, .step-bar .title {
+  font-family: var(--font-ui-display);
+  font-size: var(--text-md); font-weight: var(--weight-medium);
+  margin: 0; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.step-bar .acts { display: flex; gap: var(--space-2); flex: none; }
 .step { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--ink-muted); }
 .step u { text-decoration: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; border: 1px solid var(--line-strong); font-variant-numeric: tabular-nums; }
 .step.done { color: var(--ink-secondary); }

@@ -145,7 +145,6 @@
     },
     "targets": {
       "title": "解压到哪里",
-      "hint": "文件夹必须为空或尚不存在。名称由你决定，压缩包内的根目录会被去掉。",
       "add": "再添加一个目标",
       "remove": "移除这个目标",
       "choose": "选择…",
@@ -158,7 +157,6 @@
       "copying": "正在复制到 {name}",
       "registering": "正在登记",
       "progress": "{done} / {total}",
-      "note": "第一个目标通过解压得到，其余从它复制。解压是最慢的一步，只做一次能省下几分钟。",
       "files": "{done} / {total} 个文件",
       "preparing": "正在检查文件夹并打开压缩包…",
       "cleaning": "正在清理上次中断留下的文件…"
@@ -166,11 +164,11 @@
     "done": {
       "title": "完成",
       "added": "已添加 {n} 个实例",
-      "open": "打开"
+      "again": "再装一个",
+      "toInstances": "前往实例列表"
     },
     "shared": {
       "title": "将新安装连接到共享模型",
-      "body": "一个 checkpoint 有 2 到 20 GB。所有安装共用一份副本，正是共享文件夹的意义所在。",
       "connect": "连接全部 {n} 个新安装",
       "models": "共享模型",
       "workflows": "工作流库"

@@ -25,6 +25,26 @@ const { bytes, moment } = useFormat();
 const STEPS: WizardStep[] = ['archive', 'targets', 'shared', 'running', 'done'];
 const current = computed(() => STEPS.indexOf(wizard.step));
 
+/**
+ * Название текущего шага для ряда с кнопками перехода.
+ *
+ * У трёх шагов оно своё и говорит о деле («Куда распаковать»), у двух
+ * совпадает с названием в полосе шагов — придумывать им второе имя
+ * значило бы говорить об одном и том же двумя словами.
+ */
+const stepTitle = computed(() => {
+  switch (wizard.step) {
+    case 'targets':
+      return t('install.targets.title');
+    case 'shared':
+      return t('install.shared.title');
+    case 'done':
+      return t('install.done.title');
+    default:
+      return t('install.wizard.step.running');
+  }
+});
+
 const ACCENTS = [
   'teal',
   'indigo',
@@ -178,9 +198,60 @@ const needed = computed(() =>
       </template>
     </nav>
 
-    <!-- Шапка шага назначений закреплена вместе с кнопкой «Далее»:
-         блоков «куда распаковать» бывает несколько, и кнопка уезжала
-         из виду ровно тогда, когда становилась нужна. -->
+    <!-- Ряд шага: название слева, переходы справа. Кнопки стоят здесь,
+         а не в подвале и не в области прокрутки: при нескольких
+         назначениях «Дальше» уезжала из виду ровно тогда, когда
+         становилась нужна. «Назад» всегда левее кнопки действия. -->
+    <div v-if="wizard.step !== 'archive'" class="step-bar">
+      <h2 class="title">{{ stepTitle }}</h2>
+      <span v-if="wizard.step === 'done'" class="t-label">
+        {{ t('install.done.added', wizard.created.length) }}
+      </span>
+      <span class="spacer"></span>
+
+      <span v-if="wizard.step === 'targets'" class="acts">
+        <button type="button" class="btn ghost" @click="wizard.step = 'archive'">
+          <svg class="ico"><use href="#i-back" /></svg>
+          {{ t('common.back') }}
+        </button>
+        <button
+          type="button"
+          class="btn primary lg"
+          :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
+          @click="wizard.step = 'shared'"
+        >
+          {{ t('install.wizard.next') }}
+        </button>
+      </span>
+
+      <span v-else-if="wizard.step === 'shared'" class="acts">
+        <button type="button" class="btn ghost" @click="wizard.step = 'targets'">
+          <svg class="ico"><use href="#i-back" /></svg>
+          {{ t('common.back') }}
+        </button>
+        <button type="button" class="btn primary lg" @click="wizard.start()">
+          {{ t('install.run.start') }}
+        </button>
+      </span>
+
+      <span v-else-if="wizard.step === 'running'" class="acts">
+        <button type="button" class="btn danger" @click="wizard.cancel()">
+          {{ t('install.run.cancel') }}
+        </button>
+      </span>
+
+      <span v-else class="acts">
+        <button type="button" class="btn ghost" @click="wizard.reset()">
+          {{ t('install.done.again') }}
+        </button>
+        <RouterLink class="btn primary lg" to="/instances">
+          {{ t('install.done.toInstances') }}
+        </RouterLink>
+      </span>
+    </div>
+
+    <!-- Сводка по архиву закреплена под рядом шага: она нужна, пока
+         выбирают назначения, и уезжать вместе с ними не должна. -->
     <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
       <div class="meta">
         <span>{{ wizard.info.label }}</span>
@@ -202,6 +273,10 @@ const needed = computed(() =>
       <div class="screen-pad wide">
         <!-- ------------------------------------------------ шаг «архив» -->
         <template v-if="wizard.step === 'archive'">
+          <!-- Разбор оглавления на 56 тысяч записей занимает больше секунды,
+               и подпись о нём стоит рядом с кнопкой, которую только что
+               нажали: отдельным блоком ниже она выглядела ответом
+               на что-то другое. -->
           <div class="row">
             <button
               type="button"
@@ -211,13 +286,10 @@ const needed = computed(() =>
             >
               {{ t('install.archive.choose') }}
             </button>
-          </div>
-
-          <!-- Разбор заголовка на 56 тысяч записей занимает больше секунды.
-               Без подписи выбор файла выглядит проигнорированным. -->
-          <div v-if="wizard.reading" class="group">
-            <p class="t-sm">{{ t('install.archive.reading') }}</p>
-            <div class="bar indet"><i></i></div>
+            <template v-if="wizard.reading">
+              <span class="spin"></span>
+              <span class="hint">{{ t('install.archive.reading') }}</span>
+            </template>
           </div>
 
           <div v-if="wizard.history.length" class="group">
@@ -268,10 +340,6 @@ const needed = computed(() =>
 
         <!-- --------------------------------------------- шаг «назначения» -->
         <template v-else-if="wizard.step === 'targets' && wizard.info">
-          <div class="group">
-            <span class="t-label">{{ t('install.targets.title') }}</span>
-            <p class="hint">{{ t('install.targets.hint') }}</p>
-          </div>
 
           <div
             v-for="(target, index) in wizard.targets"
@@ -390,17 +458,10 @@ const needed = computed(() =>
               {{ t('install.targets.add') }}
             </button>
           </div>
-
-          <p class="hint">{{ t('install.run.note') }}</p>
         </template>
 
         <!-- ---------------------------------------- шаг «общие ресурсы» -->
         <template v-else-if="wizard.step === 'shared'">
-          <div class="group">
-            <p class="t-md">{{ t('install.shared.title') }}</p>
-            <p class="t-sm">{{ t('install.shared.body') }}</p>
-          </div>
-
           <!-- Ресурса два, и они про разное: модели и воркфлоу. Раньше всё
                шло одним списком полей, и понять, к чему относится очередной
                путь, можно было только по подписи. -->
@@ -499,17 +560,6 @@ const needed = computed(() =>
           </div>
           </div>
 
-          <p class="hint">{{ t('install.run.note') }}</p>
-
-          <div class="row">
-            <button type="button" class="btn primary lg" @click="wizard.start()">
-              {{ t('install.run.start') }}
-            </button>
-            <button type="button" class="btn ghost" @click="wizard.step = 'targets'">
-              <svg class="ico"><use href="#i-back" /></svg>
-              {{ t('common.back') }}
-            </button>
-          </div>
         </template>
 
         <!-- -------------------------------------------- шаг «выполнение» -->
@@ -545,23 +595,11 @@ const needed = computed(() =>
             </template>
           </div>
 
-          <div class="row">
-            <button type="button" class="btn danger" @click="wizard.cancel()">
-              {{ t('install.run.cancel') }}
-            </button>
-          </div>
         </template>
 
         <!-- -------------------------------------------------- шаг «итог» -->
         <template v-else>
-          <div class="group">
-            <p class="t-md">{{ t('install.done.title') }}</p>
-            <p class="t-sm">
-              {{ t('install.done.added', wizard.created.length) }}
-            </p>
-          </div>
-
-          <div class="cards">
+          <div class="cards grid">
             <RouterLink
               v-for="instance in wizard.created"
               :key="instance.id"
@@ -586,40 +624,15 @@ const needed = computed(() =>
             </RouterLink>
           </div>
 
-          <div class="row">
-            <RouterLink class="btn secondary" to="/instances">
-              {{ t('nav.instances') }}
-            </RouterLink>
-            <button type="button" class="btn ghost" @click="wizard.reset()">
-              {{ t('install.wizard.title') }}
-            </button>
-          </div>
         </template>
       </div>
-    </div>
-
-    <!-- Подвал вне области прокрутки: кнопка «Далее» обязана быть видна
-         всегда, сколько бы блоков назначения ни завели. -->
-    <div v-if="wizard.step === 'targets'" class="wizard-foot">
-      <button type="button" class="btn ghost" @click="wizard.step = 'archive'">
-        <svg class="ico"><use href="#i-back" /></svg>
-        {{ t('common.back') }}
-      </button>
-      <button
-        type="button"
-        class="btn primary lg"
-        :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
-        @click="wizard.step = 'shared'"
-      >
-        {{ t('install.wizard.next') }}
-      </button>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* Колонка, а не сетка с посчитанными строками: закреплённая шапка
-   и подвал есть только на шаге назначений, и числу строк меняться
+/* Колонка, а не сетка с посчитанными строками: закреплённая сводка
+   по архиву есть только на шаге назначений, и числу строк меняться
    вместе с шагом нельзя. */
 .wizard-screen {
   min-height: 0;
@@ -639,13 +652,8 @@ const needed = computed(() =>
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-5) var(--space-3);
+  padding: 0 var(--space-5) var(--space-3);
   border-bottom: 1px solid var(--line);
-}
-
-.wizard-foot {
-  padding: var(--space-3) var(--space-5);
-  margin: 0;
 }
 
 .target {

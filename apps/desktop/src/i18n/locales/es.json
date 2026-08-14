@@ -145,7 +145,6 @@
     },
     "targets": {
       "title": "Dónde descomprimir",
-      "hint": "La carpeta debe estar vacía o no existir. El nombre lo eliges tú: la carpeta raíz del archivo se descarta.",
       "add": "Añadir otro destino",
       "remove": "Quitar este destino",
       "choose": "Elegir…",
@@ -158,7 +157,6 @@
       "copying": "Copiando en {name}",
       "registering": "Registrando",
       "progress": "{done} de {total}",
-      "note": "El primer destino se descomprime y el resto se copia de él. La descompresión es la parte lenta, y hacerla una sola vez ahorra minutos.",
       "files": "{done} de {total} archivos",
       "preparing": "Comprobando las carpetas y abriendo el archivo…",
       "cleaning": "Limpiando lo que dejó un intento interrumpido…"
@@ -166,11 +164,11 @@
     "done": {
       "title": "Listo",
       "added": "{n} instancia añadida | {n} instancias añadidas",
-      "open": "Abrir"
+      "again": "Instalar otra",
+      "toInstances": "Ir a las instancias"
     },
     "shared": {
       "title": "Conectar las nuevas instalaciones a los modelos compartidos",
-      "body": "Un checkpoint pesa de dos a veinte gigabytes. Tener una sola copia para todas las instalaciones es justo el propósito de la carpeta compartida.",
       "connect": "Conectar la nueva instalación | Conectar las {n} instalaciones nuevas",
       "models": "Modelos compartidos",
       "workflows": "Biblioteca de flujos"

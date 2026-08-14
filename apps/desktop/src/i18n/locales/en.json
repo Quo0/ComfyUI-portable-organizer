@@ -145,7 +145,6 @@
     },
     "targets": {
       "title": "Where to unpack",
-      "hint": "The folder must be empty or not exist yet. The name is up to you: the root folder from the archive is stripped.",
       "add": "Add another destination",
       "remove": "Remove this destination",
       "choose": "Choose…",
@@ -158,7 +157,6 @@
       "copying": "Copying into {name}",
       "registering": "Registering",
       "progress": "{done} of {total}",
-      "note": "The first destination is unpacked, the rest are copied from it. Decompression is the slow part, and doing it once saves minutes.",
       "files": "{done} of {total} files",
       "preparing": "Checking the folders and opening the archive…",
       "cleaning": "Clearing what an interrupted attempt left behind…"
@@ -166,11 +164,11 @@
     "done": {
       "title": "Ready",
       "added": "{n} instance added | {n} instances added",
-      "open": "Open"
+      "again": "Install another",
+      "toInstances": "Go to instances"
     },
     "shared": {
       "title": "Connect the new builds to shared models",
-      "body": "A checkpoint weighs from two to twenty gigabytes. Keeping one copy for all builds is the whole point of a shared folder.",
       "connect": "Connect the new build | Connect all {n} new builds",
       "models": "Shared models",
       "workflows": "Workflow library"
