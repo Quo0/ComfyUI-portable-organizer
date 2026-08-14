@@ -50,8 +50,7 @@
     "count": "{n} 个实例",
     "empty": {
       "title": "还没有实例",
-      "body": "指定一个已有的 ComfyUI 文件夹，或者从压缩包解压一份新的。",
-      "action": "前往安装"
+      "body": "本应用启动 ComfyUI 便携版，显示启动日志，并直接在此窗口内打开界面。"
     },
     "add": {
       "title": "添加实例",
@@ -73,11 +72,13 @@
       "profiles": "启动配置",
       "profilesNone": "没有找到 .bat 文件，启动参数需要手动设置。",
       "profilesAdvanced": "进阶",
+      "profilesCustom": "{n} 个自定义",
       "sizeOnDisk": "占用空间",
       "sizeMeasuring": "正在统计…",
       "sizeMeasuredAt": "测量于 {when}",
       "recalculate": "重新统计",
       "source": "于 {when} 从 {archive} 解压",
+      "lastRunTitle": "上次启动",
       "lastRun": "上次启动：{when}",
       "lastRunNever": "尚未从这里启动过",
       "accentCustom": "选择自定义颜色"
@@ -368,7 +369,9 @@
     "adopted": "已重新连接到端口 {port} 上的服务器。",
     "showLog": "显示日志",
     "hideLog": "收起日志",
-    "lines": "{n} 行"
+    "lines": "{n} 行",
+    "logExpands": "将展开占满整个区域",
+    "toLatest": "跳到最新行"
   },
   "shared": {
     "title": "共享模型",

@@ -18,6 +18,7 @@ import LaunchControls from '../components/LaunchControls.vue';
 import LaunchNotices from '../components/LaunchNotices.vue';
 import LogConsole from '../components/LogConsole.vue';
 import ModelsPanel from '../components/ModelsPanel.vue';
+import PathText from '../components/PathText.vue';
 import WorkflowPanel from '../components/WorkflowPanel.vue';
 import SharedPanel from '../components/SharedPanel.vue';
 import StatusPill from '../components/StatusPill.vue';
@@ -26,12 +27,14 @@ import { accentVar, initial, useFormat } from '../lib/format';
 import { displayStatus } from '../lib/status';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
+import { useSharedStore } from '../stores/shared';
 import { useUiStore } from '../stores/ui';
 
 const props = defineProps<{ id: string }>();
 
 const instances = useInstancesStore();
 const run = useRunStore();
+const shared = useSharedStore();
 const ui = useUiStore();
 const router = useRouter();
 const { t } = useI18n();
@@ -68,6 +71,17 @@ const sizeMeasuredText = computed(() => {
   const when = moment(instance.value?.sizeMeasuredAt);
   return when ? t('instances.field.sizeMeasuredAt', { when }) : '';
 });
+/**
+ * Строка про общие модели для обзора. Пустая означает «не подключены»:
+ * подключение — не ошибка и не пропуск, поэтому в строке стоит прочерк,
+ * а не предложение что-то сделать.
+ */
+const sharedText = computed(() => {
+  if (instance.value?.shared?.enabled !== true) return '';
+  const mode = instance.value.shared.applyMode;
+  return `${shared.root?.path ?? ''} · ${t(`shared.mode.${mode}.short`)}`;
+});
+
 const lastRunText = computed(() => {
   const when = moment(instance.value?.lastStartedAt);
   return when
@@ -77,6 +91,8 @@ const lastRunText = computed(() => {
 
 onMounted(async () => {
   if (!instances.loaded) await instances.load();
+  // Путь общей папки нужен уже на обзоре, а не только на вкладке «Модели».
+  if (!shared.loaded) await shared.load();
   await run.loadProfiles(props.id);
   await run.loadLog(props.id);
   await measureIfNeeded();
@@ -159,6 +175,8 @@ function openFolder(): void {
       <LaunchControls :instance="instance" />
     </header>
 
+    <div v-if="state === 'starting'" class="track indet starting-track"><i></i></div>
+
     <LaunchNotices :instance="instance" />
 
     <!-- Инстанс с исчезнувшей папкой не пропадает из списка: иначе
@@ -207,9 +225,12 @@ function openFolder(): void {
       <div class="screen-pad wide">
         <!-- ------------------------------------------------------- обзор -->
         <div v-if="tab === 'overview'" class="cols">
+          <!-- Подписи здесь те же `.field > label`, что и в правой колонке:
+               две разные подписи в одной форме читаются как два разных
+               уровня вложенности, которых нет. -->
           <div>
-            <div class="group">
-              <span class="t-label">{{ t('instances.tab.overview') }}</span>
+            <div class="field">
+              <label>{{ t('instances.field.lastRunTitle') }}</label>
               <div class="paths">
                 <div class="path-item keep">
                   <span class="lbl">{{ lastRunText }}</span>
@@ -217,9 +238,13 @@ function openFolder(): void {
                     {{ status?.readySecs ? t('run.readyIn', { secs: status.readySecs }) : '' }}
                   </span>
                 </div>
+                <!-- Именно предпочитаемый: настоящий порт выдаётся при
+                     старте и стоит в шапке рядом с состоянием. Показывать
+                     под этой подписью выданный значило бы врать в тот
+                     единственный момент, когда они разошлись. -->
                 <div class="path-item">
                   <span class="lbl">{{ t('instances.field.port') }}</span>
-                  <span class="val">{{ status?.port ?? instance.preferredPort }}</span>
+                  <span class="val">{{ instance.preferredPort }}</span>
                 </div>
                 <div class="path-item">
                   <span class="lbl">{{ t('instances.field.profiles') }}</span>
@@ -228,18 +253,22 @@ function openFolder(): void {
               </div>
             </div>
 
-            <div class="group">
-              <span class="t-label">{{ t('run.console') }}</span>
+            <div class="field">
+              <label>{{ t('run.console') }}</label>
               <div class="row">
                 <button type="button" class="btn secondary" @click="logOpen = true">
                   {{ t('run.showLog') }}
                 </button>
-                <span class="hint">{{ t('run.lines', lines.length) }}</span>
+                <!-- Про всю область сказано заранее: кнопка не открывает
+                     панельку сбоку, а забирает экран целиком. -->
+                <span class="hint">
+                  {{ t('run.lines', lines.length) }} · {{ t('run.logExpands') }}
+                </span>
               </div>
             </div>
 
-            <div v-if="instance.description" class="group">
-              <span class="t-label">{{ t('instances.field.description') }}</span>
+            <div v-if="instance.description" class="field">
+              <label>{{ t('instances.field.description') }}</label>
               <p class="t-sm">{{ instance.description }}</p>
             </div>
           </div>
@@ -277,8 +306,29 @@ function openFolder(): void {
               </div>
               <div class="path-item">
                 <span class="lbl">{{ t('instances.field.profiles') }}</span>
+                <!-- «4 + 1» не говорит, что за плюс один: свои профили
+                     заводит пользователь, и найденные в папке .bat с ними
+                     не смешиваются. -->
                 <span class="val">
-                  {{ profiles.length }}{{ custom.length ? ` + ${custom.length}` : '' }}
+                  {{ profiles.length
+                  }}{{
+                    custom.length
+                      ? ` + ${t('instances.field.profilesCustom', custom.length)}`
+                      : ''
+                  }}
+                </span>
+              </div>
+              <!-- Подключение к общим моделям — факт про сборку, а не только
+                   про вкладку «Модели»: почему у двух сборок разный набор
+                   чекпоинтов, спрашивают на обзоре. Здесь он только
+                   показан — тумблер живёт в одном месте, на своей вкладке. -->
+              <div class="path-item">
+                <span class="lbl">{{ t('shared.instance.label') }}</span>
+                <span class="val">
+                  <template v-if="sharedText">
+                    <PathText :path="sharedText" />
+                  </template>
+                  <template v-else>—</template>
                 </span>
               </div>
             </div>
@@ -389,12 +439,26 @@ function openFolder(): void {
 </template>
 
 <style scoped>
-/* Шапка, уведомления, вкладки — и только потом область данных.
-   Строк четыре, потому что уведомления появляются и исчезают. */
+/* Колонка, а не сетка с посчитанными строками: над областью данных стоят
+   шапка, полоса старта, два независимых блока уведомлений и вкладки, и все,
+   кроме шапки и вкладок, появляются и исчезают. Заранее выписанные строки
+   разъезжались с их настоящим числом, и область данных теряла свою долю. */
 .inst-screen {
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+}
+
+.inst-screen > .screen-body,
+.log-area {
+  flex: 1;
+}
+
+/* Старт длится минуты, доля выполненного неизвестна. Полоса не сообщает
+   прогресс, а показывает, что процесс жив: без неё пауза читается
+   как зависание. */
+.starting-track {
+  margin: 0 var(--space-5) var(--space-2);
 }
 
 .tabs {

@@ -10,7 +10,7 @@
     "about": "Acerca de",
     "collapse": "Contraer el menú",
     "expand": "Expandir el menú",
-    "active": "Requieren atención"
+    "active": "En ejecución"
   },
   "common": {
     "copy": "Copiar",
@@ -50,8 +50,7 @@
     "count": "{n} instancia | {n} instancias",
     "empty": {
       "title": "Todavía no hay instancias",
-      "body": "Indica una carpeta de ComfyUI que ya tengas o descomprime una versión nueva desde un archivo.",
-      "action": "Ir a la instalación"
+      "body": "La aplicación lanza compilaciones portables de ComfyUI, muestra el registro de arranque y abre la interfaz en esta misma ventana."
     },
     "add": {
       "title": "Añadir una instancia",
@@ -73,11 +72,13 @@
       "profiles": "Perfiles de arranque",
       "profilesNone": "No se han encontrado archivos .bat: tendrás que indicar las opciones de arranque a mano.",
       "profilesAdvanced": "avanzados",
+      "profilesCustom": "{n} propio | {n} propios",
       "sizeOnDisk": "Tamaño en disco",
       "sizeMeasuring": "calculando…",
       "sizeMeasuredAt": "medido {when}",
       "recalculate": "Recalcular",
       "source": "Descomprimida de {archive} el {when}",
+      "lastRunTitle": "Último arranque",
       "lastRun": "Último arranque: {when}",
       "lastRunNever": "Todavía no se ha arrancado desde aquí",
       "accentCustom": "Elegir tu propio color"
@@ -368,7 +369,9 @@
     "adopted": "Reconectado al servidor en el puerto {port}.",
     "showLog": "Mostrar el registro",
     "hideLog": "Ocultar el registro",
-    "lines": "{n} línea | {n} líneas"
+    "lines": "{n} línea | {n} líneas",
+    "logExpands": "se abre en toda el área",
+    "toLatest": "A las últimas líneas"
   },
   "shared": {
     "title": "Modelos compartidos",

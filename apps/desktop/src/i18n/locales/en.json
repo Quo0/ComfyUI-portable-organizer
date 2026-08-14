@@ -10,7 +10,7 @@
     "about": "About",
     "collapse": "Collapse menu",
     "expand": "Expand menu",
-    "active": "Needs attention"
+    "active": "Running"
   },
   "common": {
     "copy": "Copy",
@@ -50,8 +50,7 @@
     "count": "{n} instance | {n} instances",
     "empty": {
       "title": "No instances yet",
-      "body": "Point the app at a ComfyUI folder you already have, or unpack a fresh build from an archive.",
-      "action": "Go to Install"
+      "body": "The app launches portable ComfyUI builds, shows the startup log and opens the interface right in this window."
     },
     "add": {
       "title": "Add an instance",
@@ -73,11 +72,13 @@
       "profiles": "Launch profiles",
       "profilesNone": "No .bat launchers found — you will need to set the launch options by hand.",
       "profilesAdvanced": "advanced",
+      "profilesCustom": "{n} custom | {n} custom",
       "sizeOnDisk": "Size on disk",
       "sizeMeasuring": "counting…",
       "sizeMeasuredAt": "measured {when}",
       "recalculate": "Recount",
       "source": "Unpacked from {archive} on {when}",
+      "lastRunTitle": "Last run",
       "lastRun": "Last run: {when}",
       "lastRunNever": "Not started from here yet",
       "accentCustom": "Pick your own colour"
@@ -368,7 +369,9 @@
     "adopted": "Reconnected to the server on port {port}.",
     "showLog": "Show the log",
     "hideLog": "Hide the log",
-    "lines": "{n} line | {n} lines"
+    "lines": "{n} line | {n} lines",
+    "logExpands": "opens across the whole area",
+    "toLatest": "To the latest lines"
   },
   "shared": {
     "title": "Shared models",

@@ -20,8 +20,13 @@ export function displayStatus(instance: Instance, run?: RunStatus): DisplayStatu
   return run?.state ?? 'stopped';
 }
 
-/** Состояния, о которых рейл сообщает независимо от открытого раздела. */
-export function needsAttention(status: DisplayStatus): boolean {
+/**
+ * Состояния, о которых рейл сообщает независимо от открытого раздела:
+ * всё, что не лежит в покое. Называлось `needsAttention`, а возвращало
+ * истину и для спокойно работающей сборки — подпись над списком обещала
+ * проблему там, где её не было.
+ */
+export function isLive(status: DisplayStatus): boolean {
   return status !== 'stopped';
 }
 

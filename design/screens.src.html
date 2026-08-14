@@ -348,19 +348,23 @@
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
           <div class="content">
+            <div class="row"><h3>Инстансы</h3></div>
             <div class="empty">
-              <h4>Пока ни одного инстанса</h4>
+              <h4>Инстансов пока нет</h4>
               <p>Приложение запускает портабл-сборки ComfyUI, показывает логи старта и открывает интерфейс прямо в этом окне.</p>
+              <!-- Ровно те же две дорожки, что и на экране «Установка»:
+                   один компонент на два места. Пока они были описаны
+                   по месту, одна развилка разъехалась на три формулировки. -->
               <div class="forks">
                 <div class="fork">
-                  <b>У меня уже есть ComfyUI</b>
-                  <p>Укажите распакованную папку. Приложение прочитает версию и профили запуска и ничего в ней не изменит.</p>
-                  <span class="btn secondary">Указать папку</span>
+                  <b>Папка уже есть</b>
+                  <p>Зарегистрировать распакованную сборку. Папка остаётся нетронутой.</p>
+                  <span class="btn secondary">Выбрать папку</span>
                 </div>
                 <div class="fork">
-                  <b>Установить ComfyUI</b>
-                  <p>Понадобится скачанный архив портабл-сборки. Распакуем сразу в одну или несколько папок.</p>
-                  <span class="btn primary">Открыть мастер</span>
+                  <b>Распаковать из архива</b>
+                  <p>Распаковать портабл-сборку в одно или несколько мест и сразу их зарегистрировать.</p>
+                  <span class="btn primary">Выбрать архив .7z…</span>
                 </div>
               </div>
             </div>
@@ -401,7 +405,7 @@
           <div class="content">
             <div class="row">
               <h3>Инстансы</h3>
-              <span class="t-sm" style="color:var(--ink-muted)">5</span>
+              <span class="t-sm">5</span>
               <span style="margin-left:auto"></span>
               <div class="input" style="width:220px">Поиск по имени</div>
               <div class="seg">
@@ -517,13 +521,19 @@
               <h3 style="margin-right:auto">SDXL стабильная</h3>
               <span class="pill stopped"><i></i>Остановлен</span>
               <span class="btn primary lg">Запустить</span>
-              <span class="btn secondary">run_nvidia_gpu ▾</span>
+              <!-- Выбор профиля — системный список, а не кнопка с галкой:
+                   имена профилей это имена .bat-файлов, и их бывает восемь. -->
+              <span class="input" style="width:170px">run_nvidia_gpu</span>
             </div>
 
+            <!-- Чисел на вкладках нет намеренно: и число моделей, и число
+                 воркфлоу стоят обхода папок сборки, а у запущенной — ещё
+                 и запроса к её серверу. Платить этим за украшение шапки
+                 при каждом открытии экрана нельзя. -->
             <div class="tabs">
               <span aria-selected="true">Обзор</span>
-              <span>Модели <span class="n">14</span></span>
-              <span>Воркфлоу <span class="n">6</span></span>
+              <span>Модели</span>
+              <span>Воркфлоу</span>
               <span>Параметры</span>
             </div>
 
@@ -532,27 +542,21 @@
                 <div class="field">
                   <label>Последний запуск</label>
                   <div class="paths">
-                    <div class="path-item keep"><span class="lbl">Сегодня, 14:20</span><span class="val">готов за 54 с</span></div>
-                    <div class="path-item"><span class="lbl">Порт</span><span class="val">8188</span></div>
-                    <div class="path-item"><span class="lbl">Профиль</span><span class="val">run_nvidia_gpu</span></div>
+                    <div class="path-item keep"><span class="lbl">Последний запуск: сегодня, 14:20</span><span class="val">готов за 54 с</span></div>
+                    <div class="path-item"><span class="lbl">Предпочитаемый порт</span><span class="val">8188</span></div>
+                    <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">run_nvidia_gpu</span></div>
                   </div>
                 </div>
                 <div class="field">
-                  <label>Лог последнего запуска</label>
+                  <label>Лог запуска</label>
                   <div class="row">
                     <span class="btn secondary">Показать лог</span>
                     <span class="hint">1 482 строки · раскроется на всю область</span>
                   </div>
                 </div>
                 <div class="field">
-                  <label>Общие модели</label>
-                  <div class="toggle-row">
-                    <span class="toggle"></span>
-                    <div>
-                      <div>Подключены, режим «флаг»</div>
-                      <div class="hint">D:/AI/_shared_models · 26 категорий</div>
-                    </div>
-                  </div>
+                  <label>Описание</label>
+                  <p class="t-sm">Рабочая сборка, ноды не трогаю</p>
                 </div>
               </div>
 
@@ -561,16 +565,25 @@
                   <label>Папка сборки</label>
                   <div class="path-row">
                     <div class="input mono"><span>D:\program_files\comfyui\SDXL</span></div>
-                    <span class="btn secondary">Открыть</span>
+                    <span class="btn secondary">Открыть папку</span>
                   </div>
                 </div>
+                <!-- Общие модели здесь только показаны. Тумблер живёт
+                     на вкладке «Модели» и ровно в одном месте: два
+                     переключателя одного и того же расходятся. -->
                 <div class="paths">
                   <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
-                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12 · встроенный</span></div>
+                  <div class="path-item keep"><span class="lbl">Версия Python</span><span class="val">3.13.12</span></div>
                   <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52,4 ГБ</span></div>
-                  <div class="path-item"><span class="lbl">Профилей запуска</span><span class="val">4 + 1 свой</span></div>
+                  <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">4 + 1 свой</span></div>
+                  <div class="path-item"><span class="lbl">Общие модели</span><span class="val">D:\AI\_shared\models · папка сборки не тронута</span></div>
                 </div>
-                <div class="src">Развёрнут из ComfyUI_windows_portable_nvidia.7z · 12 марта</div>
+                <div class="row">
+                  <span class="hint">измерено 12 минут назад</span>
+                  <span class="btn ghost">Пересчитать</span>
+                  <span class="btn ghost">Править аргументы</span>
+                </div>
+                <div class="src">Распакован из ComfyUI_windows_portable_nvidia.7z, 12 марта</div>
               </div>
             </div>
           </div>
@@ -605,10 +618,27 @@
                 <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
                 <h3 style="margin-right:auto">SDXL стабильная</h3>
                 <span class="pill starting"><i></i>Стартует</span>
-                <span class="btn danger">Отмена</span>
+                <span class="btn primary lg">Открыть ComfyUI</span>
+                <span class="btn secondary">Перезапустить</span>
+                <span class="btn danger">Остановить</span>
+              </div>
+              <!-- Доля выполненного неизвестна: старт с большим набором нод
+                   занимает минуты, и полоса говорит только, что процесс жив. -->
+              <div class="track indet"><i></i></div>
+              <!-- Вкладки остаются на месте: лог занимает область данных,
+                   а не подменяет собой весь экран. -->
+              <div class="tabs">
+                <span aria-selected="true">Обзор</span>
+                <span>Модели</span>
+                <span>Воркфлоу</span>
+                <span>Параметры</span>
+              </div>
+              <div class="row">
+                <span class="t-label">Лог запуска</span>
+                <span class="hint">1 482 строки</span>
+                <span style="margin-left:auto"></span>
                 <span class="btn secondary">Свернуть лог</span>
               </div>
-              <div class="track indet"><i></i></div>
             </div>
             <div class="data">
               <div class="log">
@@ -640,6 +670,12 @@ Loading custom nodes: 47 found
       зависание. Строка загрузки моделей перерисовывается на месте, а не плодит
       тысячи строк.
     </p>
+    <p class="aside">
+      Экран тот же, что и у остановленной сборки, — со своей шапкой
+      и вкладками. Отличий два: лог раскрывается сам, потому что в эти минуты
+      он и есть содержимое экрана, и под шапкой идёт полоса без доли
+      выполненного.
+    </p>
     <div class="frame">
       <div class="win t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -655,13 +691,34 @@ Loading custom nodes: 47 found
             <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
           </nav>
           <div class="content">
-            <div class="crumb">Инстансы → Flux тест</div>
+            <!-- Хлебных крошек в приложении нет: путь ровно один уровень
+                 в глубину, и возврат делает кнопка «Назад». -->
             <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-indigo)">F</span>
               <h3 style="margin-right:auto">Flux тест</h3>
               <span class="pill starting"><i></i>Стартует</span>
-              <span class="btn secondary">Отмена</span>
+              <!-- Настоящий порт выдан при старте: предпочитаемый 8188 занят
+                   соседней сборкой. В обзоре под подписью «Предпочитаемый
+                   порт» так и останется 8188 — расходятся они только здесь. -->
+              <span class="t-mono">:8189</span>
+              <span class="btn primary lg">Открыть ComfyUI</span>
+              <span class="btn secondary">Перезапустить</span>
+              <span class="btn danger">Остановить</span>
             </div>
             <div class="track indet"><i></i></div>
+            <div class="tabs">
+              <span aria-selected="true">Обзор</span>
+              <span>Модели</span>
+              <span>Воркфлоу</span>
+              <span>Параметры</span>
+            </div>
+            <div class="row">
+              <span class="t-label">Лог запуска</span>
+              <span class="hint">312 строк</span>
+              <span style="margin-left:auto"></span>
+              <span class="btn secondary">Свернуть лог</span>
+            </div>
 <div class="console">D:\AI\Flux&gt;.\python_embeded\python.exe -s ComfyUI\main.py --port 8189 --disable-auto-launch
 Total VRAM 24564 MB, total RAM 65451 MB
 pytorch version: 2.13.0+cu130
@@ -669,7 +726,6 @@ Set vram state to: NORMAL_VRAM
 Device: cuda:0 NVIDIA GeForce RTX 4090
 Loading custom nodes: 47 found
 <span class="dim">Loading model  ████████████░░░░░░░  61%  4.2/6.9 GB</span></div>
-            <div class="hint">Порт 8189 — предпочитаемый 8188 занят другим инстансом</div>
           </div>
         </div>
       </div>
@@ -700,13 +756,28 @@ Loading custom nodes: 47 found
           </nav>
           <div class="content framed no-foot">
             <div class="pinned">
-              <div class="crumb">Инстансы → Flux тест</div>
               <div class="row">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="chip" style="--instance-accent:var(--accent-indigo)">F</span>
                 <h3 style="margin-right:auto">Flux тест</h3>
                 <span class="pill starting"><i></i>Стартует</span>
-                <span class="btn secondary">Отмена</span>
+                <span class="t-mono">:8189</span>
+                <span class="btn primary lg">Открыть ComfyUI</span>
+                <span class="btn danger">Остановить</span>
               </div>
               <div class="track indet"><i></i></div>
+              <div class="tabs">
+                <span aria-selected="true">Обзор</span>
+                <span>Модели</span>
+                <span>Воркфлоу</span>
+                <span>Параметры</span>
+              </div>
+              <div class="row">
+                <span class="t-label">Лог запуска</span>
+                <span class="hint">1 482 строки</span>
+                <span style="margin-left:auto"></span>
+                <span class="btn secondary">Свернуть лог</span>
+              </div>
             </div>
             <div class="data">
               <!-- Полторы тысячи строк старта: сорока хватает, чтобы
@@ -759,7 +830,7 @@ Loading custom nodes: 47 found
     </p>
     <div class="frame">
       <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer — SDXL стабильная</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
         <div class="win-body">
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
@@ -773,16 +844,23 @@ Loading custom nodes: 47 found
             <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em></div>
           </nav>
           <div class="content flush">
+            <!-- Значки, а не подписи: шесть текстовых кнопок в ряд
+                 не помещались на узком окне. Словами остались только
+                 остановка и перезапуск — у них цена ошибки выше,
+                 чем экономия места. -->
             <div class="inst-toolbar">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
               <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
               <span class="name">SDXL стабильная</span>
               <span class="port">127.0.0.1:8188</span>
               <span class="pill running"><i></i>Работает</span>
               <span class="spacer"></span>
-              <span class="btn ghost">Логи</span>
-              <span class="btn ghost">Папка output</span>
-              <span class="btn ghost">В браузере</span>
-              <span class="btn secondary">Остановить</span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-log"/></svg></span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-folder"/></svg></span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-external"/></svg></span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-reload"/></svg></span>
+              <span class="btn secondary">Перезапустить</span>
+              <span class="btn danger">Остановить</span>
             </div>
             <div class="comfy">
               <div class="comfy-node" style="left:8%; top:16%">
@@ -810,10 +888,16 @@ Loading custom nodes: 47 found
       <span class="jtag">US-SHARED-03</span><span class="jtag">US-SHARED-05</span>
     </div>
     <p class="aside">
-      Плашка про перезапуск обязательна: конфиг читается только при старте, и без
-      предупреждения пользователь решит, что функция сломана
-      <code>US-SHARED-03/AC-7</code>. Способ применения по умолчанию не пишет
-      в папку инстанса ничего.
+      Предупреждение про перезапуск обязательно: конфиг читается только при
+      старте, и без него пользователь решит, что функция сломана
+      <code>US-SHARED-03/AC-7</code>. Стоит оно прямо под тумблером — там,
+      где только что нажали, — а не отдельной плашкой наверху экрана.
+      Способ применения по умолчанию не пишет в папку инстанса ничего.
+    </p>
+    <p class="aside">
+      Тумблер живёт на вкладке «Модели» и ровно в одном месте. На «Обзоре»
+      подключение только показано строкой: два переключателя одного и того же
+      неизбежно расходятся.
     </p>
     <div class="frame">
       <div class="win t-dark">
@@ -830,25 +914,59 @@ Loading custom nodes: 47 found
             <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
           </nav>
           <div class="content">
-            <div class="crumb">Инстансы → SDXL стабильная</div>
             <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
               <h3 style="margin-right:auto">SDXL стабильная</h3>
               <span class="pill running"><i></i>Работает</span>
+              <span class="t-mono">:8188</span>
+              <span class="btn primary lg">Открыть ComfyUI</span>
+              <span class="btn secondary">Перезапустить</span>
+              <span class="btn danger">Остановить</span>
             </div>
-            <div class="banner"><b>Нужен перезапуск.</b><span>Общие модели подключены, но инстанс прочитает настройку только при следующем старте.</span></div>
+
+            <div class="tabs">
+              <span>Обзор</span>
+              <span aria-selected="true">Модели</span>
+              <span>Воркфлоу</span>
+              <span>Параметры</span>
+            </div>
+
             <div class="toggle-row">
               <span class="toggle"></span>
               <div>
                 <div class="t-base">Общие модели</div>
-                <div class="hint">D:\AI\_shared\models · способ: без изменения папки инстанса · <u>сменить</u></div>
+                <div class="hint">D:\AI\_shared\models · папка сборки не тронута</div>
               </div>
             </div>
-            <div class="paths">
-              <div class="path-item"><span class="lbl">Путь</span><span class="val">D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
-              <div class="path-item"><span class="lbl">Версия · Python · порт</span><span class="val">0.30.2 · 3.13.12 · 8188</span></div>
-              <div class="path-item"><span class="lbl">Размер на диске</span><span class="val">52.3 ГБ · измерено 12 минут назад</span></div>
+
+            <div class="group">
+              <span class="t-label">Способ применения</span>
+              <div class="seg">
+                <span aria-pressed="true">Не трогать папку сборки</span>
+                <span>Записать файл в сборку</span>
+              </div>
+              <p class="hint">Конфиг живёт у приложения и передаётся сборке при запуске. В папку сборки не пишется ничего.</p>
             </div>
-            <div class="row"><span class="btn secondary">Остановить</span><span class="btn ghost">Перезапустить</span></div>
+
+            <p class="hint bad">Сборка читает эту настройку только при старте. Перезапустите её, чтобы изменение подействовало.</p>
+
+            <!-- Перенос моделей сборки в общую папку — вторая половина той же
+                 вкладки: подключение и перенос это разные действия, и делать
+                 их приходится подряд. -->
+            <div class="row">
+              <span class="t-label">Модели этой сборки</span>
+              <span style="margin-left:auto"></span>
+              <span class="btn ghost">Повторить</span>
+            </div>
+            <div class="cats">
+              <div class="cat"><code>checkpoints</code><span class="n">6 элементов · 38,2 ГБ</span><span class="toggle"></span></div>
+              <div class="cat"><code>loras</code><span class="n">21 элемент · 4,7 ГБ</span><span class="toggle"></span></div>
+              <div class="cat"><code>vae</code><span class="n">3 элемента · 1,6 ГБ</span><span class="toggle off"></span></div>
+            </div>
+            <p class="hint">Перенесётся 27 файлов, 42,9 ГБ. То, что пришло вместе со сборкой, остаётся: файлы-маркеры и папка с конфигами моделей.</p>
+            <p class="hint bad">Сначала остановите сборку: забирать её файлы на ходу нельзя.</p>
+            <div class="row"><span class="btn primary" aria-disabled="true">Перенести в общую папку</span></div>
           </div>
         </div>
       </div>
@@ -881,32 +999,66 @@ Loading custom nodes: 47 found
             <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
           </nav>
           <div class="content">
-            <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
-            <div class="cards">
+            <!-- Кнопки «Добавить» здесь нет: сборки заводит раздел
+                 «Установка», и двух дверей в одно место быть не должно. -->
+            <div class="row">
+              <h3>Инстансы</h3>
+              <span class="t-sm">3</span>
+              <span style="margin-left:auto"></span>
+              <div class="input" style="width:220px">Поиск по имени</div>
+              <div class="seg">
+                <span aria-pressed="true">по имени</span>
+                <span>по запуску</span>
+                <span>по размеру</span>
+              </div>
+            </div>
+            <div class="cards grid">
               <div class="card">
                 <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
                 <div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+                    <div class="card-name">SDXL стабильная</div>
+                    <span class="pill stopped"><i></i>Остановлен</span>
+                  </div>
                   <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
-                  <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code> · 4 августа</div>
+                  <div class="meta"><span>0.30.2</span><span>:8188</span><span>52,3 ГБ</span></div>
+                  <div class="src">
+                    <div>Распакован из ComfyUI_windows_portable_nvidia_0.30.2.7z, 4 августа</div>
+                    <div>Последний запуск: вчера, 19:40</div>
+                  </div>
                 </div>
               </div>
               <div class="card">
                 <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
                 <div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL новая версия</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-indigo)">S</span>
+                    <div class="card-name">SDXL новая версия</div>
+                    <span class="pill stopped"><i></i>Остановлен</span>
+                  </div>
                   <div class="card-desc">Проверяю обновление перед переездом</div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>9.6 GB</span></div>
-                  <div class="src">Из архива <code>portable_nvidia_0.31.0.7z</code> · сегодня</div>
+                  <div class="meta"><span>0.31.0</span><span>:8189</span><span>9,6 ГБ</span></div>
+                  <div class="src">
+                    <div>Распакован из ComfyUI_windows_portable_nvidia_0.31.0.7z, сегодня</div>
+                    <div>Отсюда ещё не запускали</div>
+                  </div>
                 </div>
               </div>
               <div class="card">
                 <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
                 <div class="card-in">
-                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="card-top">
+                    <span class="chip" style="--instance-accent:var(--accent-ember)">А</span>
+                    <div class="card-name">Анимация</div>
+                    <span class="pill crashed"><i></i>Аварийно завершён</span>
+                  </div>
                   <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
+                  <div class="meta"><span>0.30.2</span><span>:8190</span><span>41,0 ГБ</span></div>
+                  <div class="src">
+                    <div>Распакован из ComfyUI_windows_portable_nvidia_0.30.2.7z, 12 марта</div>
+                    <div>Последний запуск: сегодня, 11:05</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -914,7 +1066,7 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>восемь инстансов; рейл и заголовок закреплены</span></div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>тринадцать инстансов; рейл и заголовок закреплены</span></div>
     <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -940,42 +1092,94 @@ Loading custom nodes: 47 found
           </nav>
           <div class="content framed no-foot">
             <div class="pinned">
-              <div class="row"><h3 style="margin-right:auto">Инстансы</h3><span class="btn secondary">Добавить</span></div>
+              <div class="row">
+                <h3>Инстансы</h3>
+                <span class="t-sm">13</span>
+                <span style="margin-left:auto"></span>
+                <div class="input" style="width:220px">Поиск по имени</div>
+                <div class="seg">
+                  <span aria-pressed="true">по имени</span>
+                  <span>по запуску</span>
+                  <span>по размеру</span>
+                </div>
+              </div>
             </div>
             <div class="data">
               <div class="scroll"><div class="scroll-pad">
+                <div class="cards grid">
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-teal)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8188</span><span>52.3 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+                  <div class="meta"><span>0.30.2</span><span>:8188</span><span>52,3 ГБ</span><span class="tag">общие модели</span></div>
+                  <div class="src"><div>Последний запуск: сегодня, 14:20</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8189</span><span>18.7 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
+                  <div class="card-desc">Новые ноды проверяю здесь</div>
+                  <div class="meta"><span>0.31.0</span><span>:8189</span><span>18,7 ГБ</span><span class="tag">общие модели</span></div>
+                  <div class="src"><div>Последний запуск: только что</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-ember)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8190</span><span>41.0 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-ember)">А</span><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
+                  <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
+                  <div class="meta"><span>0.30.2</span><span>:8190</span><span>41,0 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: сегодня, 11:05</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-moss)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.29.4</span><span>:8191</span><span>9.4 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.29.4</span><span>:8191</span><span>9,4 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: 3 дня назад</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-azure)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Видео</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.2</span><span>:8192</span><span>77.1 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><div class="card-name">Видео</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="card-desc">Длинные ролики, отдельный набор нод</div>
+                  <div class="meta"><span>0.30.2</span><span>:8192</span><span>77,1 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: сегодня, 09:12</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-orchid)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Инпейнт</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.30.0</span><span>:8193</span><span>12.8 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><div class="card-name">Инпейнт</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.30.0</span><span>:8193</span><span>12,8 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: 12 марта</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-rose)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Апскейл</div><span class="pill stopped"><i></i>Остановлен</span></div>
-                  <div class="meta"><span>ComfyUI 0.29.1</span><span>:8194</span><span>6.2 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><div class="card-name">Апскейл</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.29.1</span><span>:8194</span><span>6,2 ГБ</span></div>
+                  <div class="src"><div>Отсюда ещё не запускали</div></div>
                 </div></div>
                 <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-amber)"></div><div class="card-in">
-                  <div class="card-top"><div class="card-name">Тесты нод</div><span class="pill running"><i></i>Работает</span></div>
-                  <div class="meta"><span>ComfyUI 0.31.0</span><span>:8195</span><span>15.0 GB</span></div>
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><div class="card-name">Тесты нод</div><span class="pill running"><i></i>Работает</span></div>
+                  <div class="card-desc">Сюда ставлю всё подряд, не жалко</div>
+                  <div class="meta"><span>0.31.0</span><span>:8195</span><span>15,0 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: вчера, 22:41</div></div>
                 </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-teal)"></div><div class="card-in">
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><div class="card-name">SDXL новая версия</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc">Проверяю обновление перед переездом</div>
+                  <div class="meta"><span>0.31.0</span><span>:8196</span><span>9,6 ГБ</span></div>
+                  <div class="src"><div>Отсюда ещё не запускали</div></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-moss)"></div><div class="card-in">
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-moss)">Л</span><div class="card-name">Лоры</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.30.2</span><span>:8197</span><span>21,4 ГБ</span><span class="tag">общие модели</span></div>
+                  <div class="src"><div>Последний запуск: 4 августа</div></div>
+                </div></div>
+                <div class="card"><div class="card-accent" style="--instance-accent:var(--accent-azure)"></div><div class="card-in">
+                  <div class="card-top"><span class="chip" style="--instance-accent:var(--accent-azure)">К</span><div class="card-name">Контролнеты</div><span class="pill stopped"><i></i>Остановлен</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>0.29.4</span><span>:8198</span><span>7,9 ГБ</span></div>
+                  <div class="src"><div>Последний запуск: 28 июля</div></div>
+                </div></div>
+                <div class="card gone"><div class="card-accent"></div><div class="card-in">
+                  <div class="card-top"><span class="chip">В</span><div class="card-name">Видео (внешний диск)</div><span class="pill gone"><i></i>Папка не найдена</span></div>
+                  <div class="card-desc"></div>
+                  <div class="meta"><span>E:\comfy\video</span></div>
+                  <div class="src"><div>Последний запуск: 12 марта</div></div>
+                </div></div>
+                </div>
               </div></div>
             </div>
           </div>

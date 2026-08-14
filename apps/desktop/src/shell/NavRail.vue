@@ -3,7 +3,7 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { accentVar, initial } from '../lib/format';
-import { displayStatus, needsAttention, STATE_DOT } from '../lib/status';
+import { displayStatus, isLive, STATE_DOT } from '../lib/status';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
 import { useUiStore } from '../stores/ui';
@@ -31,17 +31,18 @@ const sections = computed(() => [
 ]);
 
 /**
- * Второй блок рейла. Смысл его в том, что события, не вызванные действием
- * пользователя, обязаны быть видны независимо от открытого раздела:
- * упавший процесс, самоперезапуск от ComfyUI-Manager, исчезнувшая папка.
+ * Второй блок рейла: всё, что сейчас не лежит в покое. Смысл его в том,
+ * что события, не вызванные действием пользователя, обязаны быть видны
+ * независимо от открытого раздела: упавший процесс, самоперезапуск
+ * от ComfyUI-Manager, исчезнувшая папка.
  */
-const attention = computed(() =>
+const live = computed(() =>
   instances.items
     .map((instance) => ({
       instance,
       status: displayStatus(instance, run.statusOf(instance.id)),
     }))
-    .filter((row) => needsAttention(row.status)),
+    .filter((row) => isLive(row.status)),
 );
 
 /**
@@ -49,7 +50,7 @@ const attention = computed(() =>
  * сюда и жмёт. У упавшей и недоступной вкладки нет — там нужен экран
  * инстанса с логом и кнопкой запуска.
  */
-function target(row: (typeof attention.value)[number]): string {
+function target(row: (typeof live.value)[number]): string {
   const inTab = row.status === 'running' || row.status === 'starting';
   return `/instances/${row.instance.id}${inTab ? '/tab' : ''}`;
 }
@@ -74,14 +75,14 @@ const toggleLabel = computed(() =>
       <span>{{ item.label }}</span>
     </RouterLink>
 
-    <template v-if="attention.length">
+    <template v-if="live.length">
       <div class="nav-sep"></div>
-      <div class="nav-note">{{ t('nav.active') }} · {{ attention.length }}</div>
+      <div class="nav-note">{{ t('nav.active') }} · {{ live.length }}</div>
       <!-- Собственная прокрутка: восемь инстансов не должны выталкивать
            кнопку сворачивания за пределы окна. -->
       <div class="nav-runs">
         <RouterLink
-          v-for="row in attention"
+          v-for="row in live"
           :key="row.instance.id"
           class="nav-run"
           :class="{ alert: row.status === 'crashed' || row.status === 'detached' }"

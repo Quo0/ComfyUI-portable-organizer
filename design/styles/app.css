@@ -448,6 +448,10 @@ h3.sub {
 .card.gone { border-style: dashed; background: transparent; }
 .card.gone .card-accent { background: var(--line-strong); }
 .card.gone .card-name { color: var(--ink-muted); }
+/* Акцент гасится целиком, а не только полосой: цветная метка рядом
+   с надписью «Папка не найдена» выглядит как живая сборка. Цвет приходит
+   инлайном, поэтому перебивается здесь самим свойством, а не переменной. */
+.card.gone .chip { background: var(--line-strong); color: var(--ink-muted); }
 .bar { height: 3px; border-radius: var(--radius-pill); background: var(--surface-sunken); overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 38%; background: var(--state-starting); border-radius: inherit; }
 /* Индетерминантное состояние: длительность заранее неизвестна, показывать

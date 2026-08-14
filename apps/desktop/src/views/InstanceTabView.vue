@@ -17,7 +17,7 @@ import LogConsole from '../components/LogConsole.vue';
 import StatusPill from '../components/StatusPill.vue';
 import { commands, type AppError } from '../bindings';
 import { errorText } from '../lib/errors';
-import { accentVar } from '../lib/format';
+import { accentVar, initial } from '../lib/format';
 import { displayStatus } from '../lib/status';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
@@ -194,7 +194,7 @@ function fail(error: AppError): void {
       <span
         class="chip"
         :style="{ '--instance-accent': accentVar(instance.accent) }"
-      ></span>
+      >{{ initial(instance.name) }}</span>
       <!-- Имя инстанса и адрес не переводятся никогда. -->
       <span class="name">{{ instance.name }}</span>
       <span v-if="status?.port" class="port">127.0.0.1:{{ status.port }}</span>
@@ -271,7 +271,7 @@ function fail(error: AppError): void {
 
     <!-- Лог занимает место вкладки, а не ложится поверх: положить что-либо
          поверх нативного окна невозможно. -->
-    <div v-if="showLog" class="tab-log">
+    <div v-if="showLog" class="log tab-log">
       <LogConsole v-if="lines.length" :lines="lines" />
       <p v-else class="hint">{{ t('run.empty') }}</p>
     </div>

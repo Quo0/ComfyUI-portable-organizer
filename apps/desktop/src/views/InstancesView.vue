@@ -6,6 +6,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import InstallForks from '../components/InstallForks.vue';
+import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
 import type { Instance } from '../bindings';
 import { accentVar, initial, useFormat } from '../lib/format';
@@ -68,9 +70,13 @@ onMounted(() => {
   <section class="screen">
     <header class="screen-head">
       <h1 class="t-lg">{{ t('instances.title') }}</h1>
-      <span v-if="instances.items.length" class="t-sm">
-        {{ t('instances.count', instances.items.length) }}
-      </span>
+      <!-- Рядом с заголовком «Инстансы» слово «инстансов» — то же слово
+           дважды. Число молча, фраза целиком остаётся подсказкой. -->
+      <span
+        v-if="instances.items.length"
+        class="t-sm"
+        :title="t('instances.count', instances.items.length)"
+      >{{ instances.items.length }}</span>
       <span class="head-spacer"></span>
       <template v-if="instances.items.length > 1">
         <input
@@ -123,7 +129,14 @@ onMounted(() => {
                    в соседних карточках встают на разной высоте. -->
               <div class="card-desc">{{ instance.description }}</div>
 
-              <div class="meta">
+              <!-- У пропавшей сборки версия, порт и размер описывают то,
+                   чего на диске уже нет. Вместо них — путь: единственное,
+                   с чем можно пойти разбираться. -->
+              <div v-if="!instance.available" class="meta">
+                <span><PathText :path="instance.path" /></span>
+              </div>
+
+              <div v-else class="meta">
                 <span v-if="instance.comfyVersion">{{ instance.comfyVersion }}</span>
                 <span>:{{ instance.preferredPort }}</span>
                 <span v-if="sizeText(instance)">{{ sizeText(instance) }}</span>
@@ -135,7 +148,21 @@ onMounted(() => {
                 </span>
               </div>
 
-              <div class="src">{{ lastRun(instance) }}</div>
+              <!-- Из какого архива развёрнута сборка, видно прямо в списке:
+                   две версии рядом различаются не номером ComfyUI, а вариантом
+                   архива, и без этой строки различить их можно было бы только
+                   открыв папки (US-INST-07/AC-5). -->
+              <div class="src">
+                <div v-if="instance.source">
+                  {{
+                    t('instances.field.source', {
+                      archive: instance.source.archiveLabel,
+                      when: moment(instance.source.installedAt),
+                    })
+                  }}
+                </div>
+                <div>{{ lastRun(instance) }}</div>
+              </div>
             </div>
           </RouterLink>
         </div>
@@ -144,15 +171,15 @@ onMounted(() => {
           {{ t('instances.nothingFound') }}
         </p>
 
-        <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние. -->
-        <div v-else class="group">
-          <p class="t-md">{{ t('instances.empty.title') }}</p>
-          <p class="t-sm">{{ t('instances.empty.body') }}</p>
-          <div class="row">
-            <RouterLink class="btn primary" to="/install">
-              {{ t('instances.empty.action') }}
-            </RouterLink>
-          </div>
+        <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние.
+             Поэтому здесь не ссылка на «Установку», а сама развилка: у того,
+             у кого ещё ничего нет, выбор между «папка уже есть»
+             и «распаковать архив» — первое же решение, и прятать его
+             за лишним переходом незачем. -->
+        <div v-else class="empty">
+          <h4>{{ t('instances.empty.title') }}</h4>
+          <p>{{ t('instances.empty.body') }}</p>
+          <InstallForks />
         </div>
       </div>
     </div>
