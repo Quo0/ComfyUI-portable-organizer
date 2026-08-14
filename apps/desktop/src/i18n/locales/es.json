@@ -114,7 +114,6 @@
   },
   "install": {
     "title": "Instalación",
-    "lead": "Dos caminos: indicar una carpeta de ComfyUI que ya tengas o descomprimir una versión portable desde un archivo .7z en uno o varios destinos.",
     "existing": {
       "title": "Ya tengo una carpeta",
       "body": "Registrar una versión ya descomprimida. La carpeta se deja intacta.",

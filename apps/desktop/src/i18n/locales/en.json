@@ -114,7 +114,6 @@
   },
   "install": {
     "title": "Install",
-    "lead": "Two ways in: point the app at an existing ComfyUI folder, or unpack a portable build from a .7z archive into one or several destinations.",
     "existing": {
       "title": "I already have a folder",
       "body": "Register a build that is already unpacked. The folder is left untouched.",
