@@ -132,6 +132,7 @@
       "body": "Descomprimir una versión portable en uno o varios destinos y registrarlos de una vez."
     },
     "archive": {
+      "lead": "El archivo de la compilación portable se descarga por su cuenta: la aplicación no lo descarga.",
       "choose": "Elegir un archivo .7z…",
       "history": "Recientes",
       "missing": "El archivo ya no está o ha cambiado",
@@ -144,8 +145,11 @@
     },
     "targets": {
       "title": "Dónde descomprimir",
-      "add": "Añadir otro destino",
-      "remove": "Quitar este destino",
+      "form": "Nuevo destino",
+      "list": "Se descomprimirá en",
+      "add": "Añadir a la lista",
+      "remove": "Quitar",
+      "empty": "Rellene el formulario de la izquierda y añada el primer destino.",
       "choose": "Elegir…",
       "needed": "Hacen falta unos {size} libres"
     },
@@ -158,7 +162,10 @@
       "progress": "{done} de {total}",
       "files": "{done} de {total} archivos",
       "preparing": "Comprobando las carpetas y abriendo el archivo…",
-      "cleaning": "Limpiando lo que dejó un intento interrumpido…"
+      "cleaning": "Limpiando lo que dejó un intento interrumpido…",
+      "counter": "{done} de {total}",
+      "queued": "en cola",
+      "finished": "listo"
     },
     "done": {
       "title": "Listo",

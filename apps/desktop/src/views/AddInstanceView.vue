@@ -76,7 +76,7 @@ async function submit(): Promise<void> {
 <template>
   <section class="screen">
     <header class="screen-head">
-      <RouterLink class="btn ghost" to="/instances">
+      <RouterLink class="btn ghost" to="/install">
         <svg class="ico"><use href="#i-back" /></svg>
         {{ t('common.back') }}
       </RouterLink>
@@ -166,7 +166,10 @@ async function submit(): Promise<void> {
                 >
                   {{ t('instances.add.submit') }}
                 </button>
-                <RouterLink class="btn ghost" to="/instances">
+                <!-- И «Назад», и «Отмена» ведут в «Установку», а не в список:
+                     этот экран открывают только оттуда, и возвращать надо
+                     туда, откуда пришли. -->
+                <RouterLink class="btn ghost" to="/install">
                   {{ t('common.cancel') }}
                 </RouterLink>
               </div>

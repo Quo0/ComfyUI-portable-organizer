@@ -7,15 +7,19 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
+import StatusPill from '../components/StatusPill.vue';
 import type { ArchiveRecord, InstallTarget } from '../bindings';
 import { errorText } from '../lib/errors';
-import { accentVar, isCustomAccent, useFormat } from '../lib/format';
+import { accentVar, initial, isCustomAccent, useFormat } from '../lib/format';
+import { displayStatus } from '../lib/status';
 import type { WizardStep } from '../stores/installer';
 import { useInstallerStore } from '../stores/installer';
+import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
 import { useWorkflowsStore } from '../stores/workflows';
 
 const wizard = useInstallerStore();
+const run = useRunStore();
 const shared = useSharedStore();
 const library = useWorkflowsStore();
 const { t } = useI18n();
@@ -55,6 +59,30 @@ const ACCENTS = [
   'rose',
   'amber',
 ] as const;
+
+/** Сколько назначений уже пройдено — для счётчика в ряду шага. */
+const runCounter = computed(() => {
+  const p = wizard.progress;
+  if (!p?.targets) return '';
+  return t('install.run.counter', { done: p.target, total: p.targets });
+});
+
+/**
+ * Состояние назначения на шаге распаковки.
+ *
+ * Считается из индекса: `progress.target` — номер текущего, начиная
+ * с единицы. Всё до него сделано, всё после ждёт очереди. Отдельного
+ * события на каждое назначение Rust не шлёт, да и незачем — порядок
+ * известен заранее.
+ */
+type RunState = 'done' | 'now' | 'queued';
+
+function runStateOf(index: number): RunState {
+  const at = wizard.progress?.target ?? 1;
+  if (index + 1 < at) return 'done';
+  if (index + 1 > at) return 'queued';
+  return 'now';
+}
 
 onMounted(() => {
   if (!wizard.info) void wizard.loadHistory();
@@ -130,29 +158,11 @@ async function pickArchive(): Promise<void> {
   });
   if (typeof picked !== 'string') return;
   if (await wizard.chooseArchive(picked)) wizard.step = 'targets';
-  if (wizard.targets.length === 0) await addTarget();
 }
 
 async function useRecent(record: ArchiveRecord): Promise<void> {
   if (!record.available) return;
   if (await wizard.chooseArchive(record.path)) wizard.step = 'targets';
-  if (wizard.targets.length === 0) await addTarget();
-}
-
-async function addTarget(): Promise<void> {
-  wizard.targets.push({
-    path: '',
-    name: '',
-    description: '',
-    accent: ACCENTS[wizard.targets.length % ACCENTS.length],
-    preferredPort: 8188 + wizard.targets.length,
-  });
-  await wizard.recheck();
-}
-
-async function removeTarget(index: number): Promise<void> {
-  wizard.targets.splice(index, 1);
-  await wizard.recheck();
 }
 
 async function pickTargetFolder(target: InstallTarget): Promise<void> {
@@ -207,6 +217,11 @@ const needed = computed(() =>
       <span v-if="wizard.step === 'done'" class="t-label">
         {{ t('install.done.added', wizard.created.length) }}
       </span>
+      <!-- Какое назначение идёт из скольких: без счётчика при шести целях
+           непонятно, распаковка в разгаре или почти закончилась. -->
+      <span v-else-if="wizard.step === 'running' && runCounter" class="t-label">
+        {{ runCounter }}
+      </span>
       <span class="spacer"></span>
 
       <span v-if="wizard.step === 'targets'" class="acts">
@@ -214,10 +229,12 @@ const needed = computed(() =>
           <svg class="ico"><use href="#i-back" /></svg>
           {{ t('common.back') }}
         </button>
+        <!-- Проверка имени осталась в форме: без имени назначение
+             в список не попадает, и здесь её повторять уже нечего. -->
         <button
           type="button"
           class="btn primary lg"
-          :disabled="wizard.blocked || wizard.targets.some((x) => !x.name.trim())"
+          :disabled="wizard.blocked"
           @click="wizard.step = 'shared'"
         >
           {{ t('install.wizard.next') }}
@@ -273,6 +290,10 @@ const needed = computed(() =>
       <div class="screen-pad wide">
         <!-- ------------------------------------------------ шаг «архив» -->
         <template v-if="wizard.step === 'archive'">
+          <!-- Сказано сразу: кнопки «скачать» здесь не будет и не появится.
+               Без этой строки первое, что ищут на экране, — именно она. -->
+          <p class="t-sm">{{ t('install.archive.lead') }}</p>
+
           <!-- Разбор оглавления на 56 тысяч записей занимает больше секунды,
                и подпись о нём стоит рядом с кнопкой, которую только что
                нажали: отдельным блоком ниже она выглядела ответом
@@ -341,124 +362,158 @@ const needed = computed(() =>
         </template>
 
         <!-- --------------------------------------------- шаг «назначения» -->
+        <!-- Форма слева накидывает назначения в список справа. Панель
+             со всеми полями на каждую цель разом занимала по экрану
+             прокрутки на цель, а целей бывает шесть. -->
         <template v-else-if="wizard.step === 'targets' && wizard.info">
+          <div class="cols targets">
+            <div class="pane target">
+              <div class="pane-head">
+                <span class="title">{{ t('install.targets.form') }}</span>
+                <button
+                  type="button"
+                  class="btn primary"
+                  :disabled="!wizard.draftReady"
+                  @click="wizard.addDraft()"
+                >
+                  {{ t('install.targets.add') }}
+                </button>
+              </div>
 
-          <div
-            v-for="(target, index) in wizard.targets"
-            :key="index"
-            class="pane target"
-          >
-            <div class="pane-head">
-              <span class="title">{{ target.name || t('install.targets.title') }}</span>
-              <button
-                v-if="wizard.targets.length > 1"
-                type="button"
-                class="btn ghost"
-                @click="removeTarget(index)"
-              >
-                {{ t('install.targets.remove') }}
-              </button>
+              <div class="scroll-pad">
+                <div class="two">
+                  <div class="field">
+                    <label>{{ t('instances.field.folder') }}</label>
+                    <div class="path-row">
+                      <div class="input mono"><span>{{ wizard.draft.path }}</span></div>
+                      <button
+                        type="button"
+                        class="btn secondary"
+                        @click="pickTargetFolder(wizard.draft)"
+                      >
+                        {{ t('install.targets.choose') }}
+                      </button>
+                    </div>
+
+                    <!-- Ошибки и предупреждения разделены: с предупреждением
+                         распаковать можно, с ошибкой — нет. Оба относятся
+                         к пути, поэтому стоят под ним. -->
+                    <p
+                      v-for="(problem, i) in wizard.draftCheck?.errors ?? []"
+                      :key="`e${i}`"
+                      class="hint bad"
+                    >
+                      {{ errorText(problem) }}
+                    </p>
+                    <p
+                      v-for="(problem, i) in wizard.draftCheck?.warnings ?? []"
+                      :key="`w${i}`"
+                      class="hint"
+                    >
+                      {{ errorText(problem) }}
+                    </p>
+                  </div>
+
+                  <div class="field">
+                    <label>{{ t('instances.field.name') }}</label>
+                    <input
+                      v-model="wizard.draft.name"
+                      class="input"
+                      type="text"
+                      maxlength="80"
+                      @blur="wizard.recheck()"
+                    />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>{{ t('instances.field.description') }}</label>
+                  <input
+                    v-model="wizard.draft.description"
+                    class="input"
+                    type="text"
+                    maxlength="200"
+                  />
+                </div>
+
+                <div class="field">
+                  <span class="t-label">{{ t('instances.field.accent') }}</span>
+                  <div class="picker">
+                    <button
+                      v-for="accent in ACCENTS"
+                      :key="accent"
+                      type="button"
+                      :style="{ background: accentVar(accent) }"
+                      :aria-pressed="wizard.draft.accent === accent"
+                      @click="wizard.draft.accent = accent"
+                    ></button>
+                    <!-- Свой цвет — там же, где палитра, и на том же экране,
+                         где заводят сборку: возвращаться за ним потом
+                         в редактирование незачем. -->
+                    <label
+                      class="swatch-custom"
+                      :class="{ on: isCustomAccent(wizard.draft.accent) }"
+                      :title="t('instances.field.accentCustom')"
+                    >
+                      <input
+                        type="color"
+                        :value="isCustomAccent(wizard.draft.accent) ? wizard.draft.accent : '#4db6a5'"
+                        :aria-label="t('instances.field.accentCustom')"
+                        @input="wizard.draft.accent = ($event.target as HTMLInputElement).value"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>{{ t('instances.field.port') }}</label>
+                  <input
+                    v-model.number="wizard.draft.preferredPort"
+                    class="input num"
+                    type="number"
+                    min="1024"
+                    max="65535"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div class="scroll-pad">
-              <div class="field">
-                <label>{{ t('instances.field.folder') }}</label>
-                <div class="path-row">
-                  <div class="input mono"><span>{{ target.path }}</span></div>
+            <div class="field">
+              <span class="t-label">{{ t('install.targets.list') }}</span>
+              <div v-if="wizard.targets.length" class="paths">
+                <div
+                  v-for="(target, index) in wizard.targets"
+                  :key="index"
+                  class="path-item with-act"
+                >
+                  <!-- Путь не переводится и не сокращается. -->
+                  <span class="lbl">{{ target.path }}</span>
+                  <span class="val">{{ target.name }}</span>
                   <button
                     type="button"
-                    class="btn secondary"
-                    @click="pickTargetFolder(target)"
+                    class="act"
+                    :title="t('install.targets.remove')"
+                    :aria-label="t('install.targets.remove')"
+                    @click="wizard.removeTarget(index)"
                   >
-                    {{ t('install.targets.choose') }}
+                    <svg class="ico"><use href="#i-close" /></svg>
                   </button>
                 </div>
               </div>
+              <p v-else class="hint">{{ t('install.targets.empty') }}</p>
 
-              <!-- Ошибки и предупреждения разделены: с предупреждением
-                   распаковать можно, с ошибкой — нет. -->
-              <p
-                v-for="(problem, i) in wizard.checks[index]?.errors ?? []"
-                :key="`e${i}`"
-                class="hint bad"
-              >
-                {{ errorText(problem) }}
-              </p>
-              <p
-                v-for="(problem, i) in wizard.checks[index]?.warnings ?? []"
-                :key="`w${i}`"
-                class="hint"
-              >
-                {{ errorText(problem) }}
-              </p>
-
-              <div class="field">
-                <label>{{ t('instances.field.name') }}</label>
-                <input
-                  v-model="target.name"
-                  class="input"
-                  type="text"
-                  maxlength="80"
-                  @blur="wizard.recheck()"
-                />
-              </div>
-
-              <div class="field">
-                <label>{{ t('instances.field.description') }}</label>
-                <input
-                  v-model="target.description"
-                  class="input"
-                  type="text"
-                  maxlength="200"
-                />
-              </div>
-
-              <div class="field">
-                <span class="t-label">{{ t('instances.field.accent') }}</span>
-                <div class="picker">
-                  <button
-                    v-for="accent in ACCENTS"
-                    :key="accent"
-                    type="button"
-                    :style="{ background: accentVar(accent) }"
-                    :aria-pressed="target.accent === accent"
-                    @click="target.accent = accent"
-                  ></button>
-                  <!-- Свой цвет — там же, где палитра, и на том же экране,
-                       где заводят сборку: возвращаться за ним потом
-                       в редактирование незачем. -->
-                  <label
-                    class="swatch-custom"
-                    :class="{ on: isCustomAccent(target.accent) }"
-                    :title="t('instances.field.accentCustom')"
-                  >
-                    <input
-                      type="color"
-                      :value="isCustomAccent(target.accent) ? target.accent : '#4db6a5'"
-                      :aria-label="t('instances.field.accentCustom')"
-                      @input="target.accent = ($event.target as HTMLInputElement).value"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>{{ t('instances.field.port') }}</label>
-                <input
-                  v-model.number="target.preferredPort"
-                  class="input num"
-                  type="number"
-                  min="1024"
-                  max="65535"
-                />
-              </div>
+              <!-- Ошибка на уже добавленном назначении: место на диске
+                   могло кончиться после того, как его добавили. -->
+              <template v-for="(check, index) in wizard.checks" :key="`c${index}`">
+                <p
+                  v-for="(problem, i) in check.errors"
+                  :key="`ce${index}-${i}`"
+                  class="hint bad"
+                >
+                  {{ errorText(problem) }}
+                </p>
+              </template>
             </div>
-          </div>
-
-          <div class="row">
-            <button type="button" class="btn secondary" @click="addTarget">
-              {{ t('install.targets.add') }}
-            </button>
           </div>
         </template>
 
@@ -565,41 +620,81 @@ const needed = computed(() =>
         </template>
 
         <!-- -------------------------------------------- шаг «выполнение» -->
+        <!-- Полоса на каждое назначение, а не одна общая: при шести целях
+             общая полоса три раза проходит путь от нуля до ста, и понять,
+             сколько работы осталось, по ней невозможно. -->
         <template v-else-if="wizard.step === 'running'">
-          <div class="group">
-            <p class="t-md">{{ phaseText }}</p>
-            <div class="bar" :class="{ indet: indeterminate }">
-              <i :style="indeterminate ? undefined : { width: `${percent}%` }"></i>
+          <div
+            v-for="(target, index) in wizard.targets"
+            :key="index"
+            class="prog"
+          >
+            <div class="prog-head">
+              <!-- Путь не переводится. -->
+              <span>{{ target.path }}</span>
+              <span class="count">
+                <template v-if="runStateOf(index) === 'done'">
+                  {{ t('install.run.finished') }}
+                </template>
+                <template v-else-if="runStateOf(index) === 'queued'">
+                  {{ t('install.run.queued') }}
+                </template>
+                <template v-else-if="indeterminate">—</template>
+                <template v-else>{{ Math.round(percent) }}%</template>
+              </span>
             </div>
 
-            <!-- Счётчики только там, где есть что считать: в фазах подготовки
-                 они показали бы «0 из 0» и сбили бы с толку сильнее тишины. -->
-            <template v-if="wizard.progress && !indeterminate">
-              <!-- Байты остаются подписью: они понятны и полезны, просто
-                   мерой прогресса быть не могут. -->
-              <p class="hint">
-                {{
-                  t('install.run.files', {
-                    done: wizard.progress.doneFiles,
-                    total: wizard.progress.totalFiles,
-                  })
-                }}
-                ·
-                {{
-                  t('install.run.progress', {
-                    done: bytes(wizard.progress.doneBytes),
-                    total: bytes(wizard.progress.totalBytes),
-                  })
-                }}
-              </p>
-              <!-- Текущий файл не переводится: это путь. -->
-              <p class="t-mono current">{{ wizard.progress.current }}</p>
-            </template>
-          </div>
+            <div
+              class="track"
+              :class="{ indet: runStateOf(index) === 'now' && indeterminate }"
+            >
+              <i
+                :style="{
+                  width:
+                    runStateOf(index) === 'done'
+                      ? '100%'
+                      : runStateOf(index) === 'queued'
+                        ? '0'
+                        : `${percent}%`,
+                }"
+              ></i>
+            </div>
 
+            <!-- У текущего назначения — что именно сейчас происходит.
+                 В фазах без доли выполненного вместо пути стоит название
+                 фазы: пути там ещё нет, а тишина читается как зависание. -->
+            <p v-if="runStateOf(index) === 'now'" class="prog-file">
+              <template v-if="indeterminate">{{ phaseText }}</template>
+              <template v-else>{{ wizard.progress?.current }}</template>
+            </p>
+
+            <!-- Байты остаются подписью: они понятны и полезны, просто
+                 мерой прогресса быть не могут. -->
+            <p
+              v-if="runStateOf(index) === 'now' && wizard.progress && !indeterminate"
+              class="hint"
+            >
+              {{
+                t('install.run.files', {
+                  done: wizard.progress.doneFiles,
+                  total: wizard.progress.totalFiles,
+                })
+              }}
+              ·
+              {{
+                t('install.run.progress', {
+                  done: bytes(wizard.progress.doneBytes),
+                  total: bytes(wizard.progress.totalBytes),
+                })
+              }}
+            </p>
+          </div>
         </template>
 
         <!-- -------------------------------------------------- шаг «итог» -->
+        <!-- Карточка ровно та же, что в списке инстансов: итог показывает
+             то, что появилось, и узнавать это в списке пользователь должен
+             без перевода взгляда. -->
         <template v-else>
           <div class="cards grid">
             <RouterLink
@@ -614,18 +709,32 @@ const needed = computed(() =>
               ></div>
               <div class="card-in">
                 <div class="card-top">
+                  <span
+                    class="chip"
+                    :style="{ '--instance-accent': accentVar(instance.accent) }"
+                  >{{ initial(instance.name) }}</span>
                   <div class="card-name">{{ instance.name }}</div>
+                  <StatusPill :status="displayStatus(instance, run.statusOf(instance.id))" />
                 </div>
+
+                <!-- Строка есть всегда, даже пустая: иначе строки версий
+                     в соседних карточках встают на разной высоте. -->
+                <div class="card-desc">{{ instance.description }}</div>
+
                 <div class="meta">
-                  <span v-if="instance.comfyVersion">
-                    ComfyUI {{ instance.comfyVersion }}
-                  </span>
+                  <span v-if="instance.comfyVersion">{{ instance.comfyVersion }}</span>
                   <span>:{{ instance.preferredPort }}</span>
+                  <span v-if="instance.shared?.enabled" class="tag">
+                    {{ t('shared.instance.badge') }}
+                  </span>
                 </div>
+
+                <!-- Путь, а не «последний запуск»: сборку только что
+                     распаковали, и запускать её ещё не запускали. -->
+                <div class="src">{{ instance.path }}</div>
               </div>
             </RouterLink>
           </div>
-
         </template>
       </div>
     </div>
@@ -699,11 +808,5 @@ const needed = computed(() =>
 .swatch-custom:focus-within {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-}
-.current {
-  color: var(--ink-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

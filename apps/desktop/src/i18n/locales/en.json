@@ -132,6 +132,7 @@
       "body": "Unpack a portable build into one or several destinations and register them at once."
     },
     "archive": {
+      "lead": "Download the portable build archive yourself — the app does not fetch it.",
       "choose": "Choose a .7z archive…",
       "history": "Recently used",
       "missing": "The file is gone or has changed",
@@ -144,8 +145,11 @@
     },
     "targets": {
       "title": "Where to unpack",
-      "add": "Add another destination",
-      "remove": "Remove this destination",
+      "form": "New destination",
+      "list": "Will be unpacked into",
+      "add": "Add to the list",
+      "remove": "Remove",
+      "empty": "Fill in the form on the left and add the first destination.",
       "choose": "Choose…",
       "needed": "Needs about {size} free"
     },
@@ -158,7 +162,10 @@
       "progress": "{done} of {total}",
       "files": "{done} of {total} files",
       "preparing": "Checking the folders and opening the archive…",
-      "cleaning": "Clearing what an interrupted attempt left behind…"
+      "cleaning": "Clearing what an interrupted attempt left behind…",
+      "counter": "{done} of {total}",
+      "queued": "queued",
+      "finished": "done"
     },
     "done": {
       "title": "Ready",

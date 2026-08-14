@@ -132,6 +132,7 @@
       "body": "把便携版解压到一个或多个位置，并一次性登记。"
     },
     "archive": {
+      "lead": "便携版压缩包需要自行下载，本应用不会代为获取。",
       "choose": "选择 .7z 压缩包…",
       "history": "最近使用",
       "missing": "文件已不存在或已变更",
@@ -144,8 +145,11 @@
     },
     "targets": {
       "title": "解压到哪里",
-      "add": "再添加一个目标",
-      "remove": "移除这个目标",
+      "form": "新的目标",
+      "list": "将解压到",
+      "add": "添加到列表",
+      "remove": "移除",
+      "empty": "在左侧填写表单，添加第一个目标。",
       "choose": "选择…",
       "needed": "约需 {size} 可用空间"
     },
@@ -158,7 +162,10 @@
       "progress": "{done} / {total}",
       "files": "{done} / {total} 个文件",
       "preparing": "正在检查文件夹并打开压缩包…",
-      "cleaning": "正在清理上次中断留下的文件…"
+      "cleaning": "正在清理上次中断留下的文件…",
+      "counter": "{done} / {total}",
+      "queued": "排队中",
+      "finished": "已完成"
     },
     "done": {
       "title": "完成",

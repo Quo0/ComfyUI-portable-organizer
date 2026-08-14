@@ -18,6 +18,9 @@ import { useUiStore } from './ui';
 
 export type WizardStep = 'archive' | 'targets' | 'shared' | 'running' | 'done';
 
+/** Палитра акцентов по умолчанию — по кругу, чтобы соседние цели различались. */
+const ACCENTS = ['teal', 'indigo', 'ember', 'moss', 'azure', 'orchid', 'rose', 'amber'];
+
 /**
  * Состояние мастера живёт в сторе, а не в экране, по одной причине:
  * распаковка идёт минуты, и уход в другой раздел не должен её терять.
@@ -32,6 +35,36 @@ export const useInstallerStore = defineStore('installer', () => {
   const info = ref<ArchiveInfo | null>(null);
   const targets = ref<InstallTarget[]>([]);
   const checks = ref<TargetCheck[]>([]);
+
+  /**
+   * Черновик — то, что заполнено в форме и ещё не добавлено в список.
+   *
+   * Шаг назначений устроен как «форма накидывает в список»: панель
+   * со всеми полями на каждую цель разом занимала по экрану прокрутки
+   * на цель, а целей бывает шесть.
+   */
+  const draft = ref<InstallTarget>(blankDraft());
+  const draftCheck = ref<TargetCheck | null>(null);
+
+  function blankDraft(): InstallTarget {
+    return {
+      path: '',
+      name: '',
+      description: '',
+      accent: ACCENTS[targets.value.length % ACCENTS.length],
+      // Порты раздаются подряд: две сборки на одном порту одновременно
+      // не поднимутся, и узнать об этом лучше не на запуске.
+      preferredPort: 8188 + targets.value.length,
+    };
+  }
+
+  /** Добавить в список можно то, у чего есть путь, имя и нет ошибок. */
+  const draftReady = computed(
+    () =>
+      draft.value.path.trim() !== ''
+      && draft.value.name.trim() !== ''
+      && (draftCheck.value?.errors.length ?? 0) === 0,
+  );
   const progress = ref<InstallProgress | null>(null);
   const running = ref(false);
   const created = ref<Instance[]>([]);
@@ -97,10 +130,39 @@ export const useInstallerStore = defineStore('installer', () => {
     }
   }
 
+  /**
+   * Проверка идёт по списку вместе с черновиком, одним запросом.
+   *
+   * Так `installer.duplicateTarget` бесплатно ловит совпадение черновика
+   * с уже добавленным — эта проверка смотрит на весь переданный список, —
+   * а требуемое место пересчитывается по мере его роста. Последний элемент
+   * ответа относится к черновику, остальные — к добавленным.
+   */
   async function recheck(): Promise<void> {
     if (!info.value) return;
-    const res = await commands.checkTargets(info.value, targets.value);
-    checks.value = res.status === 'ok' ? res.data : [];
+    const withDraft = [...targets.value, draft.value];
+    const res = await commands.checkTargets(info.value, withDraft);
+    if (res.status !== 'ok') {
+      checks.value = [];
+      draftCheck.value = null;
+      return;
+    }
+    checks.value = res.data.slice(0, targets.value.length);
+    draftCheck.value = res.data[targets.value.length] ?? null;
+  }
+
+  /** Сабмит формы: черновик уходит в список, форма встаёт в исходное. */
+  async function addDraft(): Promise<void> {
+    if (!draftReady.value) return;
+    targets.value.push({ ...draft.value });
+    draft.value = blankDraft();
+    draftCheck.value = null;
+    await recheck();
+  }
+
+  async function removeTarget(index: number): Promise<void> {
+    targets.value.splice(index, 1);
+    await recheck();
   }
 
   function reset(): void {
@@ -108,6 +170,8 @@ export const useInstallerStore = defineStore('installer', () => {
     info.value = null;
     targets.value = [];
     checks.value = [];
+    draft.value = blankDraft();
+    draftCheck.value = null;
     progress.value = null;
     created.value = [];
     connectShared.value = false;
@@ -161,6 +225,9 @@ export const useInstallerStore = defineStore('installer', () => {
     info,
     targets,
     checks,
+    draft,
+    draftCheck,
+    draftReady,
     progress,
     running,
     created,
@@ -172,6 +239,8 @@ export const useInstallerStore = defineStore('installer', () => {
     forget,
     chooseArchive,
     recheck,
+    addDraft,
+    removeTarget,
     reset,
     start,
     cancel,

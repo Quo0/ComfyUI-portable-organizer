@@ -105,6 +105,10 @@ for (const m of screens.matchAll(/<div class="frame" data-scroll>[\s\S]{0,200}?<
 // Высота строк, чтобы считать содержимое в «единицах строки». Числа взяты
 // из самих компонентов: `.path-item` — две трети отступа плюс строка,
 // `.prog` — заголовок, полоса и путь, `.card` — три строки с полями.
+// `.card` весит три строки, но в `.cards.grid` карточки идут по две в ряд,
+// и высоту даёт ряд, а не карточка. Без поправки кадр с карточками набирал
+// вдвое больше единиц, чем занимает на экране, и порог проходил бы, даже
+// если данных вдвое меньше нужного.
 const ROW_UNITS = [
   [/class="path-item[ "]/g, 1],
   [/class="cat[ "]/g, 1],
@@ -137,6 +141,10 @@ scrollBlocks.forEach((block, i) => {
     (sum, [re, weight]) => sum + (content.match(re) || []).length * weight,
     0,
   );
+  // Половина карточек в сетке стоит вторым столбцом и высоты не добавляет.
+  if (/class="cards grid"/.test(content)) {
+    units -= (content.match(/class="card[ "]/g) || []).length * 1.5;
+  }
   const consoleAt = content.indexOf('class="console"');
   if (consoleAt !== -1) {
     const text = content.slice(consoleAt, content.indexOf('</div>', consoleAt));

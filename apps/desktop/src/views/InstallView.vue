@@ -21,24 +21,24 @@ const { t } = useI18n();
              Подписи внутри карточек объясняют выбор целиком — вводного
              абзаца над ними не нужно. -->
         <div class="forks">
+          <!-- Кнопка — прямой ребёнок дорожки: описание растянуто
+               (`.fork p { flex: 1 }`), и кнопка сама встаёт к низу.
+               Обёртка `.row` добавляла между ними лишний зазор,
+               и в соседних дорожках кнопки вставали на разной высоте. -->
           <div class="fork">
             <b>{{ t('install.existing.title') }}</b>
             <p>{{ t('install.existing.body') }}</p>
-            <div class="row">
-              <RouterLink class="btn secondary" to="/instances/add">
-                {{ t('install.existing.action') }}
-              </RouterLink>
-            </div>
+            <RouterLink class="btn secondary" to="/instances/add">
+              {{ t('install.existing.action') }}
+            </RouterLink>
           </div>
 
           <div class="fork">
             <b>{{ t('install.wizard.title') }}</b>
             <p>{{ t('install.wizard.body') }}</p>
-            <div class="row">
-              <RouterLink class="btn primary" to="/install/wizard">
-                {{ t('install.archive.choose') }}
-              </RouterLink>
-            </div>
+            <RouterLink class="btn primary" to="/install/wizard">
+              {{ t('install.archive.choose') }}
+            </RouterLink>
           </div>
         </div>
       </div>

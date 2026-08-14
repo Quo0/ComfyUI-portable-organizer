@@ -164,6 +164,11 @@
   <symbol id="i-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3.5 8.5 6.5 11.5 12.5 4.5"/>
   </symbol>
+  <!-- Убрать строку из списка. Крестик, а не корзина: из списка
+       назначений мастера ничего не удаляется с диска. -->
+  <symbol id="i-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 4l8 8"/><path d="M12 4l-8 8"/>
+  </symbol>
   <!-- Возврат. Стрелка с чертой, а не голая шпилька: голую путают
        со свёрткой рейла, у которой ровно такая же форма. -->
   <symbol id="i-back" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -495,12 +500,30 @@
               <span class="hint">Читаем оглавление архива…</span>
               <span class="bar indet grow"><i></i></span>
             </div>
-            <div class="field">
-              <label>Недавние</label>
-              <div class="paths">
-                <div class="path-item keep"><span class="lbl">0.31.0 · сегодня</span><span class="val">2.18 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.30.2 · 4 августа</span><span class="val">2.11 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.28.7 · 30 мая</span><span class="val">файла нет</span></div>
+            <!-- Недавние — карточками, а не строками: путь к архиву длинный
+                 и в строку не помещается, а именно по нему отличают две
+                 сборки одной версии, лежащие в разных папках. -->
+            <div class="group">
+              <span class="t-label">Недавние</span>
+              <div class="cards">
+                <div class="card">
+                  <div class="card-accent"></div>
+                  <div class="card-in">
+                    <div class="card-top"><div class="card-name">0.31.0</div></div>
+                    <div class="src"><code>D:\Downloads\ComfyUI_windows_portable_nvidia_0.31.0.7z</code></div>
+                    <div class="meta"><span>2.18 ГБ</span><span>сегодня</span></div>
+                    <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                  </div>
+                </div>
+                <div class="card gone">
+                  <div class="card-accent"></div>
+                  <div class="card-in">
+                    <div class="card-top"><div class="card-name">0.28.7</div><span class="pill gone">Файла нет или он изменился</span></div>
+                    <div class="src"><code>E:\Archive\ComfyUI_windows_portable_nvidia_0.28.7.7z</code></div>
+                    <div class="meta"><span>1.94 ГБ</span><span>30 мая</span></div>
+                    <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -531,34 +554,47 @@
               <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
             </div>
           </nav>
-          <div class="content framed">
+          <!-- Ни подвала с «Отмена/Далее», ни выбранного архива в шапке:
+               кнопки перехода в 4б переехали в ряд шага, а выбор архива
+               сразу уводит на второй шаг — задержаться на первом
+               с уже выбранным архивом невозможно. -->
+          <div class="content framed no-foot">
             <div class="pinned">
-              <div class="steps"><span class="step now"><u>1</u>Архив</span><span class="step-sep"></span><span class="step "><u>2</u>Назначения</span><span class="step-sep"></span><span class="step "><u>3</u>Общие ресурсы</span><span class="step-sep"></span><span class="step "><u>4</u>Установка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
-              <div class="field">
-                <div class="path-row">
-                  <div class="input mono"><span>D:\Downloads\ComfyUI_windows_portable_nvidia_0.31.0.7z</span></div>
-                  <span class="btn secondary">Выбрать другой</span>
-                </div>
-                <div class="hint">2.18 ГБ · распакуется в 9.7 ГБ · свободно 318 ГБ</div>
+              <div class="steps"><span class="step now"><u>1</u>Архив</span><span class="step-sep"></span><span class="step "><u>2</u>Назначения</span><span class="step-sep"></span><span class="step "><u>3</u>Общие ресурсы</span><span class="step-sep"></span><span class="step "><u>4</u>Распаковка</span><span class="step-sep"></span><span class="step "><u>5</u>Готово</span></div>
+              <p>Архив портабл-сборки нужно скачать самостоятельно — приложение его не загружает.</p>
+              <div class="row">
+                <span class="btn primary">Выбрать архив .7z…</span>
               </div>
+              <span class="t-label">Недавние</span>
             </div>
             <div class="data">
-              <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                <div class="path-item keep"><span class="lbl">0.31.0 · сегодня</span><span class="val">2.18 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.30.2 · 4 августа</span><span class="val">2.11 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.30.0 · 21 июля</span><span class="val">2.09 ГБ</span></div>
-                <div class="path-item"><span class="lbl">0.29.4 · 3 июля</span><span class="val">1.98 ГБ</span></div>
-                <!-- История растёт с каждой новой версией сборки: за год
-                     их набирается два десятка. -->
-                <template data-repeat="4">
-                  <div class="path-item"><span class="lbl">0.29.1 · 12 июня</span><span class="val">1.96 ГБ</span></div>
-                  <div class="path-item"><span class="lbl">0.28.7 · 30 мая</span><span class="val">файл не найден</span></div>
-                  <div class="path-item"><span class="lbl">0.28.2 · 14 мая</span><span class="val">1.91 ГБ</span></div>
-                  <div class="path-item"><span class="lbl">0.27.9 · 2 мая</span><span class="val">1.88 ГБ</span></div>
-                </template>
+              <div class="scroll"><div class="scroll-pad">
+                <div class="cards grid">
+                  <!-- История растёт с каждой новой версией сборки: за год
+                       их набирается два десятка. -->
+                  <template data-repeat="8">
+                    <div class="card">
+                      <div class="card-accent"></div>
+                      <div class="card-in">
+                        <div class="card-top"><div class="card-name">0.31.0</div></div>
+                        <div class="src"><code>D:\Downloads\ComfyUI_windows_portable_nvidia_0.31.0.7z</code></div>
+                        <div class="meta"><span>2.18 ГБ</span><span>сегодня</span></div>
+                        <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                      </div>
+                    </div>
+                    <div class="card gone">
+                      <div class="card-accent"></div>
+                      <div class="card-in">
+                        <div class="card-top"><div class="card-name">0.28.7</div><span class="pill gone">Файла нет</span></div>
+                        <div class="src"><code>E:\Archive\ComfyUI_windows_portable_nvidia_0.28.7.7z</code></div>
+                        <div class="meta"><span>1.94 ГБ</span><span>30 мая</span></div>
+                        <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
               </div></div>
             </div>
-            <div class="screen-foot"><span class="btn ghost">Отмена</span><span class="btn primary">Далее</span></div>
           </div>
         </div>
       </div>
@@ -584,6 +620,13 @@
       тогда, когда становилась нужна. «Назад» всегда левее кнопки действия.
       Под ними закреплена сводка по архиву — то, что раньше показывалось
       отдельным шагом.
+    </p>
+    <p class="aside">
+      Слева форма, справа список: она накидывает в него назначение
+      за назначением и после каждого встаёт в исходное. Панель со всеми
+      полями на каждую цель разом занимала по экрану прокрутки на цель,
+      а целей бывает шесть. Поменять добавленное — убрать строку
+      и добавить заново.
     </p>
     <div class="frame">
       <div class="win t-dark">
@@ -618,31 +661,60 @@
               <span>распакуется в 9,7 ГБ</span>
               <span>нужно примерно 19,4 ГБ</span>
             </div>
-            <div class="two">
-              <div class="field">
-                <label>Папка</label>
-                <div class="path-row">
-                  <div class="input mono"><span>D:\AI\Flux</span></div>
-                  <span class="btn secondary">Обзор</span>
+            <div class="cols">
+              <div class="pane">
+                <div class="pane-head">
+                  <span class="title">Новое назначение</span>
+                  <span class="btn primary">Добавить в список</span>
                 </div>
-                <div class="hint">Короткий путь — надёжнее: часть файлов сборки вложена очень глубоко</div>
+                <div class="scroll-pad">
+                  <div class="two">
+                    <div class="field">
+                      <label>Папка</label>
+                      <div class="path-row">
+                        <div class="input mono"><span>D:\AI\Flux</span></div>
+                        <span class="btn secondary">Выбрать…</span>
+                      </div>
+                      <div class="hint">Короткий путь — надёжнее: часть файлов сборки вложена очень глубоко</div>
+                    </div>
+                    <div class="field">
+                      <label>Имя инстанса</label>
+                      <div class="input">Flux тест</div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Описание</label>
+                    <div class="input"></div>
+                  </div>
+                  <div class="field">
+                    <span class="t-label">Акцентный цвет</span>
+                    <div class="picker">
+                      <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
+                      <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                      <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
+                      <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Порт</label>
+                    <div class="input num">8188</div>
+                  </div>
+                </div>
               </div>
+
               <div class="field">
-                <label>Имя инстанса</label>
-                <div class="input">Flux тест</div>
-                <div class="hint">Описание и цвет задаются ниже</div>
+                <span class="t-label">Распакуется в</span>
+                <div class="paths">
+                  <div class="path-item with-act"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                  <div class="path-item with-act"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                </div>
               </div>
             </div>
-            <div class="paths">
-              <div class="path-item"><span class="lbl">Назначение 1</span><span class="val">D:\AI\Flux — Flux тест</span></div>
-              <div class="path-item"><span class="lbl">Назначение 2</span><span class="val">E:\AI\Flux_clean — Flux чистый</span></div>
-            </div>
-            <div class="row"><span class="btn ghost">Добавить ещё папку</span></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>шесть папок назначения; ряд шага с «Дальше» закреплён</span></div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>восемнадцать папок назначения; ряд шага с «Дальше» закреплён</span></div>
     <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -686,16 +758,53 @@
                 <span>нужно примерно 58,2 ГБ</span>
               </div>
             </div>
+            <!-- Форма прибита к верху колонки: список растёт вниз, а она
+                 остаётся на месте — ровно по той же причине, по которой
+                 из подвала наверх переехали «Назад» и «Дальше». -->
             <div class="data">
-              <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                <template data-repeat="3">
-                  <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
-                  <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
-                  <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
-                  <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
-                  <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
-                  <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
-                </template>
+              <div class="scroll"><div class="scroll-pad">
+                <div class="cols targets">
+                  <div class="pane">
+                    <div class="pane-head">
+                      <span class="title">Новое назначение</span>
+                      <span class="btn primary">Добавить в список</span>
+                    </div>
+                    <div class="scroll-pad">
+                      <div class="field">
+                        <label>Папка</label>
+                        <div class="path-row">
+                          <div class="input mono"><span>D:\AI\Flux</span></div>
+                          <span class="btn secondary">Выбрать…</span>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label>Имя инстанса</label>
+                        <div class="input">Flux тест</div>
+                      </div>
+                      <div class="field">
+                        <span class="t-label">Акцентный цвет</span>
+                        <div class="picker">
+                          <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
+                          <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <span class="t-label">Распакуется в</span>
+                    <div class="paths">
+                      <template data-repeat="3">
+                        <div class="path-item with-act"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                        <div class="path-item with-act"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                        <div class="path-item with-act"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                        <div class="path-item with-act"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                        <div class="path-item with-act"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                        <div class="path-item with-act"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
               </div></div>
             </div>
           </div>
@@ -767,13 +876,15 @@
                     <div class="hint">Модель, загруженная в одной сборке, станет видна всем</div>
                   </div>
                 </div>
+                <!-- Способ применения показывается только при включённом
+                     тумблере: без подключения выбирать нечего. -->
                 <div class="field">
-                  <span class="t-label">Как применить</span>
+                  <span class="t-label">Способ применения</span>
                   <div class="seg">
-                    <span aria-pressed="true">Флагом при запуске</span>
-                    <span>Файлом в сборке</span>
+                    <span aria-pressed="true">Не трогать папку сборки</span>
+                    <span>Записать файл в сборку</span>
                   </div>
-                  <div class="hint">В папку сборки ничего не пишется; выключается снятием галки</div>
+                  <div class="hint">Конфиг живёт у приложения и передаётся сборке при запуске. В папку сборки не пишется ничего.</div>
                 </div>
               </div>
             </div>
@@ -831,20 +942,24 @@
             </div>
             <div class="step-bar">
               <h3>Распаковка</h3>
+              <span class="t-label">1 из 2</span>
               <span class="spacer"></span>
               <span class="acts">
                 <span class="btn danger">Отменить</span>
               </span>
             </div>
+            <!-- Полоса на каждое назначение, а не одна общая: общая при
+                 нескольких целях трижды проходит путь от нуля до ста,
+                 и понять по ней, сколько работы осталось, невозможно. -->
             <div class="prog">
-              <div class="prog-head"><span>D:\AI\Flux</span><span class="count">1 / 2</span></div>
+              <div class="prog-head"><span>D:\AI\Flux</span><span class="count">64%</span></div>
               <div class="track"><i style="width:64%"></i></div>
               <div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div>
+              <div class="hint">27 906 из 61 895 файлов · 4.0 ГБ из 9.7 ГБ</div>
             </div>
             <div class="prog">
               <div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">в очереди</span></div>
               <div class="track"><i style="width:0"></i></div>
-              <div class="prog-file">копированием готового дерева — быстрее повторной распаковки</div>
             </div>
           </div>
         </div>
@@ -887,7 +1002,7 @@
             <div class="data">
               <div class="scroll"><div class="scroll-pad" style="gap:var(--space-4)">
                 <div class="prog"><div class="prog-head"><span>D:\AI\Flux</span><span class="count">готово</span></div><div class="track"><i style="width:100%"></i></div></div>
-                <div class="prog"><div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">64%</span></div><div class="track"><i style="width:64%"></i></div><div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div></div>
+                <div class="prog"><div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">64%</span></div><div class="track"><i style="width:64%"></i></div><div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div><div class="hint">27 906 из 61 895 файлов · 4.0 ГБ из 9.7 ГБ</div></div>
                 <template data-repeat="3">
                   <div class="prog"><div class="prog-head"><span>D:\AI\SDXL_new</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
                   <div class="prog"><div class="prog-head"><span>E:\AI\Sandbox</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
@@ -1319,6 +1434,10 @@ Loading custom nodes: 47 found
       ничего внутри не тронет. Это главный страх такого пользователя, поэтому
       обещание стоит на экране, а не в документации.
     </p>
+    <p class="aside">
+      И «Назад», и «Отмена» ведут в «Установку», а не в список сборок: этот
+      экран открывают только оттуда.
+    </p>
     <div class="frame">
       <div class="win t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -1330,35 +1449,51 @@ Loading custom nodes: 47 found
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
+          <!-- «Назад» в шапке экрана и ведёт в «Установку»: сюда приходят
+               только оттуда. Подвала нет — в 4б кнопки из подвалов ушли. -->
           <div class="content">
-            <div class="crumb">Установка → Указать существующую папку</div>
-            <h3>Папка проверена</h3>
+            <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <h3>Добавить инстанс</h3>
+            </div>
+            <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
             <div class="field">
+              <span class="t-label">Папка сборки</span>
               <div class="path-row">
                 <div class="input mono"><span>D:\program_files\comfyui\ComfyUI_windows_portable</span></div>
-                <span class="btn secondary">Обзор</span>
+                <span class="btn secondary">Выбрать папку…</span>
               </div>
-              <div class="hint">Регистрация ничего не изменит внутри папки — сборку по-прежнему можно запускать своими средствами</div>
             </div>
-            <div class="paths">
-              <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
-              <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12 · встроенный</span></div>
-              <div class="path-item"><span class="lbl">Найдено профилей запуска</span><span class="val">4</span></div>
-              <div class="path-item"><span class="lbl">Профили</span><span class="val">nvidia_gpu · fast_fp16 · cpu · advanced\disable_api_nodes</span></div>
-            </div>
-            <div class="two">
-              <div class="field"><label>Имя</label><div class="input">SDXL стабильная</div></div>
-              <div class="field">
-                <label>Акцентный цвет</label>
-                <div class="picker">
-                  <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-amber)"></i>
-                  <i style="background:var(--accent-moss)"></i><i class="on" style="background:var(--accent-teal)"></i>
-                  <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-indigo)"></i>
-                  <i style="background:var(--accent-orchid)"></i><i style="background:var(--accent-rose)"></i>
+            <!-- Слева прочитанное, справа заполняемое: одним свитком
+                 прочитанное оттесняло форму вниз, за край экрана. -->
+            <div class="cols">
+              <div>
+                <div class="paths">
+                  <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
+                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12</span></div>
+                  <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">4</span></div>
+                </div>
+                <div class="row">
+                  <span class="pill stopped">nvidia_gpu</span><span class="pill stopped">fast_fp16</span>
+                  <span class="pill stopped">cpu</span><span class="pill stopped">disable_api_nodes</span>
                 </div>
               </div>
+              <div>
+                <div class="field"><label>Имя</label><div class="input">SDXL стабильная</div></div>
+                <div class="field"><label>Описание</label><div class="input"></div></div>
+                <div class="field">
+                  <span class="t-label">Акцентный цвет</span>
+                  <div class="picker">
+                    <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
+                    <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                    <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
+                    <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                  </div>
+                </div>
+                <div class="field"><label>Порт</label><div class="input num">8188</div></div>
+                <div class="row"><span class="btn primary">Добавить в список</span><span class="btn ghost">Отмена</span></div>
+              </div>
             </div>
-            <div class="wizard-foot"><span class="btn ghost">Отмена</span><span class="btn primary">Добавить в реестр</span></div>
           </div>
         </div>
       </div>
