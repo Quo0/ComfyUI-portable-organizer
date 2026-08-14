@@ -11,6 +11,13 @@ edition = "2021"
 name = "cpo_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# Инспектор WebView2. Отдельной фичей, а не по debug_assertions: профиль
+# в конце файла гасит их у всех зависимостей, и штатный путь devtools
+# внутри tauri и wry вырезается препроцессором. Подставляется скриптом
+# `pnpm dev:desktop`; в релизной сборке фичи нет.
+devtools = ["tauri/devtools"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -52,6 +59,13 @@ windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win
 # lzma-rust2 паникует «attempt to add with overflow» на середине распаковки
 # (decode.rs:149). В релизе проверок нет, поэтому там всё работает, и под
 # релизом библиотека и тестируется.
+#
+# Побочный эффект, за который заплачено: `"*"` — это и сами tauri, wry
+# и tauri-runtime-wry. Выключенные debug-assertions гасят в них
+# `cfg(debug_assertions)`, а весь путь devtools спрятан именно за ним:
+# `with_devtools()` вырезается, WebView2 получает `AreDevToolsEnabled = false`,
+# и инспектор молчит на F12, на Ctrl+Shift+I и на «Inspect» из меню. Поэтому
+# в дев-сборке он включается фичей `devtools`, а не сам собой.
 [profile.dev.package."*"]
 opt-level = 3
 debug-assertions = false
