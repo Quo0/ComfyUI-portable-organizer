@@ -77,7 +77,7 @@ async function submit(): Promise<void> {
   <section class="screen">
     <!-- Ряд шага, как в мастере: обе дорожки «Установки» начинаются
          одинаково. «Назад» ведёт в «Установку», а не в список сборок:
-         сюда приходят только оттуда. -->
+         сюда приходят только оттуда, и «Назад» всегда левее действия. -->
     <div class="step-bar">
       <h2 class="title">{{ t('instances.add.title') }}</h2>
       <span class="spacer"></span>
@@ -86,6 +86,23 @@ async function submit(): Promise<void> {
           <svg class="ico"><use href="#i-back" /></svg>
           {{ t('common.back') }}
         </RouterLink>
+        <!-- Главное действие экрана стоит там же, где во всём разделе, —
+             в ряду шага. Внизу, под формой, оно уезжало из виду вместе
+             с прочитанным о папке.
+
+             Пока папку не выбрали, добавлять нечего, и кнопка выключена,
+             а не спрятана: пропадающая кнопка не говорит, чем экран
+             закончится. Исчезает она только там, где действие другое, —
+             когда папка уже в списке. -->
+        <button
+          v-if="!probe?.existingId"
+          type="button"
+          class="btn primary lg"
+          :disabled="!probe || saving || edit.name.trim() === ''"
+          @click="submit"
+        >
+          {{ t('instances.add.submit') }}
+        </button>
       </span>
     </div>
 
@@ -163,20 +180,8 @@ async function submit(): Promise<void> {
             <div>
               <InstanceFields v-model="edit" />
 
-              <!-- Только действие. «Отмена» отсюда убрана: она вела туда
-                   же, куда «Назад» в ряду шага, и появлялась лишь после
-                   разбора папки — два выхода, один из которых половину
-                   времени невидим. -->
-              <div class="row">
-                <button
-                  type="button"
-                  class="btn primary"
-                  :disabled="saving || edit.name.trim() === ''"
-                  @click="submit"
-                >
-                  {{ t('instances.add.submit') }}
-                </button>
-              </div>
+              <!-- Кнопок под формой нет: действие уехало в ряд шага,
+                   «Отмена» ушла как второй выход. -->
             </div>
           </div>
         </template>

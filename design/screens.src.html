@@ -490,6 +490,14 @@
       одинаково. «Назад» ведёт в «Установку», а не в список сборок — сюда
       приходят только оттуда, — и это единственный выход с экрана.
     </p>
+    <p class="aside">
+      Главное действие стоит там же, где во всём разделе, — в ряду шага,
+      правее «Назад». Под формой оно уезжало из виду вместе с прочитанным
+      о папке. Пока папку не выбрали, добавлять нечего, и кнопка выключена,
+      а не спрятана: пропадающая кнопка не говорит, чем экран закончится.
+      Исчезает она только там, где действие другое, — когда папка уже
+      в списке.
+    </p>
     <div class="frame">
       <div class="win t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -505,7 +513,7 @@
             <div class="step-bar">
               <h3>Добавить инстанс</h3>
               <span class="spacer"></span>
-              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span><span class="btn primary lg" aria-disabled="true">Добавить в список</span></span>
             </div>
             <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
             <div class="field">
@@ -536,7 +544,7 @@
             <div class="step-bar">
               <h3>Добавить инстанс</h3>
               <span class="spacer"></span>
-              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span><span class="btn primary lg">Добавить в список</span></span>
             </div>
             <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
             <div class="field">
@@ -573,11 +581,9 @@
                   </div>
                 </div>
                 <div class="field"><label>Порт</label><div class="input num">8188</div></div>
-                <!-- Внизу только действие: «Отмена» вела туда же, куда
-                     «Назад» в ряду шага, и появлялась лишь после разбора
-                     папки — два выхода, один из которых половину времени
-                     невидим. -->
-                <div class="row"><span class="btn primary">Добавить в список</span></div>
+                <!-- Кнопок под формой нет: главное действие уехало в ряд
+                     шага — там же, где во всём разделе, — а внизу оно
+                     уезжало из виду вместе с прочитанным о папке. -->
               </div>
             </div>
           </div>
@@ -607,7 +613,7 @@
             <div class="step-bar">
               <h3>Добавить инстанс</h3>
               <span class="spacer"></span>
-              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span></span>
+              <span class="acts"><span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span><span class="btn primary lg" aria-disabled="true">Добавить в список</span></span>
             </div>
             <p class="t-sm">Выберите папку с портабл-сборкой ComfyUI. Внутри неё ничего не изменится.</p>
             <div class="field">

@@ -534,7 +534,13 @@ h3.sub {
   color: var(--ink);
   border-color: var(--line-strong);
 }
-.btn[aria-disabled="true"] { opacity: .45; cursor: default; }
+/* Оба способа выключить кнопку красятся одинаково. В макетах кнопка —
+   это `span` с `aria-disabled`, в приложении — `button` с родным
+   атрибутом; пока правило знало только про первый, выключенные кнопки
+   в приложении выглядели рабочими. Третий раз одна и та же ошибка:
+   состояние, которое не покрашено, не существует. */
+.btn[aria-disabled="true"],
+.btn:disabled { opacity: .45; cursor: default; }
 .spin {
   width: 12px; height: 12px; flex: none;
   border: 2px solid currentColor; border-right-color: transparent;
