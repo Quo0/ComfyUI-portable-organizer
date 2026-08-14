@@ -79,7 +79,11 @@ async function pickFolder(): Promise<void> {
         </template>
       </div>
 
-      <InstanceFields v-model="target" :id-prefix="idPrefix" />
+      <InstanceFields
+        v-model="target"
+        :id-prefix="idPrefix"
+        :show-problems="showProblems"
+      />
     </div>
   </div>
 </template>

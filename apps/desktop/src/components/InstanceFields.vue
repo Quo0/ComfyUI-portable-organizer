@@ -17,7 +17,19 @@ const model = defineModel<InstanceEdit>({ required: true });
  * связь подписи с полем: клик по подписи попадает в чужое поле,
  * и ошибку эту глазами не увидеть.
  */
-const { idPrefix = 'instance' } = defineProps<{ idPrefix?: string }>();
+const { idPrefix = 'instance', showProblems = true } = defineProps<{
+  idPrefix?: string;
+  /**
+   * Показывать ли жалобы на незаполненное.
+   *
+   * По умолчанию да: на экранах добавления и правки инстанса имя уже
+   * прочитано из папки, и пустым оно бывает, только если его стёрли
+   * руками. В мастере иначе — там форма после каждого добавления
+   * встаёт в исходное, и подсветка на чистой форме ругается на поле,
+   * которого пользователь ещё не касался.
+   */
+  showProblems?: boolean;
+}>();
 
 const { t } = useI18n();
 
@@ -35,8 +47,12 @@ const accents = computed(() => [
   { value: 'amber' as const, label: t('accent.amber') },
 ]);
 
-/** Пустое имя не принимается — подсказка появляется сразу, а не при сохранении. */
-const nameEmpty = () => model.value.name.trim() === '';
+/**
+ * Пустое имя не принимается. Подсказка появляется до сохранения,
+ * но не раньше, чем есть о чём говорить: `showProblems` держит
+ * нетронутую форму молчащей.
+ */
+const nameEmpty = () => showProblems && model.value.name.trim() === '';
 </script>
 
 <template>
