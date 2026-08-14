@@ -46,6 +46,21 @@ export const useInstallerStore = defineStore('installer', () => {
   const draft = ref<InstallTarget>(blankDraft());
   const draftCheck = ref<TargetCheck | null>(null);
 
+  /**
+   * Была попытка добавить черновик в список.
+   *
+   * Пока её не было и путь пуст, форма молчит: сразу после успешного
+   * добавления она чиста, и жалоба «путь не может быть пустым» относилась
+   * бы к полю, до которого пользователь ещё не дошёл. Наоборот, нажатие
+   * «Добавить в список» на пустой форме обязано сказать, чего не хватает,
+   * — поэтому кнопка не выключается, а проверяет.
+   */
+  const draftSubmitted = ref(false);
+
+  /** Правимая строка списка: её номер и копия, пока правка не сохранена. */
+  const editIndex = ref<number | null>(null);
+  const editDraft = ref<InstallTarget | null>(null);
+
   function blankDraft(): InstallTarget {
     return {
       path: '',
@@ -64,6 +79,24 @@ export const useInstallerStore = defineStore('installer', () => {
       draft.value.path.trim() !== ''
       && draft.value.name.trim() !== ''
       && (draftCheck.value?.errors.length ?? 0) === 0,
+  );
+
+  /** Жалобы на черновик показываются, только когда есть о чём говорить. */
+  const draftProblems = computed(
+    () => draft.value.path.trim() !== '' || draftSubmitted.value,
+  );
+
+  /** Проверка правимой строки — та же, что у неё в списке. */
+  const editCheck = computed(() =>
+    editIndex.value === null ? null : checks.value[editIndex.value] ?? null,
+  );
+
+  const editReady = computed(
+    () =>
+      editDraft.value !== null
+      && editDraft.value.path.trim() !== ''
+      && editDraft.value.name.trim() !== ''
+      && (editCheck.value?.errors.length ?? 0) === 0,
   );
   const progress = ref<InstallProgress | null>(null);
   const running = ref(false);
@@ -131,17 +164,22 @@ export const useInstallerStore = defineStore('installer', () => {
   }
 
   /**
-   * Проверка идёт по списку вместе с черновиком, одним запросом.
+   * Проверка идёт по всему списку сразу, одним запросом.
    *
-   * Так `installer.duplicateTarget` бесплатно ловит совпадение черновика
-   * с уже добавленным — эта проверка смотрит на весь переданный список, —
-   * а требуемое место пересчитывается по мере его роста. Последний элемент
-   * ответа относится к черновику, остальные — к добавленным.
+   * В список подставляется правимая строка — та, что в форме правки,
+   * а не та, что лежит в `targets`, — и в хвост добавляется черновик.
+   * Так `installer.duplicateTarget` бесплатно ловит совпадение и правки,
+   * и черновика с уже добавленным: эта проверка смотрит на весь
+   * переданный список. Требуемое место при этом пересчитывается по мере
+   * роста списка. Последний элемент ответа относится к черновику,
+   * остальные — к добавленным по порядку.
    */
   async function recheck(): Promise<void> {
     if (!info.value) return;
-    const withDraft = [...targets.value, draft.value];
-    const res = await commands.checkTargets(info.value, withDraft);
+    const edited = targets.value.map((target, i) =>
+      i === editIndex.value && editDraft.value ? editDraft.value : target,
+    );
+    const res = await commands.checkTargets(info.value, [...edited, draft.value]);
     if (res.status !== 'ok') {
       checks.value = [];
       draftCheck.value = null;
@@ -151,17 +189,50 @@ export const useInstallerStore = defineStore('installer', () => {
     draftCheck.value = res.data[targets.value.length] ?? null;
   }
 
-  /** Сабмит формы: черновик уходит в список, форма встаёт в исходное. */
+  /**
+   * Сабмит формы. Годный черновик уходит в список, форма встаёт
+   * в исходное и снова замолкает; негодный остаётся на месте и получает
+   * право жаловаться.
+   */
   async function addDraft(): Promise<void> {
+    draftSubmitted.value = true;
+    await recheck();
     if (!draftReady.value) return;
+
     targets.value.push({ ...draft.value });
     draft.value = blankDraft();
     draftCheck.value = null;
+    draftSubmitted.value = false;
     await recheck();
   }
 
   async function removeTarget(index: number): Promise<void> {
+    // Правили ту, что убирают, — править больше нечего.
+    if (editIndex.value === index) cancelEdit();
+    else if (editIndex.value !== null && editIndex.value > index) editIndex.value -= 1;
+
     targets.value.splice(index, 1);
+    await recheck();
+  }
+
+  /** Открыть правку строки. Правится копия: отмена обязана откатывать. */
+  async function startEdit(index: number): Promise<void> {
+    editIndex.value = index;
+    editDraft.value = { ...targets.value[index] };
+    await recheck();
+  }
+
+  function cancelEdit(): void {
+    editIndex.value = null;
+    editDraft.value = null;
+    void recheck();
+  }
+
+  async function saveEdit(): Promise<void> {
+    if (editIndex.value === null || !editDraft.value || !editReady.value) return;
+    targets.value[editIndex.value] = { ...editDraft.value };
+    editIndex.value = null;
+    editDraft.value = null;
     await recheck();
   }
 
@@ -172,6 +243,9 @@ export const useInstallerStore = defineStore('installer', () => {
     checks.value = [];
     draft.value = blankDraft();
     draftCheck.value = null;
+    draftSubmitted.value = false;
+    editIndex.value = null;
+    editDraft.value = null;
     progress.value = null;
     created.value = [];
     connectShared.value = false;
@@ -228,6 +302,11 @@ export const useInstallerStore = defineStore('installer', () => {
     draft,
     draftCheck,
     draftReady,
+    draftProblems,
+    editIndex,
+    editDraft,
+    editCheck,
+    editReady,
     progress,
     running,
     created,
@@ -241,6 +320,9 @@ export const useInstallerStore = defineStore('installer', () => {
     recheck,
     addDraft,
     removeTarget,
+    startEdit,
+    cancelEdit,
+    saveEdit,
     reset,
     start,
     cancel,

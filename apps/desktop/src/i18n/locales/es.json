@@ -146,6 +146,7 @@
     "targets": {
       "title": "Dónde descomprimir",
       "form": "Nuevo destino",
+      "editing": "Edición",
       "list": "Se descomprimirá en",
       "add": "Añadir a la lista",
       "remove": "Quitar",

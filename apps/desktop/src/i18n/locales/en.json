@@ -146,6 +146,7 @@
     "targets": {
       "title": "Where to unpack",
       "form": "New destination",
+      "editing": "Editing",
       "list": "Will be unpacked into",
       "add": "Add to the list",
       "remove": "Remove",

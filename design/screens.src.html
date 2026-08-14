@@ -164,6 +164,10 @@
   <symbol id="i-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3.5 8.5 6.5 11.5 12.5 4.5"/>
   </symbol>
+  <!-- Править строку списка. -->
+  <symbol id="i-edit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11.2 2.8a1.7 1.7 0 0 1 2.4 2.4L6 12.8l-3.2.8.8-3.2z"/>
+  </symbol>
   <!-- Убрать строку из списка. Крестик, а не корзина: из списка
        назначений мастера ничего не удаляется с диска. -->
   <symbol id="i-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -625,8 +629,15 @@
       Слева форма, справа список: она накидывает в него назначение
       за назначением и после каждого встаёт в исходное. Панель со всеми
       полями на каждую цель разом занимала по экрану прокрутки на цель,
-      а целей бывает шесть. Поменять добавленное — убрать строку
-      и добавить заново.
+      а целей бывает шесть.
+    </p>
+    <p class="aside">
+      Правка разворачивается <strong>под своей строкой</strong>, той же
+      формой: список остаётся на месте, и видно, что именно правится.
+      Правится копия — «Отмена» обязана откатывать, а не «сохранять
+      обратно». Кнопки формы правки — значками: «Добавить в список»
+      бывает раз, а этих две на каждую строку, и подписями они вытеснят
+      из строки то, ради чего она есть.
     </p>
     <div class="frame">
       <div class="win t-dark">
@@ -668,19 +679,17 @@
                   <span class="btn primary">Добавить в список</span>
                 </div>
                 <div class="scroll-pad">
-                  <div class="two">
-                    <div class="field">
-                      <label>Папка</label>
-                      <div class="path-row">
-                        <div class="input mono"><span>D:\AI\Flux</span></div>
-                        <span class="btn secondary">Выбрать…</span>
-                      </div>
-                      <div class="hint">Короткий путь — надёжнее: часть файлов сборки вложена очень глубоко</div>
+                  <div class="field">
+                    <span class="t-label">Папка сборки</span>
+                    <div class="path-row">
+                      <div class="input mono"><span>D:\AI\Flux</span></div>
+                      <span class="btn secondary">Выбрать…</span>
                     </div>
-                    <div class="field">
-                      <label>Имя инстанса</label>
-                      <div class="input">Flux тест</div>
-                    </div>
+                    <div class="hint">Короткий путь — надёжнее: часть файлов сборки вложена очень глубоко</div>
+                  </div>
+                  <div class="field">
+                    <label>Имя</label>
+                    <div class="input">Flux тест</div>
                   </div>
                   <div class="field">
                     <label>Описание</label>
@@ -702,11 +711,61 @@
                 </div>
               </div>
 
+              <!-- Цвет виден прямо в строке: две сборки с похожими путями
+                   различают по нему, а не по пути. Карандаш разворачивает
+                   правку под самой строкой — список остаётся на месте,
+                   и видно, что именно правится. -->
               <div class="field">
                 <span class="t-label">Распакуется в</span>
                 <div class="paths">
-                  <div class="path-item with-act"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                  <div class="path-item with-act"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                  <div class="path-item editable">
+                    <span class="lbl">D:\AI\Flux</span>
+                    <span class="chip sm" style="--instance-accent:var(--accent-teal)"></span>
+                    <span class="val">Flux тест</span>
+                    <span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span>
+                  </div>
+                  <div class="path-item editable">
+                    <span class="lbl">E:\AI\Flux_clean</span>
+                    <span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span>
+                    <span class="val">Flux чистый</span>
+                    <span class="acts"><span class="act" aria-pressed="true"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span>
+                  </div>
+                  <div class="pane">
+                    <div class="pane-head">
+                      <span class="title">Редактирование</span>
+                      <span class="acts"><span class="act"><svg class="ico"><use href="#i-close"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
+                    </div>
+                    <div class="scroll-pad">
+                      <div class="field">
+                        <span class="t-label">Папка сборки</span>
+                        <div class="path-row">
+                          <div class="input mono"><span>E:\AI\Flux_clean</span></div>
+                          <span class="btn secondary">Выбрать…</span>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label>Имя</label>
+                        <div class="input">Flux чистый</div>
+                      </div>
+                      <div class="field">
+                        <label>Описание</label>
+                        <div class="input"></div>
+                      </div>
+                      <div class="field">
+                        <span class="t-label">Акцентный цвет</span>
+                        <div class="picker">
+                          <i style="background:var(--accent-teal)"></i><i class="on" style="background:var(--accent-indigo)"></i>
+                          <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                          <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
+                          <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label>Порт</label>
+                        <div class="input num">8189</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -771,14 +830,14 @@
                     </div>
                     <div class="scroll-pad">
                       <div class="field">
-                        <label>Папка</label>
+                        <span class="t-label">Папка сборки</span>
                         <div class="path-row">
                           <div class="input mono"><span>D:\AI\Flux</span></div>
                           <span class="btn secondary">Выбрать…</span>
                         </div>
                       </div>
                       <div class="field">
-                        <label>Имя инстанса</label>
+                        <label>Имя</label>
                         <div class="input">Flux тест</div>
                       </div>
                       <div class="field">
@@ -794,13 +853,39 @@
                   <div class="field">
                     <span class="t-label">Распакуется в</span>
                     <div class="paths">
-                      <template data-repeat="3">
-                        <div class="path-item with-act"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                        <div class="path-item with-act"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                        <div class="path-item with-act"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                        <div class="path-item with-act"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                        <div class="path-item with-act"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
-                        <div class="path-item with-act"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></div>
+                      <div class="path-item editable"><span class="lbl">D:\AI\Flux</span><span class="chip sm" style="--instance-accent:var(--accent-teal)"></span><span class="val">Flux тест</span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                      <div class="path-item editable"><span class="lbl">E:\AI\Flux_clean</span><span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span><span class="val">Flux чистый</span><span class="acts"><span class="act" aria-pressed="true"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                      <!-- Правка в середине списка: панель разворачивается
+                           на своём месте, всё ниже уезжает вниз, порядок
+                           строк не меняется. -->
+                      <div class="pane">
+                        <div class="pane-head">
+                          <span class="title">Редактирование</span>
+                          <span class="acts"><span class="act"><svg class="ico"><use href="#i-close"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
+                        </div>
+                        <div class="scroll-pad">
+                          <div class="field">
+                            <span class="t-label">Папка сборки</span>
+                            <div class="path-row">
+                              <div class="input mono"><span>E:\AI\Flux_clean</span></div>
+                              <span class="btn secondary">Выбрать…</span>
+                            </div>
+                          </div>
+                          <div class="field">
+                            <label>Имя</label>
+                            <div class="input">Flux чистый</div>
+                          </div>
+                          <div class="field">
+                            <label>Порт</label>
+                            <div class="input num">8189</div>
+                          </div>
+                        </div>
+                      </div>
+                      <template data-repeat="4">
+                        <div class="path-item editable"><span class="lbl">D:\AI\SDXL_new</span><span class="chip sm" style="--instance-accent:var(--accent-ember)"></span><span class="val">SDXL 0.31</span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                        <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="val">Песочница</span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                        <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="val">Видео</span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                        <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="val">Архив 0.30</span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
                       </template>
                     </div>
                   </div>

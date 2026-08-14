@@ -9,6 +9,16 @@ import { accentVar, isCustomAccent } from '../lib/format';
 
 const model = defineModel<InstanceEdit>({ required: true });
 
+/**
+ * Приставка к `id` полей.
+ *
+ * Нужна там, где формы на экране две сразу — в мастере это «Новое
+ * назначение» и «Редактирование». Одинаковые `id` у двух полей рвут
+ * связь подписи с полем: клик по подписи попадает в чужое поле,
+ * и ошибку эту глазами не увидеть.
+ */
+const { idPrefix = 'instance' } = defineProps<{ idPrefix?: string }>();
+
 const { t } = useI18n();
 
 // Ключи выписаны литералами, а не собраны из имени цвета: типизация ключей
@@ -31,9 +41,9 @@ const nameEmpty = () => model.value.name.trim() === '';
 
 <template>
   <div class="field">
-    <label for="instance-name">{{ t('instances.field.name') }}</label>
+    <label :for="`${idPrefix}-name`">{{ t('instances.field.name') }}</label>
     <input
-      id="instance-name"
+      :id="`${idPrefix}-name`"
       v-model="model.name"
       class="input"
       :class="{ bad: nameEmpty() }"
@@ -44,9 +54,9 @@ const nameEmpty = () => model.value.name.trim() === '';
   </div>
 
   <div class="field">
-    <label for="instance-desc">{{ t('instances.field.description') }}</label>
+    <label :for="`${idPrefix}-desc`">{{ t('instances.field.description') }}</label>
     <input
-      id="instance-desc"
+      :id="`${idPrefix}-desc`"
       v-model="model.description"
       class="input"
       type="text"
@@ -87,9 +97,9 @@ const nameEmpty = () => model.value.name.trim() === '';
   </div>
 
   <div class="field">
-    <label for="instance-port">{{ t('instances.field.port') }}</label>
+    <label :for="`${idPrefix}-port`">{{ t('instances.field.port') }}</label>
     <input
-      id="instance-port"
+      :id="`${idPrefix}-port`"
       v-model.number="model.preferredPort"
       class="input num"
       type="number"

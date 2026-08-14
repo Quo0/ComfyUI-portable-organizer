@@ -8,9 +8,10 @@ import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import StatusPill from '../components/StatusPill.vue';
-import type { ArchiveRecord, InstallTarget } from '../bindings';
+import TargetForm from '../components/TargetForm.vue';
+import type { ArchiveRecord } from '../bindings';
 import { errorText } from '../lib/errors';
-import { accentVar, initial, isCustomAccent, useFormat } from '../lib/format';
+import { accentVar, initial, useFormat } from '../lib/format';
 import { displayStatus } from '../lib/status';
 import type { WizardStep } from '../stores/installer';
 import { useInstallerStore } from '../stores/installer';
@@ -48,17 +49,6 @@ const stepTitle = computed(() => {
       return t('install.wizard.step.running');
   }
 });
-
-const ACCENTS = [
-  'teal',
-  'indigo',
-  'ember',
-  'moss',
-  'azure',
-  'orchid',
-  'rose',
-  'amber',
-] as const;
 
 /** Сколько назначений уже пройдено — для счётчика в ряду шага. */
 const runCounter = computed(() => {
@@ -163,18 +153,6 @@ async function pickArchive(): Promise<void> {
 async function useRecent(record: ArchiveRecord): Promise<void> {
   if (!record.available) return;
   if (await wizard.chooseArchive(record.path)) wizard.step = 'targets';
-}
-
-async function pickTargetFolder(target: InstallTarget): Promise<void> {
-  const picked = await open({ directory: true, multiple: false });
-  if (typeof picked !== 'string') return;
-  target.path = picked;
-  // Имя папки — разумное значение по умолчанию, но только пока пользователь
-  // не вписал своё: затирать введённое было бы грубо.
-  if (!target.name.trim()) {
-    target.name = picked.split(/[\\/]/).filter(Boolean).pop() ?? '';
-  }
-  await wizard.recheck();
 }
 
 /** Сколько места нужно с учётом того, что цели могут быть на одном диске. */
@@ -367,138 +345,101 @@ const needed = computed(() =>
              прокрутки на цель, а целей бывает шесть. -->
         <template v-else-if="wizard.step === 'targets' && wizard.info">
           <div class="cols targets">
-            <div class="pane target">
-              <div class="pane-head">
-                <span class="title">{{ t('install.targets.form') }}</span>
-                <button
-                  type="button"
-                  class="btn primary"
-                  :disabled="!wizard.draftReady"
-                  @click="wizard.addDraft()"
-                >
+            <!-- Кнопка не выключается, а проверяет: выключенная, она ничего
+                 не говорит о том, чего не хватает, и нажатие на пустой
+                 форме выглядит поломкой. -->
+            <TargetForm
+              v-model="wizard.draft"
+              :title="t('install.targets.form')"
+              :check="wizard.draftCheck"
+              :show-problems="wizard.draftProblems"
+              id-prefix="target-new"
+              @change="wizard.recheck()"
+            >
+              <template #acts>
+                <button type="button" class="btn primary" @click="wizard.addDraft()">
                   {{ t('install.targets.add') }}
                 </button>
-              </div>
-
-              <div class="scroll-pad">
-                <div class="two">
-                  <div class="field">
-                    <label>{{ t('instances.field.folder') }}</label>
-                    <div class="path-row">
-                      <div class="input mono"><span>{{ wizard.draft.path }}</span></div>
-                      <button
-                        type="button"
-                        class="btn secondary"
-                        @click="pickTargetFolder(wizard.draft)"
-                      >
-                        {{ t('install.targets.choose') }}
-                      </button>
-                    </div>
-
-                    <!-- Ошибки и предупреждения разделены: с предупреждением
-                         распаковать можно, с ошибкой — нет. Оба относятся
-                         к пути, поэтому стоят под ним. -->
-                    <p
-                      v-for="(problem, i) in wizard.draftCheck?.errors ?? []"
-                      :key="`e${i}`"
-                      class="hint bad"
-                    >
-                      {{ errorText(problem) }}
-                    </p>
-                    <p
-                      v-for="(problem, i) in wizard.draftCheck?.warnings ?? []"
-                      :key="`w${i}`"
-                      class="hint"
-                    >
-                      {{ errorText(problem) }}
-                    </p>
-                  </div>
-
-                  <div class="field">
-                    <label>{{ t('instances.field.name') }}</label>
-                    <input
-                      v-model="wizard.draft.name"
-                      class="input"
-                      type="text"
-                      maxlength="80"
-                      @blur="wizard.recheck()"
-                    />
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label>{{ t('instances.field.description') }}</label>
-                  <input
-                    v-model="wizard.draft.description"
-                    class="input"
-                    type="text"
-                    maxlength="200"
-                  />
-                </div>
-
-                <div class="field">
-                  <span class="t-label">{{ t('instances.field.accent') }}</span>
-                  <div class="picker">
-                    <button
-                      v-for="accent in ACCENTS"
-                      :key="accent"
-                      type="button"
-                      :style="{ background: accentVar(accent) }"
-                      :aria-pressed="wizard.draft.accent === accent"
-                      @click="wizard.draft.accent = accent"
-                    ></button>
-                    <!-- Свой цвет — там же, где палитра, и на том же экране,
-                         где заводят сборку: возвращаться за ним потом
-                         в редактирование незачем. -->
-                    <label
-                      class="swatch-custom"
-                      :class="{ on: isCustomAccent(wizard.draft.accent) }"
-                      :title="t('instances.field.accentCustom')"
-                    >
-                      <input
-                        type="color"
-                        :value="isCustomAccent(wizard.draft.accent) ? wizard.draft.accent : '#4db6a5'"
-                        :aria-label="t('instances.field.accentCustom')"
-                        @input="wizard.draft.accent = ($event.target as HTMLInputElement).value"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label>{{ t('instances.field.port') }}</label>
-                  <input
-                    v-model.number="wizard.draft.preferredPort"
-                    class="input num"
-                    type="number"
-                    min="1024"
-                    max="65535"
-                  />
-                </div>
-              </div>
-            </div>
+              </template>
+            </TargetForm>
 
             <div class="field">
               <span class="t-label">{{ t('install.targets.list') }}</span>
               <div v-if="wizard.targets.length" class="paths">
-                <div
-                  v-for="(target, index) in wizard.targets"
-                  :key="index"
-                  class="path-item with-act"
-                >
-                  <!-- Путь не переводится и не сокращается. -->
-                  <span class="lbl">{{ target.path }}</span>
-                  <span class="val">{{ target.name }}</span>
-                  <button
-                    type="button"
-                    class="act"
-                    :title="t('install.targets.remove')"
-                    :aria-label="t('install.targets.remove')"
-                    @click="wizard.removeTarget(index)"
+                <template v-for="(target, index) in wizard.targets" :key="index">
+                  <div class="path-item editable">
+                    <!-- Путь не переводится и не сокращается. -->
+                    <span class="lbl">{{ target.path }}</span>
+                    <!-- Цвет виден прямо в строке: две сборки с похожими
+                         путями различают по нему, а не по пути. -->
+                    <span
+                      class="chip sm"
+                      :style="{ '--instance-accent': accentVar(target.accent) }"
+                    ></span>
+                    <span class="val">{{ target.name }}</span>
+                    <span class="acts">
+                      <button
+                        type="button"
+                        class="act"
+                        :title="t('common.edit')"
+                        :aria-label="t('common.edit')"
+                        :aria-pressed="wizard.editIndex === index"
+                        @click="
+                          wizard.editIndex === index
+                            ? wizard.cancelEdit()
+                            : wizard.startEdit(index)
+                        "
+                      >
+                        <svg class="ico"><use href="#i-edit" /></svg>
+                      </button>
+                      <button
+                        type="button"
+                        class="act"
+                        :title="t('install.targets.remove')"
+                        :aria-label="t('install.targets.remove')"
+                        @click="wizard.removeTarget(index)"
+                      >
+                        <svg class="ico"><use href="#i-close" /></svg>
+                      </button>
+                    </span>
+                  </div>
+
+                  <!-- Правка разворачивается под своей строкой, а не уводит
+                       в отдельный экран: список остаётся на месте, и видно,
+                       что именно правится. -->
+                  <TargetForm
+                    v-if="wizard.editIndex === index && wizard.editDraft"
+                    v-model="wizard.editDraft"
+                    :title="t('install.targets.editing')"
+                    :check="wizard.editCheck"
+                    id-prefix="target-edit"
+                    @change="wizard.recheck()"
                   >
-                    <svg class="ico"><use href="#i-close" /></svg>
-                  </button>
-                </div>
+                    <template #acts>
+                      <span class="acts">
+                        <button
+                          type="button"
+                          class="act"
+                          :title="t('common.cancel')"
+                          :aria-label="t('common.cancel')"
+                          @click="wizard.cancelEdit()"
+                        >
+                          <svg class="ico"><use href="#i-close" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="act"
+                          :title="t('common.save')"
+                          :aria-label="t('common.save')"
+                          :disabled="!wizard.editReady"
+                          @click="wizard.saveEdit()"
+                        >
+                          <svg class="ico"><use href="#i-check" /></svg>
+                        </button>
+                      </span>
+                    </template>
+                  </TargetForm>
+                </template>
               </div>
               <p v-else class="hint">{{ t('install.targets.empty') }}</p>
 
@@ -767,46 +708,6 @@ const needed = computed(() =>
   border-bottom: 1px solid var(--line);
 }
 
-.target {
-  display: block;
-}
-
-/* Квадрат выбора своего цвета — тот же, что в полях инстанса.
-   Повторён здесь, а не вынесен в дизайн-систему, потому что это
-   единственные два места, и оба знают о нём всё. */
-.swatch-custom {
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-sm);
-  display: block;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px var(--line-strong) inset;
-  background: conic-gradient(
-    #e5534b,
-    #d9a441,
-    #6fbf73,
-    #4db6a5,
-    #5b8def,
-    #a77bd6,
-    #e5534b
-  );
-}
-
-.swatch-custom.on {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.swatch-custom input {
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  cursor: pointer;
-}
-
-.swatch-custom:focus-within {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
+/* Копия полей назначения — палитра со своим цветом в том числе —
+   уехала в TargetForm поверх InstanceFields, и стили ушли вместе с ней. */
 </style>

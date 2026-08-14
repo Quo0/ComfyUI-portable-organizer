@@ -479,6 +479,23 @@ h3.sub {
    из-за чего в макетах его не было и собранный из него блок разъезжался
    при сверке — теперь общий. */
 .group { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Кнопка-значок внутри строки списка или шапки панели: квадрат в 22
+   пикселя, без полей и фона. Не `.btn`: у того высота `--control-h`
+   в 28, и строка списка от него раздувается вдвое против соседних.
+   Слово действия живёт в подсказке — иначе две кнопки подписями
+   вытесняют из строки то, ради чего она есть. */
+.act {
+  width: 22px; height: 22px; padding: 0; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--ink-muted); cursor: pointer;
+}
+.act:hover,
+.act[aria-pressed="true"] { background: var(--surface-hover); color: var(--ink); }
+.act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.act:disabled { opacity: .45; cursor: default; }
+.act:disabled:hover { background: transparent; color: var(--ink-muted); }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   height: var(--control-h); padding: 0 var(--space-3);
@@ -831,20 +848,18 @@ h3.sub {
 .path-item .val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .path-item.keep { background: var(--state-running-bg); }
 .path-item.keep .lbl { color: var(--state-running); }
-/* Строка с действием: третья колонка под кнопку-значок. Модификатором,
-   а не правкой базовой строки, — её без всяких кнопок используют ещё
-   четыре экрана, и лишняя колонка сдвинула бы там значения.
-   Кнопка ниже контрола: `--control-h` в 28 пикселей раздула бы строку
-   вдвое против соседних, а слово действия живёт в подсказке. */
-.path-item.with-act { grid-template-columns: minmax(0,1fr) auto auto; }
-.path-item .act {
-  width: 22px; height: 22px; padding: 0; flex: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-sm);
-  background: transparent; color: var(--ink-muted); cursor: pointer;
-}
-.path-item .act:hover { background: var(--surface-hover); color: var(--ink); }
-.path-item .act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+/* Правимая строка: путь · цвет · имя · кнопки. Модификатором, а не
+   правкой базовой строки, — её без всего этого используют ещё четыре
+   экрана, и лишние колонки сдвинули бы там значения. Кнопки собраны
+   в один `.acts`, чтобы их число не меняло сетку. */
+.path-item.editable { grid-template-columns: minmax(0,1fr) auto auto auto; }
+.acts { display: flex; gap: var(--space-1); flex: none; align-items: center; }
+
+/* Панель правки разворачивается прямо в списке, под своей строкой.
+   Список уже обведён рамкой и держит разделители зазором в пиксель
+   на фоне линии, поэтому вложенная панель своих рамки и углов
+   не рисует — иначе внутри обведённого списка появляется вторая рамка. */
+.paths > .pane { border: 0; border-radius: 0; }
 
 /* ---------------------------------------------------------- вкладки */
 /* Вкладки экрана. Нужны там, где у одной сущности несколько независимых

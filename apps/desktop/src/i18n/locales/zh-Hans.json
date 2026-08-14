@@ -146,6 +146,7 @@
     "targets": {
       "title": "解压到哪里",
       "form": "新的目标",
+      "editing": "编辑",
       "list": "将解压到",
       "add": "添加到列表",
       "remove": "移除",

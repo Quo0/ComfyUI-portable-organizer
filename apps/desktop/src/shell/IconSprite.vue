@@ -97,6 +97,18 @@
     >
       <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
     </symbol>
+    <!-- Править строку списка. -->
+    <symbol
+      id="i-edit"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M11.2 2.8a1.7 1.7 0 0 1 2.4 2.4L6 12.8l-3.2.8.8-3.2z" />
+    </symbol>
     <!-- Убрать строку из списка. Крестик, а не корзина: из списка
          назначений мастера ничего не удаляется с диска. -->
     <symbol
