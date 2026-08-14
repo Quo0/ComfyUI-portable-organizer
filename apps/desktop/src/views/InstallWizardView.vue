@@ -7,6 +7,7 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
+import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
 import TargetForm from '../components/TargetForm.vue';
 import type { ArchiveRecord } from '../bindings';
@@ -341,8 +342,9 @@ const needed = computed(() =>
                       {{ t('install.archive.missing') }}
                     </span>
                   </div>
-                  <!-- Путь не переводится и не сокращается. -->
-                  <div class="src"><code>{{ record.path }}</code></div>
+                  <!-- Путь не переводится и не сокращается: переносится
+                       по разделителям папок, а не срезается краем. -->
+                  <div class="src"><code><PathText :path="record.path" /></code></div>
                   <div class="meta">
                     <span>{{ bytes(record.sizeBytes) }}</span>
                     <span>{{ moment(record.lastUsedAt) }}</span>
@@ -407,7 +409,7 @@ const needed = computed(() =>
                     :title="target.description || undefined"
                   >
                     <!-- Путь не переводится и не сокращается. -->
-                    <span class="lbl">{{ target.path }}</span>
+                    <span class="lbl"><PathText :path="target.path" /></span>
                     <span class="val">{{ target.name }}</span>
                     <!-- Цвет виден прямо в строке: две сборки с похожими
                          путями различают по нему, а не по пути. Стоит между
@@ -715,7 +717,7 @@ const needed = computed(() =>
 
                 <!-- Путь, а не «последний запуск»: сборку только что
                      распаковали, и запускать её ещё не запускали. -->
-                <div class="src">{{ instance.path }}</div>
+                <div class="src"><PathText :path="instance.path" /></div>
               </div>
             </RouterLink>
           </div>

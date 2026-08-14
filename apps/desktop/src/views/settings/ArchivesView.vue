@@ -11,6 +11,7 @@ import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
+import PathText from '../../components/PathText.vue';
 import { useFormat } from '../../lib/format';
 import { useInstallerStore } from '../../stores/installer';
 
@@ -42,9 +43,11 @@ function reveal(path: string): void {
             class="path-item"
           >
             <span class="lbl">
-              <!-- Имя файла и путь не переводятся никогда. -->
+              <!-- Имя файла и путь не переводятся никогда, а путь ещё
+                   и не сокращается: он переносится по разделителям
+                   папок, а не срезается краем списка. -->
               {{ record.label }}
-              <span class="hint">{{ record.path }}</span>
+              <span class="hint"><PathText :path="record.path" /></span>
             </span>
             <span class="val">
               <template v-if="record.available">
