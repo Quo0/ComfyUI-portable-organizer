@@ -232,7 +232,7 @@ function openFolder(): void {
             <div class="field">
               <label>{{ t('instances.field.lastRunTitle') }}</label>
               <div class="paths">
-                <div class="path-item keep">
+                <div class="path-item">
                   <span class="lbl">{{ lastRunText }}</span>
                   <span class="val">
                     {{ status?.readySecs ? t('run.readyIn', { secs: status.readySecs }) : '' }}
@@ -290,11 +290,11 @@ function openFolder(): void {
             </div>
 
             <div class="paths">
-              <div class="path-item keep">
+              <div class="path-item">
                 <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
                 <span class="val">{{ instance.comfyVersion ?? t('common.unknown') }}</span>
               </div>
-              <div class="path-item keep">
+              <div class="path-item">
                 <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
                 <span class="val">{{ instance.pythonVersion ?? t('common.unknown') }}</span>
               </div>

@@ -141,13 +141,13 @@ async function submit(): Promise<void> {
           <div v-else class="cols">
             <div>
               <div class="paths">
-                <div class="path-item keep">
+                <div class="path-item">
                   <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
                   <span class="val">
                     {{ probe.probe.comfyVersion ?? t('common.unknown') }}
                   </span>
                 </div>
-                <div class="path-item keep">
+                <div class="path-item">
                   <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
                   <span class="val">
                     {{ probe.probe.pythonVersion ?? t('common.unknown') }}
