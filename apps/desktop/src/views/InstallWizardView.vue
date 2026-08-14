@@ -370,13 +370,15 @@ const needed = computed(() =>
                   <div class="path-item editable">
                     <!-- Путь не переводится и не сокращается. -->
                     <span class="lbl">{{ target.path }}</span>
+                    <span class="val">{{ target.name }}</span>
                     <!-- Цвет виден прямо в строке: две сборки с похожими
-                         путями различают по нему, а не по пути. -->
+                         путями различают по нему, а не по пути. Стоит между
+                         именем и кнопками — там он выстраивается в колонку,
+                         а не гуляет вслед за длиной имени. -->
                     <span
                       class="chip sm"
                       :style="{ '--instance-accent': accentVar(target.accent) }"
                     ></span>
-                    <span class="val">{{ target.name }}</span>
                     <span class="acts">
                       <button
                         type="button"
