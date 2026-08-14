@@ -417,6 +417,9 @@ const needed = computed(() =>
                   >
                     <template #acts>
                       <span class="acts">
+                        <!-- Перечёркнутый круг, а не крестик: крестиком
+                             рядом убирают строку, и одинаковые значки
+                             в одном месте значили бы разное. -->
                         <button
                           type="button"
                           class="act"
@@ -424,7 +427,7 @@ const needed = computed(() =>
                           :aria-label="t('common.cancel')"
                           @click="wizard.cancelEdit()"
                         >
-                          <svg class="ico"><use href="#i-close" /></svg>
+                          <svg class="ico"><use href="#i-ban" /></svg>
                         </button>
                         <button
                           type="button"

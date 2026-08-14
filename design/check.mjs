@@ -179,7 +179,26 @@ for (const need of ['.nav', '.card', '.btn', '.scroll', '.chip', '.toast']) {
   if (!components.includes(need)) note(`в components.css нет «${need}»`);
 }
 
-// 8. Строки проверки на длинных текстах ---------------------------------------
+// 8. Спрайт значков дизайна и приложения ---------------------------------------
+// Единственная проверка, заглядывающая за пределы design/, и она того стоит:
+// спрайт существует двумя копиями, разошлись они молча, и цена расхождения —
+// пустой квадрат вместо значка, который ничего не сообщает ни в логе,
+// ни в сборке.
+const APP_SPRITE = join(DESIGN_DIR, '..', 'apps', 'desktop', 'src', 'shell', 'IconSprite.vue');
+const idsOf = (text) => new Set([...text.matchAll(/id="(i-[\w-]+)"/g)].map((m) => m[1]));
+
+const designIcons = idsOf(readFileSync(join(DESIGN_DIR, 'screens.src.html'), 'utf8'));
+const appIcons = idsOf(readFileSync(APP_SPRITE, 'utf8'));
+
+for (const id of designIcons) if (!appIcons.has(id)) note(`значка нет в спрайте приложения: ${id}`);
+for (const id of appIcons) if (!designIcons.has(id)) note(`значка нет в макетах: ${id}`);
+
+// Каждый значок, на который ссылаются макеты, обязан быть нарисован:
+// ссылка на несуществующий символ рисует пустоту и молчит.
+const usedIcons = new Set([...screens.matchAll(/href="#(i-[\w-]+)"/g)].map((m) => m[1]));
+for (const id of usedIcons) if (!designIcons.has(id)) note(`используется, но не нарисован: ${id}`);
+
+// 9. Строки проверки на длинных текстах ---------------------------------------
 const MIN_LONGFORM = 6;
 const longRuns = (html.match(/data-longform/g) || []).length;
 if (longRuns < MIN_LONGFORM) {

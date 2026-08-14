@@ -87,6 +87,30 @@ const swatches = ACCENTS.map(([key, label]) => {
             </div>`;
 }).join('\n');
 
+// ------------------------------------------------------------- значки
+// Спрайт живёт в одном месте — в screens.src.html, — а на страницу
+// просмотра приезжает сборкой вместе с галереей. Выписанная руками копия
+// уже была, и разошлась она молча: там оказалось пять значков
+// из шестнадцати, и обнаружилось это только когда понадобился список.
+const screensSrc = readFileSync(join(DESIGN_DIR, 'screens.src.html'), 'utf8');
+
+export function iconIds(src) {
+  return [...src.matchAll(/<symbol id="(i-[\w-]+)"/g)].map((m) => m[1]);
+}
+
+const icons = [...screensSrc.matchAll(/<symbol id="(i-[\w-]+)"[\s\S]*?<\/symbol>/g)]
+  .map((m) => ({ id: m[1], markup: m[0] }));
+
+const iconSprite = icons.map((i) => '  ' + i.markup).join('\n');
+// Подпись — сам идентификатор: отдельный список имён стал бы четвёртым
+// местом, где им положено совпадать, и разошёлся бы как спрайт.
+const iconGrid = icons
+  .map(
+    (i) =>
+      `            <div class="icon-cell"><svg class="ico"><use href="#${i.id}"/></svg><code>${i.id}</code></div>`,
+  )
+  .join('\n');
+
 // ---------------------------------------------------------------- сборка
 
 // ------------------------------------------------- пары «светлая / тёмная»
@@ -142,7 +166,7 @@ const PREVIEW_ONLY = new Set([
   'wrap', 'masthead', 'eyebrow', 'lede', 'facts', 'band', 'rail', 'ids', 'stack',
   'sub', 'aside', 'pair', 'panel', 'app', 'roles', 'role', 'swatches', 'sw',
   'sw-chips', 'sw-chip', 'sw-name', 'sw-meta', 'longform', 'lf-head', 'lf-rows',
-  'lf-row', 'closing', 'scale', 'scale-row',
+  'lf-row', 'closing', 'scale', 'scale-row', 'icons', 'icon-cell',
 ]);
 
 function componentsOnly(css) {
@@ -198,7 +222,9 @@ function render(srcName, outName, artifactName) {
     .replace('/* @STYLES@ */', () => sheet)
     .replace('/* @TOKENS@ */', () => previewTokens)
     .replace('<!-- @ACCENTS@ -->', () => swatches)
-    .replace('<!-- @ROLES@ -->', () => rolesPair);
+    .replace('<!-- @ROLES@ -->', () => rolesPair)
+    .replace('<!-- @ICON_SPRITE@ -->', () => iconSprite)
+    .replace('<!-- @ICONS@ -->', () => iconGrid);
   // Порядок не важен: пары и повторы независимы, вложенных шаблонов нет.
   const { out: paired, count } = expandPairs(substituted);
   const { out: html } = expandRepeats(paired);
@@ -219,6 +245,6 @@ const screenCount = render('screens.src.html', 'screens.html', 'screens.html');
 
 const metricCount = metricsBody.match(/--[\w-]+\s*:/g).length;
 console.log(`dist/tokens.css  — ${light.size} токенов на тему + ${metricCount} метрик`);
-console.log(`preview.html     — ${ACCENTS.length} акцентов, ${pairCount} пар «светлая/тёмная»`);
+console.log(`preview.html     — ${ACCENTS.length} акцентов, ${pairCount} пар «светлая/тёмная», ${icons.length} значков`);
 console.log(`screens.html     — экраны по сценариям`);
 console.log('dist/            — версии для публикации');

@@ -168,6 +168,12 @@
   <symbol id="i-edit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M11.2 2.8a1.7 1.7 0 0 1 2.4 2.4L6 12.8l-3.2.8.8-3.2z"/>
   </symbol>
+  <!-- Отмена правки. Перечёркнутый круг, а не крестик: крестик рядом
+       уже занят удалением строки, и две одинаковые кнопки в одном месте
+       значили бы разное. -->
+  <symbol id="i-ban" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="5.5"/><path d="M4.1 11.9 11.9 4.1"/>
+  </symbol>
   <!-- Убрать строку из списка. Крестик, а не корзина: из списка
        назначений мастера ничего не удаляется с диска. -->
   <symbol id="i-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -193,6 +199,14 @@
   </symbol>
   <symbol id="i-reload" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.5v3h-3"/>
+  </symbol>
+  <!-- Свёртка и развёртка рейла. Шпилька без черты — тем и отличается
+       от «Назад», у которой черта есть: формы иначе путаются. -->
+  <symbol id="i-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.5 4.5 6 8l3.5 3.5"/>
+  </symbol>
+  <symbol id="i-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.5 4.5 10 8l-3.5 3.5"/>
   </symbol>
 </svg>
 
@@ -733,7 +747,7 @@
                   <div class="pane">
                     <div class="pane-head">
                       <span class="title">Редактирование</span>
-                      <span class="acts"><span class="act"><svg class="ico"><use href="#i-close"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
+                      <span class="acts"><span class="act"><svg class="ico"><use href="#i-ban"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
                     </div>
                     <div class="scroll-pad">
                       <div class="field">
@@ -861,7 +875,7 @@
                       <div class="pane">
                         <div class="pane-head">
                           <span class="title">Редактирование</span>
-                          <span class="acts"><span class="act"><svg class="ico"><use href="#i-close"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
+                          <span class="acts"><span class="act"><svg class="ico"><use href="#i-ban"/></svg></span><span class="act"><svg class="ico"><use href="#i-check"/></svg></span></span>
                         </div>
                         <div class="scroll-pad">
                           <div class="field">

@@ -228,6 +228,17 @@ h3.sub {
   padding: 10px;
   min-width: 0;
 }
+/* Галерея значков на странице просмотра: сам значок и его идентификатор,
+   потому что вставляют его именно по нему — <use href="#i-back">. */
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
+.icon-cell {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.icon-cell code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); }
+
 .sw-chips { display: flex; gap: 6px; margin-bottom: 9px; }
 .sw-chip { flex: 1; display: block; border-radius: 4px; padding: 9px; border: 1px solid var(--line); }
 .sw-chip i { display: block; height: 20px; border-radius: 3px; }
