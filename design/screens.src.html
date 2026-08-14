@@ -646,6 +646,11 @@
       а целей бывает шесть.
     </p>
     <p class="aside">
+      Описание в строку не выводится — она и без него из четырёх колонок, —
+      но всплывает подсказкой при наведении. У строк без описания подсказки
+      нет вовсе.
+    </p>
+    <p class="aside">
       Правка разворачивается <strong>под своей строкой</strong>, той же
       формой: список остаётся на месте, и видно, что именно правится.
       Правится копия — «Отмена» обязана откатывать, а не «сохранять
@@ -734,7 +739,11 @@
               <div class="field">
                 <span class="t-label">Распакуется в</span>
                 <div class="paths">
-                  <div class="path-item editable">
+                  <!-- Описание в строку не лезет, но и пропасть не должно:
+                       оно всплывает подсказкой. У строки без описания
+                       атрибута нет вовсе — пустая подсказка мигала бы
+                       рамкой ни о чём. -->
+                  <div class="path-item editable" title="Ветка для экспериментов с Flux, ставим поверх свежей 0.31">
                     <span class="lbl">D:\AI\Flux</span>
                     <span class="val">Flux тест</span>
                     <span class="chip sm" style="--instance-accent:var(--accent-teal)"></span>
@@ -869,7 +878,7 @@
                   <div class="field">
                     <span class="t-label">Распакуется в</span>
                     <div class="paths">
-                      <div class="path-item editable"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="chip sm" style="--instance-accent:var(--accent-teal)"></span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
+                      <div class="path-item editable" title="Ветка для экспериментов с Flux, ставим поверх свежей 0.31"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="chip sm" style="--instance-accent:var(--accent-teal)"></span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
                       <div class="path-item editable"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span><span class="acts"><span class="act" aria-pressed="true"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
                       <!-- Правка в середине списка: панель разворачивается
                            на своём месте, всё ниже уезжает вниз, порядок

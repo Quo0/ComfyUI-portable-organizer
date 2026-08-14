@@ -367,7 +367,14 @@ const needed = computed(() =>
               <span class="t-label">{{ t('install.targets.list') }}</span>
               <div v-if="wizard.targets.length" class="paths">
                 <template v-for="(target, index) in wizard.targets" :key="index">
-                  <div class="path-item editable">
+                  <!-- Описание в строку не помещается и в неё не лезет,
+                       но и пропасть не должно: оно всплывает подсказкой.
+                       Атрибута нет вовсе, когда описания нет, — пустая
+                       подсказка мигала бы рамкой ни о чём. -->
+                  <div
+                    class="path-item editable"
+                    :title="target.description || undefined"
+                  >
                     <!-- Путь не переводится и не сокращается. -->
                     <span class="lbl">{{ target.path }}</span>
                     <span class="val">{{ target.name }}</span>
