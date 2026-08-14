@@ -62,7 +62,7 @@
       "openExisting": "该文件夹已在列表中。打开它"
     },
     "field": {
-      "folder": "文件夹",
+      "folder": "构建文件夹",
       "name": "名称",
       "description": "说明",
       "accent": "标识颜色",

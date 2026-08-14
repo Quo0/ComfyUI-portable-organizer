@@ -62,7 +62,7 @@
       "openExisting": "Esta carpeta ya está en la lista. Abrirla"
     },
     "field": {
-      "folder": "Carpeta",
+      "folder": "Carpeta de la compilación",
       "name": "Nombre",
       "description": "Descripción",
       "accent": "Color distintivo",

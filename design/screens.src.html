@@ -1117,12 +1117,12 @@ Loading custom nodes: 47 found
               <div>
                 <div class="paths">
                   <div class="path-item keep"><span class="lbl">Версия ComfyUI</span><span class="val">0.30.2</span></div>
-                  <div class="path-item keep"><span class="lbl">Python</span><span class="val">3.13.12</span></div>
+                  <div class="path-item keep"><span class="lbl">Версия Python</span><span class="val">3.13.12</span></div>
                   <div class="path-item"><span class="lbl">Профили запуска</span><span class="val">4</span></div>
                 </div>
                 <div class="row">
                   <span class="pill stopped">nvidia_gpu</span><span class="pill stopped">fast_fp16</span>
-                  <span class="pill stopped">cpu</span><span class="pill stopped">disable_api_nodes</span>
+                  <span class="pill stopped">cpu</span><span class="pill stopped">disable_api_nodes<em class="advanced">продвинутые</em></span>
                 </div>
               </div>
               <div>
@@ -1135,9 +1135,10 @@ Loading custom nodes: 47 found
                     <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
                     <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
                     <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                    <span class="swatch-custom" title="Выбрать свой цвет"></span>
                   </div>
                 </div>
-                <div class="field"><label>Порт</label><div class="input num">8188</div></div>
+                <div class="field"><label>Предпочитаемый порт</label><div class="input num">8188</div><div class="hint">Используется при запуске, если свободен.</div></div>
                 <!-- Кнопок под формой нет: главное действие уехало в ряд
                      шага — там же, где во всём разделе, — а внизу оно
                      уезжало из виду вместе с прочитанным о папке. -->
@@ -1179,7 +1180,6 @@ Loading custom nodes: 47 found
                 <div class="input mono"><span>D:\program_files\comfyui</span></div>
                 <span class="btn secondary">Выбрать папку…</span>
               </div>
-              <p class="hint bad">D:\program_files\comfyui не похож на портабл-сборку ComfyUI.</p>
               <p class="hint bad">Почти: сборка уровнем ниже. Выберите D:\program_files\comfyui\ComfyUI_windows_portable.</p>
             </div>
           </div>
@@ -1286,13 +1286,13 @@ Loading custom nodes: 47 found
                  сборки одной версии, лежащие в разных папках. -->
             <div class="group">
               <span class="t-label">Недавние</span>
-              <div class="cards">
+              <div class="cards grid">
                 <div class="card">
                   <div class="card-accent"></div>
                   <div class="card-in">
                     <div class="card-top"><div class="card-name">0.31.0</div></div>
                     <div class="src"><code>D:\Downloads\ComfyUI_windows_portable_nvidia_0.31.0.7z</code></div>
-                    <div class="meta"><span>2.18 ГБ</span><span>сегодня</span></div>
+                    <div class="meta"><span>2,2 ГБ</span><span>сегодня</span></div>
                     <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
                   </div>
                 </div>
@@ -1301,8 +1301,8 @@ Loading custom nodes: 47 found
                   <div class="card-in">
                     <div class="card-top"><div class="card-name">0.28.7</div><span class="pill gone">Файла нет или он изменился</span></div>
                     <div class="src"><code>E:\Archive\ComfyUI_windows_portable_nvidia_0.28.7.7z</code></div>
-                    <div class="meta"><span>1.94 ГБ</span><span>30 мая</span></div>
-                    <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                    <div class="meta"><span>1,9 ГБ</span><span>30 мая</span></div>
+                    <div class="row"><span class="btn secondary" aria-disabled="true">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
                   </div>
                 </div>
               </div>
@@ -1364,17 +1364,17 @@ Loading custom nodes: 47 found
                       <div class="card-in">
                         <div class="card-top"><div class="card-name">0.31.0</div></div>
                         <div class="src"><code>D:\Downloads\ComfyUI_windows_portable_nvidia_0.31.0.7z</code></div>
-                        <div class="meta"><span>2.18 ГБ</span><span>сегодня</span></div>
+                        <div class="meta"><span>2,2 ГБ</span><span>сегодня</span></div>
                         <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
                       </div>
                     </div>
                     <div class="card gone">
                       <div class="card-accent"></div>
                       <div class="card-in">
-                        <div class="card-top"><div class="card-name">0.28.7</div><span class="pill gone">Файла нет</span></div>
+                        <div class="card-top"><div class="card-name">0.28.7</div><span class="pill gone">Файла нет или он изменился</span></div>
                         <div class="src"><code>E:\Archive\ComfyUI_windows_portable_nvidia_0.28.7.7z</code></div>
-                        <div class="meta"><span>1.94 ГБ</span><span>30 мая</span></div>
-                        <div class="row"><span class="btn secondary">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
+                        <div class="meta"><span>1,9 ГБ</span><span>30 мая</span></div>
+                        <div class="row"><span class="btn secondary" aria-disabled="true">Дальше</span><span class="btn ghost">Убрать из списка</span></div>
                       </div>
                     </div>
                   </template>
@@ -1454,10 +1454,14 @@ Loading custom nodes: 47 found
             <div class="meta">
               <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
               <span>56 128 файлов</span>
-              <span>распакуется в 9,7 ГБ</span>
-              <span>нужно примерно 19,4 ГБ</span>
+              <span>Распакуется в 9,7 ГБ</span>
+              <span>Нужно примерно 19,4 ГБ свободного места</span>
             </div>
-            <div class="cols">
+            <!-- Что окажется на верхнем уровне после распаковки: у сборки
+                 это одна корневая папка, но так бывает не у всякого архива,
+                 и строка стоит всегда. -->
+            <p class="hint">Корневая папка в архиве: ComfyUI_windows_portable</p>
+            <div class="cols targets">
               <div class="pane">
                 <div class="pane-head">
                   <span class="title">Новое назначение</span>
@@ -1470,7 +1474,10 @@ Loading custom nodes: 47 found
                       <div class="input mono"><span>D:\AI\Flux</span></div>
                       <span class="btn secondary">Выбрать…</span>
                     </div>
-                    <div class="hint">Короткий путь — надёжнее: часть файлов сборки вложена очень глубоко</div>
+                    <!-- Предупреждение, а не постоянная подсказка: оно
+                         появляется, только когда путь действительно
+                         длинный, и приходит проверкой назначений. -->
+                    <div class="hint">Самый глубокий файл окажется на 246 символах. Распаковка пройдёт, но ComfyUI и pip могут не справиться — выберите путь короче.</div>
                   </div>
                   <div class="field">
                     <label>Имя</label>
@@ -1487,11 +1494,13 @@ Loading custom nodes: 47 found
                       <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
                       <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
                       <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                      <span class="swatch-custom" title="Выбрать свой цвет"></span>
                     </div>
                   </div>
                   <div class="field">
-                    <label>Порт</label>
+                    <label>Предпочитаемый порт</label>
                     <div class="input num">8188</div>
+                    <div class="hint">Используется при запуске, если свободен.</div>
                   </div>
                 </div>
               </div>
@@ -1549,11 +1558,13 @@ Loading custom nodes: 47 found
                           <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
                           <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
                           <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                          <span class="swatch-custom" title="Выбрать свой цвет"></span>
                         </div>
                       </div>
                       <div class="field">
-                        <label>Порт</label>
+                        <label>Предпочитаемый порт</label>
                         <div class="input num">8189</div>
+                        <div class="hint">Используется при запуске, если свободен.</div>
                       </div>
                     </div>
                   </div>
@@ -1605,7 +1616,7 @@ Loading custom nodes: 47 found
               <div class="meta">
                 <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
                 <span>56 128 файлов</span>
-                <span>нужно примерно 58,2 ГБ</span>
+                <span>Нужно примерно 58,2 ГБ свободного места</span>
               </div>
             </div>
             <!-- Форма прибита к верху колонки: список растёт вниз, а она
@@ -1636,6 +1647,7 @@ Loading custom nodes: 47 found
                         <div class="picker">
                           <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
                           <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                          <span class="swatch-custom" title="Выбрать свой цвет"></span>
                         </div>
                       </div>
                     </div>
@@ -1667,8 +1679,9 @@ Loading custom nodes: 47 found
                             <div class="input">Flux чистый</div>
                           </div>
                           <div class="field">
-                            <label>Порт</label>
+                            <label>Предпочитаемый порт</label>
                             <div class="input num">8189</div>
+                            <div class="hint">Используется при запуске, если свободен.</div>
                           </div>
                         </div>
                       </div>
@@ -1679,9 +1692,102 @@ Loading custom nodes: 47 found
                         <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><svg class="ico"><use href="#i-edit"/></svg></span><span class="act"><svg class="ico"><use href="#i-close"/></svg></span></span></div>
                       </template>
                     </div>
+                    <!-- Проверка идёт по всему списку и после каждого
+                         добавления: место на диске могло кончиться уже
+                         после того, как назначение добавили. -->
+                    <p class="hint bad">Не хватает места: нужно примерно 58,2 ГБ.</p>
                   </div>
                 </div>
               </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Список пуст</b><span>первое, что видно на шаге</span></div>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span>
+              <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
+              <span class="step"><u>5</u>Готово</span>
+            </div>
+            <div class="step-bar">
+              <h3>Куда распаковать</h3>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+                <span class="btn primary lg" aria-disabled="true">Дальше</span>
+              </span>
+            </div>
+            <div class="meta">
+              <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
+              <span>56 128 файлов</span>
+              <span>Распакуется в 9,7 ГБ</span>
+              <span>Нужно примерно 0 байт свободного места</span>
+            </div>
+            <p class="hint">Корневая папка в архиве: ComfyUI_windows_portable</p>
+            <!-- Форма чиста и молчит: ругаться на поле, до которого
+                 не дошли, — врать. Ошибки появятся, когда «Добавить
+                 в список» нажмут на незаполненной форме. «Дальше»
+                 выключена: пока список пуст, распаковывать нечего. -->
+            <div class="cols targets">
+              <div class="pane">
+                <div class="pane-head">
+                  <span class="title">Новое назначение</span>
+                  <span class="btn primary">Добавить в список</span>
+                </div>
+                <div class="scroll-pad">
+                  <div class="field">
+                    <span class="t-label">Папка сборки</span>
+                    <div class="path-row">
+                      <div class="input mono"><span></span></div>
+                      <span class="btn secondary">Выбрать…</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Имя</label>
+                    <div class="input"></div>
+                  </div>
+                  <div class="field">
+                    <label>Описание</label>
+                    <div class="input"></div>
+                  </div>
+                  <div class="field">
+                    <span class="t-label">Акцентный цвет</span>
+                    <div class="picker">
+                      <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
+                      <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
+                      <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
+                      <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
+                      <span class="swatch-custom" title="Выбрать свой цвет"></span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Предпочитаемый порт</label>
+                    <div class="input num">8188</div>
+                    <div class="hint">Используется при запуске, если свободен.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="t-label">Распакуется в</span>
+                <p class="hint">Заполните форму слева и добавьте первое назначение.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1736,18 +1842,18 @@ Loading custom nodes: 47 found
               <div class="pane-head"><span class="title">Общие модели</span></div>
               <div class="scroll-pad">
                 <div class="field">
-                  <label>Общий корень моделей</label>
+                  <span class="t-label">Общий корень моделей</span>
                   <div class="path-row">
                     <div class="input mono"><span>D:\AI\_shared\models</span></div>
                     <span class="btn secondary">Обзор</span>
                   </div>
-                  <div class="hint">Распознано 5 категорий · 231 ГБ</div>
+                  <div class="hint">распознано 5 категорий · 231 ГБ</div>
                 </div>
                 <div class="toggle-row">
                   <span class="toggle"></span>
                   <div>
                     <div class="t-base">Подключить обе новые сборки</div>
-                    <div class="hint">Модель, загруженная в одной сборке, станет видна всем</div>
+                    <div class="hint">Модель, загруженная в одной сборке, станет видна всем.</div>
                   </div>
                 </div>
                 <!-- Способ применения показывается только при включённом
@@ -1767,7 +1873,7 @@ Loading custom nodes: 47 found
               <div class="pane-head"><span class="title">Библиотека воркфлоу</span></div>
               <div class="scroll-pad">
                 <div class="field">
-                  <label>Папка библиотеки</label>
+                  <span class="t-label">Папка библиотеки</span>
                   <div class="path-row">
                     <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
                     <span class="btn secondary">Обзор</span>
@@ -1827,7 +1933,7 @@ Loading custom nodes: 47 found
               <div class="prog-head"><span>D:\AI\Flux</span><span class="count">64%</span></div>
               <div class="track"><i style="width:64%"></i></div>
               <div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div>
-              <div class="hint">27 906 из 61 895 файлов · 4.0 ГБ из 9.7 ГБ</div>
+              <div class="hint">27 906 из 61 895 файлов · 4 ГБ из 9,7 ГБ</div>
             </div>
             <div class="prog">
               <div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">в очереди</span></div>
@@ -1874,7 +1980,7 @@ Loading custom nodes: 47 found
             <div class="data">
               <div class="scroll"><div class="scroll-pad" style="gap:var(--space-4)">
                 <div class="prog"><div class="prog-head"><span>D:\AI\Flux</span><span class="count">готово</span></div><div class="track"><i style="width:100%"></i></div></div>
-                <div class="prog"><div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">64%</span></div><div class="track"><i style="width:64%"></i></div><div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div><div class="hint">27 906 из 61 895 файлов · 4.0 ГБ из 9.7 ГБ</div></div>
+                <div class="prog"><div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">64%</span></div><div class="track"><i style="width:64%"></i></div><div class="prog-file">python_embeded\Lib\site-packages\torch\_inductor\kernel\mm.py</div><div class="hint">27 906 из 61 895 файлов · 4 ГБ из 9,7 ГБ</div></div>
                 <template data-repeat="3">
                   <div class="prog"><div class="prog-head"><span>D:\AI\SDXL_new</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
                   <div class="prog"><div class="prog-head"><span>E:\AI\Sandbox</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
@@ -1882,6 +1988,54 @@ Loading custom nodes: 47 found
                   <div class="prog"><div class="prog-head"><span>E:\AI\Archive_030</span><span class="count">в очереди</span></div><div class="track"><i style="width:0"></i></div></div>
                 </template>
               </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant-head"><b>Фаза без доли выполненного</b><span>считать нечего, но молчать нельзя</span></div>
+    <p class="aside">
+      У подготовки, уборки следов прерванной попытки и регистрации доли
+      выполненного нет. Полоса бежит вместо того, чтобы стоять на нуле,
+      вместо процента стоит прочерк, а вместо пути файла — название фазы:
+      пауза без подписи и без движения читается как зависание.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="steps">
+              <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Назначения</span><span class="step-sep"></span>
+              <span class="step done"><u>✓</u>Общие ресурсы</span><span class="step-sep"></span>
+              <span class="step now"><u>4</u>Распаковка</span><span class="step-sep"></span>
+              <span class="step"><u>5</u>Готово</span>
+            </div>
+            <div class="step-bar">
+              <h3>Распаковка</h3>
+              <span class="t-label">1 из 2</span>
+              <span class="spacer"></span>
+              <span class="acts">
+                <span class="btn danger">Отменить</span>
+              </span>
+            </div>
+            <div class="prog">
+              <div class="prog-head"><span>D:\AI\Flux</span><span class="count">—</span></div>
+              <div class="track indet"><i></i></div>
+              <div class="prog-file">Проверяем папки и открываем архив…</div>
+            </div>
+            <div class="prog">
+              <div class="prog-head"><span>E:\AI\Flux_clean</span><span class="count">в очереди</span></div>
+              <div class="track"><i style="width:0"></i></div>
             </div>
           </div>
         </div>

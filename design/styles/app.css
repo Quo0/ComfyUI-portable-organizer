@@ -775,6 +775,21 @@ h3.sub {
 .picker > .on,
 .picker > [aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
 .picker > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+/* Свой цвет — таким же квадратом, как образцы палитры: это такой же
+   выбор, просто из всех цветов сразу. Радуга вместо заливки, потому что
+   «любой цвет» нечем показать одним.
+   Правило жило только в SFC полей инстанса, из-за чего в макетах палитра
+   выходила на квадрат короче, чем в приложении, — и заметить это можно
+   было лишь глазами. Размер и рамку берёт у `.picker > *` выше. */
+.swatch-custom {
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
+  background: conic-gradient(#e5534b, #d9a441, #6fbf73, #4db6a5, #5b8def, #a77bd6, #e5534b);
+}
+.swatch-custom.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+.swatch-custom:focus-within { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+/* Родное поле цвета скрыто, но остаётся кликабельным и фокусируемым:
+   именно оно открывает системную палитру. */
+.swatch-custom input { opacity: 0; width: 100%; height: 100%; display: block; cursor: pointer; }
 
 /* --------------------------------------------------------- тосты */
 .toasts { display: flex; flex-direction: column; gap: var(--space-2); }

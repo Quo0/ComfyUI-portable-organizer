@@ -126,44 +126,6 @@ const nameEmpty = () => showProblems && model.value.name.trim() === '';
   </div>
 </template>
 
-<style scoped>
-/* Квадрат выбора своего цвета: тот же размер, что у образцов палитры.
-   Радуга вместо заливки — потому что «любой цвет» нечем показать одним. */
-.swatch-custom {
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-sm);
-  display: block;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px var(--line-strong) inset;
-  background: conic-gradient(
-    #e5534b,
-    #d9a441,
-    #6fbf73,
-    #4db6a5,
-    #5b8def,
-    #a77bd6,
-    #e5534b
-  );
-}
-
-.swatch-custom.on {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-/* Родное поле цвета скрыто, но остаётся кликабельным и фокусируемым:
-   именно оно открывает системную палитру. */
-.swatch-custom input {
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  cursor: pointer;
-}
-
-.swatch-custom:focus-within {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-</style>
+<!-- Своих стилей у полей больше нет: квадрат выбора своего цвета уехал
+     в дизайн-систему. Живя только здесь, он не попадал в макеты, и там
+     палитра выходила на квадрат короче, чем в приложении. -->

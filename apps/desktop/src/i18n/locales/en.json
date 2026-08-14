@@ -62,7 +62,7 @@
       "openExisting": "This folder is already on the list. Open it"
     },
     "field": {
-      "folder": "Folder",
+      "folder": "Build folder",
       "name": "Name",
       "description": "Description",
       "accent": "Accent colour",

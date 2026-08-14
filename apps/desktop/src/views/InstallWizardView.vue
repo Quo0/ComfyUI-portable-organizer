@@ -23,8 +23,18 @@ const wizard = useInstallerStore();
 const run = useRunStore();
 const shared = useSharedStore();
 const library = useWorkflowsStore();
-const { t } = useI18n();
+const { t, n } = useI18n();
 const { bytes, moment } = useFormat();
+
+/**
+ * Количество файлов через форматтер локали.
+ *
+ * В сообщение о числе файлов подставлялось сырое число, и на экране
+ * стояло «56128 файлов» — пять цифр подряд без разделителя разрядов
+ * не читаются. Формат `integer` для этого уже заведён в `i18n/index.ts`,
+ * и там же записано, что числа идут только через `n()`.
+ */
+const count = (value: number): string => n(value, 'integer');
 
 /** Порядок шагов. Он же порядок показа в полосе состояния мастера. */
 const STEPS: WizardStep[] = ['archive', 'targets', 'shared', 'running', 'done'];
@@ -262,7 +272,12 @@ const needed = computed(() =>
     <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
       <div class="meta">
         <span>{{ wizard.info.label }}</span>
-        <span>{{ t('install.archive.files', wizard.info.files) }}</span>
+        <!-- Число форматируется отдельно: множественное число выбирается
+             по количеству, а печатается уже готовая строка с разделителем
+             разрядов. -->
+        <span>
+          {{ t('install.archive.files', { n: count(wizard.info.files) }, wizard.info.files) }}
+        </span>
         <span>
           {{ t('install.archive.unpacked', {
             size: bytes(wizard.info.totalUncompressed),
@@ -307,7 +322,11 @@ const needed = computed(() =>
 
           <div v-if="wizard.history.length" class="group">
             <span class="t-label">{{ t('install.archive.history') }}</span>
-            <div class="cards">
+            <!-- Сетка, а не колонка: карточка архива с полным путём
+                 занимает всю ширину широкого экрана, и четыре архива
+                 давали экран прокрутки на пустом месте. Список сборок
+                 в такой же ситуации давно в сетке. -->
+            <div class="cards grid">
               <div
                 v-for="record in wizard.history"
                 :key="record.path"
@@ -641,8 +660,8 @@ const needed = computed(() =>
             >
               {{
                 t('install.run.files', {
-                  done: wizard.progress.doneFiles,
-                  total: wizard.progress.totalFiles,
+                  done: count(wizard.progress.doneFiles),
+                  total: count(wizard.progress.totalFiles),
                 })
               }}
               ·
