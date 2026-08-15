@@ -33,14 +33,17 @@ fn main() {
     }
 
     // Переносим только checkpoints: проверка не должна двигать чужие
-    // двадцать гигабайт ради нескольких килобайт смысла.
-    let outcome = migrate::move_all(
-        models,
-        shared,
-        &["checkpoints".to_string()],
-        &MigrateCancel::default(),
-        |p| println!("  {} / {} — {}/{}", p.done, p.total, p.category, p.name),
-    );
+    // двадцать гигабайт ради нескольких килобайт смысла. Перечень —
+    // парами «категория и модель», как их шлёт экран.
+    let offer: Vec<(String, String)> = scan
+        .categories
+        .iter()
+        .filter(|c| c.folder == "checkpoints")
+        .flat_map(|c| c.entries.iter().map(|e| (c.folder.clone(), e.name.clone())))
+        .collect();
+    let outcome = migrate::move_all(models, shared, &offer, &MigrateCancel::default(), |p| {
+        println!("  {} / {} — {}/{}", p.done, p.total, p.category, p.name)
+    });
 
     println!("перенесено: {:?}", outcome.moved);
     println!("пропущено: {:?}", outcome.skipped.iter().map(|s| (&s.name, s.verdict)).collect::<Vec<_>>());

@@ -77,7 +77,7 @@ onMounted(() => {
         class="t-sm"
         :title="t('instances.count', instances.items.length)"
       >{{ instances.items.length }}</span>
-      <span class="head-spacer"></span>
+      <span class="spacer"></span>
       <template v-if="instances.items.length > 1">
         <input
           v-model="query"

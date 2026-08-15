@@ -382,7 +382,10 @@ async fn scan_instance_models(
         .map_err(|e| AppError::because("migrate.readFailed", e))
 }
 
-/// Переносит выбранные категории в общую папку.
+/// Переносит выбранные модели в общую папку.
+///
+/// Выбор приходит парами «категория и модель», как и у уборки: тумблер
+/// на экране стоит у каждой модели, а не у категории целиком.
 ///
 /// Отказывает у работающей сборки: забирать файлы из-под работающего
 /// ComfyUI нельзя — он держит их открытыми и уже разобрал пути при старте.
@@ -393,7 +396,7 @@ async fn migrate_models(
     runtime: tauri::State<'_, Runtime>,
     cancel: tauri::State<'_, migrate::MigrateCancel>,
     id: String,
-    categories: Vec<String>,
+    items: Vec<(String, String)>,
 ) -> Result<migrate::MigrateOutcome, AppError> {
     if running_port(&runtime, &id).is_some() {
         return Err(AppError::new("migrate.instanceRunning"));
@@ -407,8 +410,12 @@ async fn migrate_models(
     let need: f64 = scan
         .categories
         .iter()
-        .filter(|c| categories.iter().any(|w| w == &c.folder))
-        .flat_map(|c| c.entries.iter().filter(|e| e.same_name.is_none()))
+        .flat_map(|c| {
+            c.entries.iter().filter(|e| {
+                e.same_name.is_none()
+                    && items.iter().any(|(cat, name)| cat == &c.folder && name == &e.name)
+            })
+        })
         .map(|e| e.size_bytes)
         .sum();
     if !migrate::enough_space(&shared, need) {
@@ -420,7 +427,7 @@ async fn migrate_models(
     let emitter = app.clone();
     let flag = cancel.share();
     tauri::async_runtime::spawn_blocking(move || {
-        migrate::move_all(&models, &shared, &categories, &flag, |progress| {
+        migrate::move_all(&models, &shared, &items, &flag, |progress| {
             let _ = progress.emit(&emitter);
         })
     })

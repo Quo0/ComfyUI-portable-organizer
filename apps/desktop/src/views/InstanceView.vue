@@ -46,6 +46,13 @@ const TABS: Tab[] = ['overview', 'models', 'workflows', 'settings'];
 const tab = ref<Tab>('overview');
 /** Лог занимает всю область данных, а не висит куском посреди свитка. */
 const logOpen = ref(false);
+/**
+ * Лог принадлежит обзору: кнопка, которая его раскрывает, стоит там же.
+ * На других вкладках он занимал их место — «Модели» открывались пустыми.
+ * Условие остаётся страховкой на случай, когда флаг подняли не с обзора:
+ * старт можно запустить с любой вкладки, кнопка запуска в шапке.
+ */
+const logShown = computed(() => logOpen.value && tab.value === 'overview');
 const editing = ref(false);
 const confirming = ref(false);
 const measuring = ref(false);
@@ -105,6 +112,13 @@ watch(instance, () => void measureIfNeeded());
 // без него выглядят как зависание.
 watch(state, (now, before) => {
   if (now === 'starting' && before !== 'starting') logOpen.value = true;
+});
+
+// Смена вкладки закрывает лог: раскрытым он остаётся ровно до тех пор,
+// пока с ним работают. Обзор всегда открывается обычным, а не тем, что
+// на нём раскрывали в прошлый заход.
+watch(tab, () => {
+  logOpen.value = false;
 });
 
 /**
@@ -168,10 +182,12 @@ function openFolder(): void {
         class="chip"
         :style="{ '--instance-accent': accentVar(instance.accent) }"
       >{{ initial(instance.name) }}</span>
-      <h1 class="t-lg">{{ instance.name }}</h1>
+      <h1 class="t-lg inst-name">{{ instance.name }}</h1>
+      <span class="spacer"></span>
+      <!-- Состояние стоит справа, вплотную к тому, что его меняет:
+           слева, сразу после имени, оно читалось как часть имени. -->
       <StatusPill :status="state" />
       <span v-if="status?.port" class="t-mono">:{{ status.port }}</span>
-      <span class="head-spacer"></span>
       <LaunchControls :instance="instance" />
     </header>
 
@@ -206,11 +222,11 @@ function openFolder(): void {
     <!-- Лог занимает область данных целиком и сворачивается кнопкой.
          Поверх лечь он не может: у работающей сборки поверх нашего HTML
          лежит нативное окно вкладки. -->
-    <div v-if="logOpen" class="log-area">
+    <div v-if="logShown" class="log-area">
       <div class="log-head">
         <span class="t-label">{{ t('run.console') }}</span>
         <span class="hint">{{ t('run.lines', lines.length) }}</span>
-        <span class="head-spacer"></span>
+        <span class="spacer"></span>
         <button type="button" class="btn secondary" @click="logOpen = false">
           {{ t('run.hideLog') }}
         </button>
@@ -452,6 +468,14 @@ function openFolder(): void {
 .inst-screen > .screen-body,
 .log-area {
   flex: 1;
+}
+
+/* Имя даёт себя ужать и перенести: длинное не должно выталкивать
+   состояние и кнопку запуска за край шапки. Обрезать его нельзя —
+   имя сборки пользователь придумал сам. */
+.inst-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Старт длится минуты, доля выполненного неизвестна. Полоса не сообщает

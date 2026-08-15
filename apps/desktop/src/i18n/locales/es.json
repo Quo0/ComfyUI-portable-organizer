@@ -429,12 +429,12 @@
       "flag": {
         "title": "No tocar la instalación",
         "short": "instalación intacta",
-        "hint": "La configuración vive junto a la aplicación y se pasa a la instalación al iniciar. No se escribe nada en su carpeta."
+        "hint": "La lista de carpetas compartidas se guarda en ComfyUI Portable Organizer y se pasa a la instalación como argumento de arranque. No se escribe nada en su carpeta, pero los modelos compartidos solo están ahí cuando es esta aplicación la que la arranca."
       },
       "instanceFile": {
         "title": "Escribir un archivo en la instalación",
         "short": "archivo dentro de la instalación",
-        "hint": "Los modelos compartidos siguen funcionando al iniciar la instalación con su propio .bat, sin pasar por esta aplicación."
+        "hint": "En la carpeta de la instalación se escribe un archivo extra_model_paths.yaml, así los modelos compartidos están ahí con cualquier arranque, incluido el de su propio .bat, sin pasar por esta aplicación."
       }
     },
     "foreign": {
@@ -491,7 +491,7 @@
       "drop": "Suelte para añadir",
       "dropped": "{n} flujo añadido | {n} flujos añadidos"
     },
-    "retry": "Intentar de nuevo",
+    "refresh": "Actualizar",
     "push": {
       "action": "Añadir aquí",
       "done": "Añadido a la instalación",
@@ -539,24 +539,27 @@
     "moved": "Movidos {n}, se liberaron {size} en la instalación.",
     "failed": "{n} no se pudo mover | {n} no se pudieron mover",
     "dup": {
-      "title": "{n} duplicado encontrado | {n} duplicados encontrados",
-      "body": "La carpeta compartida ya tiene los mismos archivos y la instalación los toma de allí. Quitar las copias locales libera {size}.",
       "remove": "Quitar las copias locales",
-      "needsConnection": "Conecte primero esta instalación a los modelos compartidos: de lo contrario, quitar las copias la dejaría sin esos modelos."
+      "needsConnection": "Conecte primero esta instalación a los modelos compartidos: de lo contrario, quitar las copias la dejaría sin esos modelos.",
+      "inCategory": "{n} ya compartido | {n} ya compartidos",
+      "line": "{n} duplicado encontrado: la carpeta compartida ya tiene ese archivo y la instalación lo toma de allí. Quitar la copia local libera {size}. | {n} duplicados encontrados: la carpeta compartida ya tiene esos archivos y la instalación los toma de allí. Quitar las copias locales libera {size}."
     },
     "diff": {
-      "title": "{n} coincidencia de nombre, no duplicado | {n} coincidencias de nombre, no duplicados",
-      "body": "La carpeta compartida tiene archivos con esos nombres, pero el contenido difiere. No se movieron ni se ofrecen para eliminar."
+      "line": "{n} coincidencia de nombre no es un duplicado: la carpeta compartida tiene ese nombre, pero el contenido difiere. Se queda en la instalación y nunca se ofrece para eliminar. | {n} coincidencias de nombre no son duplicados: la carpeta compartida tiene esos nombres, pero el contenido difiere. Se quedan en la instalación y nunca se ofrecen para eliminar."
     },
     "verdict": {
       "duplicate": "mismo archivo",
       "likelyDuplicate": "parece el mismo",
-      "different": "contenido distinto"
+      "different": "contenido distinto",
+      "why": {
+        "duplicate": "Coinciden el tamaño y un megabyte leído de cada extremo: casi con seguridad es el mismo archivo. Quitar la copia local deja intacto el de la carpeta compartida.",
+        "likelyDuplicate": "Esto es una carpeta: coinciden el tamaño total y el número de archivos que contiene, pero el contenido en sí no se comparó. Quitar la copia local deja intacta la de la carpeta compartida.",
+        "different": "La carpeta compartida tiene algo con este nombre, pero el contenido difiere. Nunca se mueve ni se elimina."
+      }
     },
     "cleanup": {
       "done": "Se liberaron {size}"
-    },
-    "pickedUpOnStart": "Las instalaciones conectadas verán las nuevas categorías en su próximo inicio; no hay nada más que hacer."
+    }
   },
   "tab": {
     "logs": "Registro",
@@ -565,8 +568,7 @@
     "outputMissing": "ComfyUI crea esta carpeta en la primera generación: todavía no hay nada que abrir.",
     "reload": "Recargar",
     "open": "Abrir ComfyUI",
-    "starting": "La instalación está arrancando. La interfaz se abrirá en cuanto el servidor esté listo.",
-    "retry": "Reintentar"
+    "starting": "La instalación está arrancando. La interfaz se abrirá en cuanto el servidor esté listo."
   },
   "tray": {
     "show": "Mostrar",

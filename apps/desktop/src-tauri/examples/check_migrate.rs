@@ -125,13 +125,16 @@ fn main() {
     // --- перенос ------------------------------------------------------------
 
     let cancel = MigrateCancel::default();
-    let out = migrate::move_all(
-        &models,
-        &shared,
-        &["checkpoints".into(), "RMBG".into(), "loras".into()],
-        &cancel,
-        |_| {},
-    );
+    // Перечень строится из скана: перенос принимает пары «категория и модель».
+    // Предлагаем разом всё содержимое трёх категорий, занятые имена в том
+    // числе, — пропускать их обязан сам перенос, а не вызывающий.
+    let offer: Vec<(String, String)> = migrate::scan(&models, &shared)
+        .categories
+        .iter()
+        .filter(|c| ["checkpoints", "RMBG", "loras"].contains(&c.folder.as_str()))
+        .flat_map(|c| c.entries.iter().map(|e| (c.folder.clone(), e.name.clone())))
+        .collect();
+    let out = migrate::move_all(&models, &shared, &offer, &cancel, |_| {});
 
     check(
         "свободное имя перенесено",
@@ -237,7 +240,16 @@ fn main() {
 
     let stop = MigrateCancel::default();
     stop.cancel();
-    let cancelled = migrate::move_all(&models2, &shared2, &["loras".into()], &stop, |_| {});
+    let cancelled = migrate::move_all(
+        &models2,
+        &shared2,
+        &[
+            ("loras".into(), "one.safetensors".into()),
+            ("loras".into(), "two.safetensors".into()),
+        ],
+        &stop,
+        |_| {},
+    );
     check("отмена помечена в отчёте", cancelled.cancelled, String::new());
     check(
         "при отмене исходники на месте",

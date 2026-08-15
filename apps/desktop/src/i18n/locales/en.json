@@ -429,12 +429,12 @@
       "flag": {
         "title": "Leave the build alone",
         "short": "build folder untouched",
-        "hint": "The config lives with the app and is passed to the build at startup. Nothing is written into the build folder."
+        "hint": "The list of shared folders stays with ComfyUI Portable Organizer and is handed to the build as a startup argument. Nothing is written into the build folder — but the shared models are only there when this app starts the build."
       },
       "instanceFile": {
         "title": "Write a file into the build",
         "short": "file inside the build",
-        "hint": "Shared models keep working when you start the build from its own .bat, bypassing this app."
+        "hint": "An extra_model_paths.yaml file goes into the build folder, so the shared models are there however the build is started — including from its own .bat, bypassing this app."
       }
     },
     "foreign": {
@@ -491,7 +491,7 @@
       "drop": "Drop to add",
       "dropped": "{n} workflow added | {n} workflows added"
     },
-    "retry": "Try again",
+    "refresh": "Refresh",
     "push": {
       "action": "Add here",
       "done": "Added to the build",
@@ -539,24 +539,27 @@
     "moved": "Moved {n}, {size} freed in the build.",
     "failed": "{n} could not be moved | {n} could not be moved",
     "dup": {
-      "title": "{n} duplicate found | {n} duplicates found",
-      "body": "The shared folder already has the same files, so the build takes them from there. Removing the local copies frees {size}.",
       "remove": "Remove the local copies",
-      "needsConnection": "Connect this build to the shared models first — otherwise removing the copies would simply leave it without those models."
+      "needsConnection": "Connect this build to the shared models first — otherwise removing the copies would simply leave it without those models.",
+      "inCategory": "{n} already shared | {n} already shared",
+      "line": "{n} duplicate found: the shared folder already has that file and the build takes it from there. Removing the local copy frees {size}. | {n} duplicates found: the shared folder already has those files and the build takes them from there. Removing the local copies frees {size}."
     },
     "diff": {
-      "title": "{n} name clash, not a duplicate | {n} name clashes, not duplicates",
-      "body": "The shared folder has files with these names, but the contents differ. They were not moved and are not offered for removal."
+      "line": "{n} name clash is not a duplicate: the shared folder has that name but different content, so it stays in the build and is never offered for removal. | {n} name clashes are not duplicates: the shared folder has those names but different content, so they stay in the build and are never offered for removal."
     },
     "verdict": {
       "duplicate": "same file",
       "likelyDuplicate": "looks the same",
-      "different": "different content"
+      "different": "different content",
+      "why": {
+        "duplicate": "The size matches, and so does a megabyte read from each end — almost certainly the same file. Removing the local copy leaves the one in the shared folder untouched.",
+        "likelyDuplicate": "This one is a folder: the total size and the number of files inside match, but the contents themselves were not compared. Removing the local copy leaves the one in the shared folder untouched.",
+        "different": "The shared folder has something under this name, but the contents differ. It is never moved and never removed."
+      }
     },
     "cleanup": {
       "done": "Freed {size}"
-    },
-    "pickedUpOnStart": "Connected builds see new categories from their next start — nothing else to do."
+    }
   },
   "tab": {
     "logs": "Log",
@@ -565,8 +568,7 @@
     "outputMissing": "ComfyUI creates this folder on the first generation — there is nothing to open yet.",
     "reload": "Reload",
     "open": "Open ComfyUI",
-    "starting": "The build is starting. The interface opens as soon as the server is ready.",
-    "retry": "Try again"
+    "starting": "The build is starting. The interface opens as soon as the server is ready."
   },
   "tray": {
     "show": "Show",

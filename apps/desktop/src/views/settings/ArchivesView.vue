@@ -9,8 +9,8 @@
 // архив остаётся там, куда его скачали.
 import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
+import OpenFolderButton from '../../components/OpenFolderButton.vue';
 import PathText from '../../components/PathText.vue';
 import { useFormat } from '../../lib/format';
 import { useInstallerStore } from '../../stores/installer';
@@ -20,10 +20,6 @@ const { t } = useI18n();
 const { bytes, moment } = useFormat();
 
 onMounted(() => void installer.loadHistory());
-
-function reveal(path: string): void {
-  void revealItemInDir(path);
-}
 </script>
 
 <template>
@@ -59,16 +55,7 @@ function reveal(path: string): void {
               <template v-else>{{ t('install.archive.missing') }}</template>
             </span>
             <span class="acts">
-              <button
-                type="button"
-                class="btn ghost"
-                :disabled="!record.available"
-                :title="t('common.openFolder')"
-                :aria-label="t('common.openFolder')"
-                @click="reveal(record.path)"
-              >
-                <svg class="ico"><use href="#i-folder" /></svg>
-              </button>
+              <OpenFolderButton :path="record.path" :disabled="!record.available" />
               <button
                 type="button"
                 class="btn ghost"

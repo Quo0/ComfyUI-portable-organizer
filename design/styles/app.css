@@ -527,6 +527,29 @@ h3.sub {
 
 /* ------------------------------------------------------- кнопки */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+/* Кнопки действий и описания к ним — одной сеткой на все ряды.
+ *
+ * Описания стояли отдельными абзацами над рядом кнопок, и какое к какой
+ * кнопке относится, приходилось угадывать по порядку. Цена ошибки здесь
+ * разная: одна кнопка переносит файлы, другая удаляет.
+ *
+ * Сетка общая на все ряды нарочно, а не своя у каждого: колонка кнопок
+ * получает ширину самой широкой из них, и кнопки становятся одного
+ * размера сами. Своя сетка на ряд дала бы две разные ширины — и на каждом
+ * языке свои, потому что длины надписей в переводах расходятся сильнее,
+ * чем в оригинале.
+ *
+ * Отсюда же требование к разметке: кнопка и её описание кладутся в сетку
+ * напрямую, без обёртки на ряд. Обёртка стала бы единственным элементом
+ * колонки, и ширина считалась бы по ней.
+ *
+ * Не `.row`: тот переносит по словам, и длинное описание уезжало бы
+ * под кнопку вместо того, чтобы встать справа от неё.
+ */
+.act-grid {
+  display: grid; grid-template-columns: auto minmax(0,1fr);
+  gap: var(--space-2) var(--space-3); align-items: center;
+}
 /* Блок с подписью и содержимым под ней. Жил только в каркасе приложения,
    из-за чего в макетах его не было и собранный из него блок разъезжался
    при сверке — теперь общий. */
@@ -603,8 +626,14 @@ h3.sub {
 /* Сегментированный переключатель: один вариант из нескольких коротких.
    Радиокнопки заняли бы втрое больше места, а выпадашка спрятала бы
    варианты — на экране настроек их лучше видеть все сразу. */
+/* `width: fit-content` — не украшение, а обязательное. `inline-flex`
+   держит ширину по содержимому только сам по себе; внутри колонки
+   (`.group` — это flex-column) переключатель становится её элементом
+   и растягивается на всю ширину. Сегменты при этом остаются по тексту,
+   и справа зияла пустая рамка на пол-экрана. */
 .seg {
   display: inline-flex;
+  width: fit-content;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -791,6 +820,11 @@ h3.sub {
 }
 .toggle.off { background: var(--line-strong); }
 .toggle.off::after { right: auto; left: 2px; background: var(--surface); }
+/* Промежуточное состояние: выбрана часть того, что под этим тумблером.
+   Фон включённого, ползунок ровно посередине — положение читается как
+   «ни там, ни там», а не как забытая анимация. Появилось у категорий
+   моделей, где тумблер распоряжается всеми моделями внутри. */
+.toggle.mixed::after { right: auto; left: 9px; }
 .toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .toggle:disabled { opacity: .5; cursor: default; }
 
@@ -975,9 +1009,12 @@ h3.sub {
   display: inline-flex; align-items: center; gap: var(--space-2);
 }
 .tabs > *:hover { color: var(--ink); }
+/* Выбранная отличается только цветом и подчёркиванием. Начертание
+   не трогаем намеренно: полужирный шире обычного, от него надпись
+   раздувалась и толкала соседние вкладки — весь ряд дёргался на каждом
+   переключении. */
 .tabs > [aria-selected="true"] {
   color: var(--ink);
-  font-weight: var(--weight-medium);
   border-bottom-color: var(--btn-primary-bg);
 }
 .tabs > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
@@ -995,9 +1032,55 @@ h3.sub {
 .cat.unknown code { color: var(--ink-muted); }
 .cat.blocked { background: var(--surface-sunken); }
 .cat.blocked code { color: var(--ink-muted); text-decoration: line-through; }
+/* Строка, у которой между объёмом и переключателем встал ещё и вердикт.
+   Отдельным классом, а не четвёртой колонкой у всех: пустая колонка
+   всё равно съедает свой отступ и разъезжается с соседними строками. */
+.cat.marked { grid-template-columns: minmax(0,1fr) auto auto auto; }
+
+/* Категория раскрывается, и внутри неё идут сами модели.
+ *
+ * Список один на весь экран: дубликат и «совпало имя, но содержимое
+ * другое» стоят на своём месте внутри категории, а не отдельными
+ * перечнями внизу, где связь с категорией приходилось восстанавливать
+ * по имени в строке.
+ *
+ * Раскрытием управляет отдельная кнопка, а не вся строка: в той же
+ * строке стоит тумблер, и кнопка внутри кнопки невалидна.
+ */
+.disclose {
+  display: flex; align-items: center; gap: var(--space-2); min-width: 0;
+  appearance: none; border: 0; padding: 0; margin: 0; background: transparent;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.disclose .ico { color: var(--ink-muted); transition: transform .12s ease; }
+.disclose[aria-expanded="true"] .ico { transform: rotate(90deg); }
+.disclose:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+/* Поворот — единственное, что отличает раскрытое от свёрнутого, поэтому
+   при выключенном движении шеврон не замирает, а встаёт мгновенно. */
+@media (prefers-reduced-motion: reduce) { .disclose .ico { transition: none; } }
+
+/* Модель внутри категории. Отступ слева ровно на шеврон с его зазором:
+   имя модели встаёт под именем категории, а не под стрелкой.
+
+   Класс не `sub`, хотя просилось именно это слово: `sub` лежит
+   в `PREVIEW_ONLY` внутри `design/build.mjs` — им размечена колонка
+   трассировки на странице образцов, — и любое правило с ним молча
+   выпадает по дороге в приложение. */
+.cat.model { padding-left: calc(var(--space-3) + 16px + var(--space-2)); }
+.cat.model code { color: var(--ink-secondary); }
+/* Место тумблера у строки, которой он не положен. Без него вердикты
+   в соседних строках разъезжаются по горизонтали на ширину тумблера,
+   и колонка перестаёт читаться колонкой. */
+.cat .no-toggle { width: 32px; }
+
 .tag { font-size: var(--text-xs); padding: 1px 6px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); color: var(--ink-muted); white-space: nowrap; }
 .tag.warn { color: var(--state-starting); border-color: var(--state-starting); }
 .tag.stop { color: var(--state-crashed); border-color: var(--state-crashed); }
+/* Метка с подсказкой меняет курсор: иначе о том, что за двумя словами
+   есть объяснение, узнать неоткуда — наводить на статичный текст просто
+   так никто не станет. */
+.tag[title] { cursor: help; }
 
 /* ------------------------------------------------ совместимость */
 /* Список воркфлоу.

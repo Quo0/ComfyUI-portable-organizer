@@ -182,7 +182,7 @@ onUnmounted(() => unlisten?.());
     <header class="screen-head">
       <h1 class="t-lg">{{ t("workflows.title") }}</h1>
       <span v-if="dragging" class="tag">{{ t("library.add.drop") }}</span>
-      <span class="head-spacer"></span>
+      <span class="spacer"></span>
       <button
         type="button"
         class="btn secondary"
@@ -208,7 +208,8 @@ onUnmounted(() => unlisten?.());
         <p class="empty">{{ t('library.path.unavailable') }}</p>
         <div class="input mono"><span>{{ library.path }}</span></div>
         <button type="button" class="btn secondary" @click="library.rescan()">
-          {{ t('library.retry') }}
+          <svg class="ico"><use href="#i-reload" /></svg>
+          {{ t('library.refresh') }}
         </button>
       </div>
 

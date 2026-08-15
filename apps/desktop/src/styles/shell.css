@@ -91,9 +91,13 @@ a {
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+/* По центру, а не по базовой линии: в шапке рядом с заголовком стоят
+   кнопка, чип и пилюля, и у них нет общей базовой линии с текстом —
+   выравнивание по ней разбрасывало их по высоте. В макетах такая
+   шапка — обычный `.row`, то есть центр. */
 .screen-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5) var(--space-3);
 }
@@ -101,11 +105,6 @@ a {
 .screen-head .lead {
   color: var(--ink-secondary);
   font-size: var(--text-sm);
-}
-
-/* Отжимает правую группу шапки к краю. */
-.screen-head .head-spacer {
-  margin-left: auto;
 }
 
 /* Карточка инстанса — ссылка целиком: попасть в неё мышью должно быть

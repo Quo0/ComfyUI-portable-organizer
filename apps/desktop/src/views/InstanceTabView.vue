@@ -258,7 +258,12 @@ function fail(error: AppError): void {
     <div v-if="problem" class="banner bad">
       <b>{{ problem }}</b>
       <span class="spacer"></span>
-      <button type="button" class="btn ghost" @click="apply">{{ t('tab.retry') }}</button>
+      <!-- Та же надпись и та же иконка, что у кнопки обновления в панели:
+           действие пользователю одно и то же — показать вкладку заново. -->
+      <button type="button" class="btn ghost" @click="apply">
+        <svg class="ico"><use href="#i-reload" /></svg>
+        {{ t('tab.reload') }}
+      </button>
     </div>
 
     <div v-if="state === 'starting' && !showLog" class="waiting">

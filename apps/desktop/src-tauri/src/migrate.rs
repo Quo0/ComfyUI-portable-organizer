@@ -327,24 +327,41 @@ pub struct MigrateProgress {
     pub name: String,
 }
 
-/// Переносит выбранные категории в общую папку.
+/// Переносит выбранные модели в общую папку.
+///
+/// Выбор приходит парами «категория и модель», а не именами категорий:
+/// на экране тумблер стоит у каждой модели, и одна лора из двадцати может
+/// быть нужна сборке локально. Перечень сверяется со свежим сканом — то,
+/// чего в папке уже нет, просто не найдётся и в перенос не пойдёт.
 ///
 /// Занятые имена не трогаются вовсе: чужая модель на 20 ГБ дороже дубля.
 pub fn move_all(
     models_dir: &Path,
     shared_root: &Path,
-    categories: &[String],
+    items: &[(String, String)],
     cancel: &MigrateCancel,
     mut on_progress: impl FnMut(MigrateProgress),
 ) -> MigrateOutcome {
     let scan = scan(models_dir, shared_root);
-    let chosen: Vec<&ModelCategory> = scan
+    let wanted: std::collections::HashSet<(&str, &str)> = items
+        .iter()
+        .map(|(category, name)| (category.as_str(), name.as_str()))
+        .collect();
+    let chosen: Vec<(&ModelCategory, Vec<&ModelEntry>)> = scan
         .categories
         .iter()
-        .filter(|c| categories.iter().any(|w| w == &c.folder))
+        .map(|c| {
+            let picked = c
+                .entries
+                .iter()
+                .filter(|e| wanted.contains(&(c.folder.as_str(), e.name.as_str())))
+                .collect::<Vec<_>>();
+            (c, picked)
+        })
+        .filter(|(_, picked)| !picked.is_empty())
         .collect();
 
-    let total: u32 = chosen.iter().map(|c| c.entries.len() as u32).sum();
+    let total: u32 = chosen.iter().map(|(_, picked)| picked.len() as u32).sum();
     let mut out = MigrateOutcome {
         moved: Vec::new(),
         skipped: Vec::new(),
@@ -354,9 +371,9 @@ pub fn move_all(
     };
     let mut done = 0u32;
 
-    for category in chosen {
+    for (category, picked) in chosen {
         let target_dir = shared_root.join(&category.folder);
-        for entry in &category.entries {
+        for entry in picked {
             if cancel.is_cancelled() {
                 out.cancelled = true;
                 return out;

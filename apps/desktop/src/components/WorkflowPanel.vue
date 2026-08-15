@@ -90,9 +90,10 @@ const inLibrary = computed(() => new Set(library.items.map((i) => i.path)));
   <div class="group">
     <div class="row">
       <span class="t-label">{{ t('library.instance.title') }}</span>
-      <span class="head-spacer"></span>
+      <span class="spacer"></span>
       <button type="button" class="btn ghost" :disabled="loading" @click="refresh">
-        {{ t('library.retry') }}
+        <svg class="ico"><use href="#i-reload" /></svg>
+        {{ t('library.refresh') }}
       </button>
     </div>
 
