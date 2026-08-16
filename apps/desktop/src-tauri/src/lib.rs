@@ -605,6 +605,39 @@ async fn add_workflow_file(
     Ok(name)
 }
 
+/// Кладёт в библиотеку граф, пришедший текстом.
+///
+/// Тот же конец пути, что и у файла, только источник другой: воркфлоу
+/// чаще присылают текстом — в чате, на форуме, — чем файлом, и сохранять
+/// присланное в файл только ради того, чтобы тут же выбрать его в диалоге,
+/// — лишний круг.
+///
+/// Имя приходит из поля ввода, поэтому проверяется здесь, а не доверяется:
+/// оно попадает в путь. Перезаписи нет и тут — занятое имя это отказ,
+/// а не замена: заменить значило бы затереть одну работу другой.
+#[tauri::command]
+#[specta::specta]
+async fn add_workflow_text(
+    library: String,
+    name: String,
+    content: String,
+) -> Result<String, AppError> {
+    let rel = workflows::file_name_from_input(&name)
+        .ok_or_else(|| AppError::with("workflows.badName", "name", &name))?;
+
+    if workflows::node_types(&content).is_none() {
+        return Err(AppError::with("workflows.notAWorkflow", "path", &rel));
+    }
+
+    let target = std::path::Path::new(&library).join(&rel);
+    if target.exists() {
+        return Err(AppError::with("workflows.nameTaken", "path", &rel));
+    }
+    std::fs::write(&target, content).map_err(|e| AppError::because("workflows.writeFailed", e))?;
+
+    Ok(rel)
+}
+
 /// Правит запись манифеста: избранное, теги, заметка.
 #[tauri::command]
 #[specta::specta]
@@ -643,23 +676,89 @@ async fn instance_workflows(
     app: tauri::AppHandle,
     runtime: tauri::State<'_, Runtime>,
     id: String,
-) -> Result<Vec<String>, AppError> {
+    library: String,
+) -> Result<Vec<workflows::InstanceWorkflow>, AppError> {
     let instance = find_instance(&app, &id)?;
     let port = running_port(&runtime, &id);
 
-    tauri::async_runtime::spawn_blocking(move || match port {
-        Some(port) => Ok(comfy_api::Client::new(port)
-            .list_workflows()?
-            .into_iter()
-            .map(|f| f.path)
-            .collect()),
-        None => Ok(local_workflow_names(&instance)),
+    tauri::async_runtime::spawn_blocking(move || {
+        let client = port.map(comfy_api::Client::new);
+        let names: Vec<String> = match &client {
+            Some(client) => client.list_workflows()?.into_iter().map(|f| f.path).collect(),
+            None => local_workflow_names(&instance),
+        };
+
+        let root = std::path::Path::new(&library);
+        let dir = local_workflows_dir(&instance);
+
+        let mut out = Vec::with_capacity(names.len());
+        for path in names {
+            // Читаем только то, чьё имя в библиотеке занято. У остальных
+            // сверять не с чем, а список бывает в сотни файлов — и у
+            // запущенной сборки каждое чтение это запрос по HTTP.
+            let twin = root.join(&path);
+            let verdict = if library.is_empty() || !twin.is_file() {
+                None
+            } else {
+                let mine = match &client {
+                    Some(client) => client.read_workflow(&path).ok(),
+                    None => std::fs::read_to_string(dir.join(&path)).ok(),
+                };
+                match (mine, std::fs::read_to_string(&twin).ok()) {
+                    (Some(a), Some(b)) if workflows::same_workflow(&a, &b) => {
+                        Some(workflows::LibraryMatch::Same)
+                    }
+                    // Не прочиталось — считаем разошедшимися. Так кнопка
+                    // остаётся рабочей: «не смогли сверить» не повод
+                    // объявлять чужую работу уже сохранённой.
+                    _ => Some(workflows::LibraryMatch::Diverged),
+                }
+            };
+            out.push(workflows::InstanceWorkflow { path, library: verdict });
+        }
+
+        Ok(out)
     })
     .await
     .map_err(|e| AppError::because("workflows.scanFailed", e))?
 }
 
-/// Забирает воркфлоу из сборки в библиотеку. Исходный остаётся на месте.
+/// Папка воркфлоу сборки — для кнопки «показать в проводнике».
+///
+/// Существование проверяем здесь: у остановленной сборки, которая ещё
+/// ничего не сохраняла, папки нет вовсе, и звать проводник не с чем.
+#[tauri::command]
+#[specta::specta]
+async fn instance_workflows_dir(
+    app: tauri::AppHandle,
+    id: String,
+) -> Result<workflows::InstanceWorkflowsDir, AppError> {
+    let instance = find_instance(&app, &id)?;
+    let dir = local_workflows_dir(&instance);
+    Ok(workflows::InstanceWorkflowsDir {
+        available: dir.is_dir(),
+        path: dir.to_string_lossy().into_owned(),
+    })
+}
+
+/// Переносит воркфлоу из сборки в библиотеку: в сборке его не остаётся.
+///
+/// Порядок здесь — единственная защита от потери чужой работы, и он тот же,
+/// что у переноса моделей: пишем копию, **читаем её обратно и сверяем**,
+/// и только потом убираем исходник. Пока копия не проверена, оригинал
+/// должен оставаться на руках.
+///
+/// Перезаписи нет вовсе. Раньше на занятое имя был вопрос «заменить?»,
+/// и он был безобиден, пока забор был копированием: при любом ответе
+/// воркфлоу оставался в сборке. У переноса цена ответа другая — «заменить»
+/// затирало бы одну работу другой, не оставляя копии ни той, ни другой.
+///
+/// Вместо замены — `target`: забрать под свободным именем. Занятое имя
+/// перестало быть тупиком, но разошедшиеся версии остаются двумя разными
+/// файлами, а не одним поверх другого.
+///
+/// У запущенной сборки исходник убирает она сама, своим API: папка
+/// воркфлоу принадлежит ей, и о правках со стороны она не знает.
 #[tauri::command]
 #[specta::specta]
 async fn pull_workflow(
@@ -668,48 +767,70 @@ async fn pull_workflow(
     id: String,
     rel: String,
     library: String,
-    overwrite: bool,
+    target: Option<String>,
 ) -> Result<String, AppError> {
     let instance = find_instance(&app, &id)?;
     let port = running_port(&runtime, &id);
 
     tauri::async_runtime::spawn_blocking(move || {
+        // `rel` — где лежит в сборке, `dest` — под каким именем ляжет
+        // в библиотеку. Совпадают всегда, кроме забора разошедшейся версии.
+        let dest = target.unwrap_or_else(|| rel.clone());
+
+        let local = local_workflows_dir(&instance).join(&rel);
         let content = match port {
             Some(port) => comfy_api::Client::new(port).read_workflow(&rel)?,
-            None => {
-                let path = local_workflows_dir(&instance).join(&rel);
-                std::fs::read_to_string(&path)
-                    .map_err(|e| AppError::because("workflows.readFailed", e))?
-            }
+            None => std::fs::read_to_string(&local)
+                .map_err(|e| AppError::because("workflows.readFailed", e))?,
         };
 
         if workflows::node_types(&content).is_none() {
             return Err(AppError::with("workflows.notAWorkflow", "path", &rel));
         }
 
-        let target = std::path::Path::new(&library).join(&rel);
-        if target.exists() && !overwrite {
-            return Err(AppError::with("workflows.nameTaken", "path", &rel));
+        let target = std::path::Path::new(&library).join(&dest);
+        if target.exists() {
+            return Err(AppError::with("workflows.nameTaken", "path", &dest));
         }
         if let Some(parent) = target.parent() {
             std::fs::create_dir_all(parent)
                 .map_err(|e| AppError::because("workflows.writeFailed", e))?;
         }
-        std::fs::write(&target, content)
+        std::fs::write(&target, &content)
             .map_err(|e| AppError::because("workflows.writeFailed", e))?;
+
+        // Сверка, а не доверие к успешному `write`: дальше идёт удаление,
+        // и оно должно опираться на прочитанное с диска, а не на то,
+        // что запись не вернула ошибку.
+        let written = std::fs::read_to_string(&target)
+            .map_err(|e| AppError::because("workflows.verifyFailed", e))?;
+        if written != content {
+            let _ = std::fs::remove_file(&target);
+            return Err(AppError::new("workflows.verifyFailed"));
+        }
 
         // Помним, откуда взяли: через полгода это единственный способ
         // понять, почему воркфлоу требует именно этих нод.
         let root = std::path::Path::new(&library);
         let (mut manifest, _) = workflows::read_manifest(root);
-        let entry = manifest.items.entry(rel.clone()).or_default();
+        let entry = manifest.items.entry(dest.clone()).or_default();
         entry.source_instance_id = Some(id.clone());
         if entry.added_at.is_none() {
             entry.added_at = Some(now_ms());
         }
         workflows::write_manifest(root, &manifest)?;
 
-        Ok(rel)
+        // Копия на месте и проверена — теперь можно убирать исходник.
+        // Сбой на этом шаге не теряет ничего: воркфлоу окажется и в сборке,
+        // и в библиотеке, а сверка при следующем чтении списка признает их
+        // одним и тем же и погасит кнопку.
+        match port {
+            Some(port) => comfy_api::Client::new(port).delete_workflow(&rel)?,
+            None => std::fs::remove_file(&local)
+                .map_err(|e| AppError::because("workflows.removeFailed", e))?,
+        }
+
+        Ok(dest)
     })
     .await
     .map_err(|e| AppError::because("workflows.writeFailed", e))?
@@ -1604,9 +1725,11 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             save_library_settings,
             scan_library,
             add_workflow_file,
+            add_workflow_text,
             set_workflow_meta,
             forget_workflow,
             instance_workflows,
+            instance_workflows_dir,
             pull_workflow,
             push_workflow,
             workflow_compat,

@@ -377,6 +377,39 @@ h3.sub {
 .nav-runs::-webkit-scrollbar { width: 8px; }
 .nav-runs::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: var(--radius-pill); border: 2px solid var(--surface); }
 
+/* Второй уровень навигации — разделы настроек. Список слева не
+   прокручивается и не сворачивается: разделов пять, и видеть соседний
+   нужно всегда. Прокручивается только выбранный раздел справа.
+   Живёт здесь, а не в каркасе приложения: у макетов и у приложения
+   это один и тот же список, и разойтись он не должен. */
+.settings-split {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+.settings-sections {
+  padding: var(--space-3) var(--space-2);
+  border-right: 1px solid var(--line-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+/* Значков здесь нет намеренно: рейл различает разделы формой, а внутри
+   раздела различать нечем — пять подписей читаются быстрее пяти картинок.
+   Но без значка обрезанная подпись перестаёт называть раздел, а подписи
+   тут длиннее рейловых: «Biblioteca de flujos de trabajo» в двести
+   пикселей не влезает. Поэтому здесь она переносится, а пункт растёт. */
+.settings-sections .nav-item {
+  height: auto;
+  min-height: var(--rail-item-h);
+  padding: var(--space-1) var(--space-2);
+  white-space: normal;
+}
+.settings-sections .nav-item[aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+}
+
 /* ------------------------------------------------ карточка инстанса */
 .cards { display: flex; flex-direction: column; gap: var(--space-2); }
 /* Сетка карточек на широком окне. Порог 340px — ширина, при которой имя
@@ -785,6 +818,9 @@ h3.sub {
 }
 .input.mono { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-secondary); }
 .input.num { font-variant-numeric: tabular-nums; width: 92px; }
+/* Поле в ряду с кнопками: забирает свободное место, но не растёт бесконечно.
+   Путь в 190 пикселях показывает букву диска и многоточие — то есть ничего. */
+.input.grow { flex: 1; min-width: 0; max-width: 420px; }
 .input.bad { border-color: var(--state-crashed); }
 .input:focus-within { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
 .hint { font-size: var(--text-xs); color: var(--ink-muted); }
@@ -797,6 +833,10 @@ h3.sub {
 .path-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-2); }
 .path-row .input { overflow: hidden; }
 .path-row .input span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Тот же ряд, но стоящий в шапке раздела среди других действий. У флекса
+   базис по содержимому, и без этого правила длинный путь распирал ряд
+   вместо того, чтобы обрезаться. Потолок такой же, как у `.input.grow`. */
+.path-row.grow { flex: 1; min-width: 0; max-width: 420px; }
 
 .toggle-row { display: flex; align-items: flex-start; gap: var(--space-3); }
 
@@ -937,13 +977,31 @@ h3.sub {
 .wizard-foot { display: flex; gap: var(--space-2); justify-content: flex-end; border-top: 1px solid var(--line); padding-top: var(--space-3); }
 
 /* Шапка раздела с поиском. Поле тянется, а не сидит в 190 пикселях:
-   в узком поле обрезается даже подсказка, не говоря о запросе. */
+   в узком поле обрезается даже подсказка, не говоря о запросе.
+
+   Переносится по строкам: действия раздела стоят здесь, над списком, —
+   в подвале панели их не видно, когда список длинный, а список бывает
+   на две сотни строк. Кнопки не сжимаются, и в окне минимальной ширины
+   без переноса они вылезали бы за край. */
 .lib-head {
   display: flex; align-items: center; gap: var(--space-3);
+  flex-wrap: wrap;
   padding: var(--space-4) var(--space-5) var(--space-3);
 }
 .lib-head h3 { margin-right: var(--space-2); }
 .lib-head .search { flex: 1; max-width: 420px; }
+
+/* ------------------------------------------- вставка воркфлоу текстом */
+/* Форма, а не всплывающий диалог: тот же компонент встаёт и в разделе
+   библиотеки, и на вкладке сборки, где всплывать не над чем — там поверх
+   нашего HTML лежит нативное окно ComfyUI. Ширина ограничена: имя и
+   кнопки, растянутые на две тысячи пикселей, читаются хуже, а поле графа
+   и без того широкое. */
+.paste { display: flex; flex-direction: column; gap: var(--space-4); max-width: 640px; }
+/* Текст графа не читают — в него смотрят, чтобы убедиться, что вставилось
+   именно то. Десяти строк для этого хватает, а поле в четыре строки
+   выглядит полем для реплики в чате. */
+.paste .area { min-height: calc(var(--leading-normal) * 10em); }
 
 /* ------------------------------------------- список «подпись — значение» */
 /* Версии, размеры, порты, пути. Не таблица: колонок ровно две, и вторая
@@ -1082,6 +1140,20 @@ h3.sub {
    так никто не станет. */
 .tag[title] { cursor: help; }
 
+/* Легенда меток под списком. Слева стоит та же самая метка, что в строке,
+   справа — что она значит. Пересказ метки словами («в библиотеке» значит…)
+   заставлял искать её в абзаце глазами; здесь искать нечего, объяснение
+   стоит напротив.
+
+   Сетка в две колонки, а не список абзацев: тире у всех строк выстроено
+   по одной вертикали, и легенда читается таблицей. */
+.tag-legend {
+  display: grid; grid-template-columns: auto minmax(0,1fr);
+  gap: var(--space-1) var(--space-2); align-items: baseline; margin: 0;
+}
+.tag-legend dt { justify-self: start; }
+.tag-legend dd { margin: 0; font-size: var(--text-xs); color: var(--ink-muted); }
+
 /* ------------------------------------------------ совместимость */
 /* Список воркфлоу.
  *
@@ -1117,7 +1189,23 @@ h3.sub {
 .wf-row.on { background: var(--surface-hover); box-shadow: inset 2px 0 0 var(--btn-primary-bg); }
 .wf-row:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .wf-row .nm { font-size: var(--text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wf-row .tags { display: flex; gap: var(--space-1); }
+/* Метки прижаты к правому краю своей колонки, а не приклеены к имени:
+   слева «в библиотеке» читалась как продолжение имени файла. Её место —
+   рядом с кнопкой, к которой она относится: метка объясняет, почему
+   кнопка погашена. */
+.wf-row .tags { display: flex; gap: var(--space-1); justify-content: flex-end; }
+/* Список воркфлоу сборки: ни отметки для массовой операции, ни звёздочки
+   избранного тут нет. Отметка нужна тому, над чем бывают действия скопом,
+   а избранное живёт в манифесте библиотеки — файл сборки туда ещё не попал.
+   Колонок поэтому три, и растяжимая достаётся имени.
+
+   Была четвёртая, под звёздочку, и её занимала невидимая точка-распорка:
+   орган управления в разметке, ничем не управляющий. Сетка теперь считает
+   ровно то, что в строке есть. Строка ничего не выбирает — курсор обычный,
+   а не палец. */
+.wf-list.of-instance .wf-row {
+  grid-template-columns: minmax(0,1fr) auto auto; cursor: default;
+}
 /* Запись есть в манифесте, а файла нет. Не прячем и не удаляем молча:
    пользователь мог убрать файл через проводник и должен это увидеть. */
 .wf-row.lost .nm { color: var(--ink-muted); text-decoration: line-through; }

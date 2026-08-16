@@ -113,6 +113,22 @@ impl Client {
         }
     }
 
+    /// Убирает воркфлоу из сборки (`app/user_manager.py:427`).
+    ///
+    /// У запущенной сборки файл убирается её же руками, а не из-под неё:
+    /// ComfyUI держит папку воркфлоу своей и о правках со стороны не знает.
+    ///
+    /// Отсутствие файла — не ошибка. Забрать его могли уже после того, как
+    /// мы прочитали список, и жаловаться на достигнутый результат незачем.
+    pub fn delete_workflow(&self, rel: &str) -> Result<(), AppError> {
+        let url = format!("{}/userdata/{}", self.base, encode(&format!("workflows/{rel}")));
+        match self.agent.delete(&url).call() {
+            Ok(_) => Ok(()),
+            Err(ureq::Error::StatusCode(404)) => Ok(()),
+            Err(e) => Err(AppError::because("workflows.removeFailed", e)),
+        }
+    }
+
     /// Множество классов нод, доступных этой сборке.
     ///
     /// Ответ — многомегабайтный JSON со схемами всех нод, а нужны из него

@@ -60,11 +60,11 @@ export const router = createRouter({
       name: 'install-wizard',
       component: () => import('../views/InstallWizardView.vue'),
     },
-    {
-      path: '/workflows',
-      name: 'workflows',
-      component: () => import('../views/WorkflowsView.vue'),
-    },
+    // Библиотека переехала в настройки вместе со своей папкой. Редирект
+    // оставлен не ради истории: у хеш-роутера сохранённый адрес окна
+    // переживает перезапуск, и без него старый `#/workflows` уводил бы
+    // в пустоту вместо раздела.
+    { path: '/workflows', redirect: '/settings/workflow-library' },
     {
       path: '/settings',
       component: () => import('../views/SettingsView.vue'),

@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n';
 
 import type { ApplyMode, Instance, InstanceFileInfo } from '../bindings';
 import { commands } from '../bindings';
+import OpenFolderButton from './OpenFolderButton.vue';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
@@ -96,6 +97,29 @@ async function setMode(next: ApplyMode): Promise<void> {
 
 <template>
   <div class="group">
+    <!-- Вкладка это два отдела: общая папка и модели самой сборки.
+         Заголовок у них одной формы — подпись, значок своей папки, дальше
+         содержимое: иначе верх вкладки читался набором разрозненных строк
+         без границы между отделами. -->
+    <div class="row">
+      <span class="t-label">{{ t('shared.instance.label') }}</span>
+      <!-- Тот же значок папки, что у моделей сборки ниже, но ведёт в общую:
+           разбираться руками с тем, что уже перенесено, приходится именно
+           там, а пути к ней на этой вкладке больше нет нигде — в строке
+           под тумблером он показан только у подключённой сборки.
+           Доступное имя своё: две одинаково подписанные кнопки-папки
+           на одном экране неразличимы на слух. -->
+      <OpenFolderButton
+        :path="shared.root?.path"
+        :title="shared.root?.path"
+        :label="t('shared.root.open')"
+        :disabled="!shared.available"
+      />
+    </div>
+
+    <!-- Тумблер отдельной строкой, а подпись справа от него говорит, что он
+         делает. Название отдела ушло в заголовок, и повторять его здесь
+         незачем. -->
     <div class="toggle-row">
       <button
         class="toggle"
@@ -103,11 +127,12 @@ async function setMode(next: ApplyMode): Promise<void> {
         type="button"
         role="switch"
         :aria-checked="enabled"
+        :aria-label="t('shared.instance.label')"
         :disabled="busy || !shared.configured"
         @click="toggle"
       ></button>
       <div>
-        <div class="t-base">{{ t('shared.instance.label') }}</div>
+        <div class="t-base">{{ t('shared.instance.hint') }}</div>
 
         <!-- Корень не задан — подключать не к чему. Вместо мёртвого
              тумблера ведём туда, где его задают. -->
@@ -122,8 +147,6 @@ async function setMode(next: ApplyMode): Promise<void> {
           {{ shared.root?.path }} ·
           {{ t(`shared.mode.${instance.shared?.applyMode ?? 'flag'}.short`) }}
         </div>
-
-        <div v-else class="hint">{{ t('shared.instance.hint') }}</div>
       </div>
     </div>
 

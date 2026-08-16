@@ -5,7 +5,6 @@
   "nav": {
     "instances": "Instances",
     "install": "Install",
-    "workflows": "Workflows",
     "settings": "Settings",
     "about": "About",
     "collapse": "Collapse menu",
@@ -182,10 +181,6 @@
       "workflows": "Workflow library"
     }
   },
-  "workflows": {
-    "title": "Workflows",
-    "lead": "Keep the workflows you actually use in one place, tag them, and add them to any instance."
-  },
   "settings": {
     "title": "Settings",
     "section": {
@@ -332,7 +327,10 @@
       "writeFailed": "Could not write the workflow: {reason}",
       "scanFailed": "Could not read the library: {reason}",
       "manifestWriteFailed": "Could not save tags and notes: {reason}",
-      "noGraphInImage": "This image carries no workflow: {path}"
+      "noGraphInImage": "This image carries no workflow: {path}",
+      "verifyFailed": "The copy in the library did not match what was read, so nothing was removed from the build.",
+      "removeFailed": "The workflow is in the library, but it could not be removed from the build: {reason}",
+      "badName": "This name will not do: {name}. It becomes a file name, so slashes, colons and other path characters are out."
     },
     "migrate": {
       "instanceRunning": "The build is running. Stop it before moving its files.",
@@ -384,7 +382,8 @@
       "insideInstance": "This folder is inside the build «{name}». That works, but deleting that build would take the shared models of all the others with it.",
       "changeTitle": "Change the shared folder?",
       "changeBody": "{n} connected build will switch to the new folder at its next start. | All {n} connected builds will switch to the new folder at their next start.",
-      "changeConfirm": "Change it"
+      "changeConfirm": "Change it",
+      "open": "Open the shared models folder"
     },
     "summary": {
       "categories": "{n} category recognised | {n} categories recognised",
@@ -500,8 +499,8 @@
       "again": "The build already has it — put it there again"
     },
     "pull": {
-      "done": "{name} is now in the library",
-      "replace": "The library already has a workflow named {name}. Replace it?"
+      "done": "{name} moved to the library and removed from the build",
+      "underNewName": "The library already has {name}, and its contents differ from this one. Take it as {as}? Nothing in the library is replaced."
     },
     "instance": {
       "title": "Workflows in this build",
@@ -510,7 +509,11 @@
       "empty": "This build has no saved workflows yet.",
       "noLibrary": "There is nowhere to take them: the library folder is not set.",
       "fromRunning": "The list comes from the running build, so it includes what it saved a minute ago.",
-      "fromDisk": "The build is stopped, so the list is read from its folder."
+      "fromDisk": "The build is stopped, so the list is read from its folder.",
+      "moves": "Taking a workflow moves it: the file leaves the build and stays only in the library.",
+      "diverged": "name taken, different file",
+      "alreadyMeans": "— the library already has this very workflow: there is nothing to take, the button is off.",
+      "divergedMeans": "— the contents have diverged: these are two different pieces of work, and the one from the build is taken under a free name, not over someone else's."
     },
     "bulk": {
       "title": "{n} workflow marked | {n} workflows marked",
@@ -526,7 +529,21 @@
       "note": "Note",
       "tags": "Tags"
     },
-    "noTags": "No tags yet."
+    "noTags": "No tags yet.",
+    "paste": {
+      "action": "Paste from clipboard",
+      "name": "Name",
+      "namePlaceholder": "for example, portrait-v3",
+      "willSaveAs": "Saves as {name}",
+      "json": "Workflow JSON",
+      "jsonPlaceholder": "Paste the workflow JSON here",
+      "hint": "The clipboard is read when the form opens. If nothing showed up, paste with Ctrl+V.",
+      "parsed": "Parsed: {n} node | Parsed: {n} nodes",
+      "types": "{n} node type | {n} node types",
+      "notAWorkflow": "This is not a workflow: there are no nodes in it. Nothing is saved.",
+      "save": "Save to the library",
+      "done": "{name} is in the library"
+    }
   },
   "migrate": {
     "title": "Models of this build",

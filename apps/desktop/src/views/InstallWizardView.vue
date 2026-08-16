@@ -7,6 +7,7 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
+import PathPicker from '../components/PathPicker.vue';
 import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
 import TargetForm from '../components/TargetForm.vue';
@@ -95,18 +96,6 @@ onMounted(() => {
   if (!shared.loaded) void shared.load();
   if (!library.loaded) void library.load();
 });
-
-/** Общий корень задаётся прямо здесь — уходить в настройки не нужно. */
-async function pickSharedRoot(): Promise<void> {
-  const picked = await open({ directory: true, multiple: false });
-  if (typeof picked === 'string') await shared.setRoot(picked);
-}
-
-/** То же для библиотеки воркфлоу: она независима от общих моделей. */
-async function pickLibrary(): Promise<void> {
-  const picked = await open({ directory: true, multiple: false });
-  if (typeof picked === 'string') await library.setPath(picked);
-}
 
 /**
  * Полоса идёт по файлам, а не по байтам.
@@ -515,16 +504,13 @@ const needed = computed(() =>
           <div class="scroll-pad">
           <div class="field">
             <span class="t-label">{{ t('shared.root.label') }}</span>
-            <div class="path-row">
-              <div class="input mono">
-                <span>{{ shared.root?.path ?? t('shared.root.empty') }}</span>
-              </div>
-              <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
-                   не выгонять пользователя из мастера ради одной папки. -->
-              <button class="btn secondary" type="button" @click="pickSharedRoot">
-                {{ t('common.browse') }}
-              </button>
-            </div>
+            <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
+                 не выгонять пользователя из мастера ради одной папки. -->
+            <PathPicker
+              :path="shared.root?.path"
+              :empty="t('shared.root.empty')"
+              @pick="shared.setRoot($event)"
+            />
             <div v-if="shared.scanning" class="bar indet"><i></i></div>
             <p v-else-if="!shared.configured" class="hint">{{ t('shared.root.howto') }}</p>
             <p v-else-if="!shared.available" class="hint">
@@ -587,14 +573,12 @@ const needed = computed(() =>
           <div class="scroll-pad">
           <div class="field">
             <span class="t-label">{{ t('library.path.label') }}</span>
-            <div class="path-row">
-              <div class="input mono">
-                <span>{{ library.path || t('library.path.empty') }}</span>
-              </div>
-              <button class="btn secondary" type="button" @click="pickLibrary">
-                {{ t('common.browse') }}
-              </button>
-            </div>
+            <!-- Библиотека независима от общих моделей, но задаётся тут же. -->
+            <PathPicker
+              :path="library.path"
+              :empty="t('library.path.empty')"
+              @pick="library.setPath($event)"
+            />
             <p v-if="library.configured && library.available" class="hint">
               {{ t('library.summary', library.items.length) }}
             </p>

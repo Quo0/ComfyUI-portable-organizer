@@ -5,7 +5,6 @@
   "nav": {
     "instances": "实例",
     "install": "安装",
-    "workflows": "工作流库",
     "settings": "设置",
     "about": "关于",
     "collapse": "收起菜单",
@@ -182,10 +181,6 @@
       "workflows": "工作流库"
     }
   },
-  "workflows": {
-    "title": "工作流库",
-    "lead": "把常用的工作流集中存放，加上标签，随时添加到任意实例。"
-  },
   "settings": {
     "title": "设置",
     "section": {
@@ -332,7 +327,10 @@
       "writeFailed": "无法写入工作流：{reason}",
       "scanFailed": "无法读取库：{reason}",
       "manifestWriteFailed": "无法保存标签和备注：{reason}",
-      "noGraphInImage": "这张图片不包含工作流：{path}"
+      "noGraphInImage": "这张图片不包含工作流：{path}",
+      "verifyFailed": "库中的副本与读取的内容不一致，因此未从该安装中删除任何内容。",
+      "removeFailed": "工作流已在库中，但无法从该安装中删除：{reason}",
+      "badName": "该名称不可用：{name}。它会成为文件名，因此不能包含斜杠、冒号等路径字符。"
     },
     "migrate": {
       "instanceRunning": "该安装正在运行。请先停止再移动其文件。",
@@ -384,7 +382,8 @@
       "insideInstance": "此文件夹位于安装「{name}」内部。这样可行，但删除该安装会连带删除其他所有安装的共享模型。",
       "changeTitle": "更改共享文件夹？",
       "changeBody": "已连接的 {n} 个安装将在下次启动时改用新文件夹。",
-      "changeConfirm": "更改"
+      "changeConfirm": "更改",
+      "open": "打开共享模型文件夹"
     },
     "summary": {
       "categories": "已识别 {n} 个类别",
@@ -500,8 +499,8 @@
       "again": "该安装已有——再放一次"
     },
     "pull": {
-      "done": "{name} 已加入库",
-      "replace": "库中已有名为 {name} 的工作流。要替换吗？"
+      "done": "{name} 已移入库中，并从该安装中删除",
+      "underNewName": "库中已有 {name}，且内容与此不同。是否以 {as} 取入？库中的内容不会被替换。"
     },
     "instance": {
       "title": "此安装中的工作流",
@@ -510,7 +509,11 @@
       "empty": "此安装尚无已保存的工作流。",
       "noLibrary": "无处可取：尚未设置库文件夹。",
       "fromRunning": "该列表来自正在运行的安装，因此包含它刚刚保存的内容。",
-      "fromDisk": "该安装已停止，因此列表读取自其文件夹。"
+      "fromDisk": "该安装已停止，因此列表读取自其文件夹。",
+      "moves": "取走即移动：文件离开该构建，只留在库中。",
+      "diverged": "同名但文件不同",
+      "alreadyMeans": "——库中已有同一个工作流：无可取走，按钮为灰。",
+      "divergedMeans": "——内容已经不同：这是两份不同的工作，构建中的那份会以空闲名称取走，而不会覆盖他人的。"
     },
     "bulk": {
       "title": "已标记 {n} 个工作流",
@@ -526,7 +529,21 @@
       "note": "备注",
       "tags": "标签"
     },
-    "noTags": "还没有标签。"
+    "noTags": "还没有标签。",
+    "paste": {
+      "action": "从剪贴板粘贴",
+      "name": "名称",
+      "namePlaceholder": "例如 portrait-v3",
+      "willSaveAs": "将保存为 {name}",
+      "json": "工作流 JSON",
+      "jsonPlaceholder": "在此粘贴工作流 JSON",
+      "hint": "打开表单时会读取剪贴板。若未出现内容，请用 Ctrl+V 粘贴。",
+      "parsed": "已解析 {n} 个节点",
+      "types": "{n} 种节点类型",
+      "notAWorkflow": "这不是工作流：其中没有节点。未保存任何内容。",
+      "save": "保存到库",
+      "done": "{name} 已在库中"
+    }
   },
   "migrate": {
     "title": "此安装的模型",

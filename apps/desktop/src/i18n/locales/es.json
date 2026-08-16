@@ -5,7 +5,6 @@
   "nav": {
     "instances": "Instancias",
     "install": "Instalación",
-    "workflows": "Biblioteca",
     "settings": "Ajustes",
     "about": "Acerca de",
     "collapse": "Contraer el menú",
@@ -182,10 +181,6 @@
       "workflows": "Biblioteca de flujos"
     }
   },
-  "workflows": {
-    "title": "Biblioteca",
-    "lead": "Guarda en un solo sitio los flujos de trabajo que de verdad usas, con etiquetas y con la opción de añadirlos a cualquier instancia."
-  },
   "settings": {
     "title": "Ajustes",
     "section": {
@@ -332,7 +327,10 @@
       "writeFailed": "No se pudo escribir el flujo: {reason}",
       "scanFailed": "No se pudo leer la biblioteca: {reason}",
       "manifestWriteFailed": "No se pudieron guardar las etiquetas y notas: {reason}",
-      "noGraphInImage": "Esta imagen no lleva ningún flujo: {path}"
+      "noGraphInImage": "Esta imagen no lleva ningún flujo: {path}",
+      "verifyFailed": "La copia en la biblioteca no coincidió con lo leído, así que no se quitó nada de la instalación.",
+      "removeFailed": "El flujo está en la biblioteca, pero no se pudo quitar de la instalación: {reason}",
+      "badName": "Este nombre no sirve: {name}. Se convierte en un nombre de archivo, así que las barras, los dos puntos y otros caracteres de ruta quedan fuera."
     },
     "migrate": {
       "instanceRunning": "La instalación está en ejecución. Deténgala antes de mover sus archivos.",
@@ -384,7 +382,8 @@
       "insideInstance": "Esta carpeta está dentro de la instalación «{name}». Funciona, pero borrar esa instalación se llevaría los modelos compartidos de todas las demás.",
       "changeTitle": "¿Cambiar la carpeta compartida?",
       "changeBody": "{n} instalación conectada pasará a la nueva carpeta en su próximo inicio. | Las {n} instalaciones conectadas pasarán a la nueva carpeta en su próximo inicio.",
-      "changeConfirm": "Cambiarla"
+      "changeConfirm": "Cambiarla",
+      "open": "Abrir la carpeta de modelos compartidos"
     },
     "summary": {
       "categories": "{n} categoría reconocida | {n} categorías reconocidas",
@@ -500,8 +499,8 @@
       "again": "La instalación ya lo tiene: colocarlo de nuevo"
     },
     "pull": {
-      "done": "{name} ya está en la biblioteca",
-      "replace": "La biblioteca ya tiene un flujo llamado {name}. ¿Reemplazarlo?"
+      "done": "{name} se movió a la biblioteca y se quitó de la instalación",
+      "underNewName": "La biblioteca ya tiene {name} y su contenido es distinto a este. ¿Tomarlo como {as}? No se reemplaza nada en la biblioteca."
     },
     "instance": {
       "title": "Flujos de esta instalación",
@@ -510,7 +509,11 @@
       "empty": "Esta instalación aún no tiene flujos guardados.",
       "noLibrary": "No hay dónde llevarlos: la carpeta de la biblioteca no está definida.",
       "fromRunning": "La lista viene de la instalación en ejecución, así que incluye lo que guardó hace un minuto.",
-      "fromDisk": "La instalación está detenida, así que la lista se lee de su carpeta."
+      "fromDisk": "La instalación está detenida, así que la lista se lee de su carpeta.",
+      "moves": "Llevarse un flujo lo mueve: el archivo sale de la instalación y queda solo en la biblioteca.",
+      "diverged": "nombre ocupado, archivo distinto",
+      "alreadyMeans": "— la biblioteca ya tiene ese mismo flujo: no hay nada que llevarse y el botón está apagado.",
+      "divergedMeans": "— el contenido ha divergido: son dos trabajos distintos, y el de la instalación se lleva con un nombre libre, no encima del ajeno."
     },
     "bulk": {
       "title": "{n} flujo marcado | {n} flujos marcados",
@@ -526,7 +529,21 @@
       "note": "Nota",
       "tags": "Etiquetas"
     },
-    "noTags": "Todavía no hay etiquetas."
+    "noTags": "Todavía no hay etiquetas.",
+    "paste": {
+      "action": "Pegar del portapapeles",
+      "name": "Nombre",
+      "namePlaceholder": "por ejemplo, portrait-v3",
+      "willSaveAs": "Se guardará como {name}",
+      "json": "JSON del flujo de trabajo",
+      "jsonPlaceholder": "Pega aquí el JSON del flujo de trabajo",
+      "hint": "El portapapeles se lee al abrir el formulario. Si no apareció nada, pega con Ctrl+V.",
+      "parsed": "Reconocido: {n} nodo | Reconocidos: {n} nodos",
+      "types": "{n} tipo de nodo | {n} tipos de nodo",
+      "notAWorkflow": "Esto no es un flujo de trabajo: no tiene nodos. No se ha guardado nada.",
+      "save": "Guardar en la biblioteca",
+      "done": "{name} está en la biblioteca"
+    }
   },
   "migrate": {
     "title": "Modelos de esta instalación",

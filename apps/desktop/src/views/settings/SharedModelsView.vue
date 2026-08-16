@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { open } from '@tauri-apps/plugin-dialog';
 import { useI18n } from 'vue-i18n';
 
+import PathPicker from '../../components/PathPicker.vue';
 import { useFormat } from '../../lib/format';
 import { useInstancesStore } from '../../stores/instances';
 import { useSharedStore } from '../../stores/shared';
@@ -41,10 +41,7 @@ const insideInstance = computed(() => {
   return instances.items.find((i) => sameCase(path, i.path)) ?? null;
 });
 
-async function pick(): Promise<void> {
-  const picked = await open({ directory: true, multiple: false });
-  if (typeof picked !== 'string') return;
-
+async function pick(picked: string): Promise<void> {
   // Первый выбор применяем сразу: менять нечего и предупреждать не о чем.
   if (!shared.configured || shared.connected === 0) {
     await shared.setRoot(picked);
@@ -74,14 +71,12 @@ async function applyPending(): Promise<void> {
         <div>
         <div class="field">
           <label class="t-label" for="shared-root">{{ t('shared.root.label') }}</label>
-          <div class="path-row">
-            <div id="shared-root" class="input mono">
-              <span>{{ shared.root?.path ?? t('shared.root.empty') }}</span>
-            </div>
-            <button class="btn secondary" type="button" @click="pick">
-              {{ t('common.browse') }}
-            </button>
-          </div>
+          <PathPicker
+            id="shared-root"
+            :path="shared.root?.path"
+            :empty="t('shared.root.empty')"
+            @pick="pick"
+          />
 
           <!-- Пока идёт обход дерева, показываем движение: на сотнях
                гигабайт это заметная пауза, и тишина читается как зависание. -->

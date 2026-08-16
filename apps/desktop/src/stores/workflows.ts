@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 
 import {
   commands,
+  type AppError,
   type InstanceCompat,
   type LibraryItem,
   type LibraryScan,
@@ -258,6 +259,23 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     return true;
   }
 
+  /**
+   * Кладёт в библиотеку граф, вставленный текстом.
+   *
+   * Ошибку не глотает и не показывает сама: форма вставки держит её рядом
+   * с полем, которого она касается, — в тосте ответ «имя занято» уезжает
+   * от поля с именем в противоположный угол экрана.
+   */
+  async function addText(name: string, content: string): Promise<AppError | null> {
+    const res = await commands.addWorkflowText(path.value, name, content);
+    if (res.status === 'error') return res.error;
+    await rescan();
+    // Вставленное сразу и выбрано: пользователь только что его назвал,
+    // и разбираться, куда оно попало, ему не должно быть нужно.
+    await select(res.data);
+    return null;
+  }
+
   return {
     path,
     scan,
@@ -282,6 +300,7 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     toggleFavorite,
     forget,
     addFile,
+    addText,
     marked,
     toggleMark,
     clearMarks,

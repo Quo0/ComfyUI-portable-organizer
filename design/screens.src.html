@@ -164,6 +164,13 @@
    позже и при равной специфичности перебивало бы её — в макете
    заголовок шага выходил крупнее и жирнее, чем в приложении. */
 .content h3:not(.step-bar h3) { font-family: var(--font-ui-display); font-size: var(--text-lg); font-weight: var(--weight-bold); margin: 0; }
+/* Раздел настроек — тот же экран, что и раздел рейла, только вложенный:
+   свои поля, своя прокрутка. Отсюда `.content` внутри `.content`.
+   Внешний здесь колонка-флекс, поэтому раскладку надо тянуть на всю высоту
+   явно: без этого в окне фиксированной высоты она встанет по содержимому,
+   и прокрутки внутри панелей не возникнет никогда. */
+.content > .settings-split { flex: 1; min-height: 0; }
+.settings-split > .content { min-width: 0; min-height: 0; }
 .content > p { margin: 0; font-size: var(--text-sm); color: var(--ink-secondary); max-width: 60ch; }
 .crumb { font-size: var(--text-xs); color: var(--ink-muted); }
 
@@ -343,7 +350,6 @@
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -398,7 +404,6 @@
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -510,7 +515,6 @@
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -606,7 +610,6 @@
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -685,7 +688,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -741,7 +743,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -839,7 +840,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -915,7 +915,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win collapsed">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1018,7 +1017,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -1045,10 +1043,25 @@ Loading custom nodes: 47 found
               <span>Параметры</span>
             </div>
 
+            <!-- Вкладка это два отдела: общая папка и модели самой сборки.
+                 Заголовок у них одной формы — подпись, значок своей папки,
+                 дальше содержимое: иначе верх вкладки читался набором
+                 разрозненных строк без границы между отделами. -->
+            <div class="row">
+              <span class="t-label">Общие модели</span>
+              <!-- Тот же значок папки, что у моделей сборки ниже, но ведёт
+                   в общую: разбираться руками с тем, что уже перенесено,
+                   приходится именно там. -->
+              <span class="btn ghost" title="D:\AI\_shared\models"><svg class="ico"><use href="#i-folder"/></svg></span>
+            </div>
+
+            <!-- Тумблер отдельной строкой, а подпись справа от него говорит,
+                 что он делает. Название отдела ушло в заголовок, и повторять
+                 его у тумблера незачем. -->
             <div class="toggle-row">
               <span class="toggle"></span>
               <div>
-                <div class="t-base">Общие модели</div>
+                <div class="t-base">Дать этой сборке доступ к общей папке, ничего в неё не копируя.</div>
                 <div class="hint">D:\AI\_shared\models · папка сборки не тронута</div>
               </div>
             </div>
@@ -1148,6 +1161,186 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
+
+    <div class="variant-head"><b>Своих моделей нет</b><span>подключение есть, переносить нечего</span></div>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content">
+            <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-amber)">F</span>
+              <h3>Flux эксперименты</h3>
+              <span class="spacer"></span>
+              <span class="pill stopped"><i></i>Остановлена</span>
+              <span class="btn primary lg">Запустить</span>
+            </div>
+
+            <div class="tabs">
+              <span>Обзор</span>
+              <span aria-selected="true">Модели</span>
+              <span>Воркфлоу</span>
+              <span>Параметры</span>
+            </div>
+
+            <div class="row">
+              <span class="t-label">Общие модели</span>
+              <span class="btn ghost" title="D:\AI\_shared\models"><svg class="ico"><use href="#i-folder"/></svg></span>
+            </div>
+
+            <div class="toggle-row">
+              <span class="toggle"></span>
+              <div>
+                <div class="t-base">Дать этой сборке доступ к общей папке, ничего в неё не копируя.</div>
+                <div class="hint">D:\AI\_shared\models · папка сборки не тронута</div>
+              </div>
+            </div>
+
+            <div class="group">
+              <span class="t-label">Способ применения</span>
+              <div class="seg">
+                <span aria-pressed="true">Не трогать папку сборки</span>
+                <span>Записать файл в сборку</span>
+              </div>
+              <p class="hint">Список общих папок хранится у ComfyUI Portable Organizer и передаётся сборке аргументом при запуске. В папку сборки не пишется ничего, но общие модели будут у неё только тогда, когда её запускает это приложение.</p>
+            </div>
+
+            <div class="row">
+              <span class="t-label">Модели этой сборки</span>
+              <span class="btn ghost" title="D:\AI\ComfyUI_flux\ComfyUI\models"><svg class="ico"><use href="#i-folder"/></svg></span>
+              <span class="spacer"></span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-reload"/></svg>Обновить</span>
+            </div>
+            <!-- Отдел на месте: заголовок и путь к папке никуда не деваются,
+                 меняется только его содержимое. Поэтому строка состояния
+                 идёт подсказкой, а не крупным пустым блоком: тот выглядел бы
+                 отдельным экраном, приехавшим в середину вкладки, и рвал бы
+                 вкладку надвое сильнее, чем сама граница отделов.
+                 Ни списка, ни кнопок переноса при этом нет — распоряжаться
+                 нечем. -->
+            <p class="hint">Переносить нечего: своих моделей у этой сборки нет.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-05 · шаг 2</span>
+      <h2>Забор воркфлоу в библиотеку</h2>
+      <span class="jtag">US-WF-03</span>
+    </div>
+    <p class="aside">
+      Забор <b>переносит</b>: файл уходит из сборки и остаётся только
+      в библиотеке. Сказано это строкой под списком, а не узнаётся
+      по исчезнувшей строке. Порядок тот же, что у переноса моделей —
+      копия пишется, читается обратно и сверяется, и лишь потом исходник
+      убирается из сборки.
+    </p>
+    <p class="aside">
+      Меток две, и это главное здесь. По одному имени метка врала бы:
+      правленная в сборке версия под занятым именем выглядела бы
+      сохранённой. Поэтому содержимое сверяется целиком — сначала байты,
+      потом разобранный JSON, иначе пересохранённый в ComfyUI воркфлоу
+      объявлялся бы разошедшимся из-за одних отступов.
+    </p>
+    <p class="aside">
+      Погашена кнопка только у того, что уже лежит в библиотеке тем же
+      файлом. У разошедшегося она работает и забирает под свободным именем:
+      замены нет вовсе, потому что заменить значило бы затереть одну работу
+      другой, не оставив ни той, ни другой.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены</div>
+            <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+          </nav>
+          <div class="content">
+            <div class="row">
+              <span class="btn ghost"><svg class="ico"><use href="#i-back"/></svg>Назад</span>
+              <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
+              <h3>SDXL стабильная</h3>
+              <span class="spacer"></span>
+              <span class="pill running"><i></i>Работает</span>
+              <span class="t-mono">:8188</span>
+              <span class="btn primary lg">Открыть ComfyUI</span>
+              <span class="btn secondary">Перезапустить</span>
+              <span class="btn danger">Остановить</span>
+            </div>
+
+            <div class="tabs">
+              <span>Обзор</span>
+              <span>Модели</span>
+              <span aria-selected="true">Воркфлоу</span>
+              <span>Параметры</span>
+            </div>
+
+            <div class="row">
+              <span class="t-label">Воркфлоу этой сборки</span>
+              <!-- Тот же значок и то же место, что у моделей сборки: путь
+                   к папке воркфлоу в панели больше нигде не показан,
+                   а идти разбираться руками приходится именно туда. -->
+              <span class="btn ghost" title="D:\AI\ComfyUI_windows_portable\ComfyUI\user\default\workflows"><svg class="ico"><use href="#i-folder"/></svg></span>
+              <span class="spacer"></span>
+              <span class="btn ghost"><svg class="ico"><use href="#i-reload"/></svg>Обновить</span>
+            </div>
+
+            <!-- Ни отметки для массовой операции, ни звёздочки избранного:
+                 отметка нужна тому, над чем бывают действия скопом,
+                 а избранное живёт в манифесте библиотеки — эти файлы туда
+                 ещё не попали. Отсюда своя сетка строки. -->
+            <div class="wf-list of-instance">
+              <!-- Имени в библиотеке нет — забирается без разговоров. -->
+              <div class="wf-row">
+                <span class="nm">sdxl / img2img-refine.json</span>
+                <span class="tags"></span>
+                <span class="btn ghost">Забрать в библиотеку</span>
+              </div>
+              <!-- Тот же файл: забирать нечего, кнопка справедливо погашена. -->
+              <div class="wf-row">
+                <span class="nm">flux / portrait-v3.json</span>
+                <span class="tags"><span class="tag">в библиотеке</span></span>
+                <span class="btn ghost" aria-disabled="true">Забрать в библиотеку</span>
+              </div>
+              <!-- Имя занято чужой работой. Кнопка работает и предложит
+                   «base-upscale (2).json» — но спросит до того, как двинет. -->
+              <div class="wf-row">
+                <span class="nm">sdxl / base-upscale.json</span>
+                <span class="tags"><span class="tag warn">имя занято, файл другой</span></span>
+                <span class="btn ghost">Забрать в библиотеку</span>
+              </div>
+            </div>
+
+            <p class="hint">Забор переносит: файл уходит из сборки и остаётся только в библиотеке.</p>
+            <!-- Легенда меток: слева та же метка, что в строке, справа — что
+                 она значит. Абзацем это уже было, и метку в нём приходилось
+                 искать глазами. -->
+            <dl class="tag-legend">
+              <dt><span class="tag">в библиотеке</span></dt>
+              <dd>— там лежит тот же самый воркфлоу: забирать нечего, кнопка погашена.</dd>
+              <dt><span class="tag warn">имя занято, файл другой</span></dt>
+              <dd>— содержимое разошлось: это две разные работы, и та, что в сборке, заберётся под свободным именем, а не поверх чужой.</dd>
+            </dl>
+            <p class="hint">Список берётся у запущенной сборки, поэтому в нём есть и то, что она сохранила минуту назад.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
   <section class="screen">
     <div class="screen-head">
@@ -1168,7 +1361,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -1251,7 +1443,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item on"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -1388,7 +1579,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win collapsed">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1443,7 +1633,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1474,7 +1663,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1544,7 +1732,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1581,7 +1768,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1633,7 +1819,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1700,7 +1885,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -1812,7 +1996,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -1964,7 +2147,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -2094,7 +2276,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -2198,7 +2379,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win collapsed">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -2287,7 +2467,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -2332,7 +2511,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -2389,7 +2567,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -2441,7 +2618,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win collapsed">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
@@ -2498,164 +2674,6 @@ Loading custom nodes: 47 found
   </section>
   <section class="screen" data-top>
     <div class="screen-head">
-      <span class="jtag">J-05 · шаги 4-5</span>
-      <h2>Библиотека воркфлоу</h2>
-      <span class="jtag">US-WF-02</span><span class="jtag">US-WF-04</span><span class="jtag">US-WF-05</span>
-    </div>
-    <p class="aside">
-      Проверка совместимости — то, ради чего перенос живёт в приложении, а не в
-      проводнике. У остановленного инстанса точного ответа нет, и честнее
-      пометить его неизвестным, чем показать зелёную галочку.
-    </p>
-    <div class="frame">
-      <div class="win t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item on"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-          </nav>
-          <div class="content flush">
-            <div class="lib-head">
-              <h3>Библиотека воркфлоу</h3>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
-              <span class="btn ghost" aria-pressed="true"><span class="star">★</span>Только избранное</span>
-              <span class="btn secondary">Добавить файл</span>
-            </div>
-            <div class="split-master">
-              <div class="pane">
-                <div class="pane-head">
-                  <span class="title">14 воркфлоу · отмечено 2</span>
-                  <span class="btn ghost">Снять отметки</span>
-                  <span class="btn secondary">Добавить отмеченные</span>
-                </div>
-                <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                  <!-- Отметка и избранное — разные органы. Раньше это был
-                       один значок: показывал избранное, а по клику ставил
-                       отметку. -->
-                  <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span><span class="tag">upscale</span></span></div>
-                  <div class="wf-row on"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
-                  <div class="wf-row"><span class="mark on">✓</span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
-                  <div class="wf-row lost"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-draft.json</span><span class="tags"><span class="tag stop">файла нет</span></span></div>
-                </div></div>
-              </div>
-
-              <div class="pane">
-                <div class="pane-head">
-                  <span class="title">portrait-v3.json</span>
-                  <span class="star lg">★</span>
-                </div>
-                <div class="tabs">
-                  <span aria-selected="true">Где откроется</span>
-                  <span>Заметка</span>
-                  <span>Теги <span class="n">1</span></span>
-                </div>
-                <div class="scroll"><div class="scroll-pad">
-                  <div class="compat">
-                    <div class="compat-row ok">
-                      <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
-                      <span class="act on"><svg class="ico"><use href="#i-check"/></svg></span>
-                      <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
-                    </div>
-                    <div class="compat-row warn">
-                      <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
-                      <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
-                      <span class="nm">Flux тест</span><span class="compat-note">нет 2 нод</span>
-                    </div>
-                    <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
-                    <div class="compat-row">
-                      <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
-                      <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
-                      <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
-                    </div>
-                  </div>
-                </div></div>
-                <div class="pane-foot"><span class="btn ghost">Забрать из инстанса</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двести воркфлоу; панель деталей не уезжает вместе со списком</span></div>
-    <div class="frame" data-scroll>
-      <div class="win fixed t-dark">
-        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
-        <div class="win-body">
-          <nav class="nav in-win">
-            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item on"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
-            <div class="nav-sep"></div>
-            <div class="nav-note">Запущены · 8</div>
-            <div class="nav-runs">
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
-            </div>
-          </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="row">
-                <h3>Библиотека воркфлоу</h3>
-                <span class="spacer"></span>
-                <div class="input" style="width:190px">Поиск по имени и тегам</div>
-                <span class="btn ghost">Только избранное</span>
-              </div>
-            </div>
-            <div class="data">
-              <div class="split-master">
-                <div class="pane">
-                  <div class="pane-head"><span class="title">Все воркфлоу</span><span class="t-label">214</span></div>
-                  <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                    <template data-repeat="3">
-                      <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
-                      <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / img2img-refine.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
-                      <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">flux / lora-stack.json</span><span class="tags"><span class="tag">flux</span></span></div>
-                    </template>
-                  </div></div>
-                </div>
-                <div class="pane">
-                  <div class="pane-head"><span class="title">Выбран</span></div>
-                  <div class="scroll"><div class="scroll-pad">
-                    <div class="t-sm">flux / portrait-v3.json</div>
-                    <div class="t-label">Заметка</div>
-                    <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
-                    <div class="t-label">Совместимость</div>
-                    <div class="compat">
-                      <template data-repeat="4">
-                        <div class="compat-row ok"><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">SDXL</span><span class="compat-note">ок</span></div>
-                        <div class="compat-row warn"><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Flux тест</span><span class="compat-note">нет 2</span></div>
-                        <div class="compat-row"><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Эксперименты</span><span class="compat-note">неизвестно</span></div>
-                      </template>
-                    </div>
-                  </div></div>
-                  <div class="pane-foot"><span class="btn primary">Добавить</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="screen" data-top>
-    <div class="screen-head">
       <span class="jtag">J-03 · шаги 1-3</span>
       <h2>Настройки: общие модели</h2>
       <span class="jtag">US-SHARED-01</span><span class="jtag">US-SHARED-02</span><span class="jtag">US-SHARED-04</span>
@@ -2673,43 +2691,56 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>
-          <!-- Две колонки на широком окне: слева то, что настраивают,
-               справа то, что этим настройкам отвечает. Одной лентой этот
-               экран заставлял скроллить при пустой правой половине. -->
-          <div class="content">
-            <div class="crumb">Настройки → Общие модели</div>
-            <div class="cols">
-              <div>
-                <div class="field">
-                  <label>Общий корень моделей</label>
-                  <div class="path-row">
-                    <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                    <span class="btn secondary">Обзор</span>
-                  </div>
-                  <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
-                </div>
-                <div class="cats">
-                  <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
-                  <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
-                  <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-                </div>
-              </div>
-              <div>
-                <div class="toggle-row">
-                  <span class="toggle"></span>
+          <!-- Настройки — второй уровень навигации: слева список разделов,
+               справа выбранный. Хлебная крошка «Настройки → Общие модели»
+               этого не давала — она говорила, где ты, но не показывала,
+               что рядом, и перейти в соседний раздел можно было только
+               вернувшись. -->
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item on"><span>Общие модели</span></div>
+                <div class="nav-item"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <!-- Две колонки на широком окне: слева то, что настраивают,
+                   справа то, что этим настройкам отвечает. Одной лентой этот
+                   экран заставлял скроллить при пустой правой половине. -->
+              <div class="content">
+                <h3>Общие модели</h3>
+                <div class="cols">
                   <div>
-                    <div class="t-base">Скачивать новые модели в общую папку</div>
-                    <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                    <div class="field">
+                      <label>Общий корень моделей</label>
+                      <div class="path-row">
+                        <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                        <span class="btn secondary">Обзор</span>
+                      </div>
+                      <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
+                    </div>
+                    <div class="cats">
+                      <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+                      <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+                    </div>
                   </div>
-                </div>
-                <div class="field">
-                  <label>Что получит ComfyUI</label>
+                  <div>
+                    <div class="toggle-row">
+                      <span class="toggle"></span>
+                      <div>
+                        <div class="t-base">Скачивать новые модели в общую папку</div>
+                        <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Что получит ComfyUI</label>
 <div class="console" style="max-height:200px">cpo_shared_0:
   base_path: D:/AI/_shared/models
   is_default: true
@@ -2719,7 +2750,9 @@ Loading custom nodes: 47 found
   text_encoders: |
     text_encoders/
     clip/</div>
-                  <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
+                      <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2735,7 +2768,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
             <div class="nav-sep"></div>
@@ -2751,38 +2783,419 @@ Loading custom nodes: 47 found
               <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
             </div>
           </nav>
-          <div class="content framed no-foot">
-            <div class="pinned">
-              <div class="crumb">Настройки → Общие модели</div>
-              <div class="field">
-                <div class="path-row">
-                  <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                  <span class="btn secondary">Обзор</span>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item on"><span>Общие модели</span></div>
+                <div class="nav-item"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content framed no-foot">
+                <div class="pinned">
+                  <h3>Общие модели</h3>
+                  <div class="field">
+                    <div class="path-row">
+                      <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                      <span class="btn secondary">Обзор</span>
+                    </div>
+                    <div class="hint">Распознано 25 категорий · 231 ГБ · подключено 8 инстансов</div>
+                  </div>
+                  <div class="toggle-row">
+                    <span class="toggle"></span>
+                    <div><div class="t-base">Скачивать новые модели в общую папку</div></div>
+                  </div>
                 </div>
-                <div class="hint">Распознано 25 категорий · 231 ГБ · подключено 8 инстансов</div>
-              </div>
-              <div class="toggle-row">
-                <span class="toggle"></span>
-                <div><div class="t-base">Скачивать новые модели в общую папку</div></div>
+                <div class="data">
+                  <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                    <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>controlnet</code><span class="n">9 файлов · 4.8 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>text_encoders</code><span class="n">4 файла · 3.2 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>diffusion_models</code><span class="n">3 файла · 22 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>clip_vision</code><span class="n">2 файла · 1.1 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>upscale_models</code><span class="n">11 файлов · 0.9 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>embeddings</code><span class="n">38 файлов · 0.1 ГБ</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>style_models</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>hypernetworks</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                    <div class="cat"><code>photomaker</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                    <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
+                    <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+                  </div></div>
+                </div>
               </div>
             </div>
-            <div class="data">
-              <div class="scroll"><div class="scroll-pad" style="gap:1px">
-                <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>controlnet</code><span class="n">9 файлов · 4.8 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>text_encoders</code><span class="n">4 файла · 3.2 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>diffusion_models</code><span class="n">3 файла · 22 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>clip_vision</code><span class="n">2 файла · 1.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>upscale_models</code><span class="n">11 файлов · 0.9 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>embeddings</code><span class="n">38 файлов · 0.1 ГБ</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>style_models</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>hypernetworks</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat"><code>photomaker</code><span class="n">пусто</span><span class="tag">распознано</span></div>
-                <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
-                <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-              </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen" data-top>
+    <div class="screen-head">
+      <span class="jtag">J-05 · шаги 4-5</span>
+      <h2>Настройки: библиотека воркфлоу</h2>
+      <span class="jtag">US-WF-02</span><span class="jtag">US-WF-04</span><span class="jtag">US-WF-05</span>
+    </div>
+    <p class="aside">
+      Библиотека — раздел настроек, а не раздел рейла. Она устроена ровно как
+      общие модели: одна папка снаружи сборок и её содержимое. Настройка папки
+      и то, что в ней лежит, стояли в разных местах — путь в настройках, список
+      в рейле, — и на вопрос «а куда это складывается» приходилось отвечать
+      переходом в другой раздел. Теперь и путь, и содержимое на одном экране,
+      а в рейле остались четыре постоянных места: сборки, откуда взять новую,
+      настройки, о программе.
+    </p>
+    <p class="aside">
+      Проверка совместимости — то, ради чего перенос живёт в приложении, а не в
+      проводнике. У остановленного инстанса точного ответа нет, и честнее
+      пометить его неизвестным, чем показать зелёную галочку.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item"><span>Общие модели</span></div>
+                <div class="nav-item on"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <!-- Поля даёт содержимое: у шапки и у мастер-детейла они свои. -->
+              <div class="content flush">
+                <!-- Путь стоит в шапке раздела, а не отдельным полем над
+                     списком: это одна строка, которую задают один раз, и
+                     отводить под неё блок в полэкрана значило бы говорить
+                     о ней громче, чем о самой библиотеке. -->
+                <div class="lib-head">
+                  <h3>Библиотека воркфлоу</h3>
+                  <div class="path-row grow">
+                    <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <span class="btn secondary">Добавить файл</span>
+                  <span class="btn secondary">Вставить из буфера</span>
+                </div>
+                <div class="split-master">
+                  <div class="pane">
+                    <div class="pane-head">
+                      <div class="input search"><span>Поиск по имени и тегам</span></div>
+                      <span class="btn ghost" aria-pressed="true"><span class="star">★</span></span>
+                    </div>
+                    <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                      <!-- Отметка и избранное — разные органы. Раньше это был
+                           один значок: показывал избранное, а по клику ставил
+                           отметку. -->
+                      <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span><span class="tag">upscale</span></span></div>
+                      <div class="wf-row on"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                      <div class="wf-row"><span class="mark on">✓</span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
+                      <div class="wf-row lost"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-draft.json</span><span class="tags"><span class="tag stop">файла нет</span></span></div>
+                    </div></div>
+                    <!-- Счётчик внизу списка, а не в его шапке: шапка занята
+                         поиском, а число отвечает на вопрос о том, что под
+                         ним, — и отвечает после фильтра, а не до него.
+                         Рядом с ним и способы пополнить список: оба кладут
+                         воркфлоу именно сюда, и стоять им место у списка,
+                         а не в шапке раздела, где настраивают папку. -->
+                    <div class="pane-foot"><span class="t-label">14 воркфлоу · отмечено 2</span></div>
+                  </div>
+
+                  <div class="pane">
+                    <div class="pane-head">
+                      <span class="title">portrait-v3.json</span>
+                      <span class="star lg">★</span>
+                    </div>
+                    <div class="tabs">
+                      <span aria-selected="true">Где откроется</span>
+                      <span>Заметка</span>
+                      <span>Теги <span class="n">1</span></span>
+                    </div>
+                    <div class="scroll"><div class="scroll-pad">
+                      <div class="compat">
+                        <div class="compat-row ok">
+                          <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
+                          <span class="act on"><svg class="ico"><use href="#i-check"/></svg></span>
+                          <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
+                        </div>
+                        <div class="compat-row warn">
+                          <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
+                          <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
+                          <span class="nm">Flux тест</span><span class="compat-note">нет 2 нод</span>
+                        </div>
+                        <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
+                        <div class="compat-row">
+                          <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
+                          <span class="act"><svg class="ico"><use href="#i-plus"/></svg></span>
+                          <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
+                        </div>
+                      </div>
+                    </div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><b>Папка ещё не выбрана</b><span>раздел настройки и есть, поэтому уводить некуда — выбор стоит здесь же</span></div>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item"><span>Общие модели</span></div>
+                <div class="nav-item on"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content">
+                <h3>Библиотека воркфлоу</h3>
+                <div class="empty">
+                  <p>
+                    Библиотека — папка вне сборок. Воркфлоу в ней переживают
+                    переустановку ComfyUI и видны всем сборкам сразу.
+                  </p>
+                  <div class="field" style="width:100%;max-width:520px">
+                    <label>Папка библиотеки</label>
+                    <div class="path-row">
+                      <div class="input mono"><span>не выбрана</span></div>
+                      <span class="btn secondary">Обзор</span>
+                    </div>
+                    <!-- Подсказка рядом с общими моделями — не правило,
+                         а удобство: они обычно на просторном диске. -->
+                    <div class="hint">Рядом с общими моделями: D:\AI\_shared\workflows</div>
+                  </div>
+                  <span class="btn primary">Положить рядом с общими моделями</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><b>Вставка из буфера</b><span>граф приходит текстом — из чата, с форума, из соседней машины</span></div>
+    <p class="aside">
+      Воркфлоу чаще присылают текстом, чем файлом, и сохранять присланное
+      в файл только ради того, чтобы тут же выбрать его в диалоге, — лишний
+      круг. Форма занимает место списка, а не всплывает над ним: тот же
+      компонент встанет на вкладку «Воркфлоу» у сборки, где поверх нашего
+      HTML лежит нативное окно ComfyUI и всплыть физически не над чем.
+      Имя спрашивается сразу: у текста из буфера его нет, а придумывать
+      за пользователя «workflow (3)» значит гарантировать свалку.
+    </p>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item"><span>Общие модели</span></div>
+                <div class="nav-item on"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content">
+                <div class="row">
+                  <h3>Библиотека воркфлоу</h3>
+                  <span class="spacer"></span>
+                  <div class="path-row grow">
+                    <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                </div>
+
+                <div class="paste">
+                  <div class="field">
+                    <label>Имя</label>
+                    <div class="input"><span>portrait-v3</span></div>
+                    <!-- Расширение дописывается само: набранное руками
+                         «.jsn» или «.json.json» — не выбор пользователя,
+                         а описка, и ловить её вопросом незачем. -->
+                    <div class="hint">Сохранится как portrait-v3.json</div>
+                  </div>
+                  <div class="field">
+                    <label>JSON воркфлоу</label>
+<div class="input area mono">{"last_node_id": 42, "last_link_id": 61, "nodes": [{"id": 1, "type": "CheckpointLoaderSimple", "pos": [80, 120], "widgets_values": ["sd_xl_base_1.0.safetensors"]}, {"id": 2, "type": "CLIPTextEncode", …</div>
+                    <!-- Разбор идёт по ходу набора, а не по нажатию:
+                         «Сохранить» на неразобранном тексте — это вопрос,
+                         ответ на который уже известен. -->
+                    <div class="hint">Разобрано: 27 нод · IPAdapterUnifiedLoader и ещё 12 типов</div>
+                  </div>
+                  <div class="row">
+                    <span class="btn primary">Сохранить в библиотеку</span>
+                    <span class="btn ghost">Отмена</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><b>В буфере не воркфлоу</b><span>отказ на месте, до записи файла</span></div>
+    <div class="frame">
+      <div class="win t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win collapsed">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item"><span>Общие модели</span></div>
+                <div class="nav-item on"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content">
+                <div class="row">
+                  <h3>Библиотека воркфлоу</h3>
+                  <span class="spacer"></span>
+                  <div class="path-row grow">
+                    <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                </div>
+
+                <div class="paste">
+                  <div class="field">
+                    <label>Имя</label>
+                    <!-- Занятое имя — не ошибка ввода: файл в библиотеке
+                         не перезаписывается никогда, и сказать об этом
+                         надо до нажатия, а не после. -->
+                    <div class="input bad"><span>portrait-v3</span></div>
+                    <div class="hint bad">portrait-v3.json в библиотеке уже есть. Заменить нечем: выберите другое имя.</div>
+                  </div>
+                  <div class="field">
+                    <label>JSON воркфлоу</label>
+<div class="input area mono bad">{"prompt": "закат над морем", "steps": 30}</div>
+                    <div class="hint bad">Это JSON, но не воркфлоу: в нём нет узлов. Ничего не сохранено.</div>
+                  </div>
+                  <div class="row">
+                    <span class="btn primary" aria-disabled="true">Сохранить в библиотеку</span>
+                    <span class="btn ghost">Отмена</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двести воркфлоу; список разделов и панель деталей не уезжают вместе со списком</span></div>
+    <div class="frame" data-scroll>
+      <div class="win fixed t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены · 8</div>
+            <div class="nav-runs">
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+            </div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item"><span>Общие модели</span></div>
+                <div class="nav-item on"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content flush framed no-foot">
+                <div class="lib-head">
+                  <h3>Библиотека воркфлоу</h3>
+                  <div class="path-row grow">
+                    <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
+                    <span class="btn secondary">Обзор</span>
+                  </div>
+                  <span class="btn secondary">Добавить файл</span>
+                  <span class="btn secondary">Вставить из буфера</span>
+                </div>
+                <div class="split-master">
+                  <div class="pane">
+                    <div class="pane-head">
+                      <div class="input search"><span>Поиск по имени и тегам</span></div>
+                      <span class="btn ghost"><span class="star off">★</span></span>
+                    </div>
+                    <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                      <template data-repeat="3">
+                        <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">video / ltx-basic.json</span><span class="tags"><span class="tag">video</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">sdxl / controlnet-depth.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                        <div class="wf-row"><span class="mark on">✓</span><span class="star">★</span><span class="nm">sdxl / img2img-refine.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
+                        <div class="wf-row"><span class="mark"></span><span class="star off">★</span><span class="nm">flux / lora-stack.json</span><span class="tags"><span class="tag">flux</span></span></div>
+                      </template>
+                    </div></div>
+                    <div class="pane-foot"><span class="t-label">214 воркфлоу</span></div>
+                  </div>
+                  <div class="pane">
+                    <div class="pane-head"><span class="title">portrait-v3.json</span><span class="star lg">★</span></div>
+                    <div class="tabs">
+                      <span aria-selected="true">Где откроется</span>
+                      <span>Заметка</span>
+                      <span>Теги <span class="n">1</span></span>
+                    </div>
+                    <div class="scroll"><div class="scroll-pad">
+                      <div class="compat">
+                        <template data-repeat="4">
+                          <div class="compat-row ok"><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">SDXL</span><span class="compat-note">ок</span></div>
+                          <div class="compat-row warn"><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Flux тест</span><span class="compat-note">нет 2</span></div>
+                          <div class="compat-row"><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="act"><svg class="ico"><use href="#i-plus"/></svg></span><span class="nm">Эксперименты</span><span class="compat-note">неизвестно</span></div>
+                        </template>
+                      </div>
+                    </div></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2809,7 +3222,6 @@ Loading custom nodes: 47 found
           <nav class="nav in-win">
             <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
-            <div class="nav-item"><svg class="ico"><use href="#i-wf"/></svg><span>Библиотека</span></div>
             <div class="nav-item"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
             <div class="nav-item on"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
           </nav>

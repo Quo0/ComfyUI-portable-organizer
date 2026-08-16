@@ -114,6 +114,67 @@ pub fn write_manifest(root: &Path, manifest: &Manifest) -> Result<(), AppError> 
         .map_err(|e| AppError::because("workflows.manifestWriteFailed", e))
 }
 
+/// Что лежит в библиотеке под тем же именем.
+///
+/// `None` снаружи означает «имени в библиотеке нет вовсе» — забирать можно
+/// без разговоров.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub enum LibraryMatch {
+    /// Тот же воркфлоу. Забирать нечего, он уже там.
+    Same,
+    /// Имя занято, а содержимое разошлось. Это **разные работы**,
+    /// и молча приравнивать их одну к другой нельзя.
+    Diverged,
+}
+
+/// Воркфлоу сборки вместе с вердиктом по библиотеке.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct InstanceWorkflow {
+    pub path: String,
+    pub library: Option<LibraryMatch>,
+}
+
+/// Где у сборки лежат её воркфлоу.
+///
+/// Отдельно от списка, а не полем в нём: у запущенной сборки список
+/// приходит по HTTP и папки не касается вовсе, а показать её в проводнике
+/// нужно одинаково в обоих случаях.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct InstanceWorkflowsDir {
+    pub path: String,
+    /// Папки может не быть: ComfyUI заводит её лениво, при первом
+    /// сохранении. Это не ошибка — просто показывать нечего.
+    pub available: bool,
+}
+
+/// Один ли это воркфлоу.
+///
+/// Сначала байты, потом разобранный JSON, и второй шаг обязателен:
+/// ComfyUI переписывает файл при каждом сохранении — меняются отступы,
+/// порядок ключей, координаты нод округляются иначе. Без сверки по графу
+/// почти любой уже забранный воркфлоу объявлялся бы разошедшимся, а цена
+/// такой ошибки — лишняя копия в библиотеке под именем «(2)».
+///
+/// Полное чтение здесь по карману: воркфлоу это килобайты, а не модели
+/// по двадцать гигабайт, и хитрости со сверкой краёв тут не нужны.
+pub fn same_workflow(a: &str, b: &str) -> bool {
+    if a == b {
+        return true;
+    }
+    match (
+        serde_json::from_str::<serde_json::Value>(a),
+        serde_json::from_str::<serde_json::Value>(b),
+    ) {
+        (Ok(x), Ok(y)) => x == y,
+        // Хоть один не разобрался — сверять нечем. Пусть решает
+        // пользователь: «разошлись» оставляет кнопку рабочей.
+        _ => false,
+    }
+}
+
 /// Классы нод графа.
 ///
 /// `None` означает «это не воркфлоу»: либо JSON не разобрался, либо в нём
@@ -300,6 +361,43 @@ fn relative(root: &Path, path: &Path) -> String {
 /// Имя для показа: путь без расширения.
 fn display_name(rel: &str) -> String {
     rel.strip_suffix(".json").unwrap_or(rel).to_string()
+}
+
+/// Имя файла из того, что набрал пользователь.
+///
+/// Нужно там, где имя приходит не от файловой системы, а из поля ввода:
+/// у графа, вставленного текстом, своего имени нет вовсе.
+///
+/// `None` — имя не годится, и разбираться дальше нечего. Отсев жёсткий
+/// намеренно: имя попадает в путь, и `..\..\` в нём — это запись мимо
+/// библиотеки. Разделители пути отвергаются целиком, а не вырезаются:
+/// молча превратить `sdxl/base` в `sdxlbase` значит сохранить не туда,
+/// куда просили, и не сказать об этом.
+pub fn file_name_from_input(input: &str) -> Option<String> {
+    let name = input.trim();
+    // Расширение снимается и возвращается своё: набранное руками «.jsn»
+    // или «.json.json» — описка, а не выбор.
+    let stem = name
+        .strip_suffix(".json")
+        .or_else(|| name.strip_suffix(".JSON"))
+        .unwrap_or(name)
+        .trim_end();
+
+    if stem.is_empty() {
+        return None;
+    }
+    // Запрещённое в именах файлов Windows плюс точка в начале и в конце:
+    // первая прячет файл в проводнике, вторая молча отбрасывается самой ОС.
+    const FORBIDDEN: &[char] = &['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
+    if stem.contains(FORBIDDEN)
+        || stem.chars().any(|c| (c as u32) < 0x20)
+        || stem.starts_with('.')
+        || stem.ends_with('.')
+    {
+        return None;
+    }
+
+    Some(format!("{stem}.json"))
 }
 
 /// Размер и время правки. `f64` — по тому же ограничению specta на целые.

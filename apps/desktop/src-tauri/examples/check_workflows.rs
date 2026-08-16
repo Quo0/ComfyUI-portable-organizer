@@ -324,6 +324,47 @@ fn main() {
         profiles::output_dir(&outputs, instance).display().to_string(),
     );
 
+    // Имя из поля ввода: у графа, вставленного текстом, своего имени нет,
+    // а набранное попадает в путь — значит, проверяется, а не доверяется.
+    let named = |input: &str| workflows::file_name_from_input(input);
+    check(
+        "расширение дописывается само",
+        named("portrait-v3").as_deref() == Some("portrait-v3.json"),
+        format!("{:?}", named("portrait-v3")),
+    );
+    check(
+        "набранное .json не удваивается",
+        named("portrait-v3.json").as_deref() == Some("portrait-v3.json"),
+        format!("{:?}", named("portrait-v3.json")),
+    );
+    check(
+        "пробелы по краям срезаются",
+        named("  ночной город  ").as_deref() == Some("ночной город.json"),
+        format!("{:?}", named("  ночной город  ")),
+    );
+    check(
+        "пустое имя отвергнуто",
+        named("   ").is_none() && named(".json").is_none(),
+        String::new(),
+    );
+    check(
+        "выход за библиотеку отвергнут",
+        named(r"..\..\evil").is_none() && named("sdxl/base").is_none(),
+        String::new(),
+    );
+    check(
+        "запрещённые в Windows знаки отвергнуты",
+        [r#"a:b"#, "a*b", "a?b", "a\"b", "a<b", "a>b", "a|b", "a\nb"]
+            .iter()
+            .all(|n| named(n).is_none()),
+        String::new(),
+    );
+    check(
+        "точка по краям отвергнута",
+        named(".скрытый").is_none() && named("хвост.").is_none(),
+        String::new(),
+    );
+
     println!("\nПроверок провалено: {failures}");
     if failures > 0 {
         std::process::exit(1);
