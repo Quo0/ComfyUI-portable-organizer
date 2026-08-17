@@ -8,6 +8,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 
+import EmptyNote from '../../components/EmptyNote.vue';
 import { commands, events, type DuplicatesReport } from '../../bindings';
 import { useFormat } from '../../lib/format';
 import { useUiStore } from '../../stores/ui';
@@ -117,7 +118,7 @@ async function cancel(): Promise<void> {
             </div>
             <p class="hint">{{ t('dups.noAction') }}</p>
           </div>
-          <p v-else-if="!scanning" class="hint">{{ t('dups.empty') }}</p>
+          <EmptyNote v-else-if="!scanning">{{ t('dups.empty') }}</EmptyNote>
 
           <div v-if="report.nameClashes.length" class="group">
             <span class="t-label">{{ t('dups.clashes') }}</span>
@@ -146,38 +147,3 @@ async function cancel(): Promise<void> {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Отступы у строк обязательны: без них содержимое упирается в рамку
-   и читается как обрезанное. */
-.dup-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.dup-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1.2fr);
-  gap: var(--space-3);
-  align-items: center;
-  background: var(--surface);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
-}
-
-.dup-row .nm,
-.dup-row .where {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dup-row .t-mono {
-  font-variant-numeric: tabular-nums;
-}
-</style>

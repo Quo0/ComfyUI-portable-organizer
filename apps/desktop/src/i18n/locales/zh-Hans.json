@@ -485,10 +485,20 @@
     "star": "加入收藏",
     "unstar": "取消收藏",
     "add": {
+      "action": "添加",
       "file": "添加文件",
       "done": "已加入库",
       "drop": "松开以添加",
       "dropped": "已添加 {n} 个工作流"
+    },
+    "openInInstance": "在「工作流」标签页中打开 {name}",
+    "multi": {
+      "action": "多选",
+      "title": "多选",
+      "push": "添加"
+    },
+    "pick": {
+      "all": "全部安装"
     },
     "refresh": "刷新",
     "push": {
@@ -517,12 +527,12 @@
     },
     "bulk": {
       "title": "已标记 {n} 个工作流",
-      "into": "放入这里",
-      "toAll": "放入全部 {n} 个安装",
-      "clear": "清除标记",
-      "progress": "已完成 {done}/{total}",
+      "progress": "已完成 {done}/{total} 项操作",
       "failed": "有 {n} 项未完成",
-      "mark": "标记以进行批量操作"
+      "done": "完成 — 所有文件均已就位。",
+      "stopped": "已停止。已复制的文件保持不变。",
+      "nameTaken": "该整合包中已有同名工作流，未做改动",
+      "replaceHint": "如需替换，请单独添加 — 覆盖前应用会先询问。"
     },
     "side": {
       "where": "可在何处打开",

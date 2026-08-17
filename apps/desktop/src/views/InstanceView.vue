@@ -10,9 +10,10 @@
 // и кнопкой запуска закреплена: она нужна на любой вкладке.
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
+import EmptyNote from '../components/EmptyNote.vue';
 import InstanceFields from '../components/InstanceFields.vue';
 import LaunchControls from '../components/LaunchControls.vue';
 import LaunchNotices from '../components/LaunchNotices.vue';
@@ -43,7 +44,23 @@ const { bytes, moment } = useFormat();
 type Tab = 'overview' | 'models' | 'workflows' | 'settings';
 const TABS: Tab[] = ['overview', 'models', 'workflows', 'settings'];
 
-const tab = ref<Tab>('overview');
+/**
+ * Начальная вкладка берётся из адреса: `?tab=workflows`.
+ *
+ * Единственное место во всём приложении, где используется query, и это
+ * осознанно. Вкладка — состояние вида, а не отдельная страница: своего
+ * роута она не заслуживает, а `/instances/:id/tab` уже занят встроенным
+ * вебвью ComfyUI и к разделам отношения не имеет.
+ *
+ * Чужое значение молча игнорируется: адрес приходит и из библиотеки,
+ * и из сохранённого адреса окна, и падать из-за опечатки в нём экран
+ * сборки не должен.
+ */
+function tabFromQuery(value: unknown): Tab {
+  return TABS.includes(value as Tab) ? (value as Tab) : 'overview';
+}
+
+const tab = ref<Tab>(tabFromQuery(useRoute().query.tab));
 /** Лог занимает всю область данных, а не висит куском посреди свитка. */
 const logOpen = ref(false);
 /**
@@ -233,7 +250,7 @@ function openFolder(): void {
       </div>
       <div class="log">
         <LogConsole v-if="lines.length" :lines="lines" />
-        <p v-else class="hint">{{ t('run.empty') }}</p>
+        <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
       </div>
     </div>
 

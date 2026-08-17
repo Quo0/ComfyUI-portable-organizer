@@ -123,11 +123,4 @@ function openInBrowser(): void {
   padding: 0 var(--space-5);
 }
 
-.banner .spacer {
-  margin-left: auto;
-}
-
-.banner p {
-  margin: 0;
-}
 </style>

@@ -10,6 +10,7 @@
 import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import EmptyNote from '../../components/EmptyNote.vue';
 import OpenFolderButton from '../../components/OpenFolderButton.vue';
 import PathText from '../../components/PathText.vue';
 import { useFormat } from '../../lib/format';
@@ -32,7 +33,10 @@ onMounted(() => void installer.loadHistory());
       <div class="screen-pad">
         <p class="t-sm">{{ t('archives.lead') }}</p>
 
-        <div v-if="installer.history.length" class="paths">
+        <!-- `with-acts`: у каждой строки есть действия, и сетка у списка
+             своя. Модификатор на списке, а не на строке — он один на все
+             строки разом. -->
+        <div v-if="installer.history.length" class="paths with-acts">
           <div
             v-for="record in installer.history"
             :key="record.path"
@@ -67,35 +71,8 @@ onMounted(() => void installer.loadHistory());
           </div>
         </div>
 
-        <p v-else class="hint">{{ t('archives.empty') }}</p>
+        <EmptyNote v-else>{{ t('archives.empty') }}</EmptyNote>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* Третья колонка под действия: у списка «подпись — значение» их нет,
-   а здесь строка кликабельна в двух местах. */
-.path-item {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-}
-
-.path-item .lbl {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.path-item .lbl .hint {
-  font-family: var(--font-mono);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.acts {
-  display: flex;
-  gap: var(--space-2);
-}
-</style>

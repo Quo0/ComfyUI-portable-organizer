@@ -485,10 +485,20 @@
     "star": "Add to favourites",
     "unstar": "Remove from favourites",
     "add": {
+      "action": "Add",
       "file": "Add a file",
       "done": "Added to the library",
       "drop": "Drop to add",
       "dropped": "{n} workflow added | {n} workflows added"
+    },
+    "openInInstance": "Open {name} on its Workflows tab",
+    "multi": {
+      "action": "Multiple selection",
+      "title": "Multiple selection",
+      "push": "Add"
+    },
+    "pick": {
+      "all": "All builds"
     },
     "refresh": "Refresh",
     "push": {
@@ -517,12 +527,12 @@
     },
     "bulk": {
       "title": "{n} workflow marked | {n} workflows marked",
-      "into": "put them here",
-      "toAll": "Into all {n} builds",
-      "clear": "Clear the marks",
-      "progress": "{done} of {total} done",
+      "progress": "{done} of {total} operations completed",
       "failed": "{n} did not go through | {n} did not go through",
-      "mark": "Mark for a bulk action"
+      "done": "Done — every file is in place.",
+      "stopped": "Stopped. Whatever was already copied stays in place.",
+      "nameTaken": "the build already has a workflow with this name, so it was left untouched",
+      "replaceHint": "To replace one, add it on its own — the app asks before overwriting."
     },
     "side": {
       "where": "Where it opens",

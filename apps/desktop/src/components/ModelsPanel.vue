@@ -23,6 +23,7 @@ import {
   type ModelEntry,
   type ModelsScan,
 } from '../bindings';
+import EmptyNote from './EmptyNote.vue';
 import OpenFolderButton from './OpenFolderButton.vue';
 import { displayStatus } from '../lib/status';
 import { useFormat } from '../lib/format';
@@ -460,8 +461,8 @@ async function cleanup(): Promise<void> {
       <!-- Не пустой экран, а строка состояния внутри отдела: заголовок
            «Модели этой сборки» с кнопкой папки остаётся на месте, и крупный
            блок пустоты под ним выглядел бы отдельным экраном, приехавшим
-           в середину вкладки. Поэтому `hint`, а не `empty`. -->
-      <p v-else class="hint">{{ t('migrate.empty') }}</p>
+           в середину вкладки. Ровно за этим и заведён `EmptyNote`. -->
+      <EmptyNote v-else>{{ t('migrate.empty') }}</EmptyNote>
 
       <!-- Отчёт о переносе. Что не поехало и почему — уже в списках выше,
            здесь только итог и сбои. -->

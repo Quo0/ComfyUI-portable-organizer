@@ -179,17 +179,76 @@ export const useWorkflowsStore = defineStore('workflows', () => {
 
   // --- массовые операции --------------------------------------------------
 
-  /** Отмеченные для массовой операции. */
+  /**
+   * Режим множественного выбора.
+   *
+   * Объявляется явно, а не выводится из наличия отметок. Пока признаком
+   * режима было «отмечено хоть что-то», попасть в него можно было только
+   * случайно — ткнув в маленький квадратик, который висел в каждой строке
+   * всегда, — и правая панель при этом оказывалась в двух режимах разом:
+   * заголовок про один воркфлоу, тело под ним про все отмеченные.
+   */
+  const multi = ref(false);
+
+  /** Отмеченные воркфлоу. */
   const marked = ref<Set<string>>(new Set());
 
+  /** Отмеченные сборки: куда класть отмеченное. */
+  const markedTargets = ref<Set<string>>(new Set());
+
+  /**
+   * Отметить воркфлоу или снять отметку.
+   *
+   * Заодно убирает отчёт о прошлой записи — ровно так же, как убрала бы
+   * его кнопка «Закрыть». Отчёт рассказывает про тот набор, который был
+   * отмечен в момент запуска; стоит тронуть отбор, и он говорит о том,
+   * чего на экране уже нет, — а на его месте не видно списка сборок,
+   * то есть следующий шаг закрыт устаревшим ответом на прошлый вопрос.
+   *
+   * Идущей операции это не касается: её отчёт живой, и убирать его
+   * с экрана значило бы прятать запись, которая прямо сейчас идёт.
+   * На сам ход операции отметки не влияют — набор снят в начале.
+   */
   function toggleMark(rel: string): void {
+    if (bulk.value && !bulk.value.running) clearBulk();
     const next = new Set(marked.value);
     if (!next.delete(rel)) next.add(rel);
     marked.value = next;
   }
 
+  function toggleTarget(id: string): void {
+    const next = new Set(markedTargets.value);
+    if (!next.delete(id)) next.add(id);
+    markedTargets.value = next;
+  }
+
+  /** Отметить все сборки разом или снять со всех. */
+  function setTargets(ids: string[]): void {
+    markedTargets.value = new Set(ids);
+  }
+
   function clearMarks(): void {
     marked.value = new Set();
+    markedTargets.value = new Set();
+  }
+
+  /**
+   * Вход и выход из режима.
+   *
+   * Выход чистит обе отметки: невидимый выбор, доживший до следующего
+   * включения, — это чужое решение, принятое неизвестно когда.
+   *
+   * И прерывает операцию, если она идёт. Без этого выход из режима убирал
+   * бы с экрана отчёт, а запись файлов продолжалась бы дальше — молча
+   * и без единого способа её остановить.
+   */
+  function setMulti(on: boolean): void {
+    multi.value = on;
+    if (!on) {
+      cancel();
+      clearMarks();
+      clearBulk();
+    }
   }
 
   /**
@@ -203,7 +262,29 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     done: number;
     total: number;
     ok: string[];
-    failed: { name: string; reason: string }[];
+    /**
+     * Что не прошло и почему.
+     *
+     * Пара хранится разобранной, а не склеенной в строку: сборка нужна
+     * отчёту по своему опознавателю, а показывать её надо по имени —
+     * опознаватель вида `i1786962802438` не говорит читающему ничего.
+     *
+     * `error` — ошибка бэкенда как есть, вместе с подстановками: без них
+     * от «нет доступа к {path}» остаётся полсообщения. `null` означает
+     * занятое имя: это не ошибка, а развилка, на которую в массовой
+     * операции никто не отвечает — двадцать вопросов подряд задавать
+     * нельзя, поэтому пара откладывается в отчёт нетронутой.
+     */
+    failed: { workflow: string; instanceId: string; error: AppError | null }[];
+    /**
+     * Операция ещё идёт.
+     *
+     * Отдельный признак, а не `done < total`. По этому сравнению прерванная
+     * операция навсегда оставалась «идущей»: отчёт после отмены нечем было
+     * закрыть, кнопка предлагала отменить уже отменённое, и выйти из этого
+     * состояния можно было только сняв отметки по одной.
+     */
+    running: boolean;
   } | null>(null);
 
   /** Прерывание. Уже добавленное остаётся на месте — откатывать нечего. */
@@ -225,23 +306,53 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     if (rels.length === 0 || instanceIds.length === 0) return;
 
     cancelBulk = false;
-    bulk.value = { done: 0, total: rels.length * instanceIds.length, ok: [], failed: [] };
+    bulk.value = {
+      done: 0,
+      // Пар, а не воркфлоу: два воркфлоу в две сборки — это четыре файла,
+      // и считать их надо поштучно, иначе полоса врёт вдвое.
+      total: rels.length * instanceIds.length,
+      ok: [],
+      failed: [],
+      running: true,
+    };
 
-    for (const rel of rels) {
-      for (const id of instanceIds) {
-        if (cancelBulk) return;
-        const res = await commands.pushWorkflow(id, path.value, rel, false);
-        const label = `${rel} → ${id}`;
-        if (res.status === 'error') {
-          bulk.value.failed.push({ name: label, reason: res.error.code });
-        } else if (res.data === 'conflict') {
-          bulk.value.failed.push({ name: label, reason: 'workflows.nameTaken' });
-        } else {
-          bulk.value.ok.push(label);
+    // Работаем через `bulk.value`, а не через ссылку на объект, которым
+    // его наполнили. `ref` заворачивает присвоенный объект в reactive-прокси,
+    // и запись мимо прокси — прямо в исходный объект — экран не обновляет:
+    // счётчик и полоса замирают на нуле, а кнопка навсегда остаётся
+    // «Отмена», хотя запись давно прошла. Отчёт при этом врал в худшую
+    // сторону — показывал незавершённой законченную операцию.
+    const state = bulk.value;
+
+    try {
+      for (const rel of rels) {
+        for (const id of instanceIds) {
+          if (cancelBulk) return;
+          const res = await commands.pushWorkflow(id, path.value, rel, false);
+          if (res.status === 'error') {
+            state.failed.push({ workflow: rel, instanceId: id, error: res.error });
+          } else if (res.data === 'conflict') {
+            state.failed.push({ workflow: rel, instanceId: id, error: null });
+          } else {
+            state.ok.push(`${rel} → ${id}`);
+          }
+          state.done += 1;
         }
-        bulk.value.done += 1;
       }
+    } finally {
+      // Снимается и при отмене, и при отказе: отчёт остаётся на экране,
+      // но операции за ним больше нет.
+      state.running = false;
     }
+
+    // Совместимость считается по файловой системе и после записи устарела:
+    // без пересчёта сборки, куда только что положили, выглядели бы пустыми.
+    if (state.ok.length > 0 && selected.value) await select(selected.value);
+
+    // Отметки снимаются только когда всё прошло. Неудачи остаются
+    // выбранными: разбираться с ними — следующее действие пользователя,
+    // и отбирать их заново после отчёта незачем.
+    if (state.failed.length === 0 && !cancelBulk) clearMarks();
   }
 
   function clearBulk(): void {
@@ -301,8 +412,13 @@ export const useWorkflowsStore = defineStore('workflows', () => {
     forget,
     addFile,
     addText,
+    multi,
+    setMulti,
     marked,
     toggleMark,
+    markedTargets,
+    toggleTarget,
+    setTargets,
     clearMarks,
     bulk,
     pushMany,

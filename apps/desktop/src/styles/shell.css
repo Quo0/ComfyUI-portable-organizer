@@ -229,24 +229,9 @@ a {
   pointer-events: auto;
 }
 
-.toast-head .close {
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-
-.toast-details {
-  margin: 0;
-  padding: var(--space-2);
-  max-height: 160px;
-  overflow: auto;
-  background: var(--surface-sunken);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
+/* Сам тост, его крестик и блок подробностей описаны в дизайн-системе:
+   это компонент, и макеты обязаны показывать его таким же. Здесь осталось
+   только место стопки — оно зависит от раскладки окна, а не от тоста. */
 
 /* ------------------------------------------------------- пустой раздел */
 /* Заглушка ненаписанного раздела. Текст ведущий, а не «скоро будет»:

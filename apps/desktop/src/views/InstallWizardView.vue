@@ -7,6 +7,7 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
+import EmptyNote from '../components/EmptyNote.vue';
 import PathPicker from '../components/PathPicker.vue';
 import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
@@ -475,7 +476,7 @@ const needed = computed(() =>
                   </TargetForm>
                 </template>
               </div>
-              <p v-else class="hint">{{ t('install.targets.empty') }}</p>
+              <EmptyNote v-else>{{ t('install.targets.empty') }}</EmptyNote>
 
               <!-- Ошибка на уже добавленном назначении: место на диске
                    могло кончиться после того, как его добавили. -->

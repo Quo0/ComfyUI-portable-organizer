@@ -13,6 +13,7 @@ import {
   type InstanceWorkflow,
   type InstanceWorkflowsDir,
 } from '../bindings';
+import EmptyNote from './EmptyNote.vue';
 import OpenFolderButton from './OpenFolderButton.vue';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
@@ -186,7 +187,7 @@ async function pull(entry: InstanceWorkflow): Promise<void> {
       </div>
     </div>
 
-    <p v-else class="empty">{{ t('library.instance.empty') }}</p>
+    <EmptyNote v-else>{{ t('library.instance.empty') }}</EmptyNote>
 
     <!-- Что кнопка уносит файл из сборки, сказано словами и заранее:
          узнать это по исчезнувшей строке — худший из способов. -->

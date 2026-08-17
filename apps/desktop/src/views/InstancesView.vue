@@ -6,6 +6,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import EmptyNote from '../components/EmptyNote.vue';
 import InstallForks from '../components/InstallForks.vue';
 import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
@@ -167,9 +168,9 @@ onMounted(() => {
           </RouterLink>
         </div>
 
-        <p v-else-if="instances.items.length" class="hint">
+        <EmptyNote v-else-if="instances.items.length">
           {{ t('instances.nothingFound') }}
-        </p>
+        </EmptyNote>
 
         <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние.
              Поэтому здесь не ссылка на «Установку», а сама развилка: у того,

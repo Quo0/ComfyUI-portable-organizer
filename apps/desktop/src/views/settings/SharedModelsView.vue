@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import EmptyNote from '../../components/EmptyNote.vue';
 import PathPicker from '../../components/PathPicker.vue';
 import { useFormat } from '../../lib/format';
 import { useInstancesStore } from '../../stores/instances';
@@ -146,7 +147,7 @@ async function applyPending(): Promise<void> {
 
           <!-- Пустой корень — не ошибка: папку задают заранее, до того
                как в ней появятся модели. -->
-          <p v-else class="empty">{{ t('shared.root.noCategories') }}</p>
+          <EmptyNote v-else>{{ t('shared.root.noCategories') }}</EmptyNote>
 
           <p v-if="shared.blocked.length" class="hint">{{ t('shared.cat.whyBlocked') }}</p>
 

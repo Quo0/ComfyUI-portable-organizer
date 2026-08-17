@@ -485,10 +485,20 @@
     "star": "Añadir a favoritos",
     "unstar": "Quitar de favoritos",
     "add": {
+      "action": "Añadir",
       "file": "Añadir un archivo",
       "done": "Añadido a la biblioteca",
       "drop": "Suelte para añadir",
       "dropped": "{n} flujo añadido | {n} flujos añadidos"
+    },
+    "openInInstance": "Abrir {name} en su pestaña «Flujos de trabajo»",
+    "multi": {
+      "action": "Selección múltiple",
+      "title": "Selección múltiple",
+      "push": "Añadir"
+    },
+    "pick": {
+      "all": "Todas las instalaciones"
     },
     "refresh": "Actualizar",
     "push": {
@@ -517,12 +527,12 @@
     },
     "bulk": {
       "title": "{n} flujo marcado | {n} flujos marcados",
-      "into": "colocarlos aquí",
-      "toAll": "En las {n} instalaciones",
-      "clear": "Quitar las marcas",
-      "progress": "{done} de {total} hechos",
+      "progress": "{done} de {total} operaciones completadas",
       "failed": "{n} no se completó | {n} no se completaron",
-      "mark": "Marcar para una acción en lote"
+      "done": "Listo: todos los archivos están en su sitio.",
+      "stopped": "Detenido. Lo que ya se copió permanece en su sitio.",
+      "nameTaken": "la instalación ya tiene un flujo con este nombre y se dejó intacto",
+      "replaceHint": "Para reemplazar alguno, añádelo por separado: la aplicación pregunta antes de sobrescribir."
     },
     "side": {
       "where": "Dónde se abre",

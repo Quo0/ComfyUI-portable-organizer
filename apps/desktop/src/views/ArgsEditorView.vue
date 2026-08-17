@@ -11,6 +11,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import EmptyNote from '../components/EmptyNote.vue';
 import { commands, type CustomProfile, type LaunchProfile } from '../bindings';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
@@ -180,7 +181,7 @@ async function remove(profile: CustomProfile): Promise<void> {
               </button>
             </div>
           </div>
-          <p v-else class="hint">{{ t('args.none') }}</p>
+          <EmptyNote v-else>{{ t('args.none') }}</EmptyNote>
         </div>
 
         <div class="two">

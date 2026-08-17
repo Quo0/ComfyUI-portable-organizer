@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
 
+import EmptyNote from '../components/EmptyNote.vue';
 import LogConsole from '../components/LogConsole.vue';
 import StatusPill from '../components/StatusPill.vue';
 import { commands, type AppError } from '../bindings';
@@ -278,7 +279,7 @@ function fail(error: AppError): void {
          поверх нативного окна невозможно. -->
     <div v-if="showLog" class="log tab-log">
       <LogConsole v-if="lines.length" :lines="lines" />
-      <p v-else class="hint">{{ t('run.empty') }}</p>
+      <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
     </div>
   </section>
 </template>
@@ -308,12 +309,9 @@ function fail(error: AppError): void {
   padding: var(--space-3);
 }
 
+/* Только внешние поля: вид баннера — в дизайн-системе. */
 .banner {
   margin: var(--space-2) var(--space-3);
-}
-
-.banner .spacer {
-  margin-left: auto;
 }
 
 .waiting {
