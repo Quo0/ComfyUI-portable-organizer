@@ -126,14 +126,49 @@
 .win.fixed { height: 560px; display: grid; grid-template-rows: auto minmax(0, 1fr); }
 .win.fixed .win-body { min-height: 0; overflow: hidden; }
 .win.fixed .content { min-height: 0; }
+
+/* Кадр в размер настоящего монитора.
+ *
+ * Кадры выше — 940 на 560: в них видно компоновку, но не видно, что с
+ * экраном делает большой монитор, а разворачивают приложение именно на нём.
+ * Окно верстается в настоящих 1920 на 1080 и вписывается в страницу
+ * уменьшением: уменьшается всё разом, поэтому соотношение текста и места
+ * остаётся настоящим — в отличие от простого сужения окна, где текст
+ * остался бы прежнего размера и кадр врал бы о плотности.
+ *
+ * Обёртке высота нужна отдельно: `transform` в раскладке не участвует,
+ * и без неё кадр налез бы на следующую секцию. Она же обрезает вылезающий
+ * за неё блок окна — тот остаётся шириной в 1920 и без обрезки давал бы
+ * горизонтальную прокрутку на всю разницу.
+ *
+ * Читать подписи в уменьшенном кадре можно приближением страницы:
+ * приближается всё вместе, пропорции при этом те же. */
+.frame.hd {
+  --hd: .55;
+  overflow: hidden;
+  height: calc(1080px * var(--hd));
+}
+.frame.hd > .win { transform: scale(var(--hd)); transform-origin: top left; }
+.win.fixed.hd { width: 1920px; height: 1080px; }
+/* На узкой странице кадр обрезался бы справа. Уменьшение тут сильнее —
+   разглядывать такой кадр всё равно придётся приближением. */
+@media (max-width: 1180px) {
+  .frame.hd { --hd: .45; }
+}
 .nav.in-win { border: 0; border-right: 1px solid var(--line); border-radius: 0; height: 100%; min-height: 0; }
 .content { padding: var(--space-4); min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); position: relative; }
 .content.flush { padding: 0; }
-/* Экранный каркас: закреплённый верх, область данных, закреплённый подвал */
-.content.framed { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-3); }
+/* Экранный каркас: закреплённый верх, область данных, закреплённый подвал.
+   Он же контейнер для запросов размера — как `.screen-body` в приложении:
+   раскладка внутри смотрит на ширину экрана, а не страницы. Без этого
+   кадр показывал бы раскладку по ширине страницы образцов, то есть не ту,
+   которую покажет приложение. */
+.content.framed { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-3); container-type: inline-size; }
 .content.framed.no-foot { grid-template-rows: auto minmax(0, 1fr); }
 .screen-foot { display: flex; gap: var(--space-2); justify-content: flex-end; border-top: 1px solid var(--line); padding-top: var(--space-3); }
-.pinned { display: flex; flex-direction: column; gap: var(--space-3); }
+/* .pinned переехал в design/styles/app.css: закреплённая полоса
+   понадобилась приложению — экрану общих моделей, — а отсюда она
+   в приложение не доезжает. */
 .data { min-height: 0; display: flex; flex-direction: column; }
 .data > .scroll { border: 1px solid var(--line); border-radius: var(--radius-md); }
 
@@ -2987,40 +3022,55 @@ Loading custom nodes: 47 found
                 <div class="nav-item"><span>Отчёт по диску</span></div>
                 <div class="nav-item"><span>Архивы установщика</span></div>
               </nav>
-              <!-- Две колонки на широком окне: слева то, что настраивают,
-                   справа то, что этим настройкам отвечает. Одной лентой этот
-                   экран заставлял скроллить при пустой правой половине. -->
-              <div class="content">
-                <h3>Общие модели</h3>
-                <div class="cols">
-                  <div>
-                    <div class="field">
-                      <label>Общий корень моделей</label>
-                      <div class="path-row">
-                        <div class="input mono"><span>D:\AI\_shared\models</span></div>
-                        <span class="btn secondary">Обзор</span>
-                      </div>
-                      <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
+              <!-- Мастер-детейл, а не лента блоков: список категорий — то,
+                   что растёт, а тумблер загрузок и кнопка конфига относятся
+                   к настройке целиком. Корень закреплён над обоими: он адрес
+                   всего, что ниже, и уезжать вместе со списком не должен.
+
+                   Этот кадр — окно по умолчанию, 1100 в ширину: экрану
+                   раздела остаётся под 700, и на такой ширине колонки
+                   схлопнуты в строки — органы стоят над списком. Списку тут дороже
+                   ширина — имена папок моноширинные и не обрезаются. Справа
+                   от списка они встают на мониторе; это отдельный кадр
+                   ниже, в настоящих 1920 на 1080. -->
+              <div class="content framed no-foot">
+                <div class="pinned">
+                  <h3>Общие модели</h3>
+                  <div class="field">
+                    <label>Общий корень моделей</label>
+                    <div class="path-row">
+                      <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                      <span class="btn secondary">Обзор</span>
                     </div>
-                    <div class="cats">
+                    <div class="hint">Распознано 5 категорий · 231 ГБ · подключено 3 инстанса</div>
+                  </div>
+                </div>
+                <div class="split-master shared">
+                  <div class="pane">
+                    <div class="pane-head"><span class="title">Папки категорий</span></div>
+                    <div class="scroll"><div class="scroll-pad" style="gap:1px">
                       <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
                       <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
                       <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
                       <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
                       <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-                    </div>
+                    </div></div>
                   </div>
-                  <div>
+                  <div class="side">
                     <div class="toggle-row">
                       <span class="toggle"></span>
                       <div>
                         <div class="t-base">Скачивать новые модели в общую папку</div>
-                        <div class="hint">Модель, загруженная в одном инстансе, станет видна всем</div>
+                        <div class="hint">Модель, загруженная в одной сборке, станет видна всем.</div>
+                        <div class="hint">Вступает в силу при следующем запуске сборки.</div>
                       </div>
                     </div>
-                    <div class="field">
-                      <label>Что получит ComfyUI</label>
-<div class="console" style="max-height:200px">cpo_shared_0:
+                    <div class="row"><span class="btn ghost" aria-pressed="true">Скрыть сгенерированный конфиг</span></div>
+                    <!-- Конфиг длиннее колонки: он забирает всё, что осталось
+                         под кнопкой, и прокручивается внутри себя. -->
+                    <div class="pane">
+                      <div class="pane-head"><span class="title">extra_model_paths.yaml</span></div>
+                      <div class="scroll"><pre class="console">cpo_shared_0:
   base_path: D:/AI/_shared/models
   is_default: true
   checkpoints: checkpoints/
@@ -3028,8 +3078,7 @@ Loading custom nodes: 47 found
   vae: vae/
   text_encoders: |
     text_encoders/
-    clip/</div>
-                      <div class="hint">Файл перегенерируется при каждом запуске — править его руками незачем</div>
+    clip/</pre></div>
                     </div>
                   </div>
                 </div>
@@ -3039,7 +3088,7 @@ Loading custom nodes: 47 found
         </div>
       </div>
     </div>
-    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двадцать пять категорий; тумблер загрузок закреплён сверху</span></div>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Реальный объём данных</b><span>двадцать пять категорий; корень, тумблер и конфиг закреплены — скроллится только список</span></div>
     <div class="frame" data-scroll>
       <div class="win fixed t-dark">
         <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
@@ -3081,13 +3130,11 @@ Loading custom nodes: 47 found
                     </div>
                     <div class="hint">Распознано 25 категорий · 231 ГБ · подключено 8 инстансов</div>
                   </div>
-                  <div class="toggle-row">
-                    <span class="toggle"></span>
-                    <div><div class="t-base">Скачивать новые модели в общую папку</div></div>
-                  </div>
                 </div>
-                <div class="data">
-                  <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                <div class="split-master shared">
+                  <div class="pane">
+                    <div class="pane-head"><span class="title">Папки категорий</span></div>
+                    <div class="scroll"><div class="scroll-pad" style="gap:1px">
                     <div class="cat"><code>checkpoints</code><span class="n">14 файлов · 187 ГБ</span><span class="tag">распознано</span></div>
                     <div class="cat"><code>loras</code><span class="n">126 файлов · 41 ГБ</span><span class="tag">распознано</span></div>
                     <div class="cat"><code>vae</code><span class="n">6 файлов · 2.1 ГБ</span><span class="tag">распознано</span></div>
@@ -3102,7 +3149,194 @@ Loading custom nodes: 47 found
                     <div class="cat"><code>photomaker</code><span class="n">пусто</span><span class="tag">распознано</span></div>
                     <div class="cat unknown"><code>my_experiments</code><span class="n">3 файла · 0.4 ГБ</span><span class="tag warn">не распознано</span></div>
                     <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
-                  </div></div>
+                    </div></div>
+                  </div>
+                  <!-- Двадцать пять категорий утаскивали тумблер и конфиг
+                       под нижний край: они относятся к настройке целиком,
+                       а не к строке списка, поэтому из прокрутки вынесены
+                       вовсе. На узком экране они стоят над списком, на
+                       мониторе — справа от него. -->
+                  <div class="side">
+                    <div class="toggle-row">
+                      <span class="toggle"></span>
+                      <div>
+                        <div class="t-base">Скачивать новые модели в общую папку</div>
+                        <div class="hint">Модель, загруженная в одной сборке, станет видна всем.</div>
+                        <div class="hint">Вступает в силу при следующем запуске сборки.</div>
+                      </div>
+                    </div>
+                    <div class="row"><span class="btn ghost" aria-pressed="true">Скрыть сгенерированный конфиг</span></div>
+                    <div class="pane">
+                      <div class="pane-head"><span class="title">extra_model_paths.yaml</span></div>
+                      <div class="scroll"><pre class="console">cpo_shared_0:
+  base_path: D:/AI/_shared/models
+  is_default: true
+  checkpoints: checkpoints/
+  loras: loras/
+  vae: vae/
+  controlnet: controlnet/
+  upscale_models: upscale_models/
+  embeddings: embeddings/
+  style_models: style_models/
+  hypernetworks: hypernetworks/
+  photomaker: photomaker/
+  diffusion_models: diffusion_models/
+  clip_vision: clip_vision/
+  text_encoders: |
+    text_encoders/
+    clip/</pre></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="screen">
+    <div class="screen-head">
+      <span class="jtag">J-03 · монитор</span>
+      <h2>Общие модели на мониторе 1920×1080</h2>
+      <span class="jtag">US-SHARED-01</span><span class="jtag">US-SHARED-02</span>
+    </div>
+    <p class="aside">
+      Кадры выше нарисованы в 940 на 560 — это нижняя граница, при которой
+      экран обязан работать. Живёт он не там: сборки ComfyUI держат на машине
+      с большим монитором, и окно на ней развёрнуто. Этот кадр — настоящие
+      1920 на 1080, вписанные в страницу уменьшением, поэтому соотношение
+      текста и места здесь честное. Подписи читаются приближением страницы.
+    </p>
+    <p class="aside">
+      Что доказывает именно этот размер: место, которое даёт монитор, уходит
+      списку категорий, а не растянутым на всю ширину строкам. Корень остаётся
+      на месте сверху, тумблер загрузок и конфиг — справа, и ни один из них
+      не уезжает, сколько бы папок ни было в общей папке. Прокручиваются
+      ровно две области: список и сам конфиг.
+    </p>
+    <div class="variant-head"><span class="scroll-tag">прокрутка</span><b>Тридцать четыре категории</b><span>окно 1920×1080, уменьшено до 55%</span></div>
+    <div class="frame hd" data-scroll>
+      <div class="win fixed hd t-dark">
+        <div class="titlebar"><span>ComfyUI Portable Organizer</span><span class="tb-btns"><span>—</span><span>▢</span><span>✕</span></span></div>
+        <div class="win-body">
+          <nav class="nav in-win">
+            <div class="nav-item"><svg class="ico"><use href="#i-inst"/></svg><span>Инстансы</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-install"/></svg><span>Установка</span></div>
+            <div class="nav-item on"><svg class="ico"><use href="#i-set"/></svg><span>Настройки</span></div>
+            <div class="nav-item"><svg class="ico"><use href="#i-about"/></svg><span>О приложении</span></div>
+            <div class="nav-sep"></div>
+            <div class="nav-note">Запущены · 4</div>
+            <div class="nav-runs">
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
+              <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
+              <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
+            </div>
+          </nav>
+          <div class="content flush">
+            <div class="settings-split">
+              <nav class="settings-sections">
+                <div class="nav-item"><span>Внешний вид</span></div>
+                <div class="nav-item on"><span>Общие модели</span></div>
+                <div class="nav-item"><span>Библиотека воркфлоу</span></div>
+                <div class="nav-item"><span>Отчёт по диску</span></div>
+                <div class="nav-item"><span>Архивы установщика</span></div>
+              </nav>
+              <div class="content framed no-foot">
+                <div class="pinned">
+                  <h3>Общие модели</h3>
+                  <div class="field">
+                    <label>Общий корень моделей</label>
+                    <div class="path-row">
+                      <div class="input mono"><span>D:\AI\_shared\models</span></div>
+                      <span class="btn secondary">Обзор</span>
+                    </div>
+                    <div class="hint">Распознано 32 категории · 604 ГБ · подключено 4 инстанса</div>
+                  </div>
+                </div>
+                <div class="split-master shared">
+                  <div class="pane">
+                    <div class="pane-head"><span class="title">Папки категорий</span></div>
+                    <div class="scroll"><div class="scroll-pad" style="gap:1px">
+                      <div class="cat"><code>checkpoints</code><span class="n">21 файл · 274 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>loras</code><span class="n">312 файлов · 96 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>vae</code><span class="n">9 файлов · 3.4 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>controlnet</code><span class="n">17 файлов · 12 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>text_encoders</code><span class="n">6 файлов · 18 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>clip_vision</code><span class="n">4 файла · 2.6 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>diffusion_models</code><span class="n">8 файлов · 141 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>unet</code><span class="n">2 файла · 11 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>upscale_models</code><span class="n">14 файлов · 1.2 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>embeddings</code><span class="n">61 файл · 0.2 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>style_models</code><span class="n">3 файла · 1.7 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>hypernetworks</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>photomaker</code><span class="n">1 файл · 0.9 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>gligen</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>diffusers</code><span class="n">2 файла · 14 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>configs</code><span class="n">7 файлов · 0.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>vae_approx</code><span class="n">4 файла · 0.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>audio_encoders</code><span class="n">2 файла · 1.4 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>model_patches</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>ipadapter</code><span class="n">11 файлов · 6.3 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>insightface</code><span class="n">3 файла · 0.7 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>instantid</code><span class="n">2 файла · 1.9 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>animatediff_models</code><span class="n">5 файлов · 8.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>animatediff_motion_lora</code><span class="n">12 файлов · 0.9 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>facerestore_models</code><span class="n">4 файла · 1.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>sams</code><span class="n">3 файла · 2.4 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>ultralytics</code><span class="n">9 файлов · 0.3 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>grounding-dino</code><span class="n">2 файла · 0.8 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>onnx</code><span class="n">6 файлов · 0.5 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>LLM</code><span class="n">1 файл · 4.1 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>clip</code><span class="n">пусто</span><span class="tag">распознано</span></div>
+                      <div class="cat"><code>xlabs</code><span class="n">2 файла · 0.6 ГБ</span><span class="tag">распознано</span></div>
+                      <div class="cat unknown"><code>my_experiments</code><span class="n">7 файлов · 1.3 ГБ</span><span class="tag warn">не распознано</span></div>
+                      <div class="cat blocked"><code>custom_nodes</code><span class="n">не шарится</span><span class="tag stop">исключено</span></div>
+                      <!-- Объяснение стоит под списком, которого касается,
+                           и внутри его прокрутки: это сноска к строке,
+                           а не постоянная надпись на экране. -->
+                      <div class="hint">Кастомные ноды не шарятся никогда: отдельные сборки и заведены потому, что ноды конфликтуют между собой.</div>
+                    </div></div>
+                  </div>
+                  <div class="side">
+                    <div class="toggle-row">
+                      <span class="toggle"></span>
+                      <div>
+                        <div class="t-base">Скачивать новые модели в общую папку</div>
+                        <div class="hint">Модель, загруженная в одной сборке, станет видна всем.</div>
+                        <div class="hint">Вступает в силу при следующем запуске сборки.</div>
+                      </div>
+                    </div>
+                    <div class="row"><span class="btn ghost" aria-pressed="true">Скрыть сгенерированный конфиг</span></div>
+                    <div class="pane">
+                      <div class="pane-head"><span class="title">extra_model_paths.yaml</span></div>
+                      <div class="scroll"><pre class="console">cpo_shared_0:
+  base_path: D:/AI/_shared/models
+  is_default: true
+  checkpoints: checkpoints/
+  loras: loras/
+  vae: vae/
+  controlnet: controlnet/
+  clip_vision: clip_vision/
+  diffusion_models: diffusion_models/
+  unet: unet/
+  upscale_models: upscale_models/
+  embeddings: embeddings/
+  style_models: style_models/
+  hypernetworks: hypernetworks/
+  photomaker: photomaker/
+  gligen: gligen/
+  diffusers: diffusers/
+  configs: configs/
+  vae_approx: vae_approx/
+  audio_encoders: audio_encoders/
+  model_patches: model_patches/
+  text_encoders: |
+    text_encoders/
+    clip/</pre></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

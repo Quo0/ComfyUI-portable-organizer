@@ -90,7 +90,7 @@ if (manual) note(`пар, продублированных руками: ${manua
 // Окно фиксированной высоты — единственный способ показать прокрутку.
 // Без него макет просто вырастет, и демонстрировать будет нечего.
 const screens = readFileSync(join(DESIGN_DIR, 'screens.html'), 'utf8');
-const EXPECTED_SCROLL = 7;
+const EXPECTED_SCROLL = 8;
 
 const scrollCount = (screens.match(/data-scroll/g) || []).length;
 if (scrollCount !== EXPECTED_SCROLL) {
@@ -98,7 +98,10 @@ if (scrollCount !== EXPECTED_SCROLL) {
 }
 
 // Каждый такой макет обязан иметь фиксированную высоту и область прокрутки.
-for (const m of screens.matchAll(/<div class="frame" data-scroll>[\s\S]{0,200}?<div class="win([^"]*)"/g)) {
+// Класс кадра ловится целиком: у кадра в размер монитора рядом с `frame`
+// стоит `hd`, и выражение, требовавшее ровно `class="frame"`, такой кадр
+// молча не находило — то есть не проверяло вовсе.
+for (const m of screens.matchAll(/<div class="frame[^"]*" data-scroll>[\s\S]{0,200}?<div class="win([^"]*)"/g)) {
   if (!m[1].includes('fixed')) note('макет с прокруткой без фиксированной высоты окна');
 }
 

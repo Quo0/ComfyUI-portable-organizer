@@ -447,6 +447,9 @@
       "title": "The shared models folder is not available",
       "body": "{path} cannot be reached. Starting now means this build will see only its own models.",
       "startAnyway": "Start without shared models"
+    },
+    "cats": {
+      "title": "Category folders"
     }
   },
   "library": {

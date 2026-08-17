@@ -447,6 +447,9 @@
       "title": "La carpeta de modelos compartidos no está disponible",
       "body": "No se puede acceder a {path}. Iniciar ahora significa que la instalación verá solo sus propios modelos.",
       "startAnyway": "Iniciar sin modelos compartidos"
+    },
+    "cats": {
+      "title": "Carpetas de categorías"
     }
   },
   "library": {
