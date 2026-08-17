@@ -4,10 +4,21 @@
 // Экран отвечает на вопрос, который иначе пришлось бы проверять
 // экспериментом: приложение удаляется штатно, но модели и библиотека
 // весят сотни гигабайт, и бояться за них пользователь не должен.
+//
+// Всё содержимое собрано в списки «подпись — путь — папка», а не в поля
+// с кнопками: полей было шесть, у каждого своя рамка и своя подпись,
+// и экран читался одним полотном одинаковых строк. Блоков теперь три,
+// и каждый обведён: подпись, список строк, одна строка объяснения.
+//
+// Цветом уцелевшее не помечено. Зелёный в этой палитре — цвет работающего
+// процесса, и на списке папок он обещал бы состояние, которого у папки
+// нет вовсе. Границу между «нашим» и «вашим» держат заголовки блоков
+// и строка объяснения под каждым списком.
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { revealItemInDir } from '@tauri-apps/plugin-opener';
 
+import OpenFolderButton from '../components/OpenFolderButton.vue';
+import PathText from '../components/PathText.vue';
 import { useInstancesStore } from '../stores/instances';
 import { useSharedStore } from '../stores/shared';
 import { useWorkflowsStore } from '../stores/workflows';
@@ -28,18 +39,17 @@ onMounted(async () => {
   if (!shared.loaded) await shared.load();
   if (!workflows.loaded) await workflows.load();
 });
-
-// Путь не переводится и не сокращается: по нему пользователь идёт
-// разбираться руками, и обрезанный путь бесполезен.
-function open(path: string): void {
-  if (path) void revealItemInDir(path);
-}
 </script>
 
 <template>
   <section class="screen">
+    <!-- Версия — один факт, а не блок: в шапке она рядом с названием
+         раздела, а место на экране отдано тому, что о папках. -->
     <header class="screen-head">
       <h1 class="t-lg">{{ t('about.title') }}</h1>
+      <span class="lead">
+        {{ t('about.version') }} <span class="t-mono">{{ ui.version }}</span>
+      </span>
     </header>
 
     <div class="screen-body">
@@ -48,106 +58,124 @@ function open(path: string): void {
            между тем, что приложение вправе удалить, и тем, что не вправе. -->
       <div class="screen-pad wide cols">
         <div>
-        <div class="group">
-          <span class="t-label">{{ t('about.version') }}</span>
-          <span class="t-mono">{{ ui.version }}</span>
-        </div>
-
-        <div class="group">
-          <span class="t-label">{{ t('about.paths.title') }}</span>
-
-          <div class="field">
-            <label>{{ t('about.paths.appData') }}</label>
-            <div class="path-row">
-              <div class="input mono"><span>{{ ui.appDataDir }}</span></div>
-              <button type="button" class="btn secondary" @click="open(ui.appDataDir)">
-                {{ t('common.openFolder') }}
-              </button>
+          <div class="group">
+            <span class="t-label">{{ t('about.uninstall.title') }}</span>
+            <!-- Папки две, и удаляются они обе. Показывать одну значило бы
+                 оставить вторую сюрпризом. -->
+            <div class="paths with-acts">
+              <div class="path-item">
+                <span class="lbl">
+                  {{ t('about.paths.appData') }}
+                  <span class="hint"><PathText :path="ui.appDataDir" /></span>
+                </span>
+                <span class="acts">
+                  <OpenFolderButton :path="ui.appDataDir" :title="ui.appDataDir" />
+                </span>
+              </div>
+              <div class="path-item">
+                <span class="lbl">
+                  {{ t('about.paths.localData') }}
+                  <span class="hint"><PathText :path="ui.appLocalDataDir" /></span>
+                </span>
+                <span class="acts">
+                  <OpenFolderButton
+                    :path="ui.appLocalDataDir"
+                    :title="ui.appLocalDataDir"
+                  />
+                </span>
+              </div>
             </div>
+            <p class="hint">{{ t('about.uninstall.body') }}</p>
           </div>
 
-          <!-- Папки две, и удаляются они обе. Показывать одну значило бы
-               оставить вторую сюрпризом. -->
-          <div class="field">
-            <label>{{ t('about.paths.localData') }}</label>
-            <div class="path-row">
-              <div class="input mono"><span>{{ ui.appLocalDataDir }}</span></div>
-              <button
-                type="button"
-                class="btn secondary"
-                @click="open(ui.appLocalDataDir)"
-              >
-                {{ t('common.openFolder') }}
-              </button>
+          <!-- Отдельный блок, а не строка среди уцелевшего: тот отвечает
+               на вопрос «где моё», а этот — «что вы тронули в моём».
+               Два вида файлов названы по одному, строками: абзацем они
+               читались как оговорка, которую можно пролистать. -->
+          <div class="group">
+            <span class="t-label">{{ t('about.written.title') }}</span>
+            <div class="paths">
+              <div class="path-item">
+                <span class="lbl">{{ t('about.written.yaml') }}</span>
+                <span class="val">{{ t('about.written.yamlWhen') }}</span>
+              </div>
+              <div class="path-item">
+                <span class="lbl">{{ t('about.written.workflows') }}</span>
+                <span class="val">{{ t('about.written.workflowsWhen') }}</span>
+              </div>
             </div>
+            <p class="hint">{{ t('about.written.body') }}</p>
           </div>
-        </div>
-
-        <div class="group">
-          <span class="t-label">{{ t('about.uninstall.title') }}</span>
-          <p class="t-sm">{{ t('about.uninstall.body') }}</p>
-        </div>
         </div>
 
         <div>
-        <div class="group">
-          <span class="t-label">{{ t('about.content.title') }}</span>
-          <p class="t-sm">{{ t('about.content.body') }}</p>
+          <div class="group">
+            <span class="t-label">{{ t('about.content.title') }}</span>
 
-          <div class="field">
-            <label>{{ t('about.content.shared') }}</label>
-            <div class="path-row">
-              <div class="input mono">
-                <span>{{ sharedRoot || t('about.content.notSet') }}</span>
+            <!-- Ради этого блока экран и существует: сотни гигабайт моделей
+                 не должны зависеть от веры в то, что деинсталлятор поступит
+                 правильно. Отвечает за это заголовок блока и строка под
+                 списком, а не подкраска строк. -->
+            <div class="paths with-acts">
+              <div class="path-item">
+                <span class="lbl">
+                  {{ t('about.content.shared') }}
+                  <span class="hint">
+                    <PathText v-if="sharedRoot" :path="sharedRoot" />
+                    <template v-else>{{ t('about.content.notSet') }}</template>
+                  </span>
+                </span>
+                <span class="acts">
+                  <OpenFolderButton :path="sharedRoot" :title="sharedRoot || undefined" />
+                </span>
               </div>
-              <button
-                type="button"
-                class="btn secondary"
-                :disabled="!sharedRoot"
-                @click="open(sharedRoot)"
-              >
-                {{ t('common.openFolder') }}
-              </button>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>{{ t('about.content.library') }}</label>
-            <div class="path-row">
-              <div class="input mono">
-                <span>{{ libraryPath || t('about.content.notSet') }}</span>
+              <div class="path-item">
+                <span class="lbl">
+                  {{ t('about.content.library') }}
+                  <span class="hint">
+                    <PathText v-if="libraryPath" :path="libraryPath" />
+                    <template v-else>{{ t('about.content.notSet') }}</template>
+                  </span>
+                </span>
+                <span class="acts">
+                  <OpenFolderButton
+                    :path="libraryPath"
+                    :title="libraryPath || undefined"
+                  />
+                </span>
               </div>
-              <button
-                type="button"
-                class="btn secondary"
-                :disabled="!libraryPath"
-                @click="open(libraryPath)"
-              >
-                {{ t('common.openFolder') }}
-              </button>
             </div>
-          </div>
 
-          <div class="field">
-            <label>{{ t('about.content.instances') }}</label>
-            <div v-for="instance in instances.items" :key="instance.id" class="path-row">
-              <div class="input mono"><span>{{ instance.path }}</span></div>
-              <button
-                type="button"
-                class="btn secondary"
-                :disabled="!instance.available"
-                @click="open(instance.path)"
-              >
-                {{ t('common.openFolder') }}
-              </button>
-            </div>
-          </div>
-        </div>
+            <!-- Сборки отдельным списком под своей подписью: их бывает
+                 восемь, и вперемешку с общими папками имена сборок
+                 читались бы как ещё два вида общего добра. -->
+            <template v-if="instances.items.length">
+              <span class="t-label">{{ t('about.content.instances') }}</span>
+              <div class="paths with-acts">
+                <div
+                  v-for="instance in instances.items"
+                  :key="instance.id"
+                  class="path-item"
+                >
+                  <!-- Имя сборки не переводится и не сокращается, путь
+                       под ним — тоже: по нему идут разбираться руками. -->
+                  <span class="lbl">
+                    {{ instance.name }}
+                    <span class="hint"><PathText :path="instance.path" /></span>
+                  </span>
+                  <span class="acts">
+                    <OpenFolderButton
+                      :path="instance.path"
+                      :disabled="!instance.available"
+                      :title="instance.path"
+                    />
+                  </span>
+                </div>
+              </div>
+            </template>
 
-        <div class="group">
-          <span class="t-label">{{ t('about.written.title') }}</span>
-          <p class="t-sm">{{ t('about.written.body') }}</p>
-        </div>
+            <p class="hint">{{ t('about.content.body') }}</p>
+          </div>
         </div>
       </div>
     </div>

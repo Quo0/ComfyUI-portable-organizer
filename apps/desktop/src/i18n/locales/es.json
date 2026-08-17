@@ -217,8 +217,7 @@
     "title": "Acerca de",
     "version": "Versión",
     "paths": {
-      "title": "Dónde guarda sus datos la aplicación",
-      "appData": "Datos de la aplicación",
+      "appData": "Ajustes y registro de instalaciones",
       "localData": "Caché y datos del navegador"
     },
     "uninstall": {
@@ -226,7 +225,7 @@
       "body": "La desinstalación se lleva la aplicación y sus propios ajustes. Tus modelos, las plantillas compartidas y las carpetas de ComfyUI se quedan donde están."
     },
     "content": {
-      "title": "Tu contenido",
+      "title": "Permanece en el disco",
       "body": "Estas carpetas son tuyas. Desinstalar la aplicación no las toca.",
       "shared": "Modelos compartidos",
       "library": "Biblioteca de flujos",
@@ -235,7 +234,11 @@
     },
     "written": {
       "title": "Lo que la aplicación escribió dentro de tus instalaciones",
-      "body": "Solo por orden tuya y solo dos tipos de archivo: extra_model_paths.yaml cuando los modelos compartidos se aplican como archivo, y copias de flujos añadidos a una instalación. Ambos permanecen tras desinstalar: están dentro de una instalación ajena y no nos corresponde retirarlos."
+      "body": "Ambos permanecen tras desinstalar: están dentro de una instalación ajena y no nos corresponde retirarlos.",
+      "yaml": "extra_model_paths.yaml",
+      "yamlWhen": "Solo en el modo «archivo dentro de la instalación»",
+      "workflows": "Copias de flujos",
+      "workflowsWhen": "Solo los que añadiste a una instalación"
     }
   },
   "toast": {
