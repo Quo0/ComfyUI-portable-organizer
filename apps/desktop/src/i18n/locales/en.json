@@ -4,7 +4,7 @@
   },
   "nav": {
     "instances": "Instances",
-    "install": "Install",
+    "install": "Add build",
     "settings": "Settings",
     "about": "About",
     "collapse": "Collapse menu",
@@ -113,7 +113,7 @@
     }
   },
   "install": {
-    "title": "Install",
+    "title": "Add a build",
     "existing": {
       "title": "I already have a folder",
       "body": "Register a build that is already unpacked. The folder is left untouched.",
@@ -171,7 +171,7 @@
     "done": {
       "title": "Ready",
       "added": "{n} instance added | {n} instances added",
-      "again": "Install another",
+      "again": "Add another",
       "toInstances": "Go to instances"
     },
     "shared": {

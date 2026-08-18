@@ -4,7 +4,7 @@
   },
   "nav": {
     "instances": "Instancias",
-    "install": "Instalación",
+    "install": "Añadir",
     "settings": "Ajustes",
     "about": "Acerca de",
     "collapse": "Contraer el menú",
@@ -113,7 +113,7 @@
     }
   },
   "install": {
-    "title": "Instalación",
+    "title": "Añadir una compilación",
     "existing": {
       "title": "Ya tengo una carpeta",
       "body": "Registrar una versión ya descomprimida. La carpeta se deja intacta.",
@@ -171,7 +171,7 @@
     "done": {
       "title": "Listo",
       "added": "{n} instancia añadida | {n} instancias añadidas",
-      "again": "Instalar otra",
+      "again": "Añadir otra",
       "toInstances": "Ir a las instancias"
     },
     "shared": {

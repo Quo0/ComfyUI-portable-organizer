@@ -4,7 +4,7 @@
   },
   "nav": {
     "instances": "实例",
-    "install": "安装",
+    "install": "添加",
     "settings": "设置",
     "about": "关于",
     "collapse": "收起菜单",
@@ -113,7 +113,7 @@
     }
   },
   "install": {
-    "title": "安装",
+    "title": "添加构建",
     "existing": {
       "title": "已经有文件夹",
       "body": "登记一份已经解压好的安装。文件夹保持原样。",
@@ -171,7 +171,7 @@
     "done": {
       "title": "完成",
       "added": "已添加 {n} 个实例",
-      "again": "再装一个",
+      "again": "再添加一个",
       "toInstances": "前往实例列表"
     },
     "shared": {
