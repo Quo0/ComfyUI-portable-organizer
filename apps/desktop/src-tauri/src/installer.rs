@@ -454,6 +454,17 @@ where
     if outcome.is_err() || cancel.requested() {
         // Отмена и падение убирают временную папку: битому дереву,
         // которое пройдёт валидацию инстанса, тут делать нечего.
+        //
+        // Об уборке говорим до того, как её начать. Полсотни тысяч файлов
+        // удаляются минуту и дольше, а экран без этого события остаётся
+        // стоять на последнем кадре прогресса — то есть выглядит зависшим
+        // ровно после нажатия «Отменить», и кнопку жмут второй раз.
+        report(InstallProgress::stage(
+            InstallPhase::Cleaning,
+            1,
+            targets,
+            &target.name,
+        ));
         let _ = remove_tree(&partial);
         return outcome.and(Err(AppError::new("installer.cancelled")));
     }
@@ -577,6 +588,14 @@ where
     let outcome = copy_into(from, &partial, info, target, index, targets, cancel, report);
 
     if outcome.is_err() || cancel.requested() {
+        // Та же уборка и то же сообщение, что при распаковке: копия
+        // отменяется так же часто, а молчит так же долго.
+        report(InstallProgress::stage(
+            InstallPhase::Cleaning,
+            index,
+            targets,
+            &target.name,
+        ));
         let _ = remove_tree(&partial);
         return outcome.and(Err(AppError::new("installer.cancelled")));
     }
