@@ -7,6 +7,7 @@
 //
 // Выпадашка профилей рендерится, пока вебвью ещё не создан, поэтому
 // конфликта с ним нет — так и записано в дисциплине z-order.
+import { ExternalLink } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -83,6 +84,16 @@ function openInBrowser(): void {
       {{ t('tab.open') }}
     </RouterLink>
     <button
+      v-if="state === 'running'"
+      type="button"
+      class="btn ghost icon"
+      :title="t('run.openInBrowser')"
+      :aria-label="t('run.openInBrowser')"
+      @click="openInBrowser"
+    >
+      <ExternalLink class="ico" />
+    </button>
+    <button
       type="button"
       class="btn secondary"
       :disabled="busy || state !== 'running'"
@@ -97,14 +108,6 @@ function openInBrowser(): void {
       @click="run.stop(instance.id)"
     >
       {{ t('run.stop') }}
-    </button>
-    <button
-      v-if="state === 'running'"
-      type="button"
-      class="btn ghost"
-      @click="openInBrowser"
-    >
-      {{ t('run.openInBrowser') }}
     </button>
   </template>
 </template>

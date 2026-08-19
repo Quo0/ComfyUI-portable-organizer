@@ -400,7 +400,7 @@ onUnmounted(() => unlisten?.());
                  поля. -->
             <button
               type="button"
-              class="btn ghost"
+              class="btn ghost icon"
               :aria-pressed="library.multi"
               :title="t('library.multi.action')"
               :aria-label="t('library.multi.action')"
@@ -421,7 +421,7 @@ onUnmounted(() => unlisten?.());
                  фильтр ничем не отличался от выключенного. -->
             <button
               type="button"
-              class="btn ghost"
+              class="btn ghost icon"
               :aria-pressed="library.favoritesOnly"
               :title="t('library.favoritesOnly')"
               :aria-label="t('library.favoritesOnly')"

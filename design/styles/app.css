@@ -658,13 +658,9 @@ h3.sub {
   font-weight: var(--weight-medium);
   min-width: 3ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.inst-toolbar .port { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); white-space: nowrap; }
+.inst-toolbar .port { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); white-space: nowrap; padding-top: 4px; }
 .inst-toolbar .spacer { margin-left: auto; }
 .inst-toolbar .tools { display: flex; gap: var(--space-2); flex: none; }
-/* Кнопка-значок в тулбаре: квадрат по высоте контрола, без полей.
-   Слова у этих действий живут в подсказке — шесть подписей в ряд
-   не помещались на узком окне. */
-.inst-toolbar .tools .btn.ghost { width: var(--control-h); padding: 0; }
 
 /* ------------------------------------------------------- кнопки */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
@@ -721,6 +717,12 @@ h3.sub {
 }
 .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .btn.lg { height: var(--control-h-lg); padding: 0 var(--space-4); }
+/* Кнопка-значок: квадрат по высоте контрола, без подписи и без полей.
+   Взято из тулбара инстанса — там шесть значков в ряд, и подписи
+   не поместились бы на узком окне. Тот же квадрат нужен и одиночным
+   значкам вроде «открыть папку»: без него `.btn` растягивается
+   горизонтальным полем `--space-3` и превращается в прямоугольник. */
+.btn.icon { width: var(--control-h); padding: 0; }
 .btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-ink); }
 .btn.primary:hover { background: var(--btn-primary-hover); }
 .btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
@@ -1645,7 +1647,7 @@ h3.sub {
   display: grid; grid-template-columns: auto minmax(0,1fr);
   gap: var(--space-1) var(--space-2); align-items: baseline; margin: 0;
 }
-.tag-legend dt { justify-self: start; }
+.tag-legend dt { justify-self: end; }
 .tag-legend dd { margin: 0; font-size: var(--text-xs); color: var(--ink-muted); }
 
 /* ------------------------------------------------ совместимость */
@@ -1742,7 +1744,13 @@ h3.sub {
    в строке списка, и `<button>` в заголовке панели. */
 .star {
   color: var(--state-starting); font-size: var(--text-sm);
-  appearance: none; background: none; border: 0; padding: 0;
+  filter: saturate(1.25) brightness(1.12);
+  appearance: none; background: none; border: 0;
+  /* Глиф остаётся того же размера: поле нажатия раздвигает `padding`,
+     а такой же отрицательный `margin` тут же возвращает рамку на место
+     в сетке строки. Иначе по звёздочке было легко промахнуться. */
+  padding: var(--space-1);
+  margin: calc(var(--space-1) * -1);
   line-height: 1; cursor: pointer;
 }
 .star.off { color: var(--line-strong); }

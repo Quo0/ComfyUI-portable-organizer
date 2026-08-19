@@ -44,7 +44,7 @@ function open(): void {
 <template>
   <button
     type="button"
-    class="btn ghost"
+    class="btn ghost icon"
     :disabled="disabled || !path"
     :title="title ?? name"
     :aria-label="name"

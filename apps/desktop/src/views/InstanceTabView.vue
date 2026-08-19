@@ -208,7 +208,7 @@ function fail(error: AppError): void {
       <div class="tools">
         <button
           type="button"
-          class="btn ghost"
+          class="btn ghost icon"
           :aria-pressed="showLog"
           :title="showLog ? t('tab.canvas') : t('tab.logs')"
           :aria-label="showLog ? t('tab.canvas') : t('tab.logs')"
@@ -218,7 +218,7 @@ function fail(error: AppError): void {
         </button>
         <button
           type="button"
-          class="btn ghost"
+          class="btn ghost icon"
           :disabled="!outputDir"
           :title="outputDir ?? t('tab.outputMissing')"
           :aria-label="t('tab.output')"
@@ -228,7 +228,7 @@ function fail(error: AppError): void {
         </button>
         <button
           type="button"
-          class="btn ghost"
+          class="btn ghost icon"
           :title="t('run.openInBrowser')"
           :aria-label="t('run.openInBrowser')"
           @click="openInBrowser"
@@ -237,7 +237,7 @@ function fail(error: AppError): void {
         </button>
         <button
           type="button"
-          class="btn ghost"
+          class="btn ghost icon"
           :disabled="state !== 'running'"
           :title="t('tab.reload')"
           :aria-label="t('tab.reload')"
