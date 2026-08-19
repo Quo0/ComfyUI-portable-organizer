@@ -1657,25 +1657,25 @@ h3.sub {
  *
  * Состояние задаётся классами: `.on` — выбрана, `.lost` — файла больше нет.
  */
-.wf-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; position: relative; }
-/* Перестановка строк фильтром по имени и по избранному (transitions.dev,
-   «list move») — то же самое, что у карточек сборок (`.cards.grid` выше),
-   тем же приёмом: уходящая строка встаёт в абсолютное позиционирование,
-   чтобы соседи сдвинулись на её место сразу, а не после её исчезновения. */
-.wf-row-move { transition: transform var(--duration-fast) var(--ease-smooth-out); }
-.wf-row-enter-active {
+.wf-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; position: relative; }
+/* Фильтр по имени и по избранному (transitions.dev) — строки появляются
+   и пропадают на месте, без переезда соседей: список бывает длинным,
+   и анимированный сквозной сдвиг всех строк ниже точки фильтра читался бы
+   как перестановка списка, а не как фильтрация. Уходящая строка поэтому
+   встаёт в абсолютное позиционирование без перехода по transform — соседи
+   занимают освободившееся место сразу, кадром, а не наездом. */
+.wf-row-enter-active,
+.wf-row-leave-active {
   transition: opacity var(--duration-fast) var(--ease-in-out),
     filter var(--duration-fast) var(--ease-in-out);
 }
 .wf-row-leave-active {
-  transition: opacity var(--duration-quick) var(--ease-in-out),
-    filter var(--duration-quick) var(--ease-in-out);
   position: absolute;
   width: 100%;
 }
 .wf-row-enter-from, .wf-row-leave-to { opacity: 0; filter: blur(var(--blur-small)); }
 @media (prefers-reduced-motion: reduce) {
-  .wf-row-move, .wf-row-enter-active, .wf-row-leave-active { transition: none; }
+  .wf-row-enter-active, .wf-row-leave-active { transition: none; }
 }
 /* Колонок три: звёздочка, имя, метки. Отметки в обычном режиме нет —
    она появляется только во множественном выборе, вместе со своей колонкой
@@ -1686,8 +1686,15 @@ h3.sub {
   gap: var(--space-3); align-items: center;
   background: var(--surface); padding: var(--space-2) var(--space-3);
   width: 100%; text-align: left; appearance: none; border: 0;
+  border-bottom: 1px solid var(--line);
   font: inherit; color: inherit; cursor: pointer;
 }
+/* Разделитель — рамкой, а не серым фоном списка в щели между строками:
+   строка появляется и пропадает через `opacity` (transitions.dev, список
+   выше), и щель, окрашенная фоном контейнера, при частичной прозрачности
+   просвечивала бы серым сквозь саму строку. Рамка того же цвета остаётся
+   на месте вне зависимости от прозрачности строки. */
+.wf-row:last-child { border-bottom: 0; }
 /* Множественный выбор: впереди встаёт чекбокс. Отметка и звёздочка —
    разные органы: раньше это был один значок, который показывал избранное,
    а по клику ставил отметку, то есть отвечал не на тот вопрос, который
