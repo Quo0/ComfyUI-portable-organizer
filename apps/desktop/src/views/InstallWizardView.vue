@@ -3,6 +3,7 @@
 // Шаги: архив → назначения → общие ресурсы → выполнение → итог.
 // Шаг общих ресурсов собран из тех же компонентов, что экран настроек,
 // и пользуется тем же стором: логика подключения не дублируется.
+import { ArrowLeft, Ban, Check, Pencil, X } from '@lucide/vue';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -153,12 +154,12 @@ async function pickArchive(): Promise<void> {
     filters: [{ name: '7z', extensions: ['7z'] }],
   });
   if (typeof picked !== 'string') return;
-  if (await wizard.chooseArchive(picked)) wizard.step = 'targets';
+  if (await wizard.chooseArchive(picked)) wizard.setStep('targets');
 }
 
 async function useRecent(record: ArchiveRecord): Promise<void> {
   if (!record.available) return;
-  if (await wizard.chooseArchive(record.path)) wizard.step = 'targets';
+  if (await wizard.chooseArchive(record.path)) wizard.setStep('targets');
 }
 
 /** Сколько места нужно с учётом того, что цели могут быть на одном диске. */
@@ -210,14 +211,14 @@ const needed = computed(() =>
            уход и возврат ничего не стирали. -->
       <span v-if="wizard.step === 'archive'" class="acts">
         <RouterLink class="btn ghost" to="/install">
-          <svg class="ico"><use href="#i-back" /></svg>
+          <ArrowLeft class="ico" />
           {{ t('common.back') }}
         </RouterLink>
       </span>
 
       <span v-else-if="wizard.step === 'targets'" class="acts">
-        <button type="button" class="btn ghost" @click="wizard.step = 'archive'">
-          <svg class="ico"><use href="#i-back" /></svg>
+        <button type="button" class="btn ghost" @click="wizard.setStep('archive')">
+          <ArrowLeft class="ico" />
           {{ t('common.back') }}
         </button>
         <!-- Проверка имени осталась в форме: без имени назначение
@@ -226,15 +227,15 @@ const needed = computed(() =>
           type="button"
           class="btn primary lg"
           :disabled="wizard.blocked"
-          @click="wizard.step = 'shared'"
+          @click="wizard.setStep('shared')"
         >
           {{ t('install.wizard.next') }}
         </button>
       </span>
 
       <span v-else-if="wizard.step === 'shared'" class="acts">
-        <button type="button" class="btn ghost" @click="wizard.step = 'targets'">
-          <svg class="ico"><use href="#i-back" /></svg>
+        <button type="button" class="btn ghost" @click="wizard.setStep('targets')">
+          <ArrowLeft class="ico" />
           {{ t('common.back') }}
         </button>
         <button type="button" class="btn primary lg" @click="wizard.start()">
@@ -422,7 +423,7 @@ const needed = computed(() =>
                             : wizard.startEdit(index)
                         "
                       >
-                        <svg class="ico"><use href="#i-edit" /></svg>
+                        <Pencil class="ico" />
                       </button>
                       <button
                         type="button"
@@ -431,7 +432,7 @@ const needed = computed(() =>
                         :aria-label="t('install.targets.remove')"
                         @click="wizard.removeTarget(index)"
                       >
-                        <svg class="ico"><use href="#i-close" /></svg>
+                        <X class="ico" />
                       </button>
                     </span>
                   </div>
@@ -459,7 +460,7 @@ const needed = computed(() =>
                           :aria-label="t('common.cancel')"
                           @click="wizard.cancelEdit()"
                         >
-                          <svg class="ico"><use href="#i-ban" /></svg>
+                          <Ban class="ico" />
                         </button>
                         <button
                           type="button"
@@ -469,7 +470,7 @@ const needed = computed(() =>
                           :disabled="!wizard.editReady"
                           @click="wizard.saveEdit()"
                         >
-                          <svg class="ico"><use href="#i-check" /></svg>
+                          <Check class="ico" />
                         </button>
                       </span>
                     </template>

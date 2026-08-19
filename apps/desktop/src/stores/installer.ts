@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue';
+import { computed, nextTick, readonly, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import {
@@ -236,8 +236,36 @@ export const useInstallerStore = defineStore('installer', () => {
     await recheck();
   }
 
+  /**
+   * Меняет шаг мастера через View Transitions API — тем же приёмом, что
+   * и переходы между экранами в роутере (`router/index.ts`): без обёрток,
+   * прямо на встроенном API браузера.
+   *
+   * Отдельный сеттер, а не единая точка перехвата вроде навигационного
+   * хука роутера: шаг мастера не идёт через маршрут, и перехватить его
+   * снаружи, до мутации, нечем. Каждое присвоение обязано идти через эту
+   * функцию, а не напрямую в `step.value`, — иначе браузер снял бы кадр
+   * «до» уже после того, как экран сменился, и переходить стало бы
+   * не от чего.
+   */
+  function setStep(next: WizardStep): void {
+    if (step.value === next) return;
+    if (!document.startViewTransition) {
+      step.value = next;
+      return;
+    }
+    const transition = document.startViewTransition(() => {
+      step.value = next;
+      return nextTick();
+    });
+    // Быстрая повторная смена шага обрывает предыдущий переход браузером —
+    // штатно, но необработанным отказом `finished` вылетало необработанное
+    // исключение прямо в консоль.
+    transition.finished.catch(() => {});
+  }
+
   function reset(): void {
-    step.value = 'archive';
+    setStep('archive');
     info.value = null;
     targets.value = [];
     checks.value = [];
@@ -255,7 +283,7 @@ export const useInstallerStore = defineStore('installer', () => {
   async function start(): Promise<void> {
     if (!info.value) return;
     running.value = true;
-    step.value = 'running';
+    setStep('running');
     progress.value = null;
     await listen();
 
@@ -266,7 +294,7 @@ export const useInstallerStore = defineStore('installer', () => {
       ui.pushError(res.error);
       // Возврат к целям, а не к архиву: чаще всего чинить надо именно путь
       // назначения — он занят, короче нужного или на переполненном диске.
-      step.value = 'targets';
+      setStep('targets');
       await recheck();
       return;
     }
@@ -284,7 +312,7 @@ export const useInstallerStore = defineStore('installer', () => {
       }
     }
 
-    step.value = 'done';
+    setStep('done');
     await instances.load();
     await loadHistory();
   }
@@ -294,7 +322,11 @@ export const useInstallerStore = defineStore('installer', () => {
   }
 
   return {
-    step,
+    // Только на чтение снаружи: смена шага в обход `setStep` обошла бы
+    // и снимок для перехода — браузер снял бы «до» уже после того, как
+    // экран сменился.
+    step: readonly(step),
+    setStep,
     history,
     info,
     targets,

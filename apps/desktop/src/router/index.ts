@@ -1,4 +1,5 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { nextTick } from 'vue';
+import { createRouter, createWebHashHistory, START_LOCATION } from 'vue-router';
 
 // Настройки, добавление инстанса и редактор аргументов — отдельные роуты,
 // а не модалки: дочерний вебвью с ComfyUI это нативное окно поверх нашего
@@ -104,4 +105,30 @@ export const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', redirect: '/instances' },
   ],
+});
+
+// Плавность между экранами — View Transitions API, тем же рецептом, что
+// в официальных примерах Vue Router: обёртки-библиотеки тут не нужно.
+// Пропускаем на первой навигации (первый экран не с чем сравнивать) и на
+// входе или выходе из вкладки сборки — там поверх нашего HTML встаёт
+// нативное окно вебвью, оно не попадает в снимок для перехода, и кроссфейд
+// HTML вокруг мгновенно возникающего окна выглядел бы двойным движением.
+router.beforeResolve((to, from) => {
+  if (!document.startViewTransition) return;
+  if (from === START_LOCATION) return;
+  if (to.name === 'instance-tab' || from.name === 'instance-tab') return;
+
+  return new Promise<void>((resolve) => {
+    const transition = document.startViewTransition(async () => {
+      resolve();
+      // Переход снимает «после» только следующим тиком — раньше DOM ещё
+      // не отражает новый маршрут.
+      await nextTick();
+    });
+    // Быстрая повторная навигация обрывает предыдущий переход браузером —
+    // это штатно (следующий `startViewTransition` уже вызван, свой кадр
+    // «после» он снимет сам), но необработанным отказом `finished` вылетало
+    // необработанное исключение прямо в консоль.
+    transition.finished.catch(() => {});
+  });
 });

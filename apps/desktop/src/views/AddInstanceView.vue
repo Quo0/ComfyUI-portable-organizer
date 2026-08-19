@@ -3,6 +3,7 @@
 // с ComfyUI это нативное окно поверх нашего HTML, и модалка над ним
 // физически невозможна. Правило применяется всюду, а не только там,
 // где вебвью уже есть, — иначе оно расползётся исключениями.
+import { ArrowLeft } from '@lucide/vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -83,7 +84,7 @@ async function submit(): Promise<void> {
       <span class="spacer"></span>
       <span class="acts">
         <RouterLink class="btn ghost" to="/install">
-          <svg class="ico"><use href="#i-back" /></svg>
+          <ArrowLeft class="ico" />
           {{ t('common.back') }}
         </RouterLink>
         <!-- Главное действие экрана стоит там же, где во всём разделе, —

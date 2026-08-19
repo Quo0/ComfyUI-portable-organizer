@@ -9,12 +9,14 @@
 // Две области прокрутки на экране — оговорённое исключение из правила
 // «одна на экран»: список слева и детали справа скроллятся порознь, иначе
 // панель деталей уезжала бы вместе с двумя сотнями воркфлоу.
+import { Check, ExternalLink, ListChecks, Plus, RotateCw } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { useI18n } from 'vue-i18n';
 
 import type { LibItem } from '../../stores/workflows';
+import CheckGlyph from '../../components/CheckGlyph.vue';
 import EmptyNote from '../../components/EmptyNote.vue';
 import MenuButton from '../../components/MenuButton.vue';
 import PathPicker from '../../components/PathPicker.vue';
@@ -22,6 +24,7 @@ import WorkflowPasteForm from '../../components/WorkflowPasteForm.vue';
 import { commands } from '../../bindings';
 import { accentVar } from '../../lib/format';
 import { errorText } from '../../lib/errors';
+import { useSlidingTabs } from '../../lib/motion';
 import { useRunStore } from '../../stores/run';
 import { useInstancesStore } from '../../stores/instances';
 import { useUiStore } from '../../stores/ui';
@@ -48,6 +51,10 @@ const editing = ref(false);
 type Side = 'where' | 'note' | 'tags';
 const SIDES: Side[] = ['where', 'note', 'tags'];
 const side = ref<Side>('where');
+
+/** Плашка скользит к выбранной вкладке сама, замером в DOM. */
+const sideTabsBar = ref<HTMLElement | null>(null);
+useSlidingTabs(sideTabsBar, side);
 
 onMounted(async () => {
   if (!library.loaded) await library.load();
@@ -268,7 +275,7 @@ onUnmounted(() => unlisten?.());
         <MenuButton
           v-if="library.available"
           class="spacer"
-          icon="#i-plus"
+          :icon="Plus"
           :label="t('library.add.action')"
         >
           <button type="button" role="menuitem" @click="addFile">
@@ -330,7 +337,7 @@ onUnmounted(() => unlisten?.());
         <div class="empty">
           <p>{{ t('library.path.unavailable') }}</p>
           <button type="button" class="btn secondary" @click="library.rescan()">
-            <svg class="ico"><use href="#i-reload" /></svg>
+            <RotateCw class="ico" />
             {{ t('library.refresh') }}
           </button>
         </div>
@@ -371,7 +378,7 @@ onUnmounted(() => unlisten?.());
               :aria-label="t('library.multi.action')"
               @click="library.setMulti(!library.multi)"
             >
-              <svg class="ico"><use href="#i-checklist" /></svg>
+              <ListChecks class="ico" />
             </button>
             <!-- Поиск тянется на всю ширину панели: в поле на 190 пикселей
                  обрезалась даже подсказка. -->
@@ -450,7 +457,7 @@ onUnmounted(() => unlisten?.());
                     :aria-checked="library.marked.has(item.path)"
                     :aria-label="item.name"
                     @click="library.toggleMark(item.path)"
-                  >✓</button>
+                  ><CheckGlyph /></button>
                   <span
                     class="star"
                     :class="{ off: !item.meta.favorite }"
@@ -598,7 +605,7 @@ onUnmounted(() => unlisten?.());
                     <span
                       class="check"
                       :class="{ on: allTargets, mixed: someTargets }"
-                    >✓</span>
+                    ><CheckGlyph /></span>
                     <span>{{ t('library.pick.all') }}</span>
                   </button>
                   <button
@@ -611,7 +618,7 @@ onUnmounted(() => unlisten?.());
                     <span
                       class="check"
                       :class="{ on: library.markedTargets.has(instance.id) }"
-                    >✓</span>
+                    ><CheckGlyph /></span>
                     <span
                       class="chip"
                       :style="{ '--instance-accent': accentVar(instance.accent) }"
@@ -649,7 +656,8 @@ onUnmounted(() => unlisten?.());
           <!-- Три набора данных в панели на 320 пикселей не помещаются
                столбиком: совместимость сама по себе длинная, а заметка
                и теги под ней оказывались за краем экрана. -->
-          <nav v-if="library.current" class="tabs" role="tablist">
+          <nav v-if="library.current" ref="sideTabsBar" class="tabs" role="tablist">
+            <span class="tabs-pill" aria-hidden="true"></span>
             <button
               v-for="item in SIDES"
               :key="item"
@@ -717,7 +725,7 @@ onUnmounted(() => unlisten?.());
                             :title="t('library.openInInstance', { name: instance.name })"
                             :aria-label="t('library.openInInstance', { name: instance.name })"
                           >
-                            <svg class="ico"><use href="#i-external" /></svg>
+                            <ExternalLink class="ico" />
                           </RouterLink>
                           <!-- Три состояния, и «неизвестно» не выдаётся
                                за «всё хорошо»: зелёная галочка без оснований
@@ -748,9 +756,10 @@ onUnmounted(() => unlisten?.());
                               : t('library.push.action')"
                             @click="push(instance.id)"
                           >
-                            <svg class="ico">
-                              <use :href="added(instance.id) ? '#i-check' : '#i-plus'" />
-                            </svg>
+                            <span class="icon-swap" :data-state="added(instance.id) ? 'b' : 'a'">
+                              <Plus class="ico" data-icon="a" />
+                              <Check class="ico" data-icon="b" />
+                            </span>
                           </button>
                         </div>
                         <div

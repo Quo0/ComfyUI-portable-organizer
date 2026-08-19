@@ -13,13 +13,14 @@
 //
 // Пункты приходят слотом: компонент отвечает за раскрытие, закрытие
 // и клавиатуру, а что именно делают пункты — дело того, кто их поставил.
+import type { Component } from 'vue';
 import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 
 const { label, icon } = defineProps<{
   /** Подпись на кнопке. */
   label: string;
-  /** Значок из спрайта вместе с решёткой, например `#i-plus`. */
-  icon?: string;
+  /** Компонент значка из `@lucide/vue`, например `Plus`. */
+  icon?: Component;
 }>();
 
 const open = ref(false);
@@ -65,7 +66,7 @@ onUnmounted(() => {
       :aria-expanded="open"
       @click="open = !open"
     >
-      <svg v-if="icon" class="ico"><use :href="icon" /></svg>
+      <component :is="icon" v-if="icon" class="ico" />
       {{ label }}
     </button>
 

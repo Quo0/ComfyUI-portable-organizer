@@ -348,8 +348,7 @@ h3.sub {
 .nav-run em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
 /* .chip — общий примитив, не принадлежит рейлу: цветная метка инстанса,
    встречается и в навигации, и в списке совместимости. См. «Примитивы». */
-.dot { flex: none; width: 6px; height: 6px; border-radius: 50%; margin-left: auto; }
-.nav.collapsed .dot { display: none; }
+.dot { flex: none; width: 6px; height: 6px; border-radius: 50%; }
 .nav-run.alert em { color: var(--state-crashed); }
 .badge {
   flex: none;
@@ -360,8 +359,57 @@ h3.sub {
   font-size: 9px;
   font-weight: 700;
   display: grid; place-items: center;
-  margin-left: auto;
   padding: 0 3px;
+}
+/* Слот в конце строки инстанса: точка статуса или бейдж падения —
+   одно из двух, оба центрированы в фиксированной рамке 14×14, поэтому
+   переключение между ними не двигает соседей. Появление бейджа —
+   transitions.dev, «03-notification-badge» (в оригинале — точка поверх
+   постоянного триггера вроде колокольчика; здесь триггера нет, слот сам
+   и есть якорь, поэтому диагональ смещения оставлена как штрих, а не
+   разбег от чужой иконки). */
+.status-slot {
+  position: relative;
+  flex: none;
+  width: 14px; height: 14px;
+  margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav.collapsed .status-slot { display: none; }
+.t-badge {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  pointer-events: none;
+}
+@keyframes t-badge-slide-in {
+  from { transform: translate(var(--badge-offset-x), var(--badge-offset-y)); }
+  to   { transform: translate(0, 0); }
+}
+.t-badge[data-open="true"] {
+  animation: t-badge-slide-in var(--badge-slide-dur) var(--badge-slide-ease);
+}
+.t-badge-dot {
+  transform-origin: center;
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    transform var(--badge-pop-dur)  var(--badge-pop-ease),
+    opacity   var(--badge-fade-dur) var(--badge-pop-ease),
+    filter    var(--badge-pop-dur)  var(--badge-pop-ease);
+  will-change: transform, opacity, filter;
+}
+.t-badge[data-open="false"] .t-badge-dot {
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(var(--badge-blur));
+  transition:
+    transform var(--badge-pop-close-dur)  var(--badge-close-ease),
+    opacity   var(--badge-fade-close-dur) var(--badge-close-ease),
+    filter    var(--badge-pop-close-dur)  var(--badge-close-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-badge, .t-badge-dot { animation: none !important; transition: none !important; }
 }
 .nav-note { font-size: var(--text-xs); color: var(--ink-muted); padding: var(--space-1) var(--space-2) 0; }
 .nav.collapsed .nav-note { display: none; }
@@ -394,16 +442,20 @@ h3.sub {
   flex-direction: column;
   gap: 2px;
 }
-/* Значков здесь нет намеренно: рейл различает разделы формой, а внутри
-   раздела различать нечем — пять подписей читаются быстрее пяти картинок.
-   Но без значка обрезанная подпись перестаёт называть раздел, а подписи
-   тут длиннее рейловых: «Biblioteca de flujos de trabajo» в двести
-   пикселей не влезает. Поэтому здесь она переносится, а пункт растёт. */
+/* Подписи здесь длиннее рейловых: «Biblioteca de flujos de trabajo»
+   в двести пикселей не влезает и переносится на вторую строку — поэтому
+   пункт растёт, а не обрезает текст. Значок при переносе выравнивается
+   по верхней строке, а не по центру всего блока: по центру он повисал бы
+   между строк ровно там, где нет текста ни у одной из них. */
 .settings-sections .nav-item {
   height: auto;
   min-height: var(--rail-item-h);
   padding: var(--space-1) var(--space-2);
+  align-items: flex-start;
   white-space: normal;
+}
+.settings-sections .nav-item .ico {
+  margin-top: 2px;
 }
 .settings-sections .nav-item[aria-disabled="true"] {
   opacity: .45;
@@ -461,6 +513,34 @@ h3.sub {
 .pill.running { color: var(--state-running); background: var(--state-running-bg); }
 .pill.crashed { color: var(--state-crashed); background: var(--state-crashed-bg); }
 .pill.gone { color: var(--state-unavailable); background: transparent; border: 1px dashed var(--line-strong); }
+/* Смена подписи пилюли — transitions.dev, «04-text-states-swap»: старое
+   уезжает вверх и размывается, новое приходит снизу тем же путём.
+   Три фазы ведёт `StatusPill.vue`, здесь только сами состояния. */
+.t-text-swap {
+  display: inline-block;
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    transform var(--text-swap-dur) var(--text-swap-ease),
+    filter    var(--text-swap-dur) var(--text-swap-ease),
+    opacity   var(--text-swap-dur) var(--text-swap-ease);
+  will-change: transform, filter, opacity;
+}
+.t-text-swap.is-exit {
+  transform: translateY(calc(var(--text-swap-translate-y) * -1));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+}
+.t-text-swap.is-enter-start {
+  transform: translateY(var(--text-swap-translate-y));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-text-swap { transition: none !important; }
+}
 .meta {
   display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3);
   font-family: var(--font-mono); font-size: var(--text-xs);
@@ -697,6 +777,30 @@ h3.sub {
 }
 .menu-pop > *:hover { background: var(--surface-hover); }
 .menu-pop > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+/* Рост от места клика — transitions.dev, «05-menu-dropdown». `.t-dropdown`
+   рядом с `.menu-pop`: раскладка и рамка остаются на месте, движение
+   добавляется отдельным классом. `.is-open`/`.is-closing` ведёт
+   `<Transition>` в `MenuButton.vue`. */
+.t-dropdown {
+  transform-origin: top right;
+  transform: scale(var(--dropdown-pre-scale));
+  opacity: 0;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-open-dur) var(--dropdown-ease);
+  will-change: transform, opacity;
+}
+.t-dropdown.is-open { transform: scale(1); opacity: 1; }
+.t-dropdown.is-closing {
+  transform: scale(var(--dropdown-closing-scale));
+  opacity: 0;
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-close-dur) var(--dropdown-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-dropdown { transition: none !important; }
+}
 
 /* Сегментированный переключатель: один вариант из нескольких коротких.
    Радиокнопки заняли бы втрое больше места, а выпадашка спрятала бы
@@ -762,19 +866,36 @@ h3.sub {
  * `.on` — поставлен, `.mixed` — выбрана часть того, что под ним.
  *
  * Бывает и `<span>` внутри строки-кнопки (кнопка внутри кнопки невалидна),
- * и настоящей кнопкой в шапке списка — отсюда сброс обвязки. */
+ * и настоящей кнопкой в шапке списка — отсюда сброс обвязки.
+ *
+ * Фон заливается сразу и той же кривой, что у тумблера; галочка внутри —
+ * это `<CheckGlyph>`, обводка которой дорисовывается следом через
+ * `stroke-dashoffset`. Раньше отметкой был текстовый символ «✓», просто
+ * прозрачный в снятом виде, — обводке взяться было неоткуда. */
 .check {
   position: relative;
   flex: none; width: 15px; height: 15px; padding: 0;
   border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
   background: var(--surface);
   display: grid; place-items: center;
-  font-size: 10px; line-height: 1; color: transparent;
   appearance: none; cursor: pointer;
+  transition: background var(--duration-quick) var(--ease-smooth-out), border-color var(--duration-quick) var(--ease-smooth-out);
+}
+.check svg { width: 10px; height: 10px; overflow: visible; }
+.check svg path {
+  fill: none; stroke: var(--btn-primary-ink); stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round;
+  /* 15 — длина пути CheckGlyph с запасом (посчитана ≈14,4, округлена
+     вверх): меньше — и хвост галочки обрезался бы до полной отрисовки. */
+  stroke-dasharray: 15; stroke-dashoffset: 15;
+  transition: stroke-dashoffset var(--duration-quick) var(--ease-smooth-out);
 }
 .check.on {
   background: var(--btn-primary-bg); border-color: var(--btn-primary-bg);
-  color: var(--btn-primary-ink);
+}
+.check.on svg path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--duration-medium) var(--ease-smooth-out);
 }
 /* Промежуточное — полоса, а не галочка: галочка бледнее читалась бы как
    «поставлено, но неактивно», а полоса не притворяется ни тем, ни другим.
@@ -789,6 +910,9 @@ h3.sub {
   background: var(--btn-primary-ink);
 }
 .check:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) {
+  .check, .check svg path { transition: none !important; }
+}
 
 /* ---------------------------------------------------- прокрутка */
 /* Окно фиксированной высоты, данные не ограничены. Управляющие элементы
@@ -954,6 +1078,23 @@ h3.sub {
 .input.grow { flex: 1; min-width: 0; max-width: 420px; }
 .input.bad { border-color: var(--state-crashed); }
 .input:focus-within { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
+/* Толчок при отказе: рамка красная уже от `.bad`, здесь только сам
+   percussive-намёк. Класс тряски отдельно от `.bad` — переигрывать
+   анимацию нужно и на второй подряд отказ с тем же самым текстом ошибки,
+   а сброс-и-новая-простановка `.bad` заодно мигнули бы всей рамкой. */
+.input.is-shaking {
+  animation: input-shake calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2) linear;
+}
+@keyframes input-shake {
+  0%     { translate: 0 0; animation-timing-function: var(--shake-ease); }
+  28.57% { translate: var(--shake-distance) 0; animation-timing-function: var(--shake-ease); }
+  57.14% { translate: calc(var(--shake-distance) * -1) 0; animation-timing-function: var(--shake-ease); }
+  78.57% { translate: var(--shake-overshoot) 0; animation-timing-function: var(--shake-ease); }
+  100%   { translate: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .input.is-shaking { animation: none !important; }
+}
 .hint { font-size: var(--text-xs); color: var(--ink-muted); }
 .hint.bad { color: var(--state-crashed); }
 /* Распорка: отжимает всё, что после неё, к правому краю ряда.
@@ -982,26 +1123,60 @@ h3.sub {
 
    В образцах тумблер был `<span>`, поэтому обвязки кнопки здесь не было.
    Приложению нужен настоящий орган управления, отсюда сброс, курсор,
-   кольцо фокуса и недоступный вид. */
+   кольцо фокуса и недоступный вид.
+
+   Ползунок двигается `translate`, а не парой `left`/`right`: между этими
+   двумя свойствами браузер не умеет вести плавный ход, только прыжок,
+   а перехлёст ниже требует именно хода. */
 .toggle {
   flex: none; width: 32px; height: 18px; border-radius: var(--radius-pill);
   background: var(--btn-primary-bg); position: relative; margin-top: 1px;
   appearance: none; border: 0; padding: 0; box-sizing: border-box;
   cursor: pointer;
+  transition: background var(--toggle-track-dur) var(--toggle-thumb-ease);
 }
 .toggle::after {
-  content: ""; position: absolute; top: 2px; right: 2px;
+  content: ""; position: absolute; top: 2px; left: 2px;
   width: 14px; height: 14px; border-radius: 50%; background: var(--btn-primary-ink);
+  translate: var(--toggle-travel) 0;
+  transition: translate var(--duration-fast) var(--ease-smooth-out), background var(--toggle-track-dur) var(--toggle-thumb-ease);
 }
 .toggle.off { background: var(--line-strong); }
-.toggle.off::after { right: auto; left: 2px; background: var(--surface); }
+.toggle.off::after { translate: 0 0; background: var(--surface); }
 /* Промежуточное состояние: выбрана часть того, что под этим тумблером.
    Фон включённого, ползунок ровно посередине — положение читается как
    «ни там, ни там», а не как забытая анимация. Появилось у категорий
-   моделей, где тумблер распоряжается всеми моделями внутри. */
-.toggle.mixed::after { right: auto; left: 9px; }
+   моделей, где тумблер распоряжается всеми моделями внутри.
+   Обычный `transition` сверху, без перехлёста: из mixed щелчок всегда
+   ведёт во «включено» целиком, а не поштучно, и переигрывать пружину
+   пассивному промежуточному состоянию незачем. */
+.toggle.mixed::after { translate: calc(var(--toggle-travel) / 2) 0; }
+/* Перехлёст играет только после первого настоящего клика. `animation`
+   (в отличие от `transition`) запускается уже при первой отрисовке, если
+   селектор совпал сразу, — не будь этого класса, любой тумблер, открытый
+   сразу в положении «выключено», подпрыгивал бы на пустом месте при
+   каждой загрузке экрана. `.mixed` из перехлёста исключён по той же
+   причине, что и выше. */
+.toggle.is-init:not(.mixed)::after { animation-duration: var(--toggle-thumb-dur); animation-timing-function: var(--toggle-thumb-ease); animation-fill-mode: both; }
+.toggle.is-init:not(.off):not(.mixed)::after { animation-name: toggle-on; }
+.toggle.is-init.off::after { animation-name: toggle-off; }
+@keyframes toggle-on {
+  0%   { translate: 0 0; }
+  55%  { translate: calc(var(--toggle-travel) + var(--toggle-overshoot-1)) 0; }
+  80%  { translate: calc(var(--toggle-travel) - var(--toggle-overshoot-2)) 0; }
+  100% { translate: var(--toggle-travel) 0; }
+}
+@keyframes toggle-off {
+  0%   { translate: var(--toggle-travel) 0; }
+  55%  { translate: calc(0px - var(--toggle-overshoot-1)) 0; }
+  80%  { translate: var(--toggle-overshoot-2) 0; }
+  100% { translate: 0 0; }
+}
 .toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .toggle:disabled { opacity: .5; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .toggle, .toggle::after { transition: none !important; animation: none !important; }
+}
 
 /* Выбор акцентного цвета. Селектор по любому потомку, а не по `i`:
    в макете это статичные метки, в приложении — кнопки, и цвет выбирается
@@ -1066,6 +1241,31 @@ h3.sub {
 }
 .toast-life { height: 2px; background: var(--surface-sunken); border-radius: var(--radius-pill); }
 .toast-life > i { display: block; height: 100%; width: 62%; background: var(--state-running); border-radius: inherit; }
+/* Появление и уход тоста — transitions.dev, «22-toast». Класс стоит рядом
+   с `.toast`, а не вместо него: `.toast` держит раскладку и цвет, `.t-toast`
+   только движение. `.is-open` вешает и снимает `TransitionGroup` в хосте. */
+.t-toast {
+  opacity: 0;
+  transform: translateY(var(--toast-distance)) scale(var(--toast-scale));
+  filter: blur(var(--toast-blur));
+  will-change: transform, opacity, filter;
+  transition:
+    opacity var(--toast-close) var(--toast-ease),
+    transform var(--toast-close) var(--toast-ease),
+    filter var(--toast-close) var(--toast-ease);
+}
+.t-toast.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity var(--toast-open) var(--toast-ease),
+    transform var(--toast-open) var(--toast-ease),
+    filter var(--toast-open) var(--toast-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-toast { transition: none !important; }
+}
 .disclosure {
   border-top: 1px solid var(--line-faint); padding-top: var(--space-2);
   display: flex; align-items: center; gap: var(--space-3);
@@ -1262,11 +1462,12 @@ h3.sub {
  * программа чтения с экрана не назовёт вкладку выбранной.
  */
 .tabs {
+  position: relative;
   display: flex;
   gap: var(--space-1);
   border-bottom: 1px solid var(--line);
 }
-.tabs > * {
+.tabs > *:not(.tabs-pill) {
   appearance: none; background: none; border: 0;
   padding: var(--space-2) var(--space-3);
   margin-bottom: -1px;
@@ -1276,16 +1477,39 @@ h3.sub {
   white-space: nowrap; cursor: pointer;
   display: inline-flex; align-items: center; gap: var(--space-2);
 }
-.tabs > *:hover { color: var(--ink); }
+.tabs > *:not(.tabs-pill):hover { color: var(--ink); }
 /* Выбранная отличается только цветом и подчёркиванием. Начертание
    не трогаем намеренно: полужирный шире обычного, от него надпись
    раздувалась и толкала соседние вкладки — весь ряд дёргался на каждом
-   переключении. */
-.tabs > [aria-selected="true"] {
+   переключении.
+
+   Подчёркивание статично только там, где плашки `.tabs-pill` нет вовсе —
+   на странице образцов, где не бывает и замера в JS, который бы её вёл.
+   `:has()` переключает между этим и скользящей плашкой сам, без второго
+   набора разметки под каждый экран: там, где плашка есть, статичная линия
+   гасится — иначе на переключении вкладки было бы видно две линии разом,
+   одну статичную под новой вкладкой, другую — ещё едущую от прежней. */
+.tabs:not(:has(.tabs-pill)) > [aria-selected="true"] {
   color: var(--ink);
   border-bottom-color: var(--btn-primary-bg);
 }
+.tabs:has(.tabs-pill) > [aria-selected="true"] { color: var(--ink); }
 .tabs > *:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+/* Плашка встаёт туда же, где лежит статичный `border-bottom` у выбранной
+   вкладки, — высота и позиция те же 2px внахлёст на общую линию снизу.
+   Смещение и ширину пишет JS замером `offsetLeft`/`offsetWidth`: посчитать
+   их заранее нечем, подписи вкладок переводятся на четыре языка и разной
+   длины в каждом. */
+.tabs-pill {
+  position: absolute; left: 0; bottom: -1px; height: 2px; width: 0;
+  background: var(--btn-primary-bg);
+  transform: translateX(0);
+  transition: transform var(--duration-fast) var(--ease-smooth-out), width var(--duration-fast) var(--ease-smooth-out);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tabs-pill { transition: none !important; }
+}
 /* Счётчик рядом с названием вкладки: сколько там внутри. */
 .tabs .n {
   font-family: var(--font-mono); font-size: var(--text-xs);
@@ -1321,12 +1545,51 @@ h3.sub {
   font: inherit; color: inherit; text-align: left; cursor: pointer;
   border-radius: var(--radius-sm);
 }
-.disclose .ico { color: var(--ink-muted); transition: transform .12s ease; }
+/* Длительность и кривая — токены аккордеона (transitions.dev, «21-accordion»):
+   поворот шеврона и рост панели ниже читаются одним движением, а не двумя
+   вразнобой. Сам поворот остаётся через `rotate`, а не флип `scaleY`
+   из исходного снипета: у нас нет морфа контура, ради которого тот
+   флип придуман, — `rotate(90deg)` кросс-браузерен всегда. */
+.disclose .ico { color: var(--ink-muted); transition: transform var(--acc-chevron) var(--acc-ease); }
 .disclose[aria-expanded="true"] .ico { transform: rotate(90deg); }
 .disclose:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 /* Поворот — единственное, что отличает раскрытое от свёрнутого, поэтому
    при выключенном движении шеврон не замирает, а встаёт мгновенно. */
 @media (prefers-reduced-motion: reduce) { .disclose .ico { transition: none; } }
+
+/* Панель категории растёт и схлопывается через `grid-template-rows`
+   0fr ↔ 1fr — высота без замера в JS, содержимое любого размера
+   анимируется чисто. Обёртка держит трек, `-inner` — сам `overflow:
+   hidden` и список моделей: паддинг и внутренний зазор строк живут
+   только на `-inner`, иначе на схлопнутом треке останется полоска. */
+.t-acc-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-panel.is-open {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--acc-expand) var(--acc-ease);
+}
+.t-acc-panel-inner {
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 1px;
+  opacity: 0;
+  filter: blur(var(--blur-small));
+  transition:
+    opacity var(--acc-collapse) var(--acc-ease),
+    filter var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-panel.is-open .t-acc-panel-inner {
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--acc-expand) var(--acc-ease),
+    filter var(--acc-expand) var(--acc-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-acc-panel, .t-acc-panel-inner { transition: none !important; }
+}
 
 /* Модель внутри категории. Отступ слева ровно на шеврон с его зазором:
    имя модели встаёт под именем категории, а не под стрелкой.
@@ -1532,6 +1795,22 @@ h3.sub {
 .compat-row .act:hover { background: none; color: var(--ink); }
 .act:disabled { opacity: .5; cursor: default; }
 .act:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+/* Плюс и галочка внутри «положить» лежат в DOM оба разом, одной ячейкой
+   грида, и меняются местами кросс-фейдом, а не подменой значка: подмена
+   у Vue — это разные вершины дерева, между ними анимировать нечего,
+   один просто исчезает и тут же возникает другой. */
+.act .icon-swap { position: relative; display: inline-grid; }
+.act .icon-swap > .ico {
+  grid-area: 1 / 1;
+  transition: opacity var(--duration-fast) var(--ease-in-out), filter var(--duration-fast) var(--ease-in-out), transform var(--duration-fast) var(--ease-in-out);
+}
+.act .icon-swap[data-state="a"] > .ico[data-icon="b"],
+.act .icon-swap[data-state="b"] > .ico[data-icon="a"] {
+  opacity: 0; filter: blur(var(--blur-small)); transform: scale(.25);
+}
+@media (prefers-reduced-motion: reduce) {
+  .act .icon-swap > .ico { transition: none !important; }
+}
 .compat-row.ok .compat-note { color: var(--state-running); }
 .compat-row.warn .compat-note { color: var(--state-starting); }
 /* Левый отступ повторяет левую колонку строки: список недостающих нод

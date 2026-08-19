@@ -28,6 +28,9 @@ const foreign = ref<InstanceFileInfo | null>(null);
 const backup = ref<string | null>(null);
 const busy = ref(false);
 
+/** Перехлёст ползунка тумблера играет только с первого клика, не с отрисовки. */
+const toggleTouched = ref(false);
+
 const enabled = computed(() => props.instance.shared?.enabled === true);
 
 /**
@@ -48,6 +51,7 @@ onMounted(() => {
 
 async function toggle(): Promise<void> {
   if (busy.value) return;
+  toggleTouched.value = true;
   busy.value = true;
   try {
     if (enabled.value) {
@@ -123,7 +127,7 @@ async function setMode(next: ApplyMode): Promise<void> {
     <div class="toggle-row">
       <button
         class="toggle"
-        :class="{ off: !enabled }"
+        :class="{ off: !enabled, 'is-init': toggleTouched }"
         type="button"
         role="switch"
         :aria-checked="enabled"

@@ -8,6 +8,7 @@
 // Файлы .bat самой сборки не меняются никогда. Правка сохраняется своим
 // профилем поверх одного из них: разбор `.bat` перечитывается при каждом
 // запуске, и удержать правку внутри него было бы негде.
+import { ArrowLeft, X } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -149,7 +150,7 @@ async function remove(profile: CustomProfile): Promise<void> {
       <span class="spacer"></span>
       <span class="acts">
         <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
-          <svg class="ico"><use href="#i-back" /></svg>
+          <ArrowLeft class="ico" />
           {{ t('common.back') }}
         </RouterLink>
         <button
@@ -219,7 +220,7 @@ async function remove(profile: CustomProfile): Promise<void> {
                 :aria-label="t('args.remove')"
                 @click="removeArg(index)"
               >
-                <svg class="ico"><use href="#i-close" /></svg>
+                <X class="ico" />
               </button>
             </span>
           </div>

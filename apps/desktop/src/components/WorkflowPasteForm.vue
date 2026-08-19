@@ -33,6 +33,7 @@ const content = ref('');
 const saving = ref(false);
 const failure = ref<AppError | null>(null);
 const area = ref<HTMLTextAreaElement | null>(null);
+const nameInput = ref<HTMLInputElement | null>(null);
 
 /**
  * Разбор идёт по ходу набора, а не по нажатию «Сохранить»: спрашивать
@@ -108,6 +109,12 @@ async function submit(): Promise<void> {
     const error = await props.save(name.value, content.value.trim());
     if (error) {
       failure.value = error;
+      // Занятое имя относится к полю — толчок и там же. Переигрывается
+      // явно из места отказа, а не реактивно от текста ошибки: вторая
+      // подряд попытка с тем же именем даёт тот же самый текст, и `watch`
+      // по значению его бы не заметил, а percussive-намёк должен
+      // повториться на каждый настоящий отказ, а не только на первый.
+      if (nameFailure.value) shakeName();
       return;
     }
     emit('done', fileName.value);
@@ -126,6 +133,26 @@ const nameFailure = computed(() =>
 const otherFailure = computed(() =>
   failure.value && !nameFailure.value ? errorText(failure.value) : null,
 );
+
+/**
+ * Percussive-толчок поля имени при отказе (transitions.dev, «error state
+ * shake»). Красная рамка и текст под полем уже держатся на `.bad`
+ * и `nameFailure` — здесь только сама тряска, класс `.is-shaking` снят,
+ * положен заново после перерисовки: без сброса второй отказ подряд
+ * не переиграл бы уже идущую анимацию.
+ *
+ * Автосброса ошибки по таймеру нет и не будет: занятое имя остаётся
+ * видимым, пока пользователь не поправит поле или не отправит форму
+ * заново, — как и любая другая ошибка в этом приложении. Отпускать её
+ * молча через три секунды значило бы прятать то, что ещё не решено.
+ */
+function shakeName(): void {
+  const el = nameInput.value;
+  if (!el) return;
+  el.classList.remove('is-shaking');
+  void el.offsetWidth;
+  el.classList.add('is-shaking');
+}
 </script>
 
 <template>
@@ -134,6 +161,7 @@ const otherFailure = computed(() =>
       <label class="t-label" for="paste-name">{{ t('library.paste.name') }}</label>
       <input
         id="paste-name"
+        ref="nameInput"
         v-model="name"
         class="input"
         :class="{ bad: !!nameFailure }"

@@ -191,4 +191,90 @@
 
   /* Тени. Едва заметные: плоский инструмент. */
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.08);
+
+  /* ---------------------------------------------------------- движение */
+  /* Общая шкала transitions.dev (github.com/Jakubantalik/transitions.dev) —
+     согласованный словарь длительностей и кривых вместо чисел, придуманных
+     на каждый компонент заново. На неё ссылаются переменные ниже: тост,
+     выпадающее меню, аккордеон категории общих моделей, смена текста
+     пилюли статуса и бейдж упавшего инстанса в рейле. */
+  --duration-quick:  150ms; /* закрытие: дропдаун, тост, смена текста */
+  --duration-fast:   250ms; /* открытие: дропдаун, аккордеон */
+  --duration-medium: 350ms; /* открытие тоста */
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1); /* дропдаун, аккордеон, тост */
+  --ease-in-out:     ease-in-out; /* смена текста статуса */
+  --blur-small:      2px; /* тост, аккордеон, смена текста, бейдж */
+
+  /* Тост: приход медленнее ухода — появление читается как заявление
+     о себе, исчезновение не должно задерживать. */
+  --toast-open:     var(--duration-medium);
+  --toast-close:    var(--duration-quick);
+  --toast-ease:     var(--ease-smooth-out);
+  --toast-distance: 16px;
+  --toast-blur:     var(--blur-small);
+  --toast-scale:    0.97;
+
+  /* Выпадающее меню: растёт от места клика, схлопывается чуть быстрее
+     и до чуть другого масштаба — следующее открытие не наследует
+     масштаб закрытия. */
+  --dropdown-open-dur:      var(--duration-fast);
+  --dropdown-close-dur:     var(--duration-quick);
+  --dropdown-ease:          var(--ease-smooth-out);
+  --dropdown-pre-scale:     0.97;
+  --dropdown-closing-scale: 0.99;
+
+  /* Аккордеон категории общих моделей: высота через grid-rows, без замера
+     в JS. Шеврон продолжает крутиться transform-ом (кросс-браузерно
+     всегда), а не флипаться, как в исходном снипете, — у нас это уже
+     не морф контура. */
+  --acc-expand:   var(--duration-fast);
+  --acc-collapse: var(--duration-fast);
+  --acc-chevron:  var(--duration-fast);
+  --acc-ease:     var(--ease-smooth-out);
+
+  /* Смена текста пилюли статуса: старое уезжает вверх и размывается,
+     новое приходит снизу тем же путём. */
+  --text-swap-dur:         var(--duration-quick);
+  --text-swap-translate-y: 4px;
+  --text-swap-blur:        var(--blur-small);
+  --text-swap-ease:        var(--ease-in-out);
+
+  /* Бейдж «!» на упавшем инстансе в рейле: точка выезжает по диагонали
+     и пружинит при появлении, при исчезновении гасится быстрее и без
+     пружины. */
+  --badge-slide-dur:      260ms;
+  --badge-pop-dur:        500ms;
+  --badge-pop-close-dur:  180ms;
+  --badge-fade-dur:       400ms;
+  --badge-fade-close-dur: 180ms;
+  --badge-blur:           var(--blur-small);
+  --badge-offset-x:       -8.2px;
+  --badge-offset-y:       12.4px;
+  --badge-slide-ease:     var(--ease-smooth-out);
+  --badge-pop-ease:       cubic-bezier(0.34, 1.36, 0.64, 1);
+  --badge-close-ease:     cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Тумблер: ползунок перехлёстывает мимо края и возвращается, дорожка
+     меняет цвет отдельно и чуть быстрее. Кривая перехлёста та же, что
+     у пружины бейджа выше, — не заводим второй почти одинаковый изгиб.
+     Расстояние хода не из демо transitions.dev: у него другая геометрия
+     дорожки, здесь оно посчитано по своей — 32px дорожка минус по 2px
+     полей минус 14px кружка. */
+  --toggle-thumb-dur:   var(--duration-medium);
+  --toggle-thumb-ease:  var(--badge-pop-ease);
+  --toggle-track-dur:   var(--duration-quick);
+  --toggle-travel:      14px;
+  --toggle-overshoot-1: 1px;
+  --toggle-overshoot-2: 0px;
+
+  /* Толчок поля при занятом имени: две большие дуги вправо-влево, потом
+     доводка с перелётом — ритм короче, чем у прыжка тумблера, и без
+     остановки посередине. Автосброса нет: ошибка гаснет, только когда
+     пользователь её решит, как и везде в приложении, — поэтому у этого
+     отказа нет ни `--shake-hold`, ни `--shake-revert` из образца. */
+  --shake-dur-a:     80ms;
+  --shake-dur-b:     60ms;
+  --shake-ease:      var(--ease-smooth-out);
+  --shake-distance:  6px;
+  --shake-overshoot: 4px;
 }

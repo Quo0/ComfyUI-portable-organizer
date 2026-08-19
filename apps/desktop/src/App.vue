@@ -6,7 +6,6 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-import IconSprite from './shell/IconSprite.vue';
 import NavRail from './shell/NavRail.vue';
 import ToastHost from './shell/ToastHost.vue';
 import { events } from './bindings';
@@ -24,7 +23,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <IconSprite />
   <div class="shell">
     <NavRail />
     <main class="content">

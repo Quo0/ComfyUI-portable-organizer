@@ -4,6 +4,7 @@
 // Список берётся у запущенной сборки по API, у остановленной — с диска.
 // Разница не косметическая: запущенная знает про то, что сохранила минуту
 // назад, а у остановленной другого источника и нет.
+import { RotateCw } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -138,7 +139,7 @@ async function pull(entry: InstanceWorkflow): Promise<void> {
       <OpenFolderButton :path="dir?.path" :title="dir?.path" :disabled="!dir?.available" />
       <span class="spacer"></span>
       <button type="button" class="btn ghost" :disabled="loading" @click="refresh">
-        <svg class="ico"><use href="#i-reload" /></svg>
+        <RotateCw class="ico" />
         {{ t('library.refresh') }}
       </button>
     </div>

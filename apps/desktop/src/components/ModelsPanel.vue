@@ -10,6 +10,7 @@
 // и «совпало имя», — и одна и та же модель попадала то в один перечень,
 // то в другой, а связь с категорией приходилось восстанавливать по имени
 // в строке.
+import { ChevronRight, RotateCw } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -27,6 +28,7 @@ import EmptyNote from './EmptyNote.vue';
 import OpenFolderButton from './OpenFolderButton.vue';
 import { displayStatus } from '../lib/status';
 import { useFormat } from '../lib/format';
+import { useToggleTouch } from '../lib/motion';
 import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
 import { useUiStore } from '../stores/ui';
@@ -73,6 +75,9 @@ const chosen = ref<Set<string>>(new Set());
  * переживают скан, в отличие от ключей моделей.
  */
 const collapsed = ref<Set<string>>(new Set());
+
+/** Перехлёст ползунка играет только с первого клика, не с отрисовки. */
+const { isTouched, touch } = useToggleTouch();
 
 let unlisten: (() => void) | null = null;
 
@@ -121,6 +126,7 @@ async function refresh(): Promise<void> {
 }
 
 function toggle(key: string): void {
+  touch(key);
   const next = new Set(chosen.value);
   if (!next.delete(key)) next.add(key);
   chosen.value = next;
@@ -153,6 +159,7 @@ function catChecked(category: ModelCategory): 'true' | 'false' | 'mixed' {
 }
 
 function toggleCategory(category: ModelCategory): void {
+  touch(category.folder);
   const keys = keysOf(category);
   const next = new Set(chosen.value);
   // Частичный выбор нажатие доводит до полного, а не сбрасывает:
@@ -295,7 +302,7 @@ async function cleanup(): Promise<void> {
       />
       <span class="spacer"></span>
       <button type="button" class="btn ghost" :disabled="loading || busy" @click="refresh">
-        <svg class="ico"><use href="#i-reload" /></svg>
+        <RotateCw class="ico" />
         {{ t('library.refresh') }}
       </button>
     </div>
@@ -323,7 +330,7 @@ async function cleanup(): Promise<void> {
                 :aria-expanded="!collapsed.has(category.folder)"
                 @click="toggleCollapse(category.folder)"
               >
-                <svg class="ico"><use href="#i-expand" /></svg>
+                <ChevronRight class="ico" />
                 <code>{{ category.folder }}</code>
               </button>
               <span class="n">
@@ -341,6 +348,7 @@ async function cleanup(): Promise<void> {
                 :class="{
                   off: catState(category) === 'off',
                   mixed: catState(category) === 'mixed',
+                  'is-init': isTouched(category.folder),
                 }"
                 role="checkbox"
                 :aria-checked="catChecked(category)"
@@ -381,7 +389,10 @@ async function cleanup(): Promise<void> {
                   v-if="selectable(entry)"
                   type="button"
                   class="toggle"
-                  :class="{ off: !chosen.has(keyOf(category.folder, entry.name)) }"
+                  :class="{
+                    off: !chosen.has(keyOf(category.folder, entry.name)),
+                    'is-init': isTouched(keyOf(category.folder, entry.name)),
+                  }"
                   role="switch"
                   :aria-checked="chosen.has(keyOf(category.folder, entry.name))"
                   :aria-label="keyOf(category.folder, entry.name)"

@@ -8,6 +8,7 @@
 //
 // Отсюда же и остальные решения: тулбар полосой сверху, ошибки баннером
 // под ним, консоль логов не поверх вкладки, а вместо неё.
+import { ArrowLeft, ExternalLink, FolderOpen, RotateCw, ScrollText } from '@lucide/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -189,7 +190,7 @@ function fail(error: AppError): void {
   <section v-if="instance" class="screen tab-screen">
     <div class="inst-toolbar">
       <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
-        <svg class="ico"><use href="#i-back" /></svg>
+        <ArrowLeft class="ico" />
         {{ t('common.back') }}
       </RouterLink>
       <span
@@ -213,7 +214,7 @@ function fail(error: AppError): void {
           :aria-label="showLog ? t('tab.canvas') : t('tab.logs')"
           @click="showLog = !showLog"
         >
-          <svg class="ico"><use href="#i-log" /></svg>
+          <ScrollText class="ico" />
         </button>
         <button
           type="button"
@@ -223,7 +224,7 @@ function fail(error: AppError): void {
           :aria-label="t('tab.output')"
           @click="openOutput"
         >
-          <svg class="ico"><use href="#i-folder" /></svg>
+          <FolderOpen class="ico" />
         </button>
         <button
           type="button"
@@ -232,7 +233,7 @@ function fail(error: AppError): void {
           :aria-label="t('run.openInBrowser')"
           @click="openInBrowser"
         >
-          <svg class="ico"><use href="#i-external" /></svg>
+          <ExternalLink class="ico" />
         </button>
         <button
           type="button"
@@ -242,7 +243,7 @@ function fail(error: AppError): void {
           :aria-label="t('tab.reload')"
           @click="reload"
         >
-          <svg class="ico"><use href="#i-reload" /></svg>
+          <RotateCw class="ico" />
         </button>
         <button type="button" class="btn secondary" :disabled="busy" @click="restart">
           {{ t('run.restart') }}
@@ -262,7 +263,7 @@ function fail(error: AppError): void {
       <!-- Та же надпись и та же иконка, что у кнопки обновления в панели:
            действие пользователю одно и то же — показать вкладку заново. -->
       <button type="button" class="btn ghost" @click="apply">
-        <svg class="ico"><use href="#i-reload" /></svg>
+        <RotateCw class="ico" />
         {{ t('tab.reload') }}
       </button>
     </div>

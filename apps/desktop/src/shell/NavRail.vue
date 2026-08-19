@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronLeft, ChevronRight, FolderPlus, Info, Layers, SlidersHorizontal } from '@lucide/vue';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -28,10 +29,10 @@ onMounted(async () => {
 // а её содержимое — в рейле, и на вопрос «куда это складывается» нельзя
 // было ответить, не уходя с экрана.
 const sections = computed(() => [
-  { to: '/instances', icon: 'i-inst', label: t('nav.instances') },
-  { to: '/install', icon: 'i-install', label: t('nav.install') },
-  { to: '/settings', icon: 'i-set', label: t('nav.settings') },
-  { to: '/about', icon: 'i-about', label: t('nav.about') },
+  { to: '/instances', icon: Layers, label: t('nav.instances') },
+  { to: '/install', icon: FolderPlus, label: t('nav.install') },
+  { to: '/settings', icon: SlidersHorizontal, label: t('nav.settings') },
+  { to: '/about', icon: Info, label: t('nav.about') },
 ]);
 
 /**
@@ -75,7 +76,7 @@ const toggleLabel = computed(() =>
       :title="item.label"
       :aria-label="item.label"
     >
-      <svg class="ico"><use :href="`#${item.icon}`" /></svg>
+      <component :is="item.icon" class="ico" />
       <span>{{ item.label }}</span>
     </RouterLink>
 
@@ -116,9 +117,7 @@ const toggleLabel = computed(() =>
       :aria-expanded="!ui.railCollapsed"
       @click="ui.toggleRail()"
     >
-      <svg class="ico">
-        <use :href="ui.railCollapsed ? '#i-expand' : '#i-collapse'" />
-      </svg>
+      <component :is="ui.railCollapsed ? ChevronRight : ChevronLeft" class="ico" />
       <span>{{ toggleLabel }}</span>
     </button>
   </nav>

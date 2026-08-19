@@ -8,6 +8,7 @@
 //
 // Вкладки разводят четыре независимых набора данных. Шапка со сборкой
 // и кнопкой запуска закреплена: она нужна на любой вкладке.
+import { ArrowLeft } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -26,6 +27,7 @@ import StatusPill from '../components/StatusPill.vue';
 import type { InstanceEdit } from '../bindings';
 import { accentVar, initial, useFormat } from '../lib/format';
 import { displayStatus } from '../lib/status';
+import { useSlidingTabs } from '../lib/motion';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
@@ -61,6 +63,11 @@ function tabFromQuery(value: unknown): Tab {
 }
 
 const tab = ref<Tab>(tabFromQuery(useRoute().query.tab));
+
+/** Плашка скользит к выбранной вкладке сама, замером в DOM. */
+const tabsBar = ref<HTMLElement | null>(null);
+useSlidingTabs(tabsBar, tab);
+
 /** Лог занимает всю область данных, а не висит куском посреди свитка. */
 const logOpen = ref(false);
 /**
@@ -192,7 +199,7 @@ function openFolder(): void {
   <section v-if="instance" class="screen inst-screen">
     <header class="screen-head">
       <RouterLink class="btn ghost" to="/instances">
-        <svg class="ico"><use href="#i-back" /></svg>
+        <ArrowLeft class="ico" />
         {{ t('common.back') }}
       </RouterLink>
       <span
@@ -223,7 +230,8 @@ function openFolder(): void {
       </div>
     </div>
 
-    <nav class="tabs" role="tablist">
+    <nav ref="tabsBar" class="tabs" role="tablist">
+      <span class="tabs-pill" aria-hidden="true"></span>
       <button
         v-for="item in TABS"
         :key="item"

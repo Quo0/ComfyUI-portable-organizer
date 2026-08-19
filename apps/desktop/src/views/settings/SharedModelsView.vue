@@ -28,6 +28,14 @@ const { bytes } = useFormat();
 /** Предпросмотр YAML свёрнут: он длинный и нужен не всем. */
 const showYaml = ref(false);
 
+/** Перехлёст ползунка тумблера играет только с первого клика, не с отрисовки. */
+const defaultTargetTouched = ref(false);
+
+function toggleDefaultTarget(): void {
+  defaultTargetTouched.value = true;
+  shared.setDefaultTarget(!shared.settings.makeDefaultTarget);
+}
+
 /**
  * Выбранная, но ещё не применённая папка. Смена корня действует сразу на
  * все подключённые инстансы, поэтому спрашиваем до, а не после.
@@ -217,11 +225,14 @@ async function applyPending(): Promise<void> {
           <div class="toggle-row">
             <button
               class="toggle"
-              :class="{ off: !shared.settings.makeDefaultTarget }"
+              :class="{
+                off: !shared.settings.makeDefaultTarget,
+                'is-init': defaultTargetTouched,
+              }"
               type="button"
               role="switch"
               :aria-checked="shared.settings.makeDefaultTarget"
-              @click="shared.setDefaultTarget(!shared.settings.makeDefaultTarget)"
+              @click="toggleDefaultTarget"
             ></button>
             <div>
               <div class="t-base">{{ t('shared.default.label') }}</div>

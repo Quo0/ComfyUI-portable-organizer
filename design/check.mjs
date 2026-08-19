@@ -182,22 +182,16 @@ for (const need of ['.nav', '.card', '.btn', '.scroll', '.chip', '.toast']) {
   if (!components.includes(need)) note(`в components.css нет «${need}»`);
 }
 
-// 8. Спрайт значков дизайна и приложения ---------------------------------------
-// Единственная проверка, заглядывающая за пределы design/, и она того стоит:
-// спрайт существует двумя копиями, разошлись они молча, и цена расхождения —
-// пустой квадрат вместо значка, который ничего не сообщает ни в логе,
-// ни в сборке.
-const APP_SPRITE = join(DESIGN_DIR, '..', 'apps', 'desktop', 'src', 'shell', 'IconSprite.vue');
+// 8. Каждый использованный значок нарисован --------------------------------------
+// Приложение больше не хранит свою копию спрайта — значки идут из
+// `@lucide/vue` по имени компонента, и сравнивать их с id макетов
+// (`i-palette` ↔ `Palette`) нечем: то были две копии одного алфавита,
+// а это два разных алфавита. Что ещё можно проверить машиной — что макеты
+// сами себя не обманывают: ссылка на несуществующий символ рисует пустоту
+// и молчит.
 const idsOf = (text) => new Set([...text.matchAll(/id="(i-[\w-]+)"/g)].map((m) => m[1]));
-
 const designIcons = idsOf(readFileSync(join(DESIGN_DIR, 'screens.src.html'), 'utf8'));
-const appIcons = idsOf(readFileSync(APP_SPRITE, 'utf8'));
 
-for (const id of designIcons) if (!appIcons.has(id)) note(`значка нет в спрайте приложения: ${id}`);
-for (const id of appIcons) if (!designIcons.has(id)) note(`значка нет в макетах: ${id}`);
-
-// Каждый значок, на который ссылаются макеты, обязан быть нарисован:
-// ссылка на несуществующий символ рисует пустоту и молчит.
 const usedIcons = new Set([...screens.matchAll(/href="#(i-[\w-]+)"/g)].map((m) => m[1]));
 for (const id of usedIcons) if (!designIcons.has(id)) note(`используется, но не нарисован: ${id}`);
 

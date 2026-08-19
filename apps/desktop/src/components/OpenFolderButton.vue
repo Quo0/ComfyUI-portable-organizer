@@ -10,6 +10,7 @@
 // Открывает не саму папку, а показывает её в проводнике выделенной.
 // Так устроены все такие кнопки в приложении, и расходиться поведением
 // у одинакового значка нельзя.
+import { FolderOpen } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { revealItemInDir } from '@tauri-apps/plugin-opener';
@@ -49,6 +50,6 @@ function open(): void {
     :aria-label="name"
     @click="open"
   >
-    <svg class="ico"><use href="#i-folder" /></svg>
+    <FolderOpen class="ico" />
   </button>
 </template>
