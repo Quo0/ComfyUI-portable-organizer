@@ -57,3 +57,5 @@ apps/desktop/src/bindings.ts
 # Копии из design/dist, кладёт tools/sync-design.mjs.
 apps/desktop/src/styles/tokens.css
 apps/desktop/src/styles/components.css
+
+.cc-connect
