@@ -482,6 +482,27 @@ h3.sub {
   border-radius: var(--radius-md);
   overflow: hidden;
 }
+/* Перестановка карточек фильтром и сортировкой (transitions.dev, «list
+   move»): список меняется каждым нажатием клавиши в поиске или сменой
+   сортировки, и без перехода карточки прыгали бы на новые места рывком.
+   Сетке нужна `position: relative` — уходящая карточка встаёт в абсолютное
+   позиционирование, иначе соседи не сдвинутся на её место, пока не доиграет
+   исчезновение. */
+.cards.grid { position: relative; }
+.card-move { transition: transform var(--duration-fast) var(--ease-smooth-out); }
+.card-enter-active {
+  transition: opacity var(--duration-fast) var(--ease-in-out),
+    filter var(--duration-fast) var(--ease-in-out);
+}
+.card-leave-active {
+  transition: opacity var(--duration-quick) var(--ease-in-out),
+    filter var(--duration-quick) var(--ease-in-out);
+  position: absolute;
+}
+.card-enter-from, .card-leave-to { opacity: 0; filter: blur(var(--blur-small)); }
+@media (prefers-reduced-motion: reduce) {
+  .card-move, .card-enter-active, .card-leave-active { transition: none; }
+}
 .card-accent { background: var(--instance-accent, var(--line-strong)); }
 .card-in { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .card-top { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
@@ -1636,7 +1657,26 @@ h3.sub {
  *
  * Состояние задаётся классами: `.on` — выбрана, `.lost` — файла больше нет.
  */
-.wf-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.wf-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; position: relative; }
+/* Перестановка строк фильтром по имени и по избранному (transitions.dev,
+   «list move») — то же самое, что у карточек сборок (`.cards.grid` выше),
+   тем же приёмом: уходящая строка встаёт в абсолютное позиционирование,
+   чтобы соседи сдвинулись на её место сразу, а не после её исчезновения. */
+.wf-row-move { transition: transform var(--duration-fast) var(--ease-smooth-out); }
+.wf-row-enter-active {
+  transition: opacity var(--duration-fast) var(--ease-in-out),
+    filter var(--duration-fast) var(--ease-in-out);
+}
+.wf-row-leave-active {
+  transition: opacity var(--duration-quick) var(--ease-in-out),
+    filter var(--duration-quick) var(--ease-in-out);
+  position: absolute;
+  width: 100%;
+}
+.wf-row-enter-from, .wf-row-leave-to { opacity: 0; filter: blur(var(--blur-small)); }
+@media (prefers-reduced-motion: reduce) {
+  .wf-row-move, .wf-row-enter-active, .wf-row-leave-active { transition: none; }
+}
 /* Колонок три: звёздочка, имя, метки. Отметки в обычном режиме нет —
    она появляется только во множественном выборе, вместе со своей колонкой
    (`.wf-list.picking` ниже). Держать под неё пустое место постоянно значило

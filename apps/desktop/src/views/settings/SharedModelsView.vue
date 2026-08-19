@@ -17,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 import EmptyNote from '../../components/EmptyNote.vue';
 import PathPicker from '../../components/PathPicker.vue';
 import { useFormat } from '../../lib/format';
+import { withViewTransition } from '../../lib/motion';
 import { useInstancesStore } from '../../stores/instances';
 import { useSharedStore } from '../../stores/shared';
 
@@ -34,6 +35,11 @@ const defaultTargetTouched = ref(false);
 function toggleDefaultTarget(): void {
   defaultTargetTouched.value = true;
   shared.setDefaultTarget(!shared.settings.makeDefaultTarget);
+}
+
+/** Показ и скрытие конфига — с переходом (transitions.dev): блок длинный, и без перехода появлялся рывком. */
+function toggleYaml(): void {
+  withViewTransition(() => { showYaml.value = !showYaml.value; });
 }
 
 /**
@@ -249,7 +255,7 @@ async function applyPending(): Promise<void> {
               class="btn ghost"
               type="button"
               :aria-pressed="showYaml"
-              @click="showYaml = !showYaml"
+              @click="toggleYaml()"
             >
               {{ showYaml ? t('shared.yaml.hide') : t('shared.yaml.show') }}
             </button>

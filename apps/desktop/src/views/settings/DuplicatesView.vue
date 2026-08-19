@@ -11,6 +11,7 @@ import type { UnlistenFn } from '@tauri-apps/api/event';
 import EmptyNote from '../../components/EmptyNote.vue';
 import { commands, events, type DuplicatesReport } from '../../bindings';
 import { useFormat } from '../../lib/format';
+import { withViewTransition } from '../../lib/motion';
 import { useUiStore } from '../../stores/ui';
 
 const ui = useUiStore();
@@ -43,16 +44,25 @@ onBeforeUnmount(() => {
   if (scanning.value) void commands.cancelDuplicatesScan();
 });
 
+/**
+ * Полоса хода и итоговый отчёт подменяют друг друга целиком — с переходом
+ * (transitions.dev), а не рывком. Мутация синхронна по обе стороны
+ * единственного `await`: `report.value` переписывается сразу по ответу
+ * бэкенда, без вложенных стора и вторых `await` между ними, — как
+ * и у выбора строки в библиотеке воркфлоу, ловить здесь нечего.
+ */
 async function scan(): Promise<void> {
-  scanning.value = true;
-  progress.value = { done: 0, total: 0, place: '' };
+  withViewTransition(() => {
+    scanning.value = true;
+    progress.value = { done: 0, total: 0, place: '' };
+  });
   try {
     const res = await commands.scanDuplicates();
     if (res.status === 'error') {
       ui.pushError(res.error);
       return;
     }
-    report.value = res.data;
+    withViewTransition(() => { report.value = res.data; });
   } finally {
     scanning.value = false;
   }

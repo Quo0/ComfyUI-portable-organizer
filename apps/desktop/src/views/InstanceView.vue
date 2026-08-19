@@ -27,7 +27,7 @@ import StatusPill from '../components/StatusPill.vue';
 import type { InstanceEdit } from '../bindings';
 import { accentVar, initial, useFormat } from '../lib/format';
 import { displayStatus } from '../lib/status';
-import { useSlidingTabs } from '../lib/motion';
+import { useSlidingTabs, withViewTransition } from '../lib/motion';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
@@ -67,6 +67,21 @@ const tab = ref<Tab>(tabFromQuery(useRoute().query.tab));
 /** Плашка скользит к выбранной вкладке сама, замером в DOM. */
 const tabsBar = ref<HTMLElement | null>(null);
 useSlidingTabs(tabsBar, tab);
+
+/** Смена вкладки — с переходом (transitions.dev), как шаг мастера установки. */
+function selectTab(next: Tab): void {
+  if (tab.value === next) return;
+  withViewTransition(() => { tab.value = next; });
+}
+
+/**
+ * Открытие и закрытие лога — с переходом (transitions.dev): лог занимает
+ * область данных целиком, и без перехода подмена была резкой сменой кадра.
+ */
+function toggleLog(open: boolean): void {
+  if (logOpen.value === open) return;
+  withViewTransition(() => { logOpen.value = open; });
+}
 
 /** Лог занимает всю область данных, а не висит куском посреди свитка. */
 const logOpen = ref(false);
@@ -238,7 +253,7 @@ function openFolder(): void {
         type="button"
         role="tab"
         :aria-selected="tab === item"
-        @click="tab = item"
+        @click="selectTab(item)"
       >
         {{ t(`instances.tab.${item}`) }}
       </button>
@@ -252,7 +267,7 @@ function openFolder(): void {
         <span class="t-label">{{ t('run.console') }}</span>
         <span class="hint">{{ t('run.lines', lines.length) }}</span>
         <span class="spacer"></span>
-        <button type="button" class="btn secondary" @click="logOpen = false">
+        <button type="button" class="btn secondary" @click="toggleLog(false)">
           {{ t('run.hideLog') }}
         </button>
       </div>
@@ -297,7 +312,7 @@ function openFolder(): void {
             <div class="field">
               <label>{{ t('run.console') }}</label>
               <div class="row">
-                <button type="button" class="btn secondary" @click="logOpen = true">
+                <button type="button" class="btn secondary" @click="toggleLog(true)">
                   {{ t('run.showLog') }}
                 </button>
                 <!-- Про всю область сказано заранее: кнопка не открывает

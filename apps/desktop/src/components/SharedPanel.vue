@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n';
 import type { ApplyMode, Instance, InstanceFileInfo } from '../bindings';
 import { commands } from '../bindings';
 import OpenFolderButton from './OpenFolderButton.vue';
+import { withViewTransitionAsync } from '../lib/motion';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
 import { useSharedStore } from '../stores/shared';
@@ -49,20 +50,28 @@ onMounted(() => {
   if (!shared.loaded) void shared.load();
 });
 
+/**
+ * Блок «путь и способ» и панель режима под тумблером появляются
+ * и пропадают вместе с `enabled` — с переходом (transitions.dev). Само
+ * состояние переписывает стор уже после ответа бэкенда, поэтому обёртка
+ * асинхронная (`withViewTransitionAsync`): синхронной здесь нечего ловить.
+ */
 async function toggle(): Promise<void> {
   if (busy.value) return;
   toggleTouched.value = true;
   busy.value = true;
   try {
-    if (enabled.value) {
-      if (await shared.disconnect(props.instance.id)) {
-        foreign.value = null;
-        backup.value = null;
-        needsRestart.value = running.value;
+    await withViewTransitionAsync(async () => {
+      if (enabled.value) {
+        if (await shared.disconnect(props.instance.id)) {
+          foreign.value = null;
+          backup.value = null;
+          needsRestart.value = running.value;
+        }
+        return;
       }
-      return;
-    }
-    await connect(false);
+      await connect(false);
+    });
   } finally {
     busy.value = false;
   }

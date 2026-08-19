@@ -1,4 +1,4 @@
-import { computed, nextTick, readonly, ref } from 'vue';
+import { computed, readonly, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import {
@@ -12,6 +12,7 @@ import {
   type InstallTarget,
   type TargetCheck,
 } from '../bindings';
+import { withViewTransition } from '../lib/motion';
 import { useInstancesStore } from './instances';
 import { useSharedStore } from './shared';
 import { useUiStore } from './ui';
@@ -237,9 +238,8 @@ export const useInstallerStore = defineStore('installer', () => {
   }
 
   /**
-   * Меняет шаг мастера через View Transitions API — тем же приёмом, что
-   * и переходы между экранами в роутере (`router/index.ts`): без обёрток,
-   * прямо на встроенном API браузера.
+   * Меняет шаг мастера через View Transitions API (`withViewTransition`
+   * из `lib/motion`).
    *
    * Отдельный сеттер, а не единая точка перехвата вроде навигационного
    * хука роутера: шаг мастера не идёт через маршрут, и перехватить его
@@ -250,18 +250,7 @@ export const useInstallerStore = defineStore('installer', () => {
    */
   function setStep(next: WizardStep): void {
     if (step.value === next) return;
-    if (!document.startViewTransition) {
-      step.value = next;
-      return;
-    }
-    const transition = document.startViewTransition(() => {
-      step.value = next;
-      return nextTick();
-    });
-    // Быстрая повторная смена шага обрывает предыдущий переход браузером —
-    // штатно, но необработанным отказом `finished` вылетало необработанное
-    // исключение прямо в консоль.
-    transition.finished.catch(() => {});
+    withViewTransition(() => { step.value = next; });
   }
 
   function reset(): void {

@@ -24,9 +24,9 @@ const { bytes, moment } = useFormat();
 type Sort = 'name' | 'lastRun' | 'size';
 
 const query = ref('');
-const sort = ref<Sort>('name');
+const sort = ref<Sort>('lastRun');
 
-const SORTS: Sort[] = ['name', 'lastRun', 'size'];
+const SORTS: Sort[] = ['lastRun', 'name', 'size'];
 
 /**
  * Поиск идёт и по пути: сборки часто называют одинаково («SDXL», «тест»),
@@ -104,7 +104,10 @@ onMounted(() => {
          остаётся на месте, иначе при длинном списке непонятно, где ты. -->
     <div class="screen-body">
       <div class="screen-pad wide">
-        <div v-if="visible.length" class="cards grid">
+        <!-- Смена набора карточек — с переходом (transitions.dev): фильтр
+             и сортировка меняют список каждым нажатием клавиши, и без
+             перехода карточки прыгали бы на новые места рывком. -->
+        <TransitionGroup v-if="visible.length" name="card" tag="div" class="cards grid">
           <RouterLink
             v-for="instance in visible"
             :key="instance.id"
@@ -166,7 +169,7 @@ onMounted(() => {
               </div>
             </div>
           </RouterLink>
-        </div>
+        </TransitionGroup>
 
         <EmptyNote v-else-if="instances.items.length">
           {{ t('instances.nothingFound') }}

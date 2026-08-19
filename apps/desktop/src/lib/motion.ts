@@ -50,6 +50,52 @@ export function useToggleTouch() {
 }
 
 /**
+ * Меняет локальное состояние экрана через View Transitions API — тот же
+ * приём, что у переходов между экранами (`router/index.ts`) и у шага
+ * мастера установки (`stores/installer.ts`), только без специфики шага:
+ * вкладка сборки, вкладка правой панели библиотеки, выбранный воркфлоу —
+ * везде смена состояния локальна для компонента, и обвязывать её в стор
+ * незачем.
+ *
+ * Быстрая повторная смена обрывает предыдущий переход браузером — штатно,
+ * но необработанным отказом `finished` вылетало бы необработанное
+ * исключение прямо в консоль, поэтому отказ проглочен здесь же, одним
+ * местом на все вызовы.
+ */
+export function withViewTransition(mutate: () => void): void {
+  if (!document.startViewTransition) {
+    mutate();
+    return;
+  }
+  const transition = document.startViewTransition(() => {
+    mutate();
+    return nextTick();
+  });
+  transition.finished.catch(() => {});
+}
+
+/**
+ * Асинхронный вариант `withViewTransition` — для мутаций, которые сами
+ * стоят по ту сторону сетевого вызова: подключение общих моделей ждёт
+ * ответ бэкенда и лишь потом переписывает стор через один-два вложенных
+ * `await`. Позвать `startViewTransition` уже после них поздно — Vue
+ * успевает отрисовать новый кадр в промежутке, и «до» с «после» совпадают.
+ *
+ * Колбэк здесь сам асинхронный: пока он не выполнится, API держит экран
+ * на снимке «до» — для одного локального вызова Tauri это доли секунды,
+ * незаметные глазом, и надёжнее, чем гоняться за очередью микрозадач.
+ */
+export function withViewTransitionAsync(mutate: () => Promise<void>): Promise<void> {
+  if (!document.startViewTransition) return mutate();
+  const transition = document.startViewTransition(async () => {
+    await mutate();
+    await nextTick();
+  });
+  transition.finished.catch(() => {});
+  return transition.updateCallbackDone;
+}
+
+/**
  * Скользящая подчёркивающая плашка у вкладок (transitions.dev, «tabs
  * sliding»). Ширину и смещение считать во время вёрстки нечем — подписи
  * вкладок разной длины и переводятся на четыре языка, — поэтому плашка

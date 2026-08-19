@@ -24,7 +24,7 @@ import WorkflowPasteForm from '../../components/WorkflowPasteForm.vue';
 import { commands } from '../../bindings';
 import { accentVar } from '../../lib/format';
 import { errorText } from '../../lib/errors';
-import { useSlidingTabs } from '../../lib/motion';
+import { useSlidingTabs, withViewTransition } from '../../lib/motion';
 import { useRunStore } from '../../stores/run';
 import { useInstancesStore } from '../../stores/instances';
 import { useUiStore } from '../../stores/ui';
@@ -55,6 +55,21 @@ const side = ref<Side>('where');
 /** Плашка скользит к выбранной вкладке сама, замером в DOM. */
 const sideTabsBar = ref<HTMLElement | null>(null);
 useSlidingTabs(sideTabsBar, side);
+
+/** Смена вкладки — с переходом (transitions.dev), как шаг мастера установки. */
+function selectSide(next: Side): void {
+  if (side.value === next) return;
+  withViewTransition(() => { side.value = next; });
+}
+
+/**
+ * Переход в режим отметок и обратно — с переходом (transitions.dev):
+ * список меняет строки на чекбоксы, а панель справа целиком меняется
+ * на сводку отмеченного, и без перехода это выглядело как срыв кадра.
+ */
+function toggleMulti(): void {
+  withViewTransition(() => { library.setMulti(!library.multi); });
+}
 
 onMounted(async () => {
   if (!library.loaded) await library.load();
@@ -87,7 +102,11 @@ function instanceName(id: string): string {
  */
 function onRow(item: LibItem): void {
   if (library.multi) return;
-  void library.select(item.path);
+  if (library.selected === item.path) return;
+  // Переход (transitions.dev) — сама смена уходит асинхронно за первый же
+  // `await`, но до него `selected.value` уже переписан синхронно, и плашке
+  // «после» есть с чего снимать кадр.
+  withViewTransition(() => { void library.select(item.path); });
 }
 
 /** Отмечены все доступные сборки. */
@@ -104,10 +123,19 @@ function toggleAllTargets(): void {
   library.setTargets(allTargets.value ? [] : targets.value.map((i) => i.id));
 }
 
+/**
+ * Открытие и закрытие формы заметки и тегов — с переходом (transitions.dev):
+ * форма подменяет текст заметки/список тегов целиком, и без перехода это
+ * была резкая смена кадра, как и переход в режим отметок.
+ */
 function startEdit(item: LibItem): void {
   noteDraft.value = item.meta.note;
   tagsDraft.value = item.meta.tags.join(', ');
-  editing.value = true;
+  withViewTransition(() => { editing.value = true; });
+}
+
+function cancelEdit(): void {
+  withViewTransition(() => { editing.value = false; });
 }
 
 async function saveMeta(item: LibItem): Promise<void> {
@@ -376,7 +404,7 @@ onUnmounted(() => unlisten?.());
               :aria-pressed="library.multi"
               :title="t('library.multi.action')"
               :aria-label="t('library.multi.action')"
-              @click="library.setMulti(!library.multi)"
+              @click="toggleMulti()"
             >
               <ListChecks class="ico" />
             </button>
@@ -412,8 +440,13 @@ onUnmounted(() => unlisten?.());
                 {{ t('library.manifestBroken') }}
               </p>
 
-              <div
+              <!-- Смена набора строк — с переходом (transitions.dev): поиск
+                   и фильтр избранного меняют список каждым нажатием, и без
+                   перехода строки прыгали бы на новые места рывком. -->
+              <TransitionGroup
                 v-if="library.visible.length"
+                name="wf-row"
+                tag="div"
                 class="wf-list"
                 :class="{ picking: library.multi }"
               >
@@ -476,7 +509,7 @@ onUnmounted(() => unlisten?.());
                     <span v-else-if="item.broken" class="tag warn">{{ t('library.broken') }}</span>
                   </span>
                 </component>
-              </div>
+              </TransitionGroup>
               <EmptyNote v-else>{{ t('library.nothingFound') }}</EmptyNote>
             </div>
           </div>
@@ -664,7 +697,7 @@ onUnmounted(() => unlisten?.());
               type="button"
               role="tab"
               :aria-selected="side === item"
-              @click="side = item"
+              @click="selectSide(item)"
             >
               {{ t(`library.side.${item}`) }}
               <span v-if="item === 'tags' && library.current.meta.tags.length" class="n">
@@ -787,7 +820,7 @@ onUnmounted(() => unlisten?.());
                         >
                           {{ t('common.save') }}
                         </button>
-                        <button type="button" class="btn ghost" @click="editing = false">
+                        <button type="button" class="btn ghost" @click="cancelEdit()">
                           {{ t('common.cancel') }}
                         </button>
                       </div>
@@ -828,7 +861,7 @@ onUnmounted(() => unlisten?.());
                         >
                           {{ t('common.save') }}
                         </button>
-                        <button type="button" class="btn ghost" @click="editing = false">
+                        <button type="button" class="btn ghost" @click="cancelEdit()">
                           {{ t('common.cancel') }}
                         </button>
                       </div>
