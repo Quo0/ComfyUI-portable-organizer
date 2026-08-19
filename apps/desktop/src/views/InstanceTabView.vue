@@ -12,7 +12,7 @@ import { ArrowLeft, ExternalLink, FolderOpen, RotateCw, ScrollText } from '@luci
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
+import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 
 import EmptyNote from '../components/EmptyNote.vue';
 import LogConsole from '../components/LogConsole.vue';
@@ -147,7 +147,7 @@ async function refreshOutput(): Promise<void> {
 }
 
 function openOutput(): void {
-  if (outputDir.value) void revealItemInDir(outputDir.value);
+  if (outputDir.value) void openPath(outputDir.value);
 }
 
 function openInBrowser(): void {

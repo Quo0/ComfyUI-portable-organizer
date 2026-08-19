@@ -12,7 +12,7 @@ import { ArrowLeft } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { revealItemInDir } from '@tauri-apps/plugin-opener';
+import { openPath } from '@tauri-apps/plugin-opener';
 
 import EmptyNote from '../components/EmptyNote.vue';
 import InstanceFields from '../components/InstanceFields.vue';
@@ -206,7 +206,7 @@ async function remove(): Promise<void> {
 }
 
 function openFolder(): void {
-  if (instance.value) void revealItemInDir(instance.value.path);
+  if (instance.value) void openPath(instance.value.path);
 }
 </script>
 
