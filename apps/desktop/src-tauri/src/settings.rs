@@ -32,8 +32,7 @@ const KEY_LIBRARY: &str = "workflowLibrary";
 pub enum ThemeChoice {
     Light,
     Dark,
-    /// Следовать системе. Значение по умолчанию: навязывать оформление
-    /// поверх выбора пользователя в Windows мы не хотим.
+    /// Следовать системе.
     System,
 }
 
@@ -50,7 +49,8 @@ pub struct UiSettings {
 
 impl Default for UiSettings {
     fn default() -> Self {
-        Self { theme: ThemeChoice::System, locale: None, rail_collapsed: false }
+        // Тёмная — оформление по умолчанию для первого запуска.
+        Self { theme: ThemeChoice::Dark, locale: None, rail_collapsed: false }
     }
 }
 

@@ -26,7 +26,7 @@ const OK_LIFETIME_MS = 4000;
 let nextToastId = 1;
 
 export const useUiStore = defineStore('ui', () => {
-  const theme = ref<ThemeChoice>('system');
+  const theme = ref<ThemeChoice>('dark');
   const locale = ref<Locale>('en');
   const railCollapsed = ref(false);
   const toasts = ref<Toast[]>([]);

@@ -15,8 +15,8 @@ const { t } = useI18n();
 const { bytes, moment } = useFormat();
 
 const themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => [
-  { value: 'light', label: t('settings.appearance.theme.light') },
   { value: 'dark', label: t('settings.appearance.theme.dark') },
+  { value: 'light', label: t('settings.appearance.theme.light') },
   { value: 'system', label: t('settings.appearance.theme.system') },
 ]);
 
@@ -52,18 +52,24 @@ function onLocale(event: Event): void {
         <div class="screen-pad">
           <Group>
             <span class="t-label">{{ t('settings.appearance.theme.label') }}</span>
-            <div class="seg">
-              <button
-                v-for="option in themeOptions"
-                :key="option.value"
-                type="button"
-                :aria-pressed="ui.theme === option.value"
-                @click="ui.setTheme(option.value)"
-              >
-                {{ option.label }}
-              </button>
+            <div class="row">
+              <div class="seg">
+                <button
+                  v-for="option in themeOptions"
+                  :key="option.value"
+                  type="button"
+                  :aria-pressed="ui.theme === option.value"
+                  @click="ui.setTheme(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+              <!-- Рядом с кнопкой «Как в системе», а не строкой под всем
+                   переключателем: факт относится к этому варианту
+                   и должен читаться как его продолжение, а не как общая
+                   подпись ко всем трём кнопкам. -->
+              <span v-if="ui.theme === 'system'" class="hint">{{ systemNow }}</span>
             </div>
-            <p v-if="ui.theme === 'system'" class="hint">{{ systemNow }}</p>
           </Group>
 
           <Group>
