@@ -230,7 +230,8 @@
       "shared": "Shared models",
       "library": "Workflow library",
       "instances": "Builds in the registry",
-      "notSet": "not set"
+      "notSet": "not set",
+      "instancesBody": "The registry only remembers where each build lives. Removing the app clears the entries, not the builds themselves."
     },
     "written": {
       "title": "What the app wrote inside your builds",

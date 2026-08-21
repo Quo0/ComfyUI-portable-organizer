@@ -230,7 +230,8 @@
       "shared": "Modelos compartidos",
       "library": "Biblioteca de flujos",
       "instances": "Instalaciones en el registro",
-      "notSet": "sin definir"
+      "notSet": "sin definir",
+      "instancesBody": "El registro solo recuerda dónde vive cada instalación. Al desinstalar la aplicación se borran las entradas, no las instalaciones."
     },
     "written": {
       "title": "Lo que la aplicación escribió dentro de tus instalaciones",
