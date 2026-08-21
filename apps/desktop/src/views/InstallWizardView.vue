@@ -7,12 +7,22 @@ import { ArrowLeft, Ban, Check, Pencil, X } from '@lucide/vue';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
+import { RouterLink } from 'vue-router';
 
 import EmptyNote from '../components/EmptyNote.vue';
+import Card from '../components/ui/Card.vue';
+import Field from '../components/ui/Field.vue';
 import PathPicker from '../components/PathPicker.vue';
 import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
 import TargetForm from '../components/TargetForm.vue';
+import Group from '../components/ui/Group.vue';
+import KeyValueList from '../components/ui/KeyValueList.vue';
+import KeyValueRow from '../components/ui/KeyValueRow.vue';
+import Pane from '../components/ui/Pane.vue';
+import StepBar from '../components/ui/StepBar.vue';
+import Toggle from '../components/ui/Toggle.vue';
+import ToggleRow from '../components/ui/ToggleRow.vue';
 import type { ArchiveRecord } from '../bindings';
 import { errorText } from '../lib/errors';
 import { accentVar, initial, useFormat } from '../lib/format';
@@ -169,164 +179,162 @@ const needed = computed(() =>
 </script>
 
 <template>
-  <section class="screen wizard-screen">
-    <!-- Шапки экрана здесь нет намеренно: её «Назад» и заголовок
-         повторяли то, что и так стоит в ряду шага, — два выхода
-         и два заголовка на одном экране. -->
+  <var class="InstallWizardView">
+    <section class="screen wizard-screen">
+      <!-- Шапки экрана здесь нет намеренно: её «Назад» и заголовок
+           повторяли то, что и так стоит в ряду шага, — два выхода
+           и два заголовка на одном экране. -->
 
-    <!-- Шаги видны целиком: мастер, который не говорит, сколько ещё
-         впереди, читается как бесконечный. -->
-    <nav class="steps">
-      <template v-for="(name, index) in STEPS" :key="name">
-        <span v-if="index" class="step-sep"></span>
-        <span
-          class="step"
-          :class="{ now: name === wizard.step, done: index < current }"
-        >
-          <u>{{ index < current ? '✓' : index + 1 }}</u>
-          {{ t(`install.wizard.step.${name}`) }}
+      <!-- Шаги видны целиком: мастер, который не говорит, сколько ещё
+           впереди, читается как бесконечный. -->
+      <nav class="steps">
+        <template v-for="(name, index) in STEPS" :key="name">
+          <span v-if="index" class="step-sep"></span>
+          <span
+            class="step"
+            :class="{ now: name === wizard.step, done: index < current }"
+          >
+            <u>{{ index < current ? '✓' : index + 1 }}</u>
+            {{ t(`install.wizard.step.${name}`) }}
+          </span>
+        </template>
+      </nav>
+
+      <!-- Ряд шага: название слева, переходы справа. Кнопки стоят здесь,
+           а не в подвале и не в области прокрутки: при нескольких
+           назначениях «Дальше» уезжала из виду ровно тогда, когда
+           становилась нужна. «Назад» всегда левее кнопки действия. -->
+      <StepBar>
+        <h2 class="title">{{ stepTitle }}</h2>
+        <span v-if="wizard.step === 'done'" class="t-label">
+          {{ t('install.done.added', wizard.created.length) }}
         </span>
-      </template>
-    </nav>
-
-    <!-- Ряд шага: название слева, переходы справа. Кнопки стоят здесь,
-         а не в подвале и не в области прокрутки: при нескольких
-         назначениях «Дальше» уезжала из виду ровно тогда, когда
-         становилась нужна. «Назад» всегда левее кнопки действия. -->
-    <div class="step-bar">
-      <h2 class="title">{{ stepTitle }}</h2>
-      <span v-if="wizard.step === 'done'" class="t-label">
-        {{ t('install.done.added', wizard.created.length) }}
-      </span>
-      <!-- Какое назначение идёт из скольких: без счётчика при шести целях
-           непонятно, распаковка в разгаре или почти закончилась. -->
-      <span v-else-if="wizard.step === 'running' && runCounter" class="t-label">
-        {{ runCounter }}
-      </span>
-      <span class="spacer"></span>
-
-      <!-- На первом шаге «Назад» выводит из мастера, а не переключает
-           шаг, — поэтому ссылка, а не кнопка. Состояние мастера при этом
-           не теряется: стор живёт отдельно от экрана ровно затем, чтобы
-           уход и возврат ничего не стирали. -->
-      <span v-if="wizard.step === 'archive'" class="acts">
-        <RouterLink class="btn ghost" to="/install">
-          <ArrowLeft class="ico" />
-          {{ t('common.back') }}
-        </RouterLink>
-      </span>
-
-      <span v-else-if="wizard.step === 'targets'" class="acts">
-        <button type="button" class="btn ghost" @click="wizard.setStep('archive')">
-          <ArrowLeft class="ico" />
-          {{ t('common.back') }}
-        </button>
-        <!-- Проверка имени осталась в форме: без имени назначение
-             в список не попадает, и здесь её повторять уже нечего. -->
-        <button
-          type="button"
-          class="btn primary lg"
-          :disabled="wizard.blocked"
-          @click="wizard.setStep('shared')"
-        >
-          {{ t('install.wizard.next') }}
-        </button>
-      </span>
-
-      <span v-else-if="wizard.step === 'shared'" class="acts">
-        <button type="button" class="btn ghost" @click="wizard.setStep('targets')">
-          <ArrowLeft class="ico" />
-          {{ t('common.back') }}
-        </button>
-        <button type="button" class="btn primary lg" @click="wizard.start()">
-          {{ t('install.run.start') }}
-        </button>
-      </span>
-
-      <span v-else-if="wizard.step === 'running'" class="acts">
-        <button type="button" class="btn danger" @click="wizard.cancel()">
-          {{ t('install.run.cancel') }}
-        </button>
-      </span>
-
-      <span v-else class="acts">
-        <button type="button" class="btn ghost" @click="wizard.reset()">
-          {{ t('install.done.again') }}
-        </button>
-        <RouterLink class="btn primary lg" to="/instances">
-          {{ t('install.done.toInstances') }}
-        </RouterLink>
-      </span>
-    </div>
-
-    <!-- Сводка по архиву закреплена под рядом шага: она нужна, пока
-         выбирают назначения, и уезжать вместе с ними не должна. -->
-    <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
-      <div class="meta">
-        <span>{{ wizard.info.label }}</span>
-        <!-- Число форматируется отдельно: множественное число выбирается
-             по количеству, а печатается уже готовая строка с разделителем
-             разрядов. -->
-        <span>
-          {{ t('install.archive.files', { n: count(wizard.info.files) }, wizard.info.files) }}
+        <!-- Какое назначение идёт из скольких: без счётчика при шести целях
+             непонятно, распаковка в разгаре или почти закончилась. -->
+        <span v-else-if="wizard.step === 'running' && runCounter" class="t-label">
+          {{ runCounter }}
         </span>
-        <span>
-          {{ t('install.archive.unpacked', {
-            size: bytes(wizard.info.totalUncompressed),
-          }) }}
+        <span class="spacer"></span>
+
+        <!-- На первом шаге «Назад» выводит из мастера, а не переключает
+             шаг, — поэтому ссылка, а не кнопка. Состояние мастера при этом
+             не теряется: стор живёт отдельно от экрана ровно затем, чтобы
+             уход и возврат ничего не стирали. -->
+        <span v-if="wizard.step === 'archive'" class="acts">
+          <RouterLink class="btn ghost" to="/install">
+            <ArrowLeft class="ico" />
+            {{ t('common.back') }}
+          </RouterLink>
         </span>
-        <span>{{ t('install.targets.needed', { size: needed }) }}</span>
+
+        <span v-else-if="wizard.step === 'targets'" class="acts">
+          <button type="button" class="btn ghost" @click="wizard.setStep('archive')">
+            <ArrowLeft class="ico" />
+            {{ t('common.back') }}
+          </button>
+          <!-- Проверка имени осталась в форме: без имени назначение
+               в список не попадает, и здесь её повторять уже нечего. -->
+          <button
+            type="button"
+            class="btn primary lg"
+            :disabled="wizard.blocked"
+            @click="wizard.setStep('shared')"
+          >
+            {{ t('install.wizard.next') }}
+          </button>
+        </span>
+
+        <span v-else-if="wizard.step === 'shared'" class="acts">
+          <button type="button" class="btn ghost" @click="wizard.setStep('targets')">
+            <ArrowLeft class="ico" />
+            {{ t('common.back') }}
+          </button>
+          <button type="button" class="btn primary lg" @click="wizard.start()">
+            {{ t('install.run.start') }}
+          </button>
+        </span>
+
+        <span v-else-if="wizard.step === 'running'" class="acts">
+          <button type="button" class="btn danger" @click="wizard.cancel()">
+            {{ t('install.run.cancel') }}
+          </button>
+        </span>
+
+        <span v-else class="acts">
+          <button type="button" class="btn ghost" @click="wizard.reset()">
+            {{ t('install.done.again') }}
+          </button>
+          <RouterLink class="btn primary lg" to="/instances">
+            {{ t('install.done.toInstances') }}
+          </RouterLink>
+        </span>
+      </StepBar>
+
+      <!-- Сводка по архиву закреплена под рядом шага: она нужна, пока
+           выбирают назначения, и уезжать вместе с ними не должна. -->
+      <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
+        <div class="meta">
+          <span>{{ wizard.info.label }}</span>
+          <!-- Число форматируется отдельно: множественное число выбирается
+               по количеству, а печатается уже готовая строка с разделителем
+               разрядов. -->
+          <span>
+            {{ t('install.archive.files', { n: count(wizard.info.files) }, wizard.info.files) }}
+          </span>
+          <span>
+            {{ t('install.archive.unpacked', {
+              size: bytes(wizard.info.totalUncompressed),
+            }) }}
+          </span>
+          <span>{{ t('install.targets.needed', { size: needed }) }}</span>
+        </div>
+        <p v-if="wizard.info.singleRoot" class="hint">
+          {{ t('install.archive.root', { name: wizard.info.singleRoot }) }}
+        </p>
+        <p v-else class="hint">{{ t('install.archive.noRoot') }}</p>
       </div>
-      <p v-if="wizard.info.singleRoot" class="hint">
-        {{ t('install.archive.root', { name: wizard.info.singleRoot }) }}
-      </p>
-      <p v-else class="hint">{{ t('install.archive.noRoot') }}</p>
-    </div>
 
-    <div class="screen-body">
-      <div class="screen-pad wide">
-        <!-- ------------------------------------------------ шаг «архив» -->
-        <template v-if="wizard.step === 'archive'">
-          <!-- Сказано сразу: кнопки «скачать» здесь не будет и не появится.
-               Без этой строки первое, что ищут на экране, — именно она. -->
-          <p class="t-sm">{{ t('install.archive.lead') }}</p>
+      <div class="screen-body">
+        <div class="screen-pad wide">
+          <!-- ------------------------------------------------ шаг «архив» -->
+          <template v-if="wizard.step === 'archive'">
+            <!-- Сказано сразу: кнопки «скачать» здесь не будет и не появится.
+                 Без этой строки первое, что ищут на экране, — именно она. -->
+            <p class="t-sm">{{ t('install.archive.lead') }}</p>
 
-          <!-- Разбор оглавления на 56 тысяч записей занимает больше секунды,
-               и подпись о нём стоит рядом с кнопкой, которую только что
-               нажали: отдельным блоком ниже она выглядела ответом
-               на что-то другое. -->
-          <div class="row">
-            <button
-              type="button"
-              class="btn primary"
-              :disabled="wizard.reading"
-              @click="pickArchive"
-            >
-              {{ t('install.archive.choose') }}
-            </button>
-            <template v-if="wizard.reading">
-              <span class="hint">{{ t('install.archive.reading') }}</span>
-              <!-- Полоса тянется до края блока: короткий индикатор рядом
-                   с кнопкой читается как значок, а не как «идёт работа». -->
-              <span class="bar indet grow"><i></i></span>
-            </template>
-          </div>
-
-          <div v-if="wizard.history.length" class="group">
-            <span class="t-label">{{ t('install.archive.history') }}</span>
-            <!-- Сетка, а не колонка: карточка архива с полным путём
-                 занимает всю ширину широкого экрана, и четыре архива
-                 давали экран прокрутки на пустом месте. Список сборок
-                 в такой же ситуации давно в сетке. -->
-            <div class="cards grid">
-              <div
-                v-for="record in wizard.history"
-                :key="record.path"
-                class="card"
-                :class="{ gone: !record.available }"
+            <!-- Разбор оглавления на 56 тысяч записей занимает больше секунды,
+                 и подпись о нём стоит рядом с кнопкой, которую только что
+                 нажали: отдельным блоком ниже она выглядела ответом
+                 на что-то другое. -->
+            <div class="row">
+              <button
+                type="button"
+                class="btn primary"
+                :disabled="wizard.reading"
+                @click="pickArchive"
               >
-                <div class="card-accent"></div>
-                <div class="card-in">
+                {{ t('install.archive.choose') }}
+              </button>
+              <template v-if="wizard.reading">
+                <span class="hint">{{ t('install.archive.reading') }}</span>
+                <!-- Полоса тянется до края блока: короткий индикатор рядом
+                     с кнопкой читается как значок, а не как «идёт работа». -->
+                <span class="bar indet grow"><i></i></span>
+              </template>
+            </div>
+
+            <Group v-if="wizard.history.length">
+              <span class="t-label">{{ t('install.archive.history') }}</span>
+              <!-- Сетка, а не колонка: карточка архива с полным путём
+                   занимает всю ширину широкого экрана, и четыре архива
+                   давали экран прокрутки на пустом месте. Список сборок
+                   в такой же ситуации давно в сетке. -->
+              <div class="cards grid">
+                <Card
+                  v-for="record in wizard.history"
+                  :key="record.path"
+                  :gone="!record.available"
+                >
                   <div class="card-top">
                     <div class="card-name">{{ record.label }}</div>
                     <span v-if="!record.available" class="pill gone">
@@ -357,329 +365,317 @@ const needed = computed(() =>
                       {{ t('install.archive.forget') }}
                     </button>
                   </div>
-                </div>
+                </Card>
               </div>
-            </div>
-          </div>
-        </template>
+            </Group>
+          </template>
 
-        <!-- --------------------------------------------- шаг «назначения» -->
-        <!-- Форма слева накидывает назначения в список справа. Панель
-             со всеми полями на каждую цель разом занимала по экрану
-             прокрутки на цель, а целей бывает шесть. -->
-        <template v-else-if="wizard.step === 'targets' && wizard.info">
-          <div class="cols targets">
-            <!-- Кнопка не выключается, а проверяет: выключенная, она ничего
-                 не говорит о том, чего не хватает, и нажатие на пустой
-                 форме выглядит поломкой. -->
-            <TargetForm
-              v-model="wizard.draft"
-              :title="t('install.targets.form')"
-              :check="wizard.draftCheck"
-              :show-problems="wizard.draftProblems"
-              id-prefix="target-new"
-              @change="wizard.recheck()"
-            >
-              <template #acts>
-                <button type="button" class="btn primary" @click="wizard.addDraft()">
-                  {{ t('install.targets.add') }}
-                </button>
-              </template>
-            </TargetForm>
+          <!-- --------------------------------------------- шаг «назначения» -->
+          <!-- Форма слева накидывает назначения в список справа. Панель
+               со всеми полями на каждую цель разом занимала по экрану
+               прокрутки на цель, а целей бывает шесть. -->
+          <template v-else-if="wizard.step === 'targets' && wizard.info">
+            <div class="cols targets">
+              <!-- Кнопка не выключается, а проверяет: выключенная, она ничего
+                   не говорит о том, чего не хватает, и нажатие на пустой
+                   форме выглядит поломкой. -->
+              <TargetForm
+                v-model="wizard.draft"
+                :title="t('install.targets.form')"
+                :check="wizard.draftCheck"
+                :show-problems="wizard.draftProblems"
+                id-prefix="target-new"
+                @change="wizard.recheck()"
+              >
+                <template #acts>
+                  <button type="button" class="btn primary" @click="wizard.addDraft()">
+                    {{ t('install.targets.add') }}
+                  </button>
+                </template>
+              </TargetForm>
 
-            <div class="field">
-              <span class="t-label">{{ t('install.targets.list') }}</span>
-              <div v-if="wizard.targets.length" class="paths">
-                <template v-for="(target, index) in wizard.targets" :key="index">
-                  <!-- Описание в строку не помещается и в неё не лезет,
-                       но и пропасть не должно: оно всплывает подсказкой.
-                       Атрибута нет вовсе, когда описания нет, — пустая
-                       подсказка мигала бы рамкой ни о чём. -->
-                  <div
-                    class="path-item editable"
-                    :title="target.description || undefined"
-                  >
-                    <!-- Путь не переводится и не сокращается. -->
-                    <span class="lbl"><PathText :path="target.path" /></span>
-                    <span class="val">{{ target.name }}</span>
-                    <!-- Цвет виден прямо в строке: две сборки с похожими
-                         путями различают по нему, а не по пути. Стоит между
-                         именем и кнопками — там он выстраивается в колонку,
-                         а не гуляет вслед за длиной имени. -->
-                    <span
-                      class="chip sm"
-                      :style="{ '--instance-accent': accentVar(target.accent) }"
-                    ></span>
-                    <span class="acts">
-                      <button
-                        type="button"
-                        class="act"
-                        :title="t('common.edit')"
-                        :aria-label="t('common.edit')"
-                        :aria-pressed="wizard.editIndex === index"
-                        @click="
-                          wizard.editIndex === index
-                            ? wizard.cancelEdit()
-                            : wizard.startEdit(index)
-                        "
-                      >
-                        <Pencil class="ico" />
-                      </button>
-                      <button
-                        type="button"
-                        class="act"
-                        :title="t('install.targets.remove')"
-                        :aria-label="t('install.targets.remove')"
-                        @click="wizard.removeTarget(index)"
-                      >
-                        <X class="ico" />
-                      </button>
-                    </span>
-                  </div>
-
-                  <!-- Правка разворачивается под своей строкой, а не уводит
-                       в отдельный экран: список остаётся на месте, и видно,
-                       что именно правится. -->
-                  <TargetForm
-                    v-if="wizard.editIndex === index && wizard.editDraft"
-                    v-model="wizard.editDraft"
-                    :title="t('install.targets.editing')"
-                    :check="wizard.editCheck"
-                    id-prefix="target-edit"
-                    @change="wizard.recheck()"
-                  >
-                    <template #acts>
+              <Field>
+                <span class="t-label">{{ t('install.targets.list') }}</span>
+                <KeyValueList v-if="wizard.targets.length">
+                  <template v-for="(target, index) in wizard.targets" :key="index">
+                    <!-- Описание в строку не помещается и в неё не лезет,
+                         но и пропасть не должно: оно всплывает подсказкой.
+                         Атрибута нет вовсе, когда описания нет, — пустая
+                         подсказка мигала бы рамкой ни о чём. -->
+                    <KeyValueRow editable :title="target.description || undefined">
+                      <!-- Путь не переводится и не сокращается. -->
+                      <span class="lbl"><PathText :path="target.path" /></span>
+                      <span class="val">{{ target.name }}</span>
+                      <!-- Цвет виден прямо в строке: две сборки с похожими
+                           путями различают по нему, а не по пути. Стоит между
+                           именем и кнопками — там он выстраивается в колонку,
+                           а не гуляет вслед за длиной имени. -->
+                      <span
+                        class="chip sm"
+                        :style="{ '--instance-accent': accentVar(target.accent) }"
+                      ></span>
                       <span class="acts">
-                        <!-- Перечёркнутый круг, а не крестик: крестиком
-                             рядом убирают строку, и одинаковые значки
-                             в одном месте значили бы разное. -->
                         <button
                           type="button"
                           class="act"
-                          :title="t('common.cancel')"
-                          :aria-label="t('common.cancel')"
-                          @click="wizard.cancelEdit()"
+                          :title="t('common.edit')"
+                          :aria-label="t('common.edit')"
+                          :aria-pressed="wizard.editIndex === index"
+                          @click="
+                            wizard.editIndex === index
+                              ? wizard.cancelEdit()
+                              : wizard.startEdit(index)
+                          "
                         >
-                          <Ban class="ico" />
+                          <Pencil class="ico" />
                         </button>
                         <button
                           type="button"
                           class="act"
-                          :title="t('common.save')"
-                          :aria-label="t('common.save')"
-                          :disabled="!wizard.editReady"
-                          @click="wizard.saveEdit()"
+                          :title="t('install.targets.remove')"
+                          :aria-label="t('install.targets.remove')"
+                          @click="wizard.removeTarget(index)"
                         >
-                          <Check class="ico" />
+                          <X class="ico" />
                         </button>
                       </span>
-                    </template>
-                  </TargetForm>
-                </template>
-              </div>
-              <EmptyNote v-else>{{ t('install.targets.empty') }}</EmptyNote>
+                    </KeyValueRow>
 
-              <!-- Ошибка на уже добавленном назначении: место на диске
-                   могло кончиться после того, как его добавили. -->
-              <template v-for="(check, index) in wizard.checks" :key="`c${index}`">
-                <p
-                  v-for="(problem, i) in check.errors"
-                  :key="`ce${index}-${i}`"
-                  class="hint bad"
+                    <!-- Правка разворачивается под своей строкой, а не уводит
+                         в отдельный экран: список остаётся на месте, и видно,
+                         что именно правится. -->
+                    <TargetForm
+                      v-if="wizard.editIndex === index && wizard.editDraft"
+                      v-model="wizard.editDraft"
+                      :title="t('install.targets.editing')"
+                      :check="wizard.editCheck"
+                      id-prefix="target-edit"
+                      @change="wizard.recheck()"
+                    >
+                      <template #acts>
+                        <span class="acts">
+                          <!-- Перечёркнутый круг, а не крестик: крестиком
+                               рядом убирают строку, и одинаковые значки
+                               в одном месте значили бы разное. -->
+                          <button
+                            type="button"
+                            class="act"
+                            :title="t('common.cancel')"
+                            :aria-label="t('common.cancel')"
+                            @click="wizard.cancelEdit()"
+                          >
+                            <Ban class="ico" />
+                          </button>
+                          <button
+                            type="button"
+                            class="act"
+                            :title="t('common.save')"
+                            :aria-label="t('common.save')"
+                            :disabled="!wizard.editReady"
+                            @click="wizard.saveEdit()"
+                          >
+                            <Check class="ico" />
+                          </button>
+                        </span>
+                      </template>
+                    </TargetForm>
+                  </template>
+                </KeyValueList>
+                <EmptyNote v-else>{{ t('install.targets.empty') }}</EmptyNote>
+
+                <!-- Ошибка на уже добавленном назначении: место на диске
+                     могло кончиться после того, как его добавили. -->
+                <template v-for="(check, index) in wizard.checks" :key="`c${index}`">
+                  <p
+                    v-for="(problem, i) in check.errors"
+                    :key="`ce${index}-${i}`"
+                    class="hint bad"
+                  >
+                    {{ errorText(problem) }}
+                  </p>
+                </template>
+              </Field>
+            </div>
+          </template>
+
+          <!-- ---------------------------------------- шаг «общие ресурсы» -->
+          <template v-else-if="wizard.step === 'shared'">
+            <!-- Ресурса два, и они про разное: модели и воркфлоу. Раньше всё
+                 шло одним списком полей, и понять, к чему относится очередной
+                 путь, можно было только по подписи. -->
+            <Pane>
+            <div class="pane-head">
+              <span class="title">{{ t('install.shared.models') }}</span>
+            </div>
+            <div class="scroll-pad">
+            <Field>
+              <span class="t-label">{{ t('shared.root.label') }}</span>
+              <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
+                   не выгонять пользователя из мастера ради одной папки. -->
+              <PathPicker
+                :path="shared.root?.path"
+                :empty="t('shared.root.empty')"
+                @pick="shared.setRoot($event)"
+              />
+              <div v-if="shared.scanning" class="bar indet"><i></i></div>
+              <p v-else-if="!shared.configured" class="hint">{{ t('shared.root.howto') }}</p>
+              <p v-else-if="!shared.available" class="hint">
+                {{ t('shared.root.unavailable') }}
+              </p>
+              <p v-else class="hint">
+                {{ t('shared.summary.categories', shared.recognized.length) }} ·
+                {{ bytes(shared.scan?.totalBytes) }}
+              </p>
+            </Field>
+
+            <ToggleRow>
+              <Toggle
+                :checked="wizard.connectShared"
+                :disabled="!shared.configured"
+                @click="wizard.connectShared = !wizard.connectShared"
+              />
+              <div>
+                <div class="t-base">
+                  {{ t('install.shared.connect', wizard.targets.length) }}
+                </div>
+                <div class="hint">{{ t('shared.default.hint') }}</div>
+              </div>
+            </ToggleRow>
+
+            <Group v-if="wizard.connectShared">
+              <span class="t-label">{{ t('shared.mode.label') }}</span>
+              <div class="seg">
+                <button
+                  type="button"
+                  :aria-pressed="wizard.sharedMode === 'flag'"
+                  @click="wizard.sharedMode = 'flag'"
                 >
-                  {{ errorText(problem) }}
-                </p>
-              </template>
-            </div>
-          </div>
-        </template>
-
-        <!-- ---------------------------------------- шаг «общие ресурсы» -->
-        <template v-else-if="wizard.step === 'shared'">
-          <!-- Ресурса два, и они про разное: модели и воркфлоу. Раньше всё
-               шло одним списком полей, и понять, к чему относится очередной
-               путь, можно было только по подписи. -->
-          <div class="pane">
-          <div class="pane-head">
-            <span class="title">{{ t('install.shared.models') }}</span>
-          </div>
-          <div class="scroll-pad">
-          <div class="field">
-            <span class="t-label">{{ t('shared.root.label') }}</span>
-            <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
-                 не выгонять пользователя из мастера ради одной папки. -->
-            <PathPicker
-              :path="shared.root?.path"
-              :empty="t('shared.root.empty')"
-              @pick="shared.setRoot($event)"
-            />
-            <div v-if="shared.scanning" class="bar indet"><i></i></div>
-            <p v-else-if="!shared.configured" class="hint">{{ t('shared.root.howto') }}</p>
-            <p v-else-if="!shared.available" class="hint">
-              {{ t('shared.root.unavailable') }}
-            </p>
-            <p v-else class="hint">
-              {{ t('shared.summary.categories', shared.recognized.length) }} ·
-              {{ bytes(shared.scan?.totalBytes) }}
-            </p>
-          </div>
-
-          <div class="toggle-row">
-            <button
-              class="toggle"
-              :class="{ off: !wizard.connectShared }"
-              type="button"
-              role="switch"
-              :aria-checked="wizard.connectShared"
-              :disabled="!shared.configured"
-              @click="wizard.connectShared = !wizard.connectShared"
-            ></button>
-            <div>
-              <div class="t-base">
-                {{ t('install.shared.connect', wizard.targets.length) }}
+                  {{ t('shared.mode.flag.title') }}
+                </button>
+                <button
+                  type="button"
+                  :aria-pressed="wizard.sharedMode === 'instanceFile'"
+                  @click="wizard.sharedMode = 'instanceFile'"
+                >
+                  {{ t('shared.mode.instanceFile.title') }}
+                </button>
               </div>
-              <div class="hint">{{ t('shared.default.hint') }}</div>
+              <p class="hint">{{ t(`shared.mode.${wizard.sharedMode}.hint`) }}</p>
+            </Group>
             </div>
-          </div>
+            </Pane>
 
-          <div v-if="wizard.connectShared" class="group">
-            <span class="t-label">{{ t('shared.mode.label') }}</span>
-            <div class="seg">
-              <button
-                type="button"
-                :aria-pressed="wizard.sharedMode === 'flag'"
-                @click="wizard.sharedMode = 'flag'"
-              >
-                {{ t('shared.mode.flag.title') }}
-              </button>
-              <button
-                type="button"
-                :aria-pressed="wizard.sharedMode === 'instanceFile'"
-                @click="wizard.sharedMode = 'instanceFile'"
-              >
-                {{ t('shared.mode.instanceFile.title') }}
-              </button>
+            <!-- Библиотека воркфлоу — второй общий ресурс, и подключается
+                 тем же шагом: уводить за ней в настройки посреди установки
+                 незачем. -->
+            <Pane>
+            <div class="pane-head">
+              <span class="title">{{ t('install.shared.workflows') }}</span>
             </div>
-            <p class="hint">{{ t(`shared.mode.${wizard.sharedMode}.hint`) }}</p>
-          </div>
-          </div>
-          </div>
-
-          <!-- Библиотека воркфлоу — второй общий ресурс, и подключается
-               тем же шагом: уводить за ней в настройки посреди установки
-               незачем. -->
-          <div class="pane">
-          <div class="pane-head">
-            <span class="title">{{ t('install.shared.workflows') }}</span>
-          </div>
-          <div class="scroll-pad">
-          <div class="field">
-            <span class="t-label">{{ t('library.path.label') }}</span>
-            <!-- Библиотека независима от общих моделей, но задаётся тут же. -->
-            <PathPicker
-              :path="library.path"
-              :empty="t('library.path.empty')"
-              @pick="library.setPath($event)"
-            />
-            <p v-if="library.configured && library.available" class="hint">
-              {{ t('library.summary', library.items.length) }}
-            </p>
-            <p v-else-if="!library.configured" class="hint">{{ t('library.path.howto') }}</p>
-          </div>
-          </div>
-          </div>
-
-        </template>
-
-        <!-- -------------------------------------------- шаг «выполнение» -->
-        <!-- Полоса на каждое назначение, а не одна общая: при шести целях
-             общая полоса три раза проходит путь от нуля до ста, и понять,
-             сколько работы осталось, по ней невозможно. -->
-        <template v-else-if="wizard.step === 'running'">
-          <div
-            v-for="(target, index) in wizard.targets"
-            :key="index"
-            class="prog"
-          >
-            <div class="prog-head">
-              <!-- Путь не переводится. -->
-              <span>{{ target.path }}</span>
-              <span class="count">
-                <template v-if="runStateOf(index) === 'done'">
-                  {{ t('install.run.finished') }}
-                </template>
-                <template v-else-if="runStateOf(index) === 'queued'">
-                  {{ t('install.run.queued') }}
-                </template>
-                <template v-else-if="indeterminate">—</template>
-                <template v-else>{{ Math.round(percent) }}%</template>
-              </span>
+            <div class="scroll-pad">
+            <Field>
+              <span class="t-label">{{ t('library.path.label') }}</span>
+              <!-- Библиотека независима от общих моделей, но задаётся тут же. -->
+              <PathPicker
+                :path="library.path"
+                :empty="t('library.path.empty')"
+                @pick="library.setPath($event)"
+              />
+              <p v-if="library.configured && library.available" class="hint">
+                {{ t('library.summary', library.items.length) }}
+              </p>
+              <p v-else-if="!library.configured" class="hint">{{ t('library.path.howto') }}</p>
+            </Field>
             </div>
+            </Pane>
 
+          </template>
+
+          <!-- -------------------------------------------- шаг «выполнение» -->
+          <!-- Полоса на каждое назначение, а не одна общая: при шести целях
+               общая полоса три раза проходит путь от нуля до ста, и понять,
+               сколько работы осталось, по ней невозможно. -->
+          <template v-else-if="wizard.step === 'running'">
             <div
-              class="track"
-              :class="{ indet: runStateOf(index) === 'now' && indeterminate }"
+              v-for="(target, index) in wizard.targets"
+              :key="index"
+              class="prog"
             >
-              <i
-                :style="{
-                  width:
-                    runStateOf(index) === 'done'
-                      ? '100%'
-                      : runStateOf(index) === 'queued'
-                        ? '0'
-                        : `${percent}%`,
-                }"
-              ></i>
-            </div>
+              <div class="prog-head">
+                <!-- Путь не переводится. -->
+                <span>{{ target.path }}</span>
+                <span class="count">
+                  <template v-if="runStateOf(index) === 'done'">
+                    {{ t('install.run.finished') }}
+                  </template>
+                  <template v-else-if="runStateOf(index) === 'queued'">
+                    {{ t('install.run.queued') }}
+                  </template>
+                  <template v-else-if="indeterminate">—</template>
+                  <template v-else>{{ Math.round(percent) }}%</template>
+                </span>
+              </div>
 
-            <!-- У текущего назначения — что именно сейчас происходит.
-                 В фазах без доли выполненного вместо пути стоит название
-                 фазы: пути там ещё нет, а тишина читается как зависание. -->
-            <p v-if="runStateOf(index) === 'now'" class="prog-file">
-              <template v-if="indeterminate">{{ phaseText }}</template>
-              <template v-else>{{ wizard.progress?.current }}</template>
-            </p>
-
-            <!-- Байты остаются подписью: они понятны и полезны, просто
-                 мерой прогресса быть не могут. -->
-            <p
-              v-if="runStateOf(index) === 'now' && wizard.progress && !indeterminate"
-              class="hint"
-            >
-              {{
-                t('install.run.files', {
-                  done: count(wizard.progress.doneFiles),
-                  total: count(wizard.progress.totalFiles),
-                })
-              }}
-              ·
-              {{
-                t('install.run.progress', {
-                  done: bytes(wizard.progress.doneBytes),
-                  total: bytes(wizard.progress.totalBytes),
-                })
-              }}
-            </p>
-          </div>
-        </template>
-
-        <!-- -------------------------------------------------- шаг «итог» -->
-        <!-- Карточка ровно та же, что в списке инстансов: итог показывает
-             то, что появилось, и узнавать это в списке пользователь должен
-             без перевода взгляда. -->
-        <template v-else>
-          <div class="cards grid">
-            <RouterLink
-              v-for="instance in wizard.created"
-              :key="instance.id"
-              class="card"
-              :to="`/instances/${instance.id}`"
-            >
               <div
-                class="card-accent"
-                :style="{ '--instance-accent': accentVar(instance.accent) }"
-              ></div>
-              <div class="card-in">
+                class="track"
+                :class="{ indet: runStateOf(index) === 'now' && indeterminate }"
+              >
+                <i
+                  :style="{
+                    width:
+                      runStateOf(index) === 'done'
+                        ? '100%'
+                        : runStateOf(index) === 'queued'
+                          ? '0'
+                          : `${percent}%`,
+                  }"
+                ></i>
+              </div>
+
+              <!-- У текущего назначения — что именно сейчас происходит.
+                   В фазах без доли выполненного вместо пути стоит название
+                   фазы: пути там ещё нет, а тишина читается как зависание. -->
+              <p v-if="runStateOf(index) === 'now'" class="prog-file">
+                <template v-if="indeterminate">{{ phaseText }}</template>
+                <template v-else>{{ wizard.progress?.current }}</template>
+              </p>
+
+              <!-- Байты остаются подписью: они понятны и полезны, просто
+                   мерой прогресса быть не могут. -->
+              <p
+                v-if="runStateOf(index) === 'now' && wizard.progress && !indeterminate"
+                class="hint"
+              >
+                {{
+                  t('install.run.files', {
+                    done: count(wizard.progress.doneFiles),
+                    total: count(wizard.progress.totalFiles),
+                  })
+                }}
+                ·
+                {{
+                  t('install.run.progress', {
+                    done: bytes(wizard.progress.doneBytes),
+                    total: bytes(wizard.progress.totalBytes),
+                  })
+                }}
+              </p>
+            </div>
+          </template>
+
+          <!-- -------------------------------------------------- шаг «итог» -->
+          <!-- Карточка ровно та же, что в списке инстансов: итог показывает
+               то, что появилось, и узнавать это в списке пользователь должен
+               без перевода взгляда. -->
+          <template v-else>
+            <div class="cards grid">
+              <Card
+                v-for="instance in wizard.created"
+                :key="instance.id"
+                :as="RouterLink"
+                :accent="accentVar(instance.accent)"
+                :to="`/instances/${instance.id}`"
+              >
                 <div class="card-top">
                   <span
                     class="chip"
@@ -704,13 +700,13 @@ const needed = computed(() =>
                 <!-- Путь, а не «последний запуск»: сборку только что
                      распаковали, и запускать её ещё не запускали. -->
                 <div class="src"><PathText :path="instance.path" /></div>
-              </div>
-            </RouterLink>
-          </div>
-        </template>
+              </Card>
+            </div>
+          </template>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>
 
 <style scoped>

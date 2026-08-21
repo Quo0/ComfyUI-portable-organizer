@@ -43,14 +43,16 @@ function open(): void {
 </script>
 
 <template>
-  <button
-    type="button"
-    class="btn ghost icon"
-    :disabled="disabled || !path"
-    :title="title ?? name"
-    :aria-label="name"
-    @click="open"
-  >
-    <FolderOpen class="ico" />
-  </button>
+  <var class="OpenFolderButton">
+    <button
+      type="button"
+      class="btn ghost icon"
+      :disabled="disabled || !path"
+      :title="title ?? name"
+      :aria-label="name"
+      @click="open"
+    >
+      <FolderOpen class="ico" />
+    </button>
+  </var>
 </template>

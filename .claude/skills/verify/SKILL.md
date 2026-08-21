@@ -14,7 +14,7 @@ description: Проверки перед коммитом в ComfyUI Portable Or
 | Правил | Команды |
 |---|---|
 | Локали `src/i18n/locales/*.json` | `pnpm i18n:check` |
-| `design/tokens/**` или `design/styles/**` | `pnpm design:check`, затем `pnpm design:sync` |
+| `apps/desktop/src/styles/tokens.css` или `components.css` | `pnpm design:check` |
 | Vue, TS, стили приложения | `pnpm typecheck` |
 | Rust в `src-tauri/src/**` | `cargo check`, при правке логики — примеры из `examples/` |
 | Сигнатуру команды или события Tauri | перезапустить `pnpm dev:desktop`, потом `pnpm typecheck` |
@@ -50,9 +50,12 @@ Tauri, падает так же, если тянет машинерию `tauri_s
 с нашим конфигом и спрашивает `/internal/folder_paths`. Стенд
 `fake-instance` их не заменяет — он заглушка и YAML не разбирает.
 
-**`design:check` идёт перед `design:sync`, а не после.** `sync` копирует
-собранный дизайн в приложение; если сначала синхронизировать, а потом
-проверять, в приложение уже уедет то, что проверку не прошло.
+**Правка `components.css` доезжает до витрины сразу, `tokens.css` — только
+после `pnpm design:tokens`.** Источник правды теперь в приложении:
+`apps/design` читает `components.css` напрямую, а `.t-light`/`.t-dark` для
+панелей `ThemePair.vue` — производная от `tokens.css`, которую `design:check`
+пересобирает сам, но при живом `pnpm dev:design` витрина её не подхватит,
+пока не прогнать эту команду.
 
 **`bindings.ts` генерируется дев-сборкой, а не сборкой фронта.** После
 правки сигнатуры команды или события `pnpm typecheck` до перезапуска

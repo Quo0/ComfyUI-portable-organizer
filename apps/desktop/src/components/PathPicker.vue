@@ -39,17 +39,19 @@ async function browse(): Promise<void> {
 </script>
 
 <template>
-  <!-- Ряд растягивается на всю ширину `.field`, а в ряду с другими
-       действиями его тянет класс `grow` снаружи. -->
-  <div class="path-row">
-    <!-- `title` обязателен: строка обрезается многоточием, и полный путь
-         иначе взять негде. У пустого поля подсказки нет — подсказывать
-         нечего. -->
-    <div :id="id" class="input mono" :title="path || undefined">
-      <span>{{ path || empty }}</span>
+  <var class="PathPicker">
+    <!-- Ряд растягивается на всю ширину `.field`, а в ряду с другими
+         действиями его тянет класс `grow` снаружи. -->
+    <div class="path-row">
+      <!-- `title` обязателен: строка обрезается многоточием, и полный путь
+           иначе взять негде. У пустого поля подсказки нет — подсказывать
+           нечего. -->
+      <div :id="id" class="input mono" :title="path || undefined">
+        <span>{{ path || empty }}</span>
+      </div>
+      <button class="btn secondary" type="button" @click="browse">
+        {{ t('common.browse') }}
+      </button>
     </div>
-    <button class="btn secondary" type="button" @click="browse">
-      {{ t('common.browse') }}
-    </button>
-  </div>
+  </var>
 </template>

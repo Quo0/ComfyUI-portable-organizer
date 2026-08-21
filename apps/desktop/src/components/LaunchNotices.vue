@@ -38,81 +38,83 @@ function openInBrowser(): void {
 </script>
 
 <template>
-  <div v-if="shared || other || state === 'crashed' || state === 'detached' || profile?.fallback" class="notices">
-    <!-- Общий корень недоступен. Не ошибка запуска, а развилка: продолжить
-         без общих моделей или отменить. -->
-    <div v-if="shared" class="banner">
-      <div>
-        <b>{{ t('shared.unavailable.title') }}</b>
-        <p class="t-sm">{{ t('shared.unavailable.body', { path: shared.path }) }}</p>
+  <var class="LaunchNotices">
+    <div v-if="shared || other || state === 'crashed' || state === 'detached' || profile?.fallback" class="notices">
+      <!-- Общий корень недоступен. Не ошибка запуска, а развилка: продолжить
+           без общих моделей или отменить. -->
+      <div v-if="shared" class="banner">
+        <div>
+          <b>{{ t('shared.unavailable.title') }}</b>
+          <p class="t-sm">{{ t('shared.unavailable.body', { path: shared.path }) }}</p>
+        </div>
+        <span class="spacer"></span>
+        <button
+          type="button"
+          class="btn secondary"
+          @click="run.start(instance.id, shared.profileId, { withoutShared: true, allowMultiple: false })"
+        >
+          {{ t('shared.unavailable.startAnyway') }}
+        </button>
+        <button type="button" class="btn ghost" @click="run.dismissSharedWarning(instance.id)">
+          {{ t('common.cancel') }}
+        </button>
       </div>
-      <span class="spacer"></span>
-      <button
-        type="button"
-        class="btn secondary"
-        @click="run.start(instance.id, shared.profileId, { withoutShared: true, allowMultiple: false })"
-      >
-        {{ t('shared.unavailable.startAnyway') }}
-      </button>
-      <button type="button" class="btn ghost" @click="run.dismissSharedWarning(instance.id)">
-        {{ t('common.cancel') }}
-      </button>
-    </div>
 
-    <!-- Соседняя сборка уже держит видеопамять. Запретить второй запуск
-         нельзя — бывает две видеокарты, — но и молчать нельзя: вторая
-         сборка упадёт посреди генерации. -->
-    <div v-if="other" class="banner">
-      <div>
-        <b>{{ t('run.otherRunning.title') }}</b>
-        <p class="t-sm">{{ t('run.otherRunning.body', { name: other.other }) }}</p>
+      <!-- Соседняя сборка уже держит видеопамять. Запретить второй запуск
+           нельзя — бывает две видеокарты, — но и молчать нельзя: вторая
+           сборка упадёт посреди генерации. -->
+      <div v-if="other" class="banner">
+        <div>
+          <b>{{ t('run.otherRunning.title') }}</b>
+          <p class="t-sm">{{ t('run.otherRunning.body', { name: other.other }) }}</p>
+        </div>
+        <span class="spacer"></span>
+        <button
+          type="button"
+          class="btn secondary"
+          @click="run.stopOthersAndStart(instance.id, other.profileId)"
+        >
+          {{ t('run.otherRunning.stopIt') }}
+        </button>
+        <button
+          type="button"
+          class="btn ghost"
+          @click="run.start(instance.id, other.profileId, { withoutShared: false, allowMultiple: true })"
+        >
+          {{ t('run.otherRunning.anyway') }}
+        </button>
+        <button type="button" class="btn ghost" @click="run.dismissBusyWarning(instance.id)">
+          {{ t('common.cancel') }}
+        </button>
       </div>
-      <span class="spacer"></span>
-      <button
-        type="button"
-        class="btn secondary"
-        @click="run.stopOthersAndStart(instance.id, other.profileId)"
-      >
-        {{ t('run.otherRunning.stopIt') }}
-      </button>
-      <button
-        type="button"
-        class="btn ghost"
-        @click="run.start(instance.id, other.profileId, { withoutShared: false, allowMultiple: true })"
-      >
-        {{ t('run.otherRunning.anyway') }}
-      </button>
-      <button type="button" class="btn ghost" @click="run.dismissBusyWarning(instance.id)">
-        {{ t('common.cancel') }}
-      </button>
-    </div>
 
-    <div v-if="state === 'crashed'" class="banner bad">
-      <b>{{ t('run.crashed', { code: status?.exitCode ?? '—' }) }}</b>
-    </div>
-
-    <!-- Сервер перезапустился сам. Кнопка возвращает над ним контроль:
-         PID нового процесса ищется по владельцу порта. -->
-    <div v-if="state === 'detached'" class="banner">
-      <div>
-        <p class="t-sm">{{ t('run.detached') }}</p>
+      <div v-if="state === 'crashed'" class="banner bad">
+        <b>{{ t('run.crashed', { code: status?.exitCode ?? '—' }) }}</b>
       </div>
-      <span class="spacer"></span>
-      <button
-        type="button"
-        class="btn secondary"
-        :disabled="busy"
-        @click="run.adopt(instance.id)"
-      >
-        {{ t('run.adopt') }}
-      </button>
-      <button type="button" class="btn ghost" @click="openInBrowser">
-        {{ t('run.openInBrowser') }}
-      </button>
-    </div>
 
-    <p v-if="profile?.fallback" class="hint bad">{{ t('run.fallback') }}</p>
-  </div>
+      <!-- Сервер перезапустился сам. Кнопка возвращает над ним контроль:
+           PID нового процесса ищется по владельцу порта. -->
+      <div v-if="state === 'detached'" class="banner">
+        <div>
+          <p class="t-sm">{{ t('run.detached') }}</p>
+        </div>
+        <span class="spacer"></span>
+        <button
+          type="button"
+          class="btn secondary"
+          :disabled="busy"
+          @click="run.adopt(instance.id)"
+        >
+          {{ t('run.adopt') }}
+        </button>
+        <button type="button" class="btn ghost" @click="openInBrowser">
+          {{ t('run.openInBrowser') }}
+        </button>
+      </div>
+
+      <p v-if="profile?.fallback" class="hint bad">{{ t('run.fallback') }}</p>
+    </div>
+  </var>
 </template>
 
 <style scoped>

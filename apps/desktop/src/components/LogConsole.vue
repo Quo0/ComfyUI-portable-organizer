@@ -61,19 +61,21 @@ function toLatest(): void {
 </script>
 
 <template>
-  <pre ref="box" class="console" @scroll="onScroll"><span
-    v-for="(line, i) in lines"
-    :key="i"
-    :class="{ dim: line.stream === 'stdout' }"
-  >{{ line.text }}
+  <var class="LogConsole">
+    <pre ref="box" class="console" @scroll="onScroll"><span
+      v-for="(line, i) in lines"
+      :key="i"
+      :class="{ dim: line.stream === 'stdout' }"
+    >{{ line.text }}
 </span></pre>
 
-  <!-- Кнопка появляется только когда есть что показать: следующему за логом
-       возвращаться некуда. Позиционируется по родителю `.log`. -->
-  <button v-if="!follow && pending" type="button" class="log-follow" @click="toLatest">
-    {{ t('run.toLatest') }}
-    <span class="n">+{{ pending }}</span>
-  </button>
+    <!-- Кнопка появляется только когда есть что показать: следующему за логом
+         возвращаться некуда. Позиционируется по родителю `.log`. -->
+    <button v-if="!follow && pending" type="button" class="log-follow" @click="toLatest">
+      {{ t('run.toLatest') }}
+      <span class="n">+{{ pending }}</span>
+    </button>
+  </var>
 </template>
 
 <style scoped>

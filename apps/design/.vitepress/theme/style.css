@@ -1,0 +1,422 @@
+/* Каркас страницы — тулбар, сайдбар, область контента. Разметку строит
+ * Layout.vue (см. комментарий там про то, почему не тема по умолчанию),
+ * здесь только её вид. Токены — `--page-*`: они для обрамления сайта
+ * и следуют теме зрителя, в отличие от `--t-light`/`--t-dark` внутри
+ * панелей с макетами (те показывают конкретную тему приложения). */
+
+.ds-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.ds-toolbar {
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--page-line);
+  background: var(--page-panel);
+}
+
+.ds-brand {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--page-fg);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-toolbar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.ds-toolbar-nav a {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: var(--page-dim);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ds-toolbar-nav a:hover {
+  color: var(--page-fg);
+}
+
+.ds-toolbar-nav a.active {
+  color: var(--page-fg);
+  background: var(--page-line-soft);
+  font-weight: 600;
+}
+
+.ds-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.ds-sidebar {
+  flex: none;
+  width: 272px;
+  overflow-y: auto;
+  padding: 24px 16px 64px;
+  border-right: 1px solid var(--page-line);
+  background: var(--page-panel);
+}
+
+.ds-sidebar-group + .ds-sidebar-group {
+  margin-top: 20px;
+}
+
+.ds-sidebar-title {
+  margin: 0 0 4px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--page-faint);
+}
+
+.ds-sidebar a {
+  display: block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--page-dim);
+  text-decoration: none;
+}
+
+.ds-sidebar a:hover {
+  background: var(--page-line-soft);
+  color: var(--page-fg);
+}
+
+.ds-sidebar a.active {
+  background: var(--page-code);
+  color: var(--page-fg);
+  font-weight: 600;
+}
+
+.ds-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 40px 48px 80px;
+}
+
+/* ================================================================
+   ДВА СЛОЯ ТОКЕНОВ.
+
+   1. Обрамление этой страницы (--page-*) следует теме зрителя.
+   2. Панели с компонентами (.t-light / .t-dark, из preview-tokens.css)
+      всегда показывают конкретную тему приложения независимо от темы
+      зрителя.
+
+   Путать нельзя: иначе тёмная панель на тёмном фоне сольётся,
+   и оценить контраст станет невозможно.
+   ================================================================ */
+
+:root {
+  --page-bg: #faf9f7;
+  --page-panel: #ffffff;
+  --page-fg: #191713;
+  --page-dim: #66625a;
+  --page-faint: #8b8579;
+  --page-line: #e4e1da;
+  --page-line-soft: #efeee9;
+  --page-code: #f0efea;
+  --page-mark: #b23124;
+  /* Бейдж кадра с прокруткой. Свой цвет, а не общий `--page-code`:
+     на нём бейдж не отличался от меток сценариев рядом, а он про
+     другое — про то, как кадр читать. Розовый бледный: пометка
+     о макете, а не ошибка. */
+  --page-pink: #f9e3ea;
+  --page-pink-ink: #8c2f4d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #131210;
+    --page-panel: #1a1916;
+    --page-fg: #efedE8;
+    --page-dim: #a09a90;
+    --page-faint: #7c766c;
+    --page-line: #302e28;
+    --page-line-soft: #232119;
+    --page-code: #211f1b;
+    --page-mark: #ec7565;
+    --page-pink: #3a222b;
+    --page-pink-ink: #f0a9c0;
+  }
+}
+:root[data-theme="dark"] {
+  --page-bg: #131210;
+  --page-panel: #1a1916;
+  --page-fg: #efedE8;
+  --page-dim: #a09a90;
+  --page-faint: #7c766c;
+  --page-line: #302e28;
+  --page-line-soft: #232119;
+  --page-code: #211f1b;
+  --page-mark: #ec7565;
+  --page-pink: #3a222b;
+  --page-pink-ink: #f0a9c0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------------
+   Обвязка страниц просмотра — раньше жила в design/styles/app.css
+   вперемешку с компонентами приложения и отсеивалась при сборке
+   по списку PREVIEW_ONLY. Теперь общего файла нет: компоненты остались
+   в apps/desktop/src/styles/components.css (источник правды, читается
+   отсюда напрямую), а вот это — то, что нужно только витрине, и её
+   собственное место с самого начала.
+   ------------------------------------------------------------------ */
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+}
+
+.masthead {
+  padding: 64px 0 40px;
+  border-bottom: 1px solid var(--page-line);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin: 0 0 14px;
+}
+
+.masthead h1 {
+  font-family: var(--font-ui-display);
+  font-size: clamp(28px, 4.4vw, 42px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  text-wrap: balance;
+  max-width: 20ch;
+}
+
+.lede {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--page-dim);
+  font-size: 16px;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: 28px;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--page-faint);
+}
+
+.facts b {
+  display: block;
+  font-size: 11px;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.facts code { color: var(--page-dim); }
+
+.band {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: 40px;
+  padding: 48px 0;
+  border-bottom: 1px solid var(--page-line);
+}
+
+.band:last-of-type { border-bottom: 0; }
+
+.rail { position: sticky; top: 24px; align-self: start; }
+
+.rail h2 {
+  font-family: var(--font-ui-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+.ids {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ids li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid var(--page-line);
+  border-radius: 3px;
+  color: var(--page-faint);
+  white-space: nowrap;
+}
+
+.rail p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--page-dim);
+}
+
+.stack { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+
+h3.sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin: 0 0 10px;
+}
+
+.aside {
+  margin: 0;
+  font-size: 13px;
+  color: var(--page-dim);
+  max-width: 66ch;
+}
+
+.aside strong { color: var(--page-fg); font-weight: 600; }
+
+/* ------------------------------------------- пара панелей тем */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+.panel {
+  margin: 0;
+  border: 1px solid var(--page-line);
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
+}
+.panel > figcaption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  padding: 7px 12px;
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-ui);
+}
+.app {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  padding: var(--space-4);
+}
+.app.flush { padding: 0; }
+
+/* ------------------------------------------------------ палитра */
+.roles { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.role { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); }
+.role i { display: block; height: 22px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); }
+.role b { font-weight: var(--weight-medium); font-size: var(--text-sm); }
+.role span { color: var(--ink-muted); font-size: var(--text-xs); display: block; }
+.role code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  gap: 12px;
+}
+.sw {
+  border: 1px solid var(--page-line);
+  border-radius: 6px;
+  padding: 10px;
+  min-width: 0;
+}
+/* Галерея значков на странице просмотра: сам значок и его подпись —
+   @lucide/vue, тот же пакет, что и в приложении. */
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
+.icon-cell {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.icon-cell code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); }
+
+.sw-chips { display: flex; gap: 6px; margin-bottom: 9px; }
+.sw-chip { flex: 1; display: block; border-radius: 4px; padding: 9px; border: 1px solid var(--line); }
+.sw-chip i { display: block; height: 20px; border-radius: 3px; }
+.sw-name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.sw-meta { font-size: 10.5px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
+.sw-meta code { font-family: var(--font-mono); font-size: 10.5px; }
+
+/* ---------------------------------------------------- типографика */
+.scale { display: flex; flex-direction: column; gap: var(--space-3); }
+.scale-row { display: grid; grid-template-columns: 92px minmax(0,1fr); gap: var(--space-4); align-items: baseline; }
+.scale-row > span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
+.longform {
+  border: 1px dashed var(--page-line);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.longform .lf-head {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--page-faint);
+  margin-bottom: 8px;
+}
+.longform .lf-rows { display: flex; flex-direction: column; gap: 6px; }
+.longform .lf-row { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; font-size: 13px; color: var(--page-dim); align-items: baseline; }
+.longform .lf-row b { font-family: var(--font-mono); font-size: 10px; color: var(--page-faint); font-weight: 400; }
+
+.closing { padding-top: 48px; }
+.closing h2 { font-family: var(--font-ui-display); font-size: 19px; margin: 0 0 14px; font-weight: 700; }
+.closing p { max-width: 66ch; color: var(--page-dim); font-size: 14px; margin: 0 0 12px; }
+.closing code, .facts code, .aside code { font-family: var(--font-mono); font-size: 0.88em; background: var(--page-code); padding: 1px 5px; border-radius: 3px; }
+
+@media (max-width: 760px) {
+  .band { grid-template-columns: 1fr; gap: 20px; padding: 36px 0; }
+  .rail { position: static; }
+}

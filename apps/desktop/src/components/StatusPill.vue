@@ -53,5 +53,7 @@ const kind = computed(() => {
 </script>
 
 <template>
-  <span class="pill" :class="kind"><i></i>{{ label }}</span>
+  <var class="StatusPill">
+    <span class="pill" :class="kind"><i></i>{{ label }}</span>
+  </var>
 </template>

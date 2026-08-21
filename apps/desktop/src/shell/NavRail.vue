@@ -66,59 +66,61 @@ const toggleLabel = computed(() =>
 </script>
 
 <template>
-  <nav class="nav in-window" :class="{ collapsed: ui.railCollapsed }">
-    <RouterLink
-      v-for="item in sections"
-      :key="item.to"
-      class="nav-item"
-      active-class="on"
-      :to="item.to"
-      :title="item.label"
-      :aria-label="item.label"
-    >
-      <component :is="item.icon" class="ico" />
-      <span>{{ item.label }}</span>
-    </RouterLink>
+  <var class="NavRail">
+    <nav class="nav in-window" :class="{ collapsed: ui.railCollapsed }">
+      <RouterLink
+        v-for="item in sections"
+        :key="item.to"
+        class="nav-item"
+        active-class="on"
+        :to="item.to"
+        :title="item.label"
+        :aria-label="item.label"
+      >
+        <component :is="item.icon" class="ico" />
+        <span>{{ item.label }}</span>
+      </RouterLink>
 
-    <template v-if="live.length">
-      <div class="nav-sep"></div>
-      <div class="nav-note">{{ t('nav.active') }} · {{ live.length }}</div>
-      <!-- Собственная прокрутка: восемь инстансов не должны выталкивать
-           кнопку сворачивания за пределы окна. -->
-      <div class="nav-runs">
-        <RouterLink
-          v-for="row in live"
-          :key="row.instance.id"
-          class="nav-run"
-          :class="{ alert: row.status === 'crashed' || row.status === 'detached' }"
-          :to="target(row)"
-          :title="row.instance.name"
-        >
-          <span
-            class="chip"
-            :style="{ '--instance-accent': accentVar(row.instance.accent) }"
+      <template v-if="live.length">
+        <div class="nav-sep"></div>
+        <div class="nav-note">{{ t('nav.active') }} · {{ live.length }}</div>
+        <!-- Собственная прокрутка: восемь инстансов не должны выталкивать
+             кнопку сворачивания за пределы окна. -->
+        <div class="nav-runs">
+          <RouterLink
+            v-for="row in live"
+            :key="row.instance.id"
+            class="nav-run"
+            :class="{ alert: row.status === 'crashed' || row.status === 'detached' }"
+            :to="target(row)"
+            :title="row.instance.name"
           >
-            {{ initial(row.instance.name) }}
-          </span>
-          <em>{{ row.instance.name }}</em>
-          <span v-if="row.status === 'crashed'" class="badge">!</span>
-          <i v-else class="dot" :style="{ background: STATE_DOT[row.status] }"></i>
-        </RouterLink>
-      </div>
-    </template>
+            <span
+              class="chip"
+              :style="{ '--instance-accent': accentVar(row.instance.accent) }"
+            >
+              {{ initial(row.instance.name) }}
+            </span>
+            <em>{{ row.instance.name }}</em>
+            <span v-if="row.status === 'crashed'" class="badge">!</span>
+            <i v-else class="dot" :style="{ background: STATE_DOT[row.status] }"></i>
+          </RouterLink>
+        </div>
+      </template>
 
-    <!-- Сворачивание внизу: наверху оно перетягивало бы внимание с разделов,
-         а нажимают его редко и осознанно. -->
-    <button
-      type="button"
-      class="nav-item rail-toggle"
-      :title="toggleLabel"
-      :aria-label="toggleLabel"
-      :aria-expanded="!ui.railCollapsed"
-      @click="ui.toggleRail()"
-    >
-      <component :is="ui.railCollapsed ? ChevronRight : ChevronLeft" class="ico" />
-      <span>{{ toggleLabel }}</span>
-    </button>
-  </nav>
+      <!-- Сворачивание внизу: наверху оно перетягивало бы внимание с разделов,
+           а нажимают его редко и осознанно. -->
+      <button
+        type="button"
+        class="nav-item rail-toggle"
+        :title="toggleLabel"
+        :aria-label="toggleLabel"
+        :aria-expanded="!ui.railCollapsed"
+        @click="ui.toggleRail()"
+      >
+        <component :is="ui.railCollapsed ? ChevronRight : ChevronLeft" class="ico" />
+        <span>{{ toggleLabel }}</span>
+      </button>
+    </nav>
+  </var>
 </template>

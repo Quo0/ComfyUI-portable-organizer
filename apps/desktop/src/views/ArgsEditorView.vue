@@ -13,6 +13,9 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import EmptyNote from '../components/EmptyNote.vue';
+import Field from '../components/ui/Field.vue';
+import Group from '../components/ui/Group.vue';
+import StepBar from '../components/ui/StepBar.vue';
 import { commands, type CustomProfile, type LaunchProfile } from '../bindings';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
@@ -134,123 +137,131 @@ async function remove(profile: CustomProfile): Promise<void> {
 </script>
 
 <template>
-  <section v-if="instance" class="screen">
-    <!-- Ряд шага, как в мастере и на добавлении инстанса: экран линейный —
-         пришли сюда с экрана сборки, сохранили, вернулись. Поэтому «Назад»
-         здесь не навигация у левого края, а шаг назад рядом с действием,
-         и стоит левее его.
+  <var class="ArgsEditorView">
+    <section v-if="instance" class="screen">
+      <!-- Ряд шага, как в мастере и на добавлении инстанса: экран линейный —
+           пришли сюда с экрана сборки, сохранили, вернулись. Поэтому «Назад»
+           здесь не навигация у левого края, а шаг назад рядом с действием,
+           и стоит левее его.
 
-         Внизу «Сохранить» уезжала из виду тем вернее, чем больше аргументов
-         правят: под ней скроллится их список. -->
-    <div class="step-bar">
-      <h2 class="title">{{ t('args.title') }}</h2>
-      <!-- Имя сборки при заголовке, а не у правого края: оно уточняет,
-           чьи аргументы правятся, и в отрыве читалось как чужая строка. -->
-      <span class="hint">{{ instance.name }}</span>
-      <span class="spacer"></span>
-      <span class="acts">
-        <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
-          <ArrowLeft class="ico" />
-          {{ t('common.back') }}
-        </RouterLink>
-        <button
-          type="button"
-          class="btn primary lg"
-          :disabled="draft.name.trim() === '' || !draft.baseId"
-          @click="save"
-        >
-          {{ t('common.save') }}
-        </button>
-      </span>
-    </div>
+           Внизу «Сохранить» уезжала из виду тем вернее, чем больше аргументов
+           правят: под ней скроллится их список. -->
+      <StepBar>
+        <h2 class="title">{{ t('args.title') }}</h2>
+        <!-- Имя сборки при заголовке, а не у правого края: оно уточняет,
+             чьи аргументы правятся, и в отрыве читалось как чужая строка. -->
+        <span class="hint">{{ instance.name }}</span>
+        <span class="spacer"></span>
+        <span class="acts">
+          <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
+            <ArrowLeft class="ico" />
+            {{ t('common.back') }}
+          </RouterLink>
+          <button
+            type="button"
+            class="btn primary lg"
+            :disabled="draft.name.trim() === '' || !draft.baseId"
+            @click="save"
+          >
+            {{ t('common.save') }}
+          </button>
+        </span>
+      </StepBar>
 
-    <div class="screen-body">
-      <div class="screen-pad">
-        <p class="t-sm">{{ t('args.lead') }}</p>
+      <div class="screen-body">
+        <div class="screen-pad">
+          <p class="t-sm">{{ t('args.lead') }}</p>
 
-        <div class="group">
-          <span class="t-label">{{ t('args.mine') }}</span>
-          <div v-if="mine.length" class="wf-list">
-            <div v-for="p in mine" :key="p.id" class="wf-row">
-              <span class="nm">{{ p.name }}</span>
-              <span class="hint">{{ p.baseId }}</span>
-              <button type="button" class="btn ghost" @click="edit(p)">
-                {{ t('common.edit') }}
+          <Group>
+            <span class="t-label">{{ t('args.mine') }}</span>
+            <div v-if="mine.length" class="wf-list">
+              <div v-for="p in mine" :key="p.id" class="wf-row">
+                <span class="nm">{{ p.name }}</span>
+                <span class="hint">{{ p.baseId }}</span>
+                <button type="button" class="btn ghost" @click="edit(p)">
+                  {{ t('common.edit') }}
+                </button>
+                <button type="button" class="btn ghost" @click="remove(p)">
+                  {{ t('instances.remove.action') }}
+                </button>
+              </div>
+            </div>
+            <EmptyNote v-else>{{ t('args.none') }}</EmptyNote>
+          </Group>
+
+          <div class="two">
+            <Field>
+              <label for="base">{{ t('args.base') }}</label>
+              <!-- Имена профилей — имена файлов, они не переводятся. -->
+              <select
+                id="base"
+                class="input"
+                :value="draft.baseId"
+                @change="reset(($event.target as HTMLSelectElement).value)"
+              >
+                <option v-for="p in bases" :key="p.id" :value="p.id">{{ p.id }}</option>
+              </select>
+            </Field>
+            <Field>
+              <label for="pname">{{ t('args.name') }}</label>
+              <input id="pname" v-model="draft.name" class="input" type="text" />
+            </Field>
+          </div>
+
+          <Group>
+            <span class="t-label">{{ t('args.list') }}</span>
+            <div v-for="(_, index) in draft.args" :key="index" class="path-row">
+              <!-- Предпросмотр обновляется на каждый ввод, а не по потере
+                   фокуса: правишь аргумент — сразу видишь команду. -->
+              <input v-model="draft.args[index]" class="input mono" type="text" />
+              <!-- Тот же крестик, что убирает строку в списке назначений
+                   мастера: одна операция — один значок. -->
+              <span class="acts">
+                <button
+                  type="button"
+                  class="act"
+                  :title="t('args.remove')"
+                  :aria-label="t('args.remove')"
+                  @click="removeArg(index)"
+                >
+                  <X class="ico" />
+                </button>
+              </span>
+            </div>
+            <div class="row">
+              <button type="button" class="btn secondary" @click="addArg">
+                {{ t('args.add') }}
               </button>
-              <button type="button" class="btn ghost" @click="remove(p)">
-                {{ t('instances.remove.action') }}
+              <button type="button" class="btn ghost" @click="reset(draft.baseId)">
+                {{ t('args.reset') }}
               </button>
             </div>
-          </div>
-          <EmptyNote v-else>{{ t('args.none') }}</EmptyNote>
-        </div>
+          </Group>
 
-        <div class="two">
-          <div class="field">
-            <label for="base">{{ t('args.base') }}</label>
-            <!-- Имена профилей — имена файлов, они не переводятся. -->
-            <select
-              id="base"
-              class="input"
-              :value="draft.baseId"
-              @change="reset(($event.target as HTMLSelectElement).value)"
-            >
-              <option v-for="p in bases" :key="p.id" :value="p.id">{{ p.id }}</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="pname">{{ t('args.name') }}</label>
-            <input id="pname" v-model="draft.name" class="input" type="text" />
-          </div>
-        </div>
+          <Group>
+            <span class="t-label">{{ t('args.preview') }}</span>
+            <!-- Команда не переводится и не сокращается: по ней разбираются. -->
+            <pre class="console preview">{{ preview.join(' ') }}</pre>
+            <p class="hint">{{ t('args.previewHint') }}</p>
+          </Group>
 
-        <div class="group">
-          <span class="t-label">{{ t('args.list') }}</span>
-          <div v-for="(_, index) in draft.args" :key="index" class="path-row">
-            <!-- Предпросмотр обновляется на каждый ввод, а не по потере
-                 фокуса: правишь аргумент — сразу видишь команду. -->
-            <input v-model="draft.args[index]" class="input mono" type="text" />
-            <!-- Тот же крестик, что убирает строку в списке назначений
-                 мастера: одна операция — один значок. -->
-            <span class="acts">
-              <button
-                type="button"
-                class="act"
-                :title="t('args.remove')"
-                :aria-label="t('args.remove')"
-                @click="removeArg(index)"
-              >
-                <X class="ico" />
-              </button>
-            </span>
-          </div>
-          <div class="row">
-            <button type="button" class="btn secondary" @click="addArg">
-              {{ t('args.add') }}
-            </button>
-            <button type="button" class="btn ghost" @click="reset(draft.baseId)">
-              {{ t('args.reset') }}
-            </button>
-          </div>
+          <!-- Кнопки под формой нет: действие уехало в ряд шага. -->
         </div>
-
-        <div class="group">
-          <span class="t-label">{{ t('args.preview') }}</span>
-          <!-- Команда не переводится и не сокращается: по ней разбираются. -->
-          <pre class="console preview">{{ preview.join(' ') }}</pre>
-          <p class="hint">{{ t('args.previewHint') }}</p>
-        </div>
-
-        <!-- Кнопки под формой нет: действие уехало в ряд шага. -->
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>
 
 <style scoped>
 /* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
-   без него заголовок прилипает к заголовку окна. */
-.step-bar {
+   без него заголовок прилипает к заголовку окна. `:deep()` обязателен:
+   корень `StepBar` — обёртка `<var>`, а не сам `.step-bar`, и обычный
+   скоуп-атрибут родителя до вложенного div не достаёт.
+
+   Якорь `.ArgsEditorView` перед `:deep()` обязателен тоже: голый
+   `:deep(.step-bar)` компилируется без scope-атрибута вовсе и утекает
+   на все `StepBar` в приложении, а не только на этот экран. */
+.ArgsEditorView :deep(.step-bar) {
   padding-top: var(--space-4);
 }
 

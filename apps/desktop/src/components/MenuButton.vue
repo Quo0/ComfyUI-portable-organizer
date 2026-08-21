@@ -58,23 +58,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="root" class="menu">
-    <button
-      type="button"
-      class="btn secondary"
-      aria-haspopup="menu"
-      :aria-expanded="open"
-      @click="open = !open"
-    >
-      <component :is="icon" v-if="icon" class="ico" />
-      {{ label }}
-    </button>
+  <var class="MenuButton">
+    <div ref="root" class="menu">
+      <button
+        type="button"
+        class="btn secondary"
+        aria-haspopup="menu"
+        :aria-expanded="open"
+        @click="open = !open"
+      >
+        <component :is="icon" v-if="icon" class="ico" />
+        {{ label }}
+      </button>
 
-    <!-- Закрытие висит на самом списке, а не на каждом пункте: выбор
-         пункта всплывает сюда, и повторять `@click` в каждой разметке,
-         которая этим меню пользуется, значило бы однажды забыть. -->
-    <div v-if="open" class="menu-pop" role="menu" @click="open = false">
-      <slot />
+      <!-- Закрытие висит на самом списке, а не на каждом пункте: выбор
+           пункта всплывает сюда, и повторять `@click` в каждой разметке,
+           которая этим меню пользуется, значило бы однажды забыть. -->
+      <div v-if="open" class="menu-pop" role="menu" @click="open = false">
+        <slot />
+      </div>
     </div>
-  </div>
+  </var>
 </template>

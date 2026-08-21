@@ -23,11 +23,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="shell">
-    <NavRail />
-    <main class="content">
-      <RouterView />
-      <ToastHost />
-    </main>
-  </div>
+  <var class="App">
+    <div class="shell">
+      <NavRail />
+      <main class="content">
+        <RouterView />
+        <ToastHost />
+      </main>
+    </div>
+  </var>
 </template>

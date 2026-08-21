@@ -11,13 +11,16 @@ apps/desktop/src-tauri/gen/
 apps/docs/.vitepress/cache/
 apps/docs/.vitepress/dist/
 
-# Результаты сборки дизайна.
-# Генерируются `node design/build.mjs` из design/tokens и design/styles.
-# В истории им не место: правка одного токена меняет три больших файла,
-# и каждый коммит превращался бы в конфликт.
-design/dist/
-design/preview.html
-design/screens.html
+# Сайт дизайн-системы: стайлгайд и макеты экранов (VitePress).
+apps/design/.vitepress/cache/
+apps/design/.vitepress/dist/
+
+# Токены приложения на .t-light/.t-dark для витрины — панели ThemePair.vue
+# показывают обе темы разом независимо от темы зрителя, `:root[data-theme]`
+# внутри страницы не сработает. Генерируется `tools/build-preview-tokens.mjs`
+# из apps/desktop/src/styles/tokens.css — источник там, дублировать в истории
+# незачем.
+apps/design/.vitepress/theme/preview-tokens.css
 
 # Стенд разработки: junction на системный Python в git не кладётся,
 # фикстура создаётся скриптом (см. «Разработка» в plan/dev.md).
@@ -53,9 +56,5 @@ Thumbs.db
 .claude/hook-events.log
 # Генерируется tauri-specta при каждом запуске дев-сборки.
 apps/desktop/src/bindings.ts
-
-# Копии из design/dist, кладёт tools/sync-design.mjs.
-apps/desktop/src/styles/tokens.css
-apps/desktop/src/styles/components.css
 
 .cc-connect

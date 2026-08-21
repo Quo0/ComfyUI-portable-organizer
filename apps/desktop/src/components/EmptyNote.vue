@@ -18,5 +18,7 @@
 </script>
 
 <template>
-  <p class="blank"><slot /></p>
+  <var class="EmptyNote">
+    <p class="blank"><slot /></p>
+  </var>
 </template>

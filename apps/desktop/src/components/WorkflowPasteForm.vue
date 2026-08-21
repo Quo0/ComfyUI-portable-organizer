@@ -14,6 +14,7 @@ import { useI18n } from 'vue-i18n';
 
 import type { AppError } from '../bindings';
 import { errorText } from '../lib/errors';
+import Field from './ui/Field.vue';
 
 const props = defineProps<{
   /**
@@ -156,60 +157,62 @@ function shakeName(): void {
 </script>
 
 <template>
-  <form class="paste" @submit.prevent="submit">
-    <div class="field">
-      <label class="t-label" for="paste-name">{{ t('library.paste.name') }}</label>
-      <input
-        id="paste-name"
-        ref="nameInput"
-        v-model="name"
-        class="input"
-        :class="{ bad: !!nameFailure }"
-        type="text"
-        autocomplete="off"
-        :placeholder="t('library.paste.namePlaceholder')"
-      />
-      <!-- Расширение дописывается само: набранное руками «.jsn»
-           или «.json.json» — описка, а не выбор. -->
-      <p v-if="nameFailure" class="hint bad">{{ nameFailure }}</p>
-      <p v-else-if="fileName" class="hint">
-        {{ t('library.paste.willSaveAs', { name: fileName }) }}
-      </p>
-    </div>
+  <var class="WorkflowPasteForm">
+    <form class="paste" @submit.prevent="submit">
+      <Field>
+        <label class="t-label" for="paste-name">{{ t('library.paste.name') }}</label>
+        <input
+          id="paste-name"
+          ref="nameInput"
+          v-model="name"
+          class="input"
+          :class="{ bad: !!nameFailure }"
+          type="text"
+          autocomplete="off"
+          :placeholder="t('library.paste.namePlaceholder')"
+        />
+        <!-- Расширение дописывается само: набранное руками «.jsn»
+             или «.json.json» — описка, а не выбор. -->
+        <p v-if="nameFailure" class="hint bad">{{ nameFailure }}</p>
+        <p v-else-if="fileName" class="hint">
+          {{ t('library.paste.willSaveAs', { name: fileName }) }}
+        </p>
+      </Field>
 
-    <div class="field">
-      <label class="t-label" for="paste-json">{{ t('library.paste.json') }}</label>
-      <textarea
-        id="paste-json"
-        ref="area"
-        v-model="content"
-        class="input area mono"
-        :class="{ bad: graph?.ok === false }"
-        spellcheck="false"
-        :placeholder="t('library.paste.jsonPlaceholder')"
-      ></textarea>
+      <Field>
+        <label class="t-label" for="paste-json">{{ t('library.paste.json') }}</label>
+        <textarea
+          id="paste-json"
+          ref="area"
+          v-model="content"
+          class="input area mono"
+          :class="{ bad: graph?.ok === false }"
+          spellcheck="false"
+          :placeholder="t('library.paste.jsonPlaceholder')"
+        ></textarea>
 
-      <!-- «Разобрано N нод» — не украшение: это единственный способ увидеть,
-           что вставилось то самое, не читая двух тысяч строк JSON. -->
-      <p v-if="graph?.ok" class="hint">
-        {{ t('library.paste.parsed', graph.nodes) }}
-        <template v-if="graph.types.length">
-          · {{ t('library.paste.types', graph.types.length) }}
-        </template>
-      </p>
-      <p v-else-if="graph" class="hint bad">{{ t('library.paste.notAWorkflow') }}</p>
-      <p v-else class="hint">{{ t('library.paste.hint') }}</p>
-    </div>
+        <!-- «Разобрано N нод» — не украшение: это единственный способ увидеть,
+             что вставилось то самое, не читая двух тысяч строк JSON. -->
+        <p v-if="graph?.ok" class="hint">
+          {{ t('library.paste.parsed', graph.nodes) }}
+          <template v-if="graph.types.length">
+            · {{ t('library.paste.types', graph.types.length) }}
+          </template>
+        </p>
+        <p v-else-if="graph" class="hint bad">{{ t('library.paste.notAWorkflow') }}</p>
+        <p v-else class="hint">{{ t('library.paste.hint') }}</p>
+      </Field>
 
-    <p v-if="otherFailure" class="hint bad">{{ otherFailure }}</p>
+      <p v-if="otherFailure" class="hint bad">{{ otherFailure }}</p>
 
-    <div class="row">
-      <button type="submit" class="btn primary" :disabled="!canSave">
-        {{ t('library.paste.save') }}
-      </button>
-      <button type="button" class="btn ghost" @click="emit('cancel')">
-        {{ t('common.cancel') }}
-      </button>
-    </div>
-  </form>
+      <div class="row">
+        <button type="submit" class="btn primary" :disabled="!canSave">
+          {{ t('library.paste.save') }}
+        </button>
+        <button type="button" class="btn ghost" @click="emit('cancel')">
+          {{ t('common.cancel') }}
+        </button>
+      </div>
+    </form>
+  </var>
 </template>

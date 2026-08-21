@@ -8,14 +8,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev:desktop": "pnpm design:sync && pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json --features devtools",
-    "dev:build-desktop": "pnpm design:sync && pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json",
+    "dev:desktop": "pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json --features devtools",
+    "dev:build-desktop": "pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json",
     "dev:docs": "pnpm --filter @cpo/docs docs:dev",
-    "build:desktop": "pnpm design:sync && pnpm --filter @cpo/desktop tauri build",
+    "dev:design": "pnpm design:tokens && pnpm --filter @cpo/design docs:dev",
+    "build:desktop": "pnpm --filter @cpo/desktop tauri build",
     "build:docs": "pnpm --filter @cpo/docs docs:build",
-    "design:build": "node design/build.mjs",
-    "design:sync": "node design/build.mjs && node tools/sync-design.mjs",
-    "design:check": "node design/build.mjs && node design/check.mjs",
+    "build:design": "pnpm design:tokens && pnpm --filter @cpo/design docs:build",
+    "design:tokens": "node tools/build-preview-tokens.mjs",
+    "design:check": "node tools/build-preview-tokens.mjs && node tools/check-styles.mjs",
     "i18n:check": "node tools/i18n-check.mjs",
     "typecheck": "pnpm --filter @cpo/desktop exec vue-tsc --noEmit",
     "kill": "node tools/kill-dev.mjs"

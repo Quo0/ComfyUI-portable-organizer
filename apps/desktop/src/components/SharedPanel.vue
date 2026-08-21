@@ -10,6 +10,10 @@ import { useI18n } from 'vue-i18n';
 import type { ApplyMode, Instance, InstanceFileInfo } from '../bindings';
 import { commands } from '../bindings';
 import OpenFolderButton from './OpenFolderButton.vue';
+import Group from './ui/Group.vue';
+import Pane from './ui/Pane.vue';
+import Toggle from './ui/Toggle.vue';
+import ToggleRow from './ui/ToggleRow.vue';
 import { withViewTransitionAsync } from '../lib/motion';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
@@ -109,118 +113,117 @@ async function setMode(next: ApplyMode): Promise<void> {
 </script>
 
 <template>
-  <div class="group">
-    <!-- Вкладка это два отдела: общая папка и модели самой сборки.
-         Заголовок у них одной формы — подпись, значок своей папки, дальше
-         содержимое: иначе верх вкладки читался набором разрозненных строк
-         без границы между отделами. -->
-    <div class="row">
-      <span class="t-label">{{ t('shared.instance.label') }}</span>
-      <!-- Тот же значок папки, что у моделей сборки ниже, но ведёт в общую:
-           разбираться руками с тем, что уже перенесено, приходится именно
-           там, а пути к ней на этой вкладке больше нет нигде — в строке
-           под тумблером он показан только у подключённой сборки.
-           Доступное имя своё: две одинаково подписанные кнопки-папки
-           на одном экране неразличимы на слух. -->
-      <OpenFolderButton
-        :path="shared.root?.path"
-        :title="shared.root?.path"
-        :label="t('shared.root.open')"
-        :disabled="!shared.available"
-      />
-    </div>
-
-    <!-- Тумблер отдельной строкой, а подпись справа от него говорит, что он
-         делает. Название отдела ушло в заголовок, и повторять его здесь
-         незачем. -->
-    <div class="toggle-row">
-      <button
-        class="toggle"
-        :class="{ off: !enabled, 'is-init': toggleTouched }"
-        type="button"
-        role="switch"
-        :aria-checked="enabled"
-        :aria-label="t('shared.instance.label')"
-        :disabled="busy || !shared.configured"
-        @click="toggle"
-      ></button>
-      <div>
-        <div class="t-base">{{ t('shared.instance.hint') }}</div>
-
-        <!-- Корень не задан — подключать не к чему. Вместо мёртвого
-             тумблера ведём туда, где его задают. -->
-        <div v-if="!shared.configured" class="hint">
-          {{ t('shared.instance.noRoot') }}
-          <RouterLink to="/settings/shared-models">
-            {{ t('shared.instance.setUp') }}
-          </RouterLink>
-        </div>
-
-        <div v-else-if="enabled" class="hint">
-          {{ shared.root?.path }} ·
-          {{ t(`shared.mode.${instance.shared?.applyMode ?? 'flag'}.short`) }}
-        </div>
-      </div>
-    </div>
-
-    <div v-if="shared.configured && enabled" class="group">
-      <span class="t-label">{{ t('shared.mode.label') }}</span>
-      <div class="seg">
-        <button
-          type="button"
-          :aria-pressed="mode === 'flag'"
-          :disabled="busy"
-          @click="setMode('flag')"
-        >
-          {{ t('shared.mode.flag.title') }}
-        </button>
-        <button
-          type="button"
-          :aria-pressed="mode === 'instanceFile'"
-          :disabled="busy"
-          @click="setMode('instanceFile')"
-        >
-          {{ t('shared.mode.instanceFile.title') }}
-        </button>
-      </div>
-      <p class="hint">{{ t(`shared.mode.${mode}.hint`) }}</p>
-    </div>
-
-    <!-- Плашка про рестарт. Живёт до перезапуска, а не гаснет по таймеру:
-         пользователь может уйти в другой раздел и вернуться. -->
-    <p v-if="needsRestart && running" class="hint bad">
-      {{ t('shared.instance.needsRestart') }}
-    </p>
-
-    <!-- В папке инстанса уже лежит чужой файл. Показываем его целиком:
-         решение «заменить» принимается не вслепую. -->
-    <div v-if="foreign" class="group danger-zone">
-      <p class="t-md">{{ t('shared.foreign.title') }}</p>
-      <p class="t-sm">{{ t('shared.foreign.body', { path: foreign.path }) }}</p>
-      <div class="pane">
-        <div class="pane-head">
-          <span class="title">{{ t('shared.foreign.whatsThere') }}</span>
-        </div>
-        <div class="scroll">
-          <pre class="console">{{ foreign.content }}</pre>
-        </div>
-      </div>
+  <var class="SharedPanel">
+    <Group>
+      <!-- Вкладка это два отдела: общая папка и модели самой сборки.
+           Заголовок у них одной формы — подпись, значок своей папки, дальше
+           содержимое: иначе верх вкладки читался набором разрозненных строк
+           без границы между отделами. -->
       <div class="row">
-        <button type="button" class="btn danger" :disabled="busy" @click="connect(true)">
-          {{ t('shared.foreign.replace') }}
-        </button>
-        <button
-          type="button"
-          class="btn secondary"
-          :disabled="busy"
-          @click="((mode = 'flag'), connect(false))"
-        >
-          {{ t('shared.foreign.useFlag') }}
-        </button>
-        <button type="button" class="btn ghost" @click="foreign = null">
-          {{ t('common.cancel') }}
-        </button>
+        <span class="t-label">{{ t('shared.instance.label') }}</span>
+        <!-- Тот же значок папки, что у моделей сборки ниже, но ведёт в общую:
+             разбираться руками с тем, что уже перенесено, приходится именно
+             там, а пути к ней на этой вкладке больше нет нигде — в строке
+             под тумблером он показан только у подключённой сборки.
+             Доступное имя своё: две одинаково подписанные кнопки-папки
+             на одном экране неразличимы на слух. -->
+        <OpenFolderButton
+          :path="shared.root?.path"
+          :title="shared.root?.path"
+          :label="t('shared.root.open')"
+          :disabled="!shared.available"
+        />
       </div>
-    </div>
-  </div>
+
+      <!-- Тумблер отдельной строкой, а подпись справа от него говорит, что он
+           делает. Название отдела ушло в заголовок, и повторять его здесь
+           незачем. -->
+      <ToggleRow>
+        <Toggle
+          :checked="enabled"
+          :touched="toggleTouched"
+          :aria-label="t('shared.instance.label')"
+          :disabled="busy || !shared.configured"
+          @click="toggle"
+        />
+        <div>
+          <div class="t-base">{{ t('shared.instance.hint') }}</div>
+
+          <!-- Корень не задан — подключать не к чему. Вместо мёртвого
+               тумблера ведём туда, где его задают. -->
+          <div v-if="!shared.configured" class="hint">
+            {{ t('shared.instance.noRoot') }}
+            <RouterLink to="/settings/shared-models">
+              {{ t('shared.instance.setUp') }}
+            </RouterLink>
+          </div>
+
+          <div v-else-if="enabled" class="hint">
+            {{ shared.root?.path }} ·
+            {{ t(`shared.mode.${instance.shared?.applyMode ?? 'flag'}.short`) }}
+          </div>
+        </div>
+      </ToggleRow>
+
+      <Group v-if="shared.configured && enabled">
+        <span class="t-label">{{ t('shared.mode.label') }}</span>
+        <div class="seg">
+          <button
+            type="button"
+            :aria-pressed="mode === 'flag'"
+            :disabled="busy"
+            @click="setMode('flag')"
+          >
+            {{ t('shared.mode.flag.title') }}
+          </button>
+          <button
+            type="button"
+            :aria-pressed="mode === 'instanceFile'"
+            :disabled="busy"
+            @click="setMode('instanceFile')"
+          >
+            {{ t('shared.mode.instanceFile.title') }}
+          </button>
+        </div>
+        <p class="hint">{{ t(`shared.mode.${mode}.hint`) }}</p>
+      </Group>
+
+      <!-- Плашка про рестарт. Живёт до перезапуска, а не гаснет по таймеру:
+           пользователь может уйти в другой раздел и вернуться. -->
+      <p v-if="needsRestart && running" class="hint bad">
+        {{ t('shared.instance.needsRestart') }}
+      </p>
+
+      <!-- В папке инстанса уже лежит чужой файл. Показываем его целиком:
+           решение «заменить» принимается не вслепую. -->
+      <Group v-if="foreign" danger>
+        <p class="t-md">{{ t('shared.foreign.title') }}</p>
+        <p class="t-sm">{{ t('shared.foreign.body', { path: foreign.path }) }}</p>
+        <Pane>
+          <div class="pane-head">
+            <span class="title">{{ t('shared.foreign.whatsThere') }}</span>
+          </div>
+          <div class="scroll">
+            <pre class="console">{{ foreign.content }}</pre>
+          </div>
+        </Pane>
+        <div class="row">
+          <button type="button" class="btn danger" :disabled="busy" @click="connect(true)">
+            {{ t('shared.foreign.replace') }}
+          </button>
+          <button
+            type="button"
+            class="btn secondary"
+            :disabled="busy"
+            @click="((mode = 'flag'), connect(false))"
+          >
+            {{ t('shared.foreign.useFlag') }}
+          </button>
+          <button type="button" class="btn ghost" @click="foreign = null">
+            {{ t('common.cancel') }}
+          </button>
+        </div>
+      </Group>
+    </Group>
+  </var>
 </template>

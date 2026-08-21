@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 
 import type { InstanceEdit } from '../bindings';
 import { accentVar, isCustomAccent } from '../lib/format';
+import Field from './ui/Field.vue';
 
 const model = defineModel<InstanceEdit>({ required: true });
 
@@ -56,74 +57,76 @@ const nameEmpty = () => showProblems && model.value.name.trim() === '';
 </script>
 
 <template>
-  <div class="field">
-    <label :for="`${idPrefix}-name`">{{ t('instances.field.name') }}</label>
-    <input
-      :id="`${idPrefix}-name`"
-      v-model="model.name"
-      class="input"
-      :class="{ bad: nameEmpty() }"
-      type="text"
-      maxlength="80"
-    />
-    <p v-if="nameEmpty()" class="hint bad">{{ t('errors.instances.emptyName') }}</p>
-  </div>
+  <var class="InstanceFields">
+    <Field>
+      <label :for="`${idPrefix}-name`">{{ t('instances.field.name') }}</label>
+      <input
+        :id="`${idPrefix}-name`"
+        v-model="model.name"
+        class="input"
+        :class="{ bad: nameEmpty() }"
+        type="text"
+        maxlength="80"
+      />
+      <p v-if="nameEmpty()" class="hint bad">{{ t('errors.instances.emptyName') }}</p>
+    </Field>
 
-  <div class="field">
-    <label :for="`${idPrefix}-desc`">{{ t('instances.field.description') }}</label>
-    <input
-      :id="`${idPrefix}-desc`"
-      v-model="model.description"
-      class="input"
-      type="text"
-      maxlength="200"
-    />
-  </div>
+    <Field>
+      <label :for="`${idPrefix}-desc`">{{ t('instances.field.description') }}</label>
+      <input
+        :id="`${idPrefix}-desc`"
+        v-model="model.description"
+        class="input"
+        type="text"
+        maxlength="200"
+      />
+    </Field>
 
-  <div class="field">
-    <span class="t-label">{{ t('instances.field.accent') }}</span>
-    <div class="picker">
-      <button
-        v-for="accent in accents"
-        :key="accent.value"
-        type="button"
-        :style="{ background: accentVar(accent.value) }"
-        :aria-pressed="model.accent === accent.value"
-        :aria-label="accent.label"
-        :title="accent.label"
-        @click="model.accent = accent.value"
-      ></button>
-      <!-- Свой цвет тем же квадратом, что и палитра: это такой же выбор,
-           просто из всех цветов сразу. Значение уходит в разметку как есть
-           и потому одинаково в обеих темах — за палитру ручается сборка
-           дизайна, за свой цвет отвечает пользователь. -->
-      <label
-        class="swatch-custom"
-        :class="{ on: isCustomAccent(model.accent) }"
-        :title="t('instances.field.accentCustom')"
-      >
-        <input
-          type="color"
-          :value="isCustomAccent(model.accent) ? model.accent : '#4db6a5'"
-          :aria-label="t('instances.field.accentCustom')"
-          @input="model.accent = ($event.target as HTMLInputElement).value"
-        />
-      </label>
-    </div>
-  </div>
+    <Field>
+      <span class="t-label">{{ t('instances.field.accent') }}</span>
+      <div class="picker">
+        <button
+          v-for="accent in accents"
+          :key="accent.value"
+          type="button"
+          :style="{ background: accentVar(accent.value) }"
+          :aria-pressed="model.accent === accent.value"
+          :aria-label="accent.label"
+          :title="accent.label"
+          @click="model.accent = accent.value"
+        ></button>
+        <!-- Свой цвет тем же квадратом, что и палитра: это такой же выбор,
+             просто из всех цветов сразу. Значение уходит в разметку как есть
+             и потому одинаково в обеих темах — за палитру ручается сборка
+             дизайна, за свой цвет отвечает пользователь. -->
+        <label
+          class="swatch-custom"
+          :class="{ on: isCustomAccent(model.accent) }"
+          :title="t('instances.field.accentCustom')"
+        >
+          <input
+            type="color"
+            :value="isCustomAccent(model.accent) ? model.accent : '#4db6a5'"
+            :aria-label="t('instances.field.accentCustom')"
+            @input="model.accent = ($event.target as HTMLInputElement).value"
+          />
+        </label>
+      </div>
+    </Field>
 
-  <div class="field">
-    <label :for="`${idPrefix}-port`">{{ t('instances.field.port') }}</label>
-    <input
-      :id="`${idPrefix}-port`"
-      v-model.number="model.preferredPort"
-      class="input num"
-      type="number"
-      min="1024"
-      max="65535"
-    />
-    <p class="hint">{{ t('instances.field.portHint') }}</p>
-  </div>
+    <Field>
+      <label :for="`${idPrefix}-port`">{{ t('instances.field.port') }}</label>
+      <input
+        :id="`${idPrefix}-port`"
+        v-model.number="model.preferredPort"
+        class="input num"
+        type="number"
+        min="1024"
+        max="65535"
+      />
+      <p class="hint">{{ t('instances.field.portHint') }}</p>
+    </Field>
+  </var>
 </template>
 
 <!-- Своих стилей у полей больше нет: квадрат выбора своего цвета уехал

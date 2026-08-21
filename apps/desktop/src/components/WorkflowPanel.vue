@@ -16,6 +16,7 @@ import {
 } from '../bindings';
 import EmptyNote from './EmptyNote.vue';
 import OpenFolderButton from './OpenFolderButton.vue';
+import Group from './ui/Group.vue';
 import { displayStatus } from '../lib/status';
 import { useRunStore } from '../stores/run';
 import { useUiStore } from '../stores/ui';
@@ -130,84 +131,86 @@ async function pull(entry: InstanceWorkflow): Promise<void> {
 </script>
 
 <template>
-  <div class="group">
-    <div class="row">
-      <span class="t-label">{{ t('library.instance.title') }}</span>
-      <!-- Тот же значок и то же место, что у моделей сборки: путь к папке
-           воркфлоу в панели больше нигде не показан, а идти разбираться
-           руками приходится именно туда. -->
-      <OpenFolderButton :path="dir?.path" :title="dir?.path" :disabled="!dir?.available" />
-      <span class="spacer"></span>
-      <button type="button" class="btn ghost" :disabled="loading" @click="refresh">
-        <RotateCw class="ico" />
-        {{ t('library.refresh') }}
-      </button>
-    </div>
-
-    <!-- Библиотека не задана — забирать некуда. Ведём туда, где её задают. -->
-    <p v-if="!library.configured" class="hint">
-      {{ t('library.instance.noLibrary') }}
-      <RouterLink to="/settings/workflow-library">{{ t('library.path.setUp') }}</RouterLink>
-    </p>
-
-    <div v-if="loading" class="bar indet"><i></i></div>
-
-    <!-- `of-instance`: в строке нет ни отметки, ни звёздочки избранного,
-         и сетка у неё своя. Избранное живёт в манифесте библиотеки, а эти
-         файлы в неё ещё не попали. -->
-    <div v-else-if="entries.length" class="wf-list of-instance">
-      <div v-for="entry in entries" :key="entry.path" class="wf-row">
-        <span class="nm">{{ entry.path }}</span>
-        <!-- Два вердикта, а не один: метка по одному имени врала бы.
-             Правленная в сборке версия под занятым именем выглядела бы
-             сохранённой — и пропала бы при первой же уборке папки. -->
-        <span class="tags">
-          <span v-if="entry.library === 'same'" class="tag">
-            {{ t('library.instance.already') }}
-          </span>
-          <span v-else-if="entry.library === 'diverged'" class="tag warn">
-            {{ t('library.instance.diverged') }}
-          </span>
-        </span>
-        <!-- Погашена только у того, что уже лежит в библиотеке тем же
-             файлом. У разошедшегося кнопка работает: это чужая работа
-             под тем же именем, и забрать её надо под своим. -->
-        <button
-          type="button"
-          class="btn ghost"
-          :disabled="
-            !library.configured ||
-            !library.available ||
-            busy === entry.path ||
-            entry.library === 'same'
-          "
-          @click="pull(entry)"
-        >
-          {{ t('library.instance.pull') }}
+  <var class="WorkflowPanel">
+    <Group>
+      <div class="row">
+        <span class="t-label">{{ t('library.instance.title') }}</span>
+        <!-- Тот же значок и то же место, что у моделей сборки: путь к папке
+             воркфлоу в панели больше нигде не показан, а идти разбираться
+             руками приходится именно туда. -->
+        <OpenFolderButton :path="dir?.path" :title="dir?.path" :disabled="!dir?.available" />
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" :disabled="loading" @click="refresh">
+          <RotateCw class="ico" />
+          {{ t('library.refresh') }}
         </button>
       </div>
-    </div>
 
-    <EmptyNote v-else>{{ t('library.instance.empty') }}</EmptyNote>
+      <!-- Библиотека не задана — забирать некуда. Ведём туда, где её задают. -->
+      <p v-if="!library.configured" class="hint">
+        {{ t('library.instance.noLibrary') }}
+        <RouterLink to="/settings/workflow-library">{{ t('library.path.setUp') }}</RouterLink>
+      </p>
 
-    <!-- Что кнопка уносит файл из сборки, сказано словами и заранее:
-         узнать это по исчезнувшей строке — худший из способов. -->
-    <p class="hint">{{ t('library.instance.moves') }}</p>
+      <div v-if="loading" class="bar indet"><i></i></div>
 
-    <!-- Легенда меток. Слева стоит та же самая метка, что в строке, справа —
-         что она значит. Одним абзацем это уже было: метку в нём приходилось
-         сперва найти глазами, а объяснения двух разных вердиктов сливались
-         в один текст. Показывается только со списком: без строк объяснять
-         нечего. -->
-    <dl v-if="entries.length" class="tag-legend">
-      <dt><span class="tag">{{ t('library.instance.already') }}</span></dt>
-      <dd>{{ t('library.instance.alreadyMeans') }}</dd>
-      <dt><span class="tag warn">{{ t('library.instance.diverged') }}</span></dt>
-      <dd>{{ t('library.instance.divergedMeans') }}</dd>
-    </dl>
+      <!-- `of-instance`: в строке нет ни отметки, ни звёздочки избранного,
+           и сетка у неё своя. Избранное живёт в манифесте библиотеки, а эти
+           файлы в неё ещё не попали. -->
+      <div v-else-if="entries.length" class="wf-list of-instance">
+        <div v-for="entry in entries" :key="entry.path" class="wf-row">
+          <span class="nm">{{ entry.path }}</span>
+          <!-- Два вердикта, а не один: метка по одному имени врала бы.
+               Правленная в сборке версия под занятым именем выглядела бы
+               сохранённой — и пропала бы при первой же уборке папки. -->
+          <span class="tags">
+            <span v-if="entry.library === 'same'" class="tag">
+              {{ t('library.instance.already') }}
+            </span>
+            <span v-else-if="entry.library === 'diverged'" class="tag warn">
+              {{ t('library.instance.diverged') }}
+            </span>
+          </span>
+          <!-- Погашена только у того, что уже лежит в библиотеке тем же
+               файлом. У разошедшегося кнопка работает: это чужая работа
+               под тем же именем, и забрать её надо под своим. -->
+          <button
+            type="button"
+            class="btn ghost"
+            :disabled="
+              !library.configured ||
+              !library.available ||
+              busy === entry.path ||
+              entry.library === 'same'
+            "
+            @click="pull(entry)"
+          >
+            {{ t('library.instance.pull') }}
+          </button>
+        </div>
+      </div>
 
-    <p class="hint">
-      {{ running ? t('library.instance.fromRunning') : t('library.instance.fromDisk') }}
-    </p>
-  </div>
+      <EmptyNote v-else>{{ t('library.instance.empty') }}</EmptyNote>
+
+      <!-- Что кнопка уносит файл из сборки, сказано словами и заранее:
+           узнать это по исчезнувшей строке — худший из способов. -->
+      <p class="hint">{{ t('library.instance.moves') }}</p>
+
+      <!-- Легенда меток. Слева стоит та же самая метка, что в строке, справа —
+           что она значит. Одним абзацем это уже было: метку в нём приходилось
+           сперва найти глазами, а объяснения двух разных вердиктов сливались
+           в один текст. Показывается только со списком: без строк объяснять
+           нечего. -->
+      <dl v-if="entries.length" class="tag-legend">
+        <dt><span class="tag">{{ t('library.instance.already') }}</span></dt>
+        <dd>{{ t('library.instance.alreadyMeans') }}</dd>
+        <dt><span class="tag warn">{{ t('library.instance.diverged') }}</span></dt>
+        <dd>{{ t('library.instance.divergedMeans') }}</dd>
+      </dl>
+
+      <p class="hint">
+        {{ running ? t('library.instance.fromRunning') : t('library.instance.fromDisk') }}
+      </p>
+    </Group>
+  </var>
 </template>

@@ -7,6 +7,8 @@ import { useI18n } from 'vue-i18n';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import InstanceFields from './InstanceFields.vue';
+import Field from './ui/Field.vue';
+import Pane from './ui/Pane.vue';
 import type { InstallTarget, TargetCheck } from '../bindings';
 import { errorText } from '../lib/errors';
 
@@ -49,41 +51,43 @@ async function pickFolder(): Promise<void> {
 </script>
 
 <template>
-  <div class="pane">
-    <div class="pane-head">
-      <span class="title">{{ title }}</span>
-      <slot name="acts"></slot>
-    </div>
-
-    <div class="scroll-pad">
-      <div class="field">
-        <span class="t-label">{{ t('instances.field.folder') }}</span>
-        <div class="path-row">
-          <!-- Путь не переводится и не сокращается. -->
-          <div class="input mono"><span>{{ target.path }}</span></div>
-          <button type="button" class="btn secondary" @click="pickFolder">
-            {{ t('install.targets.choose') }}
-          </button>
-        </div>
-
-        <!-- Ошибки и предупреждения разделены: с предупреждением
-             распаковать можно, с ошибкой — нет. Оба относятся к пути,
-             поэтому стоят под ним. -->
-        <template v-if="showProblems">
-          <p v-for="(problem, i) in check?.errors ?? []" :key="`e${i}`" class="hint bad">
-            {{ errorText(problem) }}
-          </p>
-          <p v-for="(problem, i) in check?.warnings ?? []" :key="`w${i}`" class="hint">
-            {{ errorText(problem) }}
-          </p>
-        </template>
+  <var class="TargetForm">
+    <Pane>
+      <div class="pane-head">
+        <span class="title">{{ title }}</span>
+        <slot name="acts"></slot>
       </div>
 
-      <InstanceFields
-        v-model="target"
-        :id-prefix="idPrefix"
-        :show-problems="showProblems"
-      />
-    </div>
-  </div>
+      <div class="scroll-pad">
+        <Field>
+          <span class="t-label">{{ t('instances.field.folder') }}</span>
+          <div class="path-row">
+            <!-- Путь не переводится и не сокращается. -->
+            <div class="input mono"><span>{{ target.path }}</span></div>
+            <button type="button" class="btn secondary" @click="pickFolder">
+              {{ t('install.targets.choose') }}
+            </button>
+          </div>
+
+          <!-- Ошибки и предупреждения разделены: с предупреждением
+               распаковать можно, с ошибкой — нет. Оба относятся к пути,
+               поэтому стоят под ним. -->
+          <template v-if="showProblems">
+            <p v-for="(problem, i) in check?.errors ?? []" :key="`e${i}`" class="hint bad">
+              {{ errorText(problem) }}
+            </p>
+            <p v-for="(problem, i) in check?.warnings ?? []" :key="`w${i}`" class="hint">
+              {{ errorText(problem) }}
+            </p>
+          </template>
+        </Field>
+
+        <InstanceFields
+          v-model="target"
+          :id-prefix="idPrefix"
+          :show-problems="showProblems"
+        />
+      </div>
+    </Pane>
+  </var>
 </template>

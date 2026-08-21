@@ -26,6 +26,8 @@ import {
 } from '../bindings';
 import EmptyNote from './EmptyNote.vue';
 import OpenFolderButton from './OpenFolderButton.vue';
+import Group from './ui/Group.vue';
+import Toggle from './ui/Toggle.vue';
 import { displayStatus } from '../lib/status';
 import { useFormat } from '../lib/format';
 import { useToggleTouch } from '../lib/motion';
@@ -143,19 +145,6 @@ function catState(category: ModelCategory): 'on' | 'off' | 'mixed' {
   const on = keys.filter((key) => chosen.value.has(key)).length;
   if (on === 0) return 'off';
   return on === keys.length ? 'on' : 'mixed';
-}
-
-/**
- * `aria-checked` для тумблера категории.
- *
- * Роль у него `checkbox`, а не `switch`, как у моделей: `switch` состояния
- * «частично» не знает вовсе, и `mixed` на нём программа чтения с экрана
- * прочитает как «выключено» — то есть соврёт.
- */
-function catChecked(category: ModelCategory): 'true' | 'false' | 'mixed' {
-  const state = catState(category);
-  if (state === 'mixed') return 'mixed';
-  return state === 'on' ? 'true' : 'false';
 }
 
 function toggleCategory(category: ModelCategory): void {
@@ -290,202 +279,197 @@ async function cleanup(): Promise<void> {
 </script>
 
 <template>
-  <div class="group">
-    <div class="row">
-      <span class="t-label">{{ t('migrate.title') }}</span>
-      <!-- Подсказкой идёт сам путь: в этой панели он больше нигде
-           не показан, а идти разбираться руками приходится именно туда. -->
-      <OpenFolderButton
-        :path="scan?.path"
-        :title="scan?.path"
-        :disabled="!scan?.available"
-      />
-      <span class="spacer"></span>
-      <button type="button" class="btn ghost" :disabled="loading || busy" @click="refresh">
-        <RotateCw class="ico" />
-        {{ t('library.refresh') }}
-      </button>
-    </div>
+  <var class="ModelsPanel">
+    <Group>
+      <div class="row">
+        <span class="t-label">{{ t('migrate.title') }}</span>
+        <!-- Подсказкой идёт сам путь: в этой панели он больше нигде
+             не показан, а идти разбираться руками приходится именно туда. -->
+        <OpenFolderButton
+          :path="scan?.path"
+          :title="scan?.path"
+          :disabled="!scan?.available"
+        />
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" :disabled="loading || busy" @click="refresh">
+          <RotateCw class="ico" />
+          {{ t('library.refresh') }}
+        </button>
+      </div>
 
-    <!-- Общий корень не задан — переносить некуда. -->
-    <p v-if="!shared.configured" class="hint">
-      {{ t('migrate.noRoot') }}
-      <RouterLink to="/settings/shared-models">{{ t('shared.instance.setUp') }}</RouterLink>
-    </p>
+      <!-- Общий корень не задан — переносить некуда. -->
+      <p v-if="!shared.configured" class="hint">
+        {{ t('migrate.noRoot') }}
+        <RouterLink to="/settings/shared-models">{{ t('shared.instance.setUp') }}</RouterLink>
+      </p>
 
-    <template v-else>
-      <div v-if="loading" class="bar indet"><i></i></div>
+      <template v-else>
+        <div v-if="loading" class="bar indet"><i></i></div>
 
-      <template v-else-if="scan?.categories.length">
-        <!-- Один список на всё: категория раскрывается, и модели внутри
-             показаны со своими вердиктами. Раскрытием управляет отдельная
-             кнопка, а не вся строка, — в той же строке стоит тумблер,
-             а кнопка внутри кнопки невалидна. -->
-        <div class="cats">
-          <template v-for="category in scan.categories" :key="category.folder">
-            <div class="cat" :class="{ marked: dupCount(category.folder) > 0 }">
-              <button
-                type="button"
-                class="disclose"
-                :aria-expanded="!collapsed.has(category.folder)"
-                @click="toggleCollapse(category.folder)"
-              >
-                <ChevronRight class="ico" />
-                <code>{{ category.folder }}</code>
-              </button>
-              <span class="n">
-                {{ t('migrate.entries', category.entries.length) }} ·
-                {{ bytes(category.sizeBytes) }}
-              </span>
-              <!-- Метка нужна свёрнутой строке: иначе про дубликаты внутри
-                   приходилось догадываться по нулю в сводке переноса. -->
-              <span v-if="dupCount(category.folder) > 0" class="tag warn">
-                {{ t('migrate.dup.inCategory', dupCount(category.folder)) }}
-              </span>
-              <button
-                type="button"
-                class="toggle"
-                :class="{
-                  off: catState(category) === 'off',
-                  mixed: catState(category) === 'mixed',
-                  'is-init': isTouched(category.folder),
-                }"
-                role="checkbox"
-                :aria-checked="catChecked(category)"
-                :aria-label="category.folder"
-                :disabled="busy || cleaning"
-                @click="toggleCategory(category)"
-              ></button>
-            </div>
-
-            <template v-if="!collapsed.has(category.folder)">
-              <div
-                v-for="entry in category.entries"
-                :key="entry.name"
-                class="cat model"
-                :class="{ marked: entry.sameName !== null }"
-              >
-                <code>{{ entry.name }}</code>
-                <span class="n">{{ bytes(entry.sizeBytes) }}</span>
-                <!-- Вердикт носит подсказку: из двух слов не видно, на чём
-                     он основан, а разница существенная. У файла сверены
-                     байты, у папки — только объём и число файлов внутри,
-                     и «похоже, тот же» ровно об этом. -->
-                <span
-                  v-if="entry.sameName"
-                  class="tag"
-                  :class="{
-                    warn: entry.sameName === 'likelyDuplicate',
-                    stop: entry.sameName === 'different',
-                  }"
-                  :title="t(`migrate.verdict.why.${entry.sameName}`)"
-                >
-                  {{ t(`migrate.verdict.${entry.sameName}`) }}
-                </span>
-                <!-- У чужого содержимого под тем же именем тумблера нет:
-                     его не переносят и не убирают никогда. Место под него
-                     остаётся, иначе вердикты в соседних строках разъедутся. -->
+        <template v-else-if="scan?.categories.length">
+          <!-- Один список на всё: категория раскрывается, и модели внутри
+               показаны со своими вердиктами. Раскрытием управляет отдельная
+               кнопка, а не вся строка, — в той же строке стоит тумблер,
+               а кнопка внутри кнопки невалидна. -->
+          <div class="cats">
+            <template v-for="category in scan.categories" :key="category.folder">
+              <div class="cat" :class="{ marked: dupCount(category.folder) > 0 }">
                 <button
-                  v-if="selectable(entry)"
                   type="button"
-                  class="toggle"
-                  :class="{
-                    off: !chosen.has(keyOf(category.folder, entry.name)),
-                    'is-init': isTouched(keyOf(category.folder, entry.name)),
-                  }"
-                  role="switch"
-                  :aria-checked="chosen.has(keyOf(category.folder, entry.name))"
-                  :aria-label="keyOf(category.folder, entry.name)"
+                  class="disclose"
+                  :aria-expanded="!collapsed.has(category.folder)"
+                  @click="toggleCollapse(category.folder)"
+                >
+                  <ChevronRight class="ico" />
+                  <code>{{ category.folder }}</code>
+                </button>
+                <span class="n">
+                  {{ t('migrate.entries', category.entries.length) }} ·
+                  {{ bytes(category.sizeBytes) }}
+                </span>
+                <!-- Метка нужна свёрнутой строке: иначе про дубликаты внутри
+                     приходилось догадываться по нулю в сводке переноса. -->
+                <span v-if="dupCount(category.folder) > 0" class="tag warn">
+                  {{ t('migrate.dup.inCategory', dupCount(category.folder)) }}
+                </span>
+                <!-- Роль `checkbox`, а не `switch`, как у моделей: `switch`
+                     состояния «частично» не знает вовсе, и `mixed` на нём
+                     программа чтения с экрана прочитает как «выключено» —
+                     то есть соврёт. -->
+                <Toggle
+                  role="checkbox"
+                  :checked="catState(category) !== 'off'"
+                  :mixed="catState(category) === 'mixed'"
+                  :touched="isTouched(category.folder)"
+                  :aria-label="category.folder"
                   :disabled="busy || cleaning"
-                  @click="toggle(keyOf(category.folder, entry.name))"
-                ></button>
-                <span v-else class="no-toggle"></span>
+                  @click="toggleCategory(category)"
+                />
               </div>
+
+              <template v-if="!collapsed.has(category.folder)">
+                <div
+                  v-for="entry in category.entries"
+                  :key="entry.name"
+                  class="cat model"
+                  :class="{ marked: entry.sameName !== null }"
+                >
+                  <code>{{ entry.name }}</code>
+                  <span class="n">{{ bytes(entry.sizeBytes) }}</span>
+                  <!-- Вердикт носит подсказку: из двух слов не видно, на чём
+                       он основан, а разница существенная. У файла сверены
+                       байты, у папки — только объём и число файлов внутри,
+                       и «похоже, тот же» ровно об этом. -->
+                  <span
+                    v-if="entry.sameName"
+                    class="tag"
+                    :class="{
+                      warn: entry.sameName === 'likelyDuplicate',
+                      stop: entry.sameName === 'different',
+                    }"
+                    :title="t(`migrate.verdict.why.${entry.sameName}`)"
+                  >
+                    {{ t(`migrate.verdict.${entry.sameName}`) }}
+                  </span>
+                  <!-- У чужого содержимого под тем же именем тумблера нет:
+                       его не переносят и не убирают никогда. Место под него
+                       остаётся, иначе вердикты в соседних строках разъедутся. -->
+                  <Toggle
+                    v-if="selectable(entry)"
+                    :checked="chosen.has(keyOf(category.folder, entry.name))"
+                    :touched="isTouched(keyOf(category.folder, entry.name))"
+                    :aria-label="keyOf(category.folder, entry.name)"
+                    :disabled="busy || cleaning"
+                    @click="toggle(keyOf(category.folder, entry.name))"
+                  />
+                  <span v-else class="no-toggle"></span>
+                </div>
+              </template>
             </template>
-          </template>
-        </div>
-
-        <!-- Действия к этому списку не относится: чужое содержимое
-             под тем же именем не переносят и не убирают. -->
-        <p v-if="different.length" class="hint">
-          {{ t('migrate.diff.line', { n: different.length }) }}
-        </p>
-
-        <!-- Файлы забираются из-под ComfyUI — у работающей сборки этого
-             делать нельзя, и сказать надо прямо, а не гасить кнопки молча. -->
-        <p v-if="running" class="hint bad">{{ t('migrate.mustStop') }}</p>
-        <!-- Без подключения уборка лишила бы сборку моделей вовсе. -->
-        <p v-if="duplicates.length && !instance.shared?.enabled" class="hint bad">
-          {{ t('migrate.dup.needsConnection') }}
-        </p>
-
-        <!-- Каждая кнопка стоит рядом со своим описанием: одна удаляет
-             файлы, другая переносит, и путать их нельзя. Уборка идёт
-             первой — она про то, что уже перенесено, а перенос про то,
-             что ещё нет.
-
-             Сетка одна на оба ряда, а обёрток на ряд нет намеренно:
-             от этого зависит, что кнопки одной ширины. Подробности
-             в `.acts` в `design/styles/app.css`. -->
-        <div class="act-grid">
-          <template v-if="duplicates.length">
-            <button
-              type="button"
-              class="btn danger"
-              :disabled="cleaning || running || !picked.length || !instance.shared?.enabled"
-              @click="cleanup"
-            >
-              {{ t('migrate.dup.remove') }}
-            </button>
-            <p class="hint">
-              {{ t('migrate.dup.line', { n: duplicates.length, size: bytes(freeable) }) }}
-            </p>
-          </template>
-
-          <!-- Во время переноса ряд уступает место полосе прогресса ниже. -->
-          <template v-if="!progress">
-            <button
-              type="button"
-              class="btn primary"
-              :disabled="busy || running || plan.files === 0"
-              @click="migrate"
-            >
-              {{ t('migrate.action') }}
-            </button>
-            <p class="hint">
-              {{ t('migrate.summary', { files: plan.files, size: bytes(plan.size) }) }}
-            </p>
-          </template>
-        </div>
-
-        <div v-if="progress" class="group">
-          <p class="t-sm">{{ progress.category }}/{{ progress.name }}</p>
-          <div class="bar">
-            <i :style="{ width: `${(progress.done / progress.total) * 100}%` }"></i>
           </div>
-          <button type="button" class="btn danger" @click="commands.cancelMigrate()">
-            {{ t('common.cancel') }}
-          </button>
-        </div>
-      </template>
 
-      <!-- Не пустой экран, а строка состояния внутри отдела: заголовок
-           «Модели этой сборки» с кнопкой папки остаётся на месте, и крупный
-           блок пустоты под ним выглядел бы отдельным экраном, приехавшим
-           в середину вкладки. Ровно за этим и заведён `EmptyNote`. -->
-      <EmptyNote v-else>{{ t('migrate.empty') }}</EmptyNote>
+          <!-- Действия к этому списку не относится: чужое содержимое
+               под тем же именем не переносят и не убирают. -->
+          <p v-if="different.length" class="hint">
+            {{ t('migrate.diff.line', { n: different.length }) }}
+          </p>
 
-      <!-- Отчёт о переносе. Что не поехало и почему — уже в списках выше,
-           здесь только итог и сбои. -->
-      <template v-if="outcome">
-        <p class="hint">
-          {{ t('migrate.moved', { n: outcome.moved.length, size: bytes(outcome.movedBytes) }) }}
-        </p>
-        <p v-if="outcome.failed.length" class="hint bad">
-          {{ t('migrate.failed', outcome.failed.length) }}:
-          {{ outcome.failed.map((f) => `${f.category}/${f.name}`).join(', ') }}
-        </p>
+          <!-- Файлы забираются из-под ComfyUI — у работающей сборки этого
+               делать нельзя, и сказать надо прямо, а не гасить кнопки молча. -->
+          <p v-if="running" class="hint bad">{{ t('migrate.mustStop') }}</p>
+          <!-- Без подключения уборка лишила бы сборку моделей вовсе. -->
+          <p v-if="duplicates.length && !instance.shared?.enabled" class="hint bad">
+            {{ t('migrate.dup.needsConnection') }}
+          </p>
+
+          <!-- Каждая кнопка стоит рядом со своим описанием: одна удаляет
+               файлы, другая переносит, и путать их нельзя. Уборка идёт
+               первой — она про то, что уже перенесено, а перенос про то,
+               что ещё нет.
+
+               Сетка одна на оба ряда, а обёрток на ряд нет намеренно:
+               от этого зависит, что кнопки одной ширины. Подробности
+               в `.acts` в styles/components.css. -->
+          <div class="act-grid">
+            <template v-if="duplicates.length">
+              <button
+                type="button"
+                class="btn danger"
+                :disabled="cleaning || running || !picked.length || !instance.shared?.enabled"
+                @click="cleanup"
+              >
+                {{ t('migrate.dup.remove') }}
+              </button>
+              <p class="hint">
+                {{ t('migrate.dup.line', { n: duplicates.length, size: bytes(freeable) }) }}
+              </p>
+            </template>
+
+            <!-- Во время переноса ряд уступает место полосе прогресса ниже. -->
+            <template v-if="!progress">
+              <button
+                type="button"
+                class="btn primary"
+                :disabled="busy || running || plan.files === 0"
+                @click="migrate"
+              >
+                {{ t('migrate.action') }}
+              </button>
+              <p class="hint">
+                {{ t('migrate.summary', { files: plan.files, size: bytes(plan.size) }) }}
+              </p>
+            </template>
+          </div>
+
+          <Group v-if="progress">
+            <p class="t-sm">{{ progress.category }}/{{ progress.name }}</p>
+            <div class="bar">
+              <i :style="{ width: `${(progress.done / progress.total) * 100}%` }"></i>
+            </div>
+            <button type="button" class="btn danger" @click="commands.cancelMigrate()">
+              {{ t('common.cancel') }}
+            </button>
+          </Group>
+        </template>
+
+        <!-- Не пустой экран, а строка состояния внутри отдела: заголовок
+             «Модели этой сборки» с кнопкой папки остаётся на месте, и крупный
+             блок пустоты под ним выглядел бы отдельным экраном, приехавшим
+             в середину вкладки. Ровно за этим и заведён `EmptyNote`. -->
+        <EmptyNote v-else>{{ t('migrate.empty') }}</EmptyNote>
+
+        <!-- Отчёт о переносе. Что не поехало и почему — уже в списках выше,
+             здесь только итог и сбои. -->
+        <template v-if="outcome">
+          <p class="hint">
+            {{ t('migrate.moved', { n: outcome.moved.length, size: bytes(outcome.movedBytes) }) }}
+          </p>
+          <p v-if="outcome.failed.length" class="hint bad">
+            {{ t('migrate.failed', outcome.failed.length) }}:
+            {{ outcome.failed.map((f) => `${f.category}/${f.name}`).join(', ') }}
+          </p>
+        </template>
       </template>
-    </template>
-  </div>
+    </Group>
+  </var>
 </template>

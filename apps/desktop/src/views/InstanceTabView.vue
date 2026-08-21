@@ -15,6 +15,7 @@ import { useRouter } from 'vue-router';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 
 import EmptyNote from '../components/EmptyNote.vue';
+import InstanceHeader from '../components/ui/InstanceHeader.vue';
 import LogConsole from '../components/LogConsole.vue';
 import StatusPill from '../components/StatusPill.vue';
 import { commands, type AppError } from '../bindings';
@@ -187,102 +188,104 @@ function fail(error: AppError): void {
 </script>
 
 <template>
-  <section v-if="instance" class="screen tab-screen">
-    <div class="inst-toolbar">
-      <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
-        <ArrowLeft class="ico" />
-        {{ t('common.back') }}
-      </RouterLink>
-      <span
-        class="chip"
-        :style="{ '--instance-accent': accentVar(instance.accent) }"
-      >{{ initial(instance.name) }}</span>
-      <!-- Имя инстанса и адрес не переводятся никогда. -->
-      <span class="name">{{ instance.name }}</span>
-      <span v-if="status?.port" class="port">127.0.0.1:{{ status.port }}</span>
-      <StatusPill :status="state" />
-      <span class="spacer"></span>
-      <!-- Значки, а не подписи: шесть текстовых кнопок в ряд не помещались
-           на узком окне. Словами остались только остановка и перезапуск —
-           у них цена ошибки выше, чем экономия места. -->
-      <div class="tools">
-        <button
-          type="button"
-          class="btn ghost icon"
-          :aria-pressed="showLog"
-          :title="showLog ? t('tab.canvas') : t('tab.logs')"
-          :aria-label="showLog ? t('tab.canvas') : t('tab.logs')"
-          @click="showLog = !showLog"
-        >
-          <ScrollText class="ico" />
-        </button>
-        <button
-          type="button"
-          class="btn ghost icon"
-          :disabled="!outputDir"
-          :title="outputDir ?? t('tab.outputMissing')"
-          :aria-label="t('tab.output')"
-          @click="openOutput"
-        >
-          <FolderOpen class="ico" />
-        </button>
-        <button
-          type="button"
-          class="btn ghost icon"
-          :title="t('run.openInBrowser')"
-          :aria-label="t('run.openInBrowser')"
-          @click="openInBrowser"
-        >
-          <ExternalLink class="ico" />
-        </button>
-        <button
-          type="button"
-          class="btn ghost icon"
-          :disabled="state !== 'running'"
-          :title="t('tab.reload')"
-          :aria-label="t('tab.reload')"
-          @click="reload"
-        >
+  <var class="InstanceTabView">
+    <section v-if="instance" class="screen tab-screen">
+      <InstanceHeader toolbar>
+        <RouterLink class="btn ghost" :to="`/instances/${instance.id}`">
+          <ArrowLeft class="ico" />
+          {{ t('common.back') }}
+        </RouterLink>
+        <span
+          class="chip"
+          :style="{ '--instance-accent': accentVar(instance.accent) }"
+        >{{ initial(instance.name) }}</span>
+        <!-- Имя инстанса и адрес не переводятся никогда. -->
+        <span class="name">{{ instance.name }}</span>
+        <span v-if="status?.port" class="port">127.0.0.1:{{ status.port }}</span>
+        <StatusPill :status="state" />
+        <span class="spacer"></span>
+        <!-- Значки, а не подписи: шесть текстовых кнопок в ряд не помещались
+             на узком окне. Словами остались только остановка и перезапуск —
+             у них цена ошибки выше, чем экономия места. -->
+        <div class="tools">
+          <button
+            type="button"
+            class="btn ghost icon"
+            :aria-pressed="showLog"
+            :title="showLog ? t('tab.canvas') : t('tab.logs')"
+            :aria-label="showLog ? t('tab.canvas') : t('tab.logs')"
+            @click="showLog = !showLog"
+          >
+            <ScrollText class="ico" />
+          </button>
+          <button
+            type="button"
+            class="btn ghost icon"
+            :disabled="!outputDir"
+            :title="outputDir ?? t('tab.outputMissing')"
+            :aria-label="t('tab.output')"
+            @click="openOutput"
+          >
+            <FolderOpen class="ico" />
+          </button>
+          <button
+            type="button"
+            class="btn ghost icon"
+            :title="t('run.openInBrowser')"
+            :aria-label="t('run.openInBrowser')"
+            @click="openInBrowser"
+          >
+            <ExternalLink class="ico" />
+          </button>
+          <button
+            type="button"
+            class="btn ghost icon"
+            :disabled="state !== 'running'"
+            :title="t('tab.reload')"
+            :aria-label="t('tab.reload')"
+            @click="reload"
+          >
+            <RotateCw class="ico" />
+          </button>
+          <button type="button" class="btn secondary" :disabled="busy" @click="restart">
+            {{ t('run.restart') }}
+          </button>
+          <button type="button" class="btn danger" :disabled="busy" @click="stop">
+            {{ t('run.stop') }}
+          </button>
+        </div>
+      </InstanceHeader>
+
+      <!-- Баннер стоит над областью вкладки и просто уменьшает её
+           прямоугольник: ResizeObserver пересчитает его сам. Плавающий тост
+           на этом экране оказался бы под нативным окном, то есть невидим. -->
+      <div v-if="problem" class="banner bad">
+        <b>{{ problem }}</b>
+        <span class="spacer"></span>
+        <!-- Та же надпись и та же иконка, что у кнопки обновления в панели:
+             действие пользователю одно и то же — показать вкладку заново. -->
+        <button type="button" class="btn ghost" @click="apply">
           <RotateCw class="ico" />
-        </button>
-        <button type="button" class="btn secondary" :disabled="busy" @click="restart">
-          {{ t('run.restart') }}
-        </button>
-        <button type="button" class="btn danger" :disabled="busy" @click="stop">
-          {{ t('run.stop') }}
+          {{ t('tab.reload') }}
         </button>
       </div>
-    </div>
 
-    <!-- Баннер стоит над областью вкладки и просто уменьшает её
-         прямоугольник: ResizeObserver пересчитает его сам. Плавающий тост
-         на этом экране оказался бы под нативным окном, то есть невидим. -->
-    <div v-if="problem" class="banner bad">
-      <b>{{ problem }}</b>
-      <span class="spacer"></span>
-      <!-- Та же надпись и та же иконка, что у кнопки обновления в панели:
-           действие пользователю одно и то же — показать вкладку заново. -->
-      <button type="button" class="btn ghost" @click="apply">
-        <RotateCw class="ico" />
-        {{ t('tab.reload') }}
-      </button>
-    </div>
+      <div v-if="state === 'starting' && !showLog" class="waiting">
+        <p class="t-sm">{{ t('tab.starting') }}</p>
+        <div class="bar indet"><i></i></div>
+      </div>
 
-    <div v-if="state === 'starting' && !showLog" class="waiting">
-      <p class="t-sm">{{ t('tab.starting') }}</p>
-      <div class="bar indet"><i></i></div>
-    </div>
+      <!-- Место вкладки. Пусто по построению: сюда встаёт нативное окно. -->
+      <div v-show="embedded" ref="slot" class="tab-slot"></div>
 
-    <!-- Место вкладки. Пусто по построению: сюда встаёт нативное окно. -->
-    <div v-show="embedded" ref="slot" class="tab-slot"></div>
-
-    <!-- Лог занимает место вкладки, а не ложится поверх: положить что-либо
-         поверх нативного окна невозможно. -->
-    <div v-if="showLog" class="log tab-log">
-      <LogConsole v-if="lines.length" :lines="lines" />
-      <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
-    </div>
-  </section>
+      <!-- Лог занимает место вкладки, а не ложится поверх: положить что-либо
+           поверх нативного окна невозможно. -->
+      <div v-if="showLog" class="log tab-log">
+        <LogConsole v-if="lines.length" :lines="lines" />
+        <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
+      </div>
+    </section>
+  </var>
 </template>
 
 <style scoped>

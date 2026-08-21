@@ -48,66 +48,68 @@ function openInBrowser(): void {
 </script>
 
 <template>
-  <template v-if="!active">
-    <!-- Сплит-кнопка: основное действие слева, выбор профиля справа.
-         Профилей у портабл-сборки обычно четыре, и прятать их
-         в настройки значило бы прятать выбор видеокарты. -->
-    <button
-      type="button"
-      class="btn primary lg"
-      :disabled="busy || !instance.available || profiles.length === 0"
-      @click="run.start(instance.id, chosen)"
-    >
-      {{ t('run.start') }}
-    </button>
-    <select
-      v-if="profiles.length > 1"
-      v-model="chosen"
-      class="input"
-      :aria-label="t('run.profile')"
-    >
-      <!-- Имена профилей — имена файлов, они не переводятся. -->
-      <option v-for="p in profiles" :key="p.id" :value="p.id">
-        {{ p.name }}{{ p.advanced ? ' · ' + t('instances.field.profilesAdvanced') : '' }}
-      </option>
-    </select>
-  </template>
+  <var class="LaunchControls">
+    <template v-if="!active">
+      <!-- Сплит-кнопка: основное действие слева, выбор профиля справа.
+           Профилей у портабл-сборки обычно четыре, и прятать их
+           в настройки значило бы прятать выбор видеокарты. -->
+      <button
+        type="button"
+        class="btn primary lg"
+        :disabled="busy || !instance.available || profiles.length === 0"
+        @click="run.start(instance.id, chosen)"
+      >
+        {{ t('run.start') }}
+      </button>
+      <select
+        v-if="profiles.length > 1"
+        v-model="chosen"
+        class="input"
+        :aria-label="t('run.profile')"
+      >
+        <!-- Имена профилей — имена файлов, они не переводятся. -->
+        <option v-for="p in profiles" :key="p.id" :value="p.id">
+          {{ p.name }}{{ p.advanced ? ' · ' + t('instances.field.profilesAdvanced') : '' }}
+        </option>
+      </select>
+    </template>
 
-  <template v-else>
-    <!-- Ради вкладки всё и затевалось, поэтому она — главное действие
-         работающей сборки, а не пункт где-то сбоку. -->
-    <RouterLink
-      v-if="state === 'running' || state === 'starting'"
-      class="btn primary lg"
-      :to="`/instances/${instance.id}/tab`"
-    >
-      {{ t('tab.open') }}
-    </RouterLink>
-    <button
-      v-if="state === 'running'"
-      type="button"
-      class="btn ghost icon"
-      :title="t('run.openInBrowser')"
-      :aria-label="t('run.openInBrowser')"
-      @click="openInBrowser"
-    >
-      <ExternalLink class="ico" />
-    </button>
-    <button
-      type="button"
-      class="btn secondary"
-      :disabled="busy || state !== 'running'"
-      @click="run.restart(instance.id)"
-    >
-      {{ t('run.restart') }}
-    </button>
-    <button
-      type="button"
-      class="btn danger"
-      :disabled="busy || state === 'stopping'"
-      @click="run.stop(instance.id)"
-    >
-      {{ t('run.stop') }}
-    </button>
-  </template>
+    <template v-else>
+      <!-- Ради вкладки всё и затевалось, поэтому она — главное действие
+           работающей сборки, а не пункт где-то сбоку. -->
+      <RouterLink
+        v-if="state === 'running' || state === 'starting'"
+        class="btn primary lg"
+        :to="`/instances/${instance.id}/tab`"
+      >
+        {{ t('tab.open') }}
+      </RouterLink>
+      <button
+        v-if="state === 'running'"
+        type="button"
+        class="btn ghost icon"
+        :title="t('run.openInBrowser')"
+        :aria-label="t('run.openInBrowser')"
+        @click="openInBrowser"
+      >
+        <ExternalLink class="ico" />
+      </button>
+      <button
+        type="button"
+        class="btn secondary"
+        :disabled="busy || state !== 'running'"
+        @click="run.restart(instance.id)"
+      >
+        {{ t('run.restart') }}
+      </button>
+      <button
+        type="button"
+        class="btn danger"
+        :disabled="busy || state === 'stopping'"
+        @click="run.stop(instance.id)"
+      >
+        {{ t('run.stop') }}
+      </button>
+    </template>
+  </var>
 </template>

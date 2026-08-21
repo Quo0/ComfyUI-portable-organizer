@@ -1,0 +1,2 @@
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field > label { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--ink-secondary); }

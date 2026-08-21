@@ -1,0 +1,36 @@
+.toggle {
+  flex: none; width: 32px; height: 18px; border-radius: var(--radius-pill);
+  background: var(--btn-primary-bg); position: relative; margin-top: 1px;
+  appearance: none; border: 0; padding: 0; box-sizing: border-box;
+  cursor: pointer;
+  transition: background var(--toggle-track-dur) var(--toggle-thumb-ease);
+}
+.toggle::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%; background: var(--btn-primary-ink);
+  translate: var(--toggle-travel) 0;
+  transition: translate var(--duration-fast) var(--ease-smooth-out), background var(--toggle-track-dur) var(--toggle-thumb-ease);
+}
+.toggle.off { background: var(--line-strong); }
+.toggle.off::after { translate: 0 0; background: var(--surface); }
+.toggle.mixed::after { translate: calc(var(--toggle-travel) / 2) 0; }
+.toggle.is-init:not(.mixed)::after { animation-duration: var(--toggle-thumb-dur); animation-timing-function: var(--toggle-thumb-ease); animation-fill-mode: both; }
+.toggle.is-init:not(.off):not(.mixed)::after { animation-name: toggle-on; }
+.toggle.is-init.off::after { animation-name: toggle-off; }
+@keyframes toggle-on {
+  0%   { translate: 0 0; }
+  55%  { translate: calc(var(--toggle-travel) + var(--toggle-overshoot-1)) 0; }
+  80%  { translate: calc(var(--toggle-travel) - var(--toggle-overshoot-2)) 0; }
+  100% { translate: var(--toggle-travel) 0; }
+}
+@keyframes toggle-off {
+  0%   { translate: var(--toggle-travel) 0; }
+  55%  { translate: calc(0px - var(--toggle-overshoot-1)) 0; }
+  80%  { translate: var(--toggle-overshoot-2) 0; }
+  100% { translate: 0 0; }
+}
+.toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.toggle:disabled { opacity: .5; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+.toggle, .toggle::after { transition: none !important; animation: none !important; }
+}

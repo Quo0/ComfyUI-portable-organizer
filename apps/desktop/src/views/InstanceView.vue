@@ -15,6 +15,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { openPath } from '@tauri-apps/plugin-opener';
 
 import EmptyNote from '../components/EmptyNote.vue';
+import Field from '../components/ui/Field.vue';
+import Group from '../components/ui/Group.vue';
+import InstanceHeader from '../components/ui/InstanceHeader.vue';
+import KeyValueList from '../components/ui/KeyValueList.vue';
+import KeyValueRow from '../components/ui/KeyValueRow.vue';
 import InstanceFields from '../components/InstanceFields.vue';
 import LaunchControls from '../components/LaunchControls.vue';
 import LaunchNotices from '../components/LaunchNotices.vue';
@@ -211,287 +216,289 @@ function openFolder(): void {
 </script>
 
 <template>
-  <section v-if="instance" class="screen inst-screen">
-    <header class="screen-head">
-      <RouterLink class="btn ghost" to="/instances">
-        <ArrowLeft class="ico" />
-        {{ t('common.back') }}
-      </RouterLink>
-      <span
-        class="chip"
-        :style="{ '--instance-accent': accentVar(instance.accent) }"
-      >{{ initial(instance.name) }}</span>
-      <h1 class="t-lg inst-name">{{ instance.name }}</h1>
-      <span class="spacer"></span>
-      <!-- Состояние стоит справа, вплотную к тому, что его меняет:
-           слева, сразу после имени, оно читалось как часть имени. -->
-      <StatusPill :status="state" />
-      <span v-if="status?.port" class="t-mono">:{{ status.port }}</span>
-      <LaunchControls :instance="instance" />
-    </header>
+  <var class="InstanceView">
+    <section v-if="instance" class="screen inst-screen">
+      <InstanceHeader>
+        <RouterLink class="btn ghost" to="/instances">
+          <ArrowLeft class="ico" />
+          {{ t('common.back') }}
+        </RouterLink>
+        <span
+          class="chip"
+          :style="{ '--instance-accent': accentVar(instance.accent) }"
+        >{{ initial(instance.name) }}</span>
+        <h1 class="t-lg inst-name">{{ instance.name }}</h1>
+        <span class="spacer"></span>
+        <!-- Состояние стоит справа, вплотную к тому, что его меняет:
+             слева, сразу после имени, оно читалось как часть имени. -->
+        <StatusPill :status="state" />
+        <span v-if="status?.port" class="t-mono">:{{ status.port }}</span>
+        <LaunchControls :instance="instance" />
+      </InstanceHeader>
 
-    <div v-if="state === 'starting'" class="track indet starting-track"><i></i></div>
+      <div v-if="state === 'starting'" class="track indet starting-track"><i></i></div>
 
-    <LaunchNotices :instance="instance" />
+      <LaunchNotices :instance="instance" />
 
-    <!-- Инстанс с исчезнувшей папкой не пропадает из списка: иначе
-         выглядит так, будто приложение потеряло чужую сборку. -->
-    <div v-if="!instance.available" class="notices">
-      <div class="banner bad">
-        <div>
-          <b>{{ t('instances.unavailable.title') }}</b>
-          <p class="t-sm">{{ t('instances.unavailable.body', { path: instance.path }) }}</p>
+      <!-- Инстанс с исчезнувшей папкой не пропадает из списка: иначе
+           выглядит так, будто приложение потеряло чужую сборку. -->
+      <div v-if="!instance.available" class="notices">
+        <div class="banner bad">
+          <div>
+            <b>{{ t('instances.unavailable.title') }}</b>
+            <p class="t-sm">{{ t('instances.unavailable.body', { path: instance.path }) }}</p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <nav ref="tabsBar" class="tabs" role="tablist">
-      <span class="tabs-pill" aria-hidden="true"></span>
-      <button
-        v-for="item in TABS"
-        :key="item"
-        type="button"
-        role="tab"
-        :aria-selected="tab === item"
-        @click="selectTab(item)"
-      >
-        {{ t(`instances.tab.${item}`) }}
-      </button>
-    </nav>
-
-    <!-- Лог занимает область данных целиком и сворачивается кнопкой.
-         Поверх лечь он не может: у работающей сборки поверх нашего HTML
-         лежит нативное окно вкладки. -->
-    <div v-if="logShown" class="log-area">
-      <div class="log-head">
-        <span class="t-label">{{ t('run.console') }}</span>
-        <span class="hint">{{ t('run.lines', lines.length) }}</span>
-        <span class="spacer"></span>
-        <button type="button" class="btn secondary" @click="toggleLog(false)">
-          {{ t('run.hideLog') }}
+      <nav ref="tabsBar" class="tabs" role="tablist">
+        <span class="tabs-pill" aria-hidden="true"></span>
+        <button
+          v-for="item in TABS"
+          :key="item"
+          type="button"
+          role="tab"
+          :aria-selected="tab === item"
+          @click="selectTab(item)"
+        >
+          {{ t(`instances.tab.${item}`) }}
         </button>
-      </div>
-      <div class="log">
-        <LogConsole v-if="lines.length" :lines="lines" />
-        <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
-      </div>
-    </div>
+      </nav>
 
-    <div v-else class="screen-body">
-      <div class="screen-pad wide">
-        <!-- ------------------------------------------------------- обзор -->
-        <div v-if="tab === 'overview'" class="cols">
-          <!-- Подписи здесь те же `.field > label`, что и в правой колонке:
-               две разные подписи в одной форме читаются как два разных
-               уровня вложенности, которых нет. -->
-          <div>
-            <div class="field">
-              <label>{{ t('instances.field.lastRunTitle') }}</label>
-              <div class="paths">
-                <div class="path-item">
-                  <span class="lbl">{{ lastRunText }}</span>
-                  <span class="val">
-                    {{ status?.readySecs ? t('run.readyIn', { secs: status.readySecs }) : '' }}
+      <!-- Лог занимает область данных целиком и сворачивается кнопкой.
+           Поверх лечь он не может: у работающей сборки поверх нашего HTML
+           лежит нативное окно вкладки. -->
+      <div v-if="logShown" class="log-area">
+        <div class="log-head">
+          <span class="t-label">{{ t('run.console') }}</span>
+          <span class="hint">{{ t('run.lines', lines.length) }}</span>
+          <span class="spacer"></span>
+          <button type="button" class="btn secondary" @click="toggleLog(false)">
+            {{ t('run.hideLog') }}
+          </button>
+        </div>
+        <div class="log">
+          <LogConsole v-if="lines.length" :lines="lines" />
+          <EmptyNote v-else>{{ t('run.empty') }}</EmptyNote>
+        </div>
+      </div>
+
+      <div v-else class="screen-body">
+        <div class="screen-pad wide">
+          <!-- ------------------------------------------------------- обзор -->
+          <div v-if="tab === 'overview'" class="cols">
+            <!-- Подписи здесь те же `.field > label`, что и в правой колонке:
+                 две разные подписи в одной форме читаются как два разных
+                 уровня вложенности, которых нет. -->
+            <div>
+              <Field>
+                <label>{{ t('instances.field.lastRunTitle') }}</label>
+                <KeyValueList>
+                  <KeyValueRow>
+                    <span class="lbl">{{ lastRunText }}</span>
+                    <span class="val">
+                      {{ status?.readySecs ? t('run.readyIn', { secs: status.readySecs }) : '' }}
+                    </span>
+                  </KeyValueRow>
+                  <!-- Именно предпочитаемый: настоящий порт выдаётся при
+                       старте и стоит в шапке рядом с состоянием. Показывать
+                       под этой подписью выданный значило бы врать в тот
+                       единственный момент, когда они разошлись. -->
+                  <KeyValueRow>
+                    <span class="lbl">{{ t('instances.field.port') }}</span>
+                    <span class="val">{{ instance.preferredPort }}</span>
+                  </KeyValueRow>
+                  <KeyValueRow>
+                    <span class="lbl">{{ t('instances.field.profiles') }}</span>
+                    <span class="val">{{ status?.profileId ?? profiles[0]?.id ?? '—' }}</span>
+                  </KeyValueRow>
+                </KeyValueList>
+              </Field>
+
+              <Field>
+                <label>{{ t('run.console') }}</label>
+                <div class="row">
+                  <button type="button" class="btn secondary" @click="toggleLog(true)">
+                    {{ t('run.showLog') }}
+                  </button>
+                  <!-- Про всю область сказано заранее: кнопка не открывает
+                       панельку сбоку, а забирает экран целиком. -->
+                  <span class="hint">
+                    {{ t('run.lines', lines.length) }} · {{ t('run.logExpands') }}
                   </span>
                 </div>
-                <!-- Именно предпочитаемый: настоящий порт выдаётся при
-                     старте и стоит в шапке рядом с состоянием. Показывать
-                     под этой подписью выданный значило бы врать в тот
-                     единственный момент, когда они разошлись. -->
-                <div class="path-item">
-                  <span class="lbl">{{ t('instances.field.port') }}</span>
-                  <span class="val">{{ instance.preferredPort }}</span>
+              </Field>
+
+              <Field v-if="instance.description">
+                <label>{{ t('instances.field.description') }}</label>
+                <p class="t-sm">{{ instance.description }}</p>
+              </Field>
+            </div>
+
+            <div>
+              <Field>
+                <label>{{ t('instances.field.folder') }}</label>
+                <div class="path-row">
+                  <div class="input mono"><span>{{ instance.path }}</span></div>
+                  <button
+                    type="button"
+                    class="btn secondary"
+                    :disabled="!instance.available"
+                    @click="openFolder"
+                  >
+                    {{ t('common.openFolder') }}
+                  </button>
                 </div>
-                <div class="path-item">
+              </Field>
+
+              <KeyValueList>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
+                  <span class="val">{{ instance.comfyVersion ?? t('common.unknown') }}</span>
+                </KeyValueRow>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
+                  <span class="val">{{ instance.pythonVersion ?? t('common.unknown') }}</span>
+                </KeyValueRow>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.sizeOnDisk') }}</span>
+                  <span class="val">
+                    {{ sizeText || (measuring ? t('instances.field.sizeMeasuring') : '—') }}
+                  </span>
+                </KeyValueRow>
+                <KeyValueRow>
                   <span class="lbl">{{ t('instances.field.profiles') }}</span>
-                  <span class="val">{{ status?.profileId ?? profiles[0]?.id ?? '—' }}</span>
-                </div>
-              </div>
-            </div>
+                  <!-- «4 + 1» не говорит, что за плюс один: свои профили
+                       заводит пользователь, и найденные в папке .bat с ними
+                       не смешиваются. -->
+                  <span class="val">
+                    {{ profiles.length
+                    }}{{
+                      custom.length
+                        ? ` + ${t('instances.field.profilesCustom', custom.length)}`
+                        : ''
+                    }}
+                  </span>
+                </KeyValueRow>
+                <!-- Подключение к общим моделям — факт про сборку, а не только
+                     про вкладку «Модели»: почему у двух сборок разный набор
+                     чекпоинтов, спрашивают на обзоре. Здесь он только
+                     показан — тумблер живёт в одном месте, на своей вкладке. -->
+                <KeyValueRow>
+                  <span class="lbl">{{ t('shared.instance.label') }}</span>
+                  <span class="val">
+                    <template v-if="sharedText">
+                      <PathText :path="sharedText" />
+                    </template>
+                    <template v-else>—</template>
+                  </span>
+                </KeyValueRow>
+              </KeyValueList>
 
-            <div class="field">
-              <label>{{ t('run.console') }}</label>
               <div class="row">
-                <button type="button" class="btn secondary" @click="toggleLog(true)">
-                  {{ t('run.showLog') }}
-                </button>
-                <!-- Про всю область сказано заранее: кнопка не открывает
-                     панельку сбоку, а забирает экран целиком. -->
-                <span class="hint">
-                  {{ t('run.lines', lines.length) }} · {{ t('run.logExpands') }}
-                </span>
-              </div>
-            </div>
-
-            <div v-if="instance.description" class="field">
-              <label>{{ t('instances.field.description') }}</label>
-              <p class="t-sm">{{ instance.description }}</p>
-            </div>
-          </div>
-
-          <div>
-            <div class="field">
-              <label>{{ t('instances.field.folder') }}</label>
-              <div class="path-row">
-                <div class="input mono"><span>{{ instance.path }}</span></div>
+                <span v-if="sizeMeasuredText" class="hint">{{ sizeMeasuredText }}</span>
                 <button
                   type="button"
-                  class="btn secondary"
-                  :disabled="!instance.available"
-                  @click="openFolder"
+                  class="btn ghost"
+                  :disabled="measuring || !instance.available"
+                  @click="measure"
                 >
-                  {{ t('common.openFolder') }}
+                  {{ t('instances.field.recalculate') }}
                 </button>
+                <RouterLink class="btn ghost" :to="`/instances/${instance.id}/args`">
+                  {{ t('args.edit') }}
+                </RouterLink>
               </div>
-            </div>
 
-            <div class="paths">
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
-                <span class="val">{{ instance.comfyVersion ?? t('common.unknown') }}</span>
+              <div v-if="instance.source" class="src">
+                {{
+                  t('instances.field.source', {
+                    archive: instance.source.archiveLabel,
+                    when: moment(instance.source.installedAt),
+                  })
+                }}
               </div>
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
-                <span class="val">{{ instance.pythonVersion ?? t('common.unknown') }}</span>
-              </div>
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.sizeOnDisk') }}</span>
-                <span class="val">
-                  {{ sizeText || (measuring ? t('instances.field.sizeMeasuring') : '—') }}
-                </span>
-              </div>
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.profiles') }}</span>
-                <!-- «4 + 1» не говорит, что за плюс один: свои профили
-                     заводит пользователь, и найденные в папке .bat с ними
-                     не смешиваются. -->
-                <span class="val">
-                  {{ profiles.length
-                  }}{{
-                    custom.length
-                      ? ` + ${t('instances.field.profilesCustom', custom.length)}`
-                      : ''
-                  }}
-                </span>
-              </div>
-              <!-- Подключение к общим моделям — факт про сборку, а не только
-                   про вкладку «Модели»: почему у двух сборок разный набор
-                   чекпоинтов, спрашивают на обзоре. Здесь он только
-                   показан — тумблер живёт в одном месте, на своей вкладке. -->
-              <div class="path-item">
-                <span class="lbl">{{ t('shared.instance.label') }}</span>
-                <span class="val">
-                  <template v-if="sharedText">
-                    <PathText :path="sharedText" />
-                  </template>
-                  <template v-else>—</template>
-                </span>
-              </div>
-            </div>
-
-            <div class="row">
-              <span v-if="sizeMeasuredText" class="hint">{{ sizeMeasuredText }}</span>
-              <button
-                type="button"
-                class="btn ghost"
-                :disabled="measuring || !instance.available"
-                @click="measure"
-              >
-                {{ t('instances.field.recalculate') }}
-              </button>
-              <RouterLink class="btn ghost" :to="`/instances/${instance.id}/args`">
-                {{ t('args.edit') }}
-              </RouterLink>
-            </div>
-
-            <div v-if="instance.source" class="src">
-              {{
-                t('instances.field.source', {
-                  archive: instance.source.archiveLabel,
-                  when: moment(instance.source.installedAt),
-                })
-              }}
             </div>
           </div>
-        </div>
 
-        <!-- ------------------------------------------------------ модели -->
-        <template v-else-if="tab === 'models'">
-          <SharedPanel :instance="instance" />
-          <ModelsPanel :instance="instance" />
-        </template>
-
-        <!-- ---------------------------------------------------- воркфлоу -->
-        <WorkflowPanel v-else-if="tab === 'workflows'" :instance="instance" />
-
-        <!-- --------------------------------------------------- параметры -->
-        <template v-else>
-          <template v-if="editing">
-            <InstanceFields v-model="draft" />
-            <div class="row">
-              <button
-                type="button"
-                class="btn primary"
-                :disabled="draft.name.trim() === ''"
-                @click="save"
-              >
-                {{ t('common.save') }}
-              </button>
-              <button type="button" class="btn ghost" @click="editing = false">
-                {{ t('common.cancel') }}
-              </button>
-            </div>
+          <!-- ------------------------------------------------------ модели -->
+          <template v-else-if="tab === 'models'">
+            <SharedPanel :instance="instance" />
+            <ModelsPanel :instance="instance" />
           </template>
-          <div v-else class="group">
-            <div class="paths">
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.name') }}</span>
-                <span class="val">{{ instance.name }}</span>
-              </div>
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.description') }}</span>
-                <span class="val">{{ instance.description || '—' }}</span>
-              </div>
-              <div class="path-item">
-                <span class="lbl">{{ t('instances.field.port') }}</span>
-                <span class="val">{{ instance.preferredPort }}</span>
-              </div>
-            </div>
-            <div class="row">
-              <button type="button" class="btn secondary" @click="startEdit">
-                {{ t('common.edit') }}
-              </button>
-            </div>
-          </div>
 
-          <!-- Подтверждение раскрывается на месте, а не всплывает диалогом:
-               модалок в приложении нет, и объяснение важнее, чем вопрос. -->
-          <div class="group danger-zone">
-            <button
-              v-if="!confirming"
-              type="button"
-              class="btn danger"
-              @click="confirming = true"
-            >
-              {{ t('instances.remove.action') }}
-            </button>
-            <template v-else>
-              <p class="t-md">{{ t('instances.remove.title', { name: instance.name }) }}</p>
-              <p class="t-sm">{{ t('instances.remove.body') }}</p>
+          <!-- ---------------------------------------------------- воркфлоу -->
+          <WorkflowPanel v-else-if="tab === 'workflows'" :instance="instance" />
+
+          <!-- --------------------------------------------------- параметры -->
+          <template v-else>
+            <template v-if="editing">
+              <InstanceFields v-model="draft" />
               <div class="row">
-                <button type="button" class="btn danger" @click="remove">
-                  {{ t('instances.remove.confirm') }}
+                <button
+                  type="button"
+                  class="btn primary"
+                  :disabled="draft.name.trim() === ''"
+                  @click="save"
+                >
+                  {{ t('common.save') }}
                 </button>
-                <button type="button" class="btn ghost" @click="confirming = false">
+                <button type="button" class="btn ghost" @click="editing = false">
                   {{ t('common.cancel') }}
                 </button>
               </div>
             </template>
-          </div>
-        </template>
+            <Group v-else>
+              <KeyValueList>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.name') }}</span>
+                  <span class="val">{{ instance.name }}</span>
+                </KeyValueRow>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.description') }}</span>
+                  <span class="val">{{ instance.description || '—' }}</span>
+                </KeyValueRow>
+                <KeyValueRow>
+                  <span class="lbl">{{ t('instances.field.port') }}</span>
+                  <span class="val">{{ instance.preferredPort }}</span>
+                </KeyValueRow>
+              </KeyValueList>
+              <div class="row">
+                <button type="button" class="btn secondary" @click="startEdit">
+                  {{ t('common.edit') }}
+                </button>
+              </div>
+            </Group>
+
+            <!-- Подтверждение раскрывается на месте, а не всплывает диалогом:
+                 модалок в приложении нет, и объяснение важнее, чем вопрос. -->
+            <Group danger>
+              <button
+                v-if="!confirming"
+                type="button"
+                class="btn danger"
+                @click="confirming = true"
+              >
+                {{ t('instances.remove.action') }}
+              </button>
+              <template v-else>
+                <p class="t-md">{{ t('instances.remove.title', { name: instance.name }) }}</p>
+                <p class="t-sm">{{ t('instances.remove.body') }}</p>
+                <div class="row">
+                  <button type="button" class="btn danger" @click="remove">
+                    {{ t('instances.remove.confirm') }}
+                  </button>
+                  <button type="button" class="btn ghost" @click="confirming = false">
+                    {{ t('common.cancel') }}
+                  </button>
+                </div>
+              </template>
+            </Group>
+          </template>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>
 
 <style scoped>

@@ -9,6 +9,8 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import StatusPill from '../components/StatusPill.vue';
+import Card from '../components/ui/Card.vue';
+import ScreenHeader from '../components/ui/ScreenHeader.vue';
 import { commands } from '../bindings';
 import { accentVar } from '../lib/format';
 import { displayStatus } from '../lib/status';
@@ -65,22 +67,22 @@ async function toTray(): Promise<void> {
 </script>
 
 <template>
-  <section class="screen">
-    <header class="screen-head">
-      <h1 class="t-lg">{{ t('quit.title') }}</h1>
-    </header>
+  <var class="QuitView">
+    <section class="screen">
+      <ScreenHeader>
+        <h1 class="t-lg">{{ t('quit.title') }}</h1>
+      </ScreenHeader>
 
-    <div class="screen-body">
-      <div class="screen-pad">
-        <p class="t-sm">{{ t('quit.body') }}</p>
+      <div class="screen-body">
+        <div class="screen-pad">
+          <p class="t-sm">{{ t('quit.body') }}</p>
 
-        <div class="cards">
-          <div v-for="row in running" :key="row.status.instanceId" class="card">
-            <div
-              class="card-accent"
-              :style="{ '--instance-accent': accentVar(row.instance!.accent) }"
-            ></div>
-            <div class="card-in">
+          <div class="cards">
+            <Card
+              v-for="row in running"
+              :key="row.status.instanceId"
+              :accent="accentVar(row.instance!.accent)"
+            >
               <div class="card-top">
                 <span class="card-name">{{ row.instance!.name }}</span>
                 <StatusPill
@@ -90,20 +92,20 @@ async function toTray(): Promise<void> {
                   :{{ row.status.port }}
                 </span>
               </div>
-            </div>
+            </Card>
           </div>
-        </div>
 
-        <div class="row">
-          <button type="button" class="btn danger lg" :disabled="busy" @click="stopAndExit">
-            {{ t('quit.stopAndExit') }}
-          </button>
-          <button type="button" class="btn secondary lg" :disabled="busy" @click="toTray">
-            {{ t('quit.toTray') }}
-          </button>
+          <div class="row">
+            <button type="button" class="btn danger lg" :disabled="busy" @click="stopAndExit">
+              {{ t('quit.stopAndExit') }}
+            </button>
+            <button type="button" class="btn secondary lg" :disabled="busy" @click="toTray">
+              {{ t('quit.toTray') }}
+            </button>
+          </div>
+          <p class="hint">{{ t('quit.trayHint') }}</p>
         </div>
-        <p class="hint">{{ t('quit.trayHint') }}</p>
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>

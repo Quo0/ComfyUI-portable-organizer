@@ -10,6 +10,11 @@ import { useRouter } from 'vue-router';
 import { open } from '@tauri-apps/plugin-dialog';
 
 import InstanceFields from '../components/InstanceFields.vue';
+import Field from '../components/ui/Field.vue';
+import Group from '../components/ui/Group.vue';
+import KeyValueList from '../components/ui/KeyValueList.vue';
+import KeyValueRow from '../components/ui/KeyValueRow.vue';
+import StepBar from '../components/ui/StepBar.vue';
 import type { AppError, InstanceEdit, ProbeResult } from '../bindings';
 import { commands } from '../bindings';
 import { errorText } from '../lib/errors';
@@ -75,126 +80,134 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <section class="screen">
-    <!-- Ряд шага, как в мастере: обе дорожки «Добавления» начинаются
-         одинаково. «Назад» ведёт в «Добавление», а не в список сборок:
-         сюда приходят только оттуда, и «Назад» всегда левее действия. -->
-    <div class="step-bar">
-      <h2 class="title">{{ t('instances.add.title') }}</h2>
-      <span class="spacer"></span>
-      <span class="acts">
-        <RouterLink class="btn ghost" to="/install">
-          <ArrowLeft class="ico" />
-          {{ t('common.back') }}
-        </RouterLink>
-        <!-- Главное действие экрана стоит там же, где во всём разделе, —
-             в ряду шага. Внизу, под формой, оно уезжало из виду вместе
-             с прочитанным о папке.
+  <var class="AddInstanceView">
+    <section class="screen">
+      <!-- Ряд шага, как в мастере: обе дорожки «Добавления» начинаются
+           одинаково. «Назад» ведёт в «Добавление», а не в список сборок:
+           сюда приходят только оттуда, и «Назад» всегда левее действия. -->
+      <StepBar>
+        <h2 class="title">{{ t('instances.add.title') }}</h2>
+        <span class="spacer"></span>
+        <span class="acts">
+          <RouterLink class="btn ghost" to="/install">
+            <ArrowLeft class="ico" />
+            {{ t('common.back') }}
+          </RouterLink>
+          <!-- Главное действие экрана стоит там же, где во всём разделе, —
+               в ряду шага. Внизу, под формой, оно уезжало из виду вместе
+               с прочитанным о папке.
 
-             Пока папку не выбрали, добавлять нечего, и кнопка выключена,
-             а не спрятана: пропадающая кнопка не говорит, чем экран
-             закончится. Исчезает она только там, где действие другое, —
-             когда папка уже в списке. -->
-        <button
-          v-if="!probe?.existingId"
-          type="button"
-          class="btn primary lg"
-          :disabled="!probe || saving || edit.name.trim() === ''"
-          @click="submit"
-        >
-          {{ t('instances.add.submit') }}
-        </button>
-      </span>
-    </div>
+               Пока папку не выбрали, добавлять нечего, и кнопка выключена,
+               а не спрятана: пропадающая кнопка не говорит, чем экран
+               закончится. Исчезает она только там, где действие другое, —
+               когда папка уже в списке. -->
+          <button
+            v-if="!probe?.existingId"
+            type="button"
+            class="btn primary lg"
+            :disabled="!probe || saving || edit.name.trim() === ''"
+            @click="submit"
+          >
+            {{ t('instances.add.submit') }}
+          </button>
+        </span>
+      </StepBar>
 
-    <div class="screen-body">
-      <div class="screen-pad wide">
-        <p class="t-sm">{{ t('instances.add.lead') }}</p>
+      <div class="screen-body">
+        <div class="screen-pad wide">
+          <p class="t-sm">{{ t('instances.add.lead') }}</p>
 
-        <div class="field">
-          <span class="t-label">{{ t('instances.field.folder') }}</span>
-          <div class="path-row">
-            <div class="input mono">
-              <!-- Путь не переводится и не сокращается: по нему пользователь
-                   идёт разбираться руками. -->
-              <span>{{ probe?.probe.path ?? '' }}</span>
+          <Field>
+            <span class="t-label">{{ t('instances.field.folder') }}</span>
+            <div class="path-row">
+              <div class="input mono">
+                <!-- Путь не переводится и не сокращается: по нему пользователь
+                     идёт разбираться руками. -->
+                <span>{{ probe?.probe.path ?? '' }}</span>
+              </div>
+              <button type="button" class="btn secondary" @click="chooseFolder">
+                {{ t('instances.add.chooseFolder') }}
+              </button>
             </div>
-            <button type="button" class="btn secondary" @click="chooseFolder">
-              {{ t('instances.add.chooseFolder') }}
-            </button>
-          </div>
-          <p v-if="probing" class="hint">{{ t('instances.add.checking') }}</p>
-          <p v-if="problem" class="hint bad">{{ errorText(problem) }}</p>
+            <p v-if="probing" class="hint">{{ t('instances.add.checking') }}</p>
+            <p v-if="problem" class="hint bad">{{ errorText(problem) }}</p>
+          </Field>
+
+          <template v-if="probe">
+            <!-- Повторная регистрация той же папки не создаёт второй инстанс:
+                 ведём к уже существующему. -->
+            <Group v-if="probe.existingId">
+              <RouterLink class="btn primary" :to="`/instances/${probe.existingId}`">
+                {{ t('instances.add.openExisting') }}
+              </RouterLink>
+            </Group>
+
+            <!-- Две колонки: слева то, что прочитали в папке, справа то,
+                 что заполняет пользователь. Одним свитком прочитанное
+                 оттесняло форму вниз, за край экрана. -->
+            <div v-else class="cols">
+              <div>
+                <KeyValueList>
+                  <KeyValueRow>
+                    <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
+                    <span class="val">
+                      {{ probe.probe.comfyVersion ?? t('common.unknown') }}
+                    </span>
+                  </KeyValueRow>
+                  <KeyValueRow>
+                    <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
+                    <span class="val">
+                      {{ probe.probe.pythonVersion ?? t('common.unknown') }}
+                    </span>
+                  </KeyValueRow>
+                  <KeyValueRow>
+                    <span class="lbl">{{ t('instances.field.profiles') }}</span>
+                    <span class="val">{{ probe.probe.profiles.length }}</span>
+                  </KeyValueRow>
+                </KeyValueList>
+
+                <Group>
+                  <div v-if="probe.probe.profiles.length" class="row">
+                    <span
+                      v-for="profile in probe.probe.profiles"
+                      :key="profile.id"
+                      class="pill stopped"
+                      :title="profile.id"
+                    >
+                      {{ profile.name }}
+                      <em v-if="profile.advanced" class="advanced">
+                        {{ t('instances.field.profilesAdvanced') }}
+                      </em>
+                    </span>
+                  </div>
+                  <p v-else class="hint">{{ t('instances.field.profilesNone') }}</p>
+                </Group>
+              </div>
+
+              <div>
+                <InstanceFields v-model="edit" />
+
+                <!-- Кнопок под формой нет: действие уехало в ряд шага,
+                     «Отмена» ушла как второй выход. -->
+              </div>
+            </div>
+          </template>
         </div>
-
-        <template v-if="probe">
-          <!-- Повторная регистрация той же папки не создаёт второй инстанс:
-               ведём к уже существующему. -->
-          <div v-if="probe.existingId" class="group">
-            <RouterLink class="btn primary" :to="`/instances/${probe.existingId}`">
-              {{ t('instances.add.openExisting') }}
-            </RouterLink>
-          </div>
-
-          <!-- Две колонки: слева то, что прочитали в папке, справа то,
-               что заполняет пользователь. Одним свитком прочитанное
-               оттесняло форму вниз, за край экрана. -->
-          <div v-else class="cols">
-            <div>
-              <div class="paths">
-                <div class="path-item">
-                  <span class="lbl">{{ t('instances.field.comfyVersion') }}</span>
-                  <span class="val">
-                    {{ probe.probe.comfyVersion ?? t('common.unknown') }}
-                  </span>
-                </div>
-                <div class="path-item">
-                  <span class="lbl">{{ t('instances.field.pythonVersion') }}</span>
-                  <span class="val">
-                    {{ probe.probe.pythonVersion ?? t('common.unknown') }}
-                  </span>
-                </div>
-                <div class="path-item">
-                  <span class="lbl">{{ t('instances.field.profiles') }}</span>
-                  <span class="val">{{ probe.probe.profiles.length }}</span>
-                </div>
-              </div>
-
-              <div class="group">
-                <div v-if="probe.probe.profiles.length" class="row">
-                  <span
-                    v-for="profile in probe.probe.profiles"
-                    :key="profile.id"
-                    class="pill stopped"
-                    :title="profile.id"
-                  >
-                    {{ profile.name }}
-                    <em v-if="profile.advanced" class="advanced">
-                      {{ t('instances.field.profilesAdvanced') }}
-                    </em>
-                  </span>
-                </div>
-                <p v-else class="hint">{{ t('instances.field.profilesNone') }}</p>
-              </div>
-            </div>
-
-            <div>
-              <InstanceFields v-model="edit" />
-
-              <!-- Кнопок под формой нет: действие уехало в ряд шага,
-                   «Отмена» ушла как второй выход. -->
-            </div>
-          </div>
-        </template>
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>
 
 <style scoped>
 /* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
-   без него заголовок прилипает к заголовку окна. */
-.step-bar {
+   без него заголовок прилипает к заголовку окна. `:deep()` обязателен:
+   корень `StepBar` — обёртка `<var>`, а не сам `.step-bar`, и обычный
+   скоуп-атрибут родителя до вложенного div не достаёт.
+
+   Якорь `.AddInstanceView` перед `:deep()` обязателен тоже: голый
+   `:deep(.step-bar)` компилируется без scope-атрибута вовсе и утекает
+   на все `StepBar` в приложении, а не только на этот экран. */
+.AddInstanceView :deep(.step-bar) {
   padding-top: var(--space-4);
 }
 </style>

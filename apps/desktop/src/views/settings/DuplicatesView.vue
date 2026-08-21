@@ -9,6 +9,8 @@ import { useI18n } from 'vue-i18n';
 import type { UnlistenFn } from '@tauri-apps/api/event';
 
 import EmptyNote from '../../components/EmptyNote.vue';
+import Group from '../../components/ui/Group.vue';
+import ScreenHeader from '../../components/ui/ScreenHeader.vue';
 import { commands, events, type DuplicatesReport } from '../../bindings';
 import { useFormat } from '../../lib/format';
 import { withViewTransition } from '../../lib/motion';
@@ -74,86 +76,88 @@ async function cancel(): Promise<void> {
 </script>
 
 <template>
-  <div class="screen">
-    <!-- Экран называется отчётом, а не «дубликатами»: дубликаты — это
-         то, что он нашёл, а не то, чем он является. -->
-    <header class="screen-head">
-      <h1 class="t-lg">{{ t('settings.section.report') }}</h1>
-    </header>
+  <var class="DuplicatesView">
+    <div class="screen">
+      <!-- Экран называется отчётом, а не «дубликатами»: дубликаты — это
+           то, что он нашёл, а не то, чем он является. -->
+      <ScreenHeader>
+        <h1 class="t-lg">{{ t('settings.section.report') }}</h1>
+      </ScreenHeader>
 
-    <div class="screen-body">
-      <div class="screen-pad wide">
-        <p class="t-sm">{{ t('dups.lead') }}</p>
+      <div class="screen-body">
+        <div class="screen-pad wide">
+          <p class="t-sm">{{ t('dups.lead') }}</p>
 
-        <div class="row">
-          <button type="button" class="btn primary" :disabled="scanning" @click="scan">
-            {{ t('dups.scan') }}
-          </button>
-          <button v-if="scanning" type="button" class="btn ghost" @click="cancel">
-            {{ t('common.cancel') }}
-          </button>
-        </div>
-
-        <!-- Пауза без подписи читается как зависание, поэтому здесь и полоса,
-             и название места, которое обходим прямо сейчас. -->
-        <div v-if="scanning" class="group">
-          <div class="bar"><i :style="{ width: `${percent}%` }"></i></div>
-          <span class="hint">{{ t('dups.scanning', { place: progress.place }) }}</span>
-        </div>
-
-        <template v-if="report">
-          <p v-if="report.cancelled" class="hint bad">{{ t('dups.cancelled') }}</p>
-
-          <div v-if="report.duplicates.length" class="group">
-            <span class="t-label">
-              {{ t('dups.wasted', { size: bytes(report.wastedBytes) }) }}
-            </span>
-            <!-- Строка отчёта: имя, категория, где лежит, сколько впустую.
-                 Список «подпись — значение» здесь не годится — колонок
-                 четыре, и места, где лежат копии, важнее размера. -->
-            <div class="dup-list">
-              <div
-                v-for="group in report.duplicates"
-                :key="group.category + group.name"
-                class="dup-row"
-              >
-                <!-- Имена файлов и категорий не переводятся. -->
-                <span class="nm">{{ group.name }}</span>
-                <span class="tag">{{ group.category }}</span>
-                <span class="t-mono">{{ bytes(group.wastedBytes) }}</span>
-                <span class="where hint">
-                  {{ group.copies.map((c) => c.source).join(' · ') }}
-                </span>
-              </div>
-            </div>
-            <p class="hint">{{ t('dups.noAction') }}</p>
-          </div>
-          <EmptyNote v-else-if="!scanning">{{ t('dups.empty') }}</EmptyNote>
-
-          <div v-if="report.nameClashes.length" class="group">
-            <span class="t-label">{{ t('dups.clashes') }}</span>
-            <p class="hint">{{ t('dups.clashesHint') }}</p>
-            <div class="dup-list">
-              <div
-                v-for="group in report.nameClashes"
-                :key="group.category + group.name"
-                class="dup-row"
-              >
-                <span class="nm">{{ group.name }}</span>
-                <span class="tag">{{ group.category }}</span>
-                <span class="t-mono"></span>
-                <span class="where hint">
-                  {{ group.copies.map((c) => `${c.source} · ${bytes(c.sizeBytes)}`).join(' · ') }}
-                </span>
-              </div>
-            </div>
+          <div class="row">
+            <button type="button" class="btn primary" :disabled="scanning" @click="scan">
+              {{ t('dups.scan') }}
+            </button>
+            <button v-if="scanning" type="button" class="btn ghost" @click="cancel">
+              {{ t('common.cancel') }}
+            </button>
           </div>
 
-          <p v-if="report.skipped.length" class="hint bad">
-            {{ t('dups.skipped', { list: report.skipped.join(', ') }) }}
-          </p>
-        </template>
+          <!-- Пауза без подписи читается как зависание, поэтому здесь и полоса,
+               и название места, которое обходим прямо сейчас. -->
+          <Group v-if="scanning">
+            <div class="bar"><i :style="{ width: `${percent}%` }"></i></div>
+            <span class="hint">{{ t('dups.scanning', { place: progress.place }) }}</span>
+          </Group>
+
+          <template v-if="report">
+            <p v-if="report.cancelled" class="hint bad">{{ t('dups.cancelled') }}</p>
+
+            <Group v-if="report.duplicates.length">
+              <span class="t-label">
+                {{ t('dups.wasted', { size: bytes(report.wastedBytes) }) }}
+              </span>
+              <!-- Строка отчёта: имя, категория, где лежит, сколько впустую.
+                   Список «подпись — значение» здесь не годится — колонок
+                   четыре, и места, где лежат копии, важнее размера. -->
+              <div class="dup-list">
+                <div
+                  v-for="group in report.duplicates"
+                  :key="group.category + group.name"
+                  class="dup-row"
+                >
+                  <!-- Имена файлов и категорий не переводятся. -->
+                  <span class="nm">{{ group.name }}</span>
+                  <span class="tag">{{ group.category }}</span>
+                  <span class="t-mono">{{ bytes(group.wastedBytes) }}</span>
+                  <span class="where hint">
+                    {{ group.copies.map((c) => c.source).join(' · ') }}
+                  </span>
+                </div>
+              </div>
+              <p class="hint">{{ t('dups.noAction') }}</p>
+            </Group>
+            <EmptyNote v-else-if="!scanning">{{ t('dups.empty') }}</EmptyNote>
+
+            <Group v-if="report.nameClashes.length">
+              <span class="t-label">{{ t('dups.clashes') }}</span>
+              <p class="hint">{{ t('dups.clashesHint') }}</p>
+              <div class="dup-list">
+                <div
+                  v-for="group in report.nameClashes"
+                  :key="group.category + group.name"
+                  class="dup-row"
+                >
+                  <span class="nm">{{ group.name }}</span>
+                  <span class="tag">{{ group.category }}</span>
+                  <span class="t-mono"></span>
+                  <span class="where hint">
+                    {{ group.copies.map((c) => `${c.source} · ${bytes(c.sizeBytes)}`).join(' · ') }}
+                  </span>
+                </div>
+              </div>
+            </Group>
+
+            <p v-if="report.skipped.length" class="hint bad">
+              {{ t('dups.skipped', { list: report.skipped.join(', ') }) }}
+            </p>
+          </template>
+        </div>
       </div>
     </div>
-  </div>
+  </var>
 </template>

@@ -5,11 +5,14 @@
 // и двух дверей в одно место быть не должно. Пустое состояние туда и ведёт.
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
 
 import EmptyNote from '../components/EmptyNote.vue';
 import InstallForks from '../components/InstallForks.vue';
 import PathText from '../components/PathText.vue';
 import StatusPill from '../components/StatusPill.vue';
+import Card from '../components/ui/Card.vue';
+import ScreenHeader from '../components/ui/ScreenHeader.vue';
 import type { Instance } from '../bindings';
 import { accentVar, initial, useFormat } from '../lib/format';
 import { displayStatus } from '../lib/status';
@@ -68,58 +71,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="screen">
-    <header class="screen-head">
-      <h1 class="t-lg">{{ t('instances.title') }}</h1>
-      <!-- Рядом с заголовком «Инстансы» слово «инстансов» — то же слово
-           дважды. Число молча, фраза целиком остаётся подсказкой. -->
-      <span
-        v-if="instances.items.length"
-        class="t-sm"
-        :title="t('instances.count', instances.items.length)"
-      >{{ instances.items.length }}</span>
-      <span class="spacer"></span>
-      <template v-if="instances.items.length > 1">
-        <input
-          v-model="query"
-          class="input search"
-          type="search"
-          :placeholder="t('instances.search')"
-        />
-        <div class="seg" :aria-label="t('instances.sort.label')">
-          <button
-            v-for="option in SORTS"
-            :key="option"
-            type="button"
-            :aria-pressed="sort === option"
-            @click="sort = option"
-          >
-            {{ t(`instances.sort.${option}`) }}
-          </button>
-        </div>
-      </template>
-    </header>
+  <var class="InstancesView">
+    <section class="screen">
+      <ScreenHeader>
+        <h1 class="t-lg">{{ t('instances.title') }}</h1>
+        <!-- Рядом с заголовком «Инстансы» слово «инстансов» — то же слово
+             дважды. Число молча, фраза целиком остаётся подсказкой. -->
+        <span
+          v-if="instances.items.length"
+          class="t-sm"
+          :title="t('instances.count', instances.items.length)"
+        >{{ instances.items.length }}</span>
+        <span class="spacer"></span>
+        <template v-if="instances.items.length > 1">
+          <input
+            v-model="query"
+            class="input search"
+            type="search"
+            :placeholder="t('instances.search')"
+          />
+          <div class="seg" :aria-label="t('instances.sort.label')">
+            <button
+              v-for="option in SORTS"
+              :key="option"
+              type="button"
+              :aria-pressed="sort === option"
+              @click="sort = option"
+            >
+              {{ t(`instances.sort.${option}`) }}
+            </button>
+          </div>
+        </template>
+      </ScreenHeader>
 
-    <!-- Единственная область прокрутки экрана: шапка с заголовком и поиском
-         остаётся на месте, иначе при длинном списке непонятно, где ты. -->
-    <div class="screen-body">
-      <div class="screen-pad wide">
-        <!-- Смена набора карточек — с переходом (transitions.dev): фильтр
-             и сортировка меняют список каждым нажатием клавиши, и без
-             перехода карточки прыгали бы на новые места рывком. -->
-        <TransitionGroup v-if="visible.length" name="card" tag="div" class="cards grid">
-          <RouterLink
-            v-for="instance in visible"
-            :key="instance.id"
-            class="card"
-            :class="{ gone: !instance.available }"
-            :to="`/instances/${instance.id}`"
-          >
-            <div
-              class="card-accent"
-              :style="{ '--instance-accent': accentVar(instance.accent) }"
-            ></div>
-            <div class="card-in">
+      <!-- Единственная область прокрутки экрана: шапка с заголовком и поиском
+           остаётся на месте, иначе при длинном списке непонятно, где ты. -->
+      <div class="screen-body">
+        <div class="screen-pad wide">
+          <!-- Смена набора карточек — с переходом (transitions.dev): фильтр
+               и сортировка меняют список каждым нажатием клавиши, и без
+               перехода карточки прыгали бы на новые места рывком. -->
+          <TransitionGroup v-if="visible.length" name="card" tag="div" class="cards grid">
+            <Card
+              v-for="instance in visible"
+              :key="instance.id"
+              :as="RouterLink"
+              :gone="!instance.available"
+              :accent="accentVar(instance.accent)"
+              :to="`/instances/${instance.id}`"
+            >
               <div class="card-top">
                 <span
                   class="chip"
@@ -167,27 +167,27 @@ onMounted(() => {
                 </div>
                 <div>{{ lastRun(instance) }}</div>
               </div>
-            </div>
-          </RouterLink>
-        </TransitionGroup>
+            </Card>
+          </TransitionGroup>
 
-        <EmptyNote v-else-if="instances.items.length">
-          {{ t('instances.nothingFound') }}
-        </EmptyNote>
+          <EmptyNote v-else-if="instances.items.length">
+            {{ t('instances.nothingFound') }}
+          </EmptyNote>
 
-        <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние.
-             Поэтому здесь не ссылка на «Добавление», а сама развилка: у того,
-             у кого ещё ничего нет, выбор между «папка уже есть»
-             и «распаковать архив» — первое же решение, и прятать его
-             за лишним переходом незачем. -->
-        <div v-else class="empty">
-          <h4>{{ t('instances.empty.title') }}</h4>
-          <p>{{ t('instances.empty.body') }}</p>
-          <InstallForks />
+          <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние.
+               Поэтому здесь не ссылка на «Добавление», а сама развилка: у того,
+               у кого ещё ничего нет, выбор между «папка уже есть»
+               и «распаковать архив» — первое же решение, и прятать его
+               за лишним переходом незачем. -->
+          <div v-else class="empty">
+            <h4>{{ t('instances.empty.title') }}</h4>
+            <p>{{ t('instances.empty.body') }}</p>
+            <InstallForks />
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </var>
 </template>
 
 <style scoped>

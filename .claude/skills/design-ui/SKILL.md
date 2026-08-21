@@ -18,14 +18,14 @@ description: Вёрстка экранов ComfyUI Portable Organizer — что
 Где искать:
 
 ```
-design/styles/app.css        компоненты, ~104 класса
-design/tokens/tokens.css     цвета, метрики, тени, радиусы
-design/screens.src.html      экраны по сценариям, целиком
-design/preview.src.html      библиотека компонентов
+apps/desktop/src/styles/components.css   компоненты, ~104 класса
+apps/desktop/src/styles/tokens.css       цвета, метрики, тени, радиусы
+apps/design/screens/                     экраны по сценариям, по одному файлу на экран
+apps/design/styleguide/                  библиотека компонентов, по одному файлу на раздел
 ```
 
-Собранные страницы `design/preview.html` и `design/screens.html`
-открываются двойным кликом.
+Листать — `pnpm dev:design`, поднимает `apps/design` (VitePress): «Стайлгайд»
+и «Экраны» отдельными пунктами меню.
 
 ## Что уже есть
 
@@ -45,8 +45,8 @@ design/preview.src.html      библиотека компонентов
 ## Состояние компонента: смотреть контракт, а не угадывать
 
 Модификаторы в этой системе двух видов, и по имени компонента не угадать,
-какой у него. **Читать `design/styles/app.css` перед тем, как связывать
-состояние.**
+какой у него. **Читать `apps/desktop/src/styles/components.css` перед тем,
+как связывать состояние.**
 
 | Компонент | Чем показывает состояние |
 |---|---|
@@ -67,22 +67,24 @@ design/preview.src.html      библиотека компонентов
 
 ## Правки идут в источник
 
+Источник правды — само приложение, витрина только читает его:
+
 ```
-design/tokens/tokens.css   ←  правится только он, цвета и метрики
-design/styles/app.css      ←  правится только он, компоненты
-        │  node design/build.mjs
+apps/desktop/src/styles/tokens.css        ←  правится только он, цвета и метрики
+apps/desktop/src/styles/components.css    ←  правится только он, компоненты
+        │  pnpm design:tokens (node tools/build-preview-tokens.mjs)
         ↓
-design/dist/*              ←  РУКАМИ НЕ ПРАВИТСЯ
-        │  node tools/sync-design.mjs
-        ↓
-apps/desktop/src/styles/tokens.css, components.css   ←  РУКАМИ НЕ ПРАВИТСЯ
+apps/design/.vitepress/theme/preview-tokens.css   ←  РУКАМИ НЕ ПРАВИТСЯ
 ```
 
-Обе цели сборки в `.gitignore`. Правка копии переживёт ровно до следующей
-сборки и исчезнет без следа.
+`components.css` витрина читает как есть, без копии — правка видна сразу
+на `pnpm dev:design`. А вот `.t-light`/`.t-dark` для панелей `ThemePair.vue`
+считаются отдельным шагом: `:root[data-theme="dark"]` внутри страницы не
+сработает, `:root` матчится только на `<html>`. Цель сборки — в `.gitignore`,
+правка копии переживёт ровно до следующего `pnpm design:tokens`.
 
-Доставка: `pnpm design:check`, затем `pnpm design:sync`. Именно в этом
-порядке — иначе непроверенное уедет в приложение.
+Проверка перед коммитом: `pnpm design:check` (сам пересобирает
+`preview-tokens.css` и гоняет проверки контраста и паритета тем).
 
 `<style scoped>` в компонентах Vue остаётся только для раскладки
 конкретного экрана. Компоненты — общие, глобально, из `components.css`.

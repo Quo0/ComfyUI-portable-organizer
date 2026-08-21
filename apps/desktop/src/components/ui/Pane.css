@@ -1,0 +1,21 @@
+.pane {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.pane-head, .pane-foot {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.pane-head { min-height: calc(var(--control-h) + 2 * var(--space-2)); }
+.pane-head { border-bottom: 1px solid var(--line); }
+.pane-head .search { flex: 1; min-width: 0; }
+.pane:has(> .tabs) { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.pane-foot { border-top: 1px solid var(--line); justify-content: flex-end; }
+.pane-head .title { font-weight: var(--weight-medium); margin-right: auto; }

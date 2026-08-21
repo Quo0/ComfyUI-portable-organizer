@@ -37,26 +37,17 @@ const GENERATED = [
     rebuild: 'pnpm dev:desktop (tauri-specta генерирует файл при запуске)',
   },
   {
-    match: (p) => p.startsWith('design/dist/'),
-    source: 'design/tokens/tokens.css и design/styles/app.css',
-    rebuild: 'pnpm design:build',
-  },
-  {
-    match: (p) => p === 'design/preview.html' || p === 'design/screens.html',
-    source: 'design/preview.src.html и design/screens.src.html',
-    rebuild: 'pnpm design:build',
-  },
-  {
-    match: (p) =>
-      p === 'apps/desktop/src/styles/tokens.css' ||
-      p === 'apps/desktop/src/styles/components.css',
-    source: 'design/tokens/tokens.css и design/styles/app.css',
-    rebuild: 'pnpm design:sync',
+    match: (p) => p === 'apps/design/.vitepress/theme/preview-tokens.css',
+    source: 'apps/desktop/src/styles/tokens.css',
+    rebuild: 'pnpm design:tokens',
   },
 ];
 
 const isLocale = (p) => /^apps\/desktop\/src\/i18n\/locales\/[\w-]+\.json$/.test(p);
-const isDesignSource = (p) => p.startsWith('design/tokens/') || p.startsWith('design/styles/');
+// Источник правды для витрины: правка токенов приложения не доедет до
+// apps/design сама — .t-light/.t-dark считаются из этого файла отдельным
+// шагом (см. GENERATED выше).
+const isAppTokensSource = (p) => p === 'apps/desktop/src/styles/tokens.css';
 
 /** Дескриптор 0 — событие приходит на stdin одним JSON. */
 function readStdin() {
@@ -126,10 +117,10 @@ function post(event) {
     );
   }
 
-  if (paths.some(isDesignSource)) {
+  if (paths.some(isAppTokensSource)) {
     notes.push(
-      'Правка источника дизайна. В приложение она попадёт только после ' +
-        '`pnpm design:check` и `pnpm design:sync` — именно в этом порядке.',
+      'Правка токенов приложения. До витрины (apps/design) она доедет ' +
+        'только после `pnpm design:tokens`.',
     );
   }
 
