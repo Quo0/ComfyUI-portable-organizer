@@ -1,0 +1,114 @@
+# Выпуск приложения по тегу.
+#
+# Порядок шагов — не вкусовщина. Сверка тега с версией стоит первой, потому
+# что расхождение обязано ронять сборку до её начала. Ворота качества стоят
+# до сборки, потому что откатывать опубликованный инсталлятор с рассыпавшейся
+# тёмной темой или недостающим переводом дороже, чем не выпускать. Релиз
+# создаётся черновиком и публикуется только после того, как в его тело
+# дописаны контрольные суммы: не бывает состояния, когда файл уже виден,
+# а сверить его нечем.
+#
+# Приложение неподписанное (см. plan/release.md), и сумма — единственный
+# доступный пользователю способ убедиться, что файл не подменили.
+
+name: Выпуск приложения
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Воркфлоу создаёт релиз, дописывает его тело и публикует.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # До установки чего бы то ни было: два отказа, которые обязаны
+      # случиться раньше сборки. Скрипт заодно вырезает секцию CHANGELOG —
+      # тело релиза берётся оттуда, а не пишется в интерфейсе GitHub.
+      - name: Сверка тега с версией и секция CHANGELOG
+        shell: bash
+        run: node tools/release-notes.mjs "$GITHUB_REF_NAME" release-notes.md
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Кэш Cargo: без него каждая сборка тянет и компилирует зависимости
+      # Tauri заново, а это большая часть времени выпуска.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - run: pnpm install --frozen-lockfile
+
+      # Ворота качества. Паритет тем и контраст, паритет ключей локалей,
+      # типы фронта. Каждое из трёх уже ловило то, что глазами не видно.
+      - name: Ворота качества
+        run: |
+          pnpm design:check
+          pnpm i18n:check
+          pnpm typecheck
+
+      - name: Сборка и черновик релиза
+        id: build
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Подпись обновления, а не подпись кода: доказывает, что выпуск
+          # наш, и на SmartScreen не влияет. Без ключа `latest.json` соберётся
+          # без подписи, и апдейтер откажется ставить такое обновление.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/desktop
+          tagName: ${{ github.ref_name }}
+          releaseName: ${{ github.ref_name }}
+          releaseBody: 'Тело релиза дописывается следующим шагом.'
+          releaseDraft: true
+          # Тег с дефисом — предрелиз: `releases/latest` его пропустит,
+          # и кнопка на сайте продолжит вести на стабильную версию.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+      # Суммы считаются с тех самых файлов, что только что собраны, а не
+      # со скачанных обратно из релиза: скачивание добавило бы ещё одно
+      # место, где файл мог подмениться.
+      - name: Контрольные суммы
+        shell: bash
+        run: |
+          cd apps/desktop/src-tauri/target/release/bundle/nsis
+          sha256sum *.exe | tee SHA256SUMS.txt
+          {
+            echo
+            echo '## Контрольные суммы (SHA-256)'
+            echo
+            echo '```'
+            cat SHA256SUMS.txt
+            echo '```'
+            echo
+            echo 'Приложение не подписано сертификатом разработчика — Windows покажет предупреждение SmartScreen. Сверка суммы это единственный способ убедиться, что файл не подменили.'
+          } >> "$GITHUB_WORKSPACE/release-notes.md"
+
+      # Публикация последним шагом: до неё релиз черновик, и его не видно
+      # ни на странице релизов, ни в `releases/latest`, ни апдейтеру.
+      - name: Публикация
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            "apps/desktop/src-tauri/target/release/bundle/nsis/SHA256SUMS.txt" --clobber
+          gh release edit "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --draft=false
