@@ -9,8 +9,12 @@ import { useRouter } from 'vue-router';
 import NavRail from './shell/NavRail.vue';
 import ToastHost from './shell/ToastHost.vue';
 import { events } from './bindings';
+import { useUiStore } from './stores/ui';
+import { useUpdatesStore } from './stores/updates';
 
 const router = useRouter();
+const ui = useUiStore();
+const updates = useUpdatesStore();
 
 // Закрытие окна при работающих серверах. Rust к этому моменту уже отменил
 // закрытие и спрятал вкладки — остаётся привести на экран вопроса.
@@ -19,6 +23,11 @@ onMounted(async () => {
   await events.quitRequested.listen(() => {
     void router.push('/quit');
   });
+
+  // Проверка обновлений — единственное, что приложение отправляет наружу,
+  // и потому выключаемая. Ответа не ждём и об ошибках молчим: без сети
+  // приложение обязано работать обычным образом.
+  if (ui.checkUpdates) void updates.check(false);
 });
 </script>
 

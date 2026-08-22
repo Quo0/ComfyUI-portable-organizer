@@ -27,6 +27,7 @@ import KeyValueRow from '../components/ui/KeyValueRow.vue';
 import ScreenHeader from '../components/ui/ScreenHeader.vue';
 import OpenFolderButton from '../components/OpenFolderButton.vue';
 import PathText from '../components/PathText.vue';
+import UpdatePanel from '../components/UpdatePanel.vue';
 import { useInstancesStore } from '../stores/instances';
 import { useSharedStore } from '../stores/shared';
 import { useWorkflowsStore } from '../stores/workflows';
@@ -71,6 +72,11 @@ onMounted(async () => {
              на `.screen-pad`), а не окна: рейл сворачивается независимо
              от окна, и ширина панели от окна не зависит один в один. -->
         <div class="screen-pad wide">
+          <!-- Обновление — над сеткой и во всю ширину, а не пятым блоком
+               в ней: остальные четыре про то, где что лежит, а этот
+               про действие, и парой ни к одному из них он не встаёт. -->
+          <UpdatePanel />
+
           <div class="about-grid">
             <Group class="cell-uninstall">
               <span class="t-label">{{ t('about.uninstall.title') }}</span>

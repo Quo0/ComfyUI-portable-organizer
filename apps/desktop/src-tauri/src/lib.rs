@@ -20,6 +20,7 @@ pub mod settings;
 pub mod shared_models;
 pub mod supervise;
 pub mod tray;
+pub mod update;
 pub mod webview;
 pub mod workflows;
 
@@ -1664,6 +1665,61 @@ async fn hide_to_tray(app: tauri::AppHandle) -> Result<(), AppError> {
     Ok(())
 }
 
+// ------------------------------------------------------- обновление
+
+/// Спрашивает, вышла ли новая версия. `None` — установлена последняя.
+///
+/// Ошибку возвращает как есть, а глушит её вызывающий: автоматическая
+/// проверка при старте молчит о сетевых сбоях, ручная — показывает.
+/// Различить это в Rust нечем, зато на фронте видно, кто нажал кнопку.
+#[tauri::command]
+#[specta::specta]
+async fn check_update(app: tauri::AppHandle) -> Result<Option<update::UpdateInfo>, AppError> {
+    update::check(&app).await
+}
+
+/// Ставит обновление и перезапускает приложение.
+///
+/// Развилка «работают сборки» устроена так же, как гард мульти-запуска:
+/// первый вызов приходит с `stop_running: false` и получает отказ с кодом,
+/// фронт раскрывает выбор на месте, повторный вызов приходит уже с ответом.
+/// Молча гасить чужую очередь генерации нельзя — инсталлятор Windows
+/// закроет нас принудительно, а Job Object унесёт с собой все сборки.
+#[tauri::command]
+#[specta::specta]
+async fn install_update(
+    app: tauri::AppHandle,
+    runtime: tauri::State<'_, Runtime>,
+    stop_running: bool,
+) -> Result<(), AppError> {
+    let busy = tray::busy(&runtime);
+    if !busy.is_empty() {
+        if !stop_running {
+            return Err(AppError::with("update.instancesRunning", "names", busy_names(&app, &busy)));
+        }
+        tray::stop_all(&app);
+    }
+
+    update::install(&app).await
+}
+
+/// Имена работающих сборок через запятую — для сообщения пользователю.
+///
+/// Имена, а не идентификаторы: «i17550…» не скажет ему ничего. Пропавшая
+/// из реестра сборка довольствуется идентификатором, лишь бы не промолчать.
+fn busy_names(app: &tauri::AppHandle, ids: &[String]) -> String {
+    let all = instances::list(app).unwrap_or_default();
+    ids.iter()
+        .map(|id| {
+            all.iter()
+                .find(|i| &i.id == id)
+                .map(|i| i.name.clone())
+                .unwrap_or_else(|| id.clone())
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 /// Папка результатов генерации у инстанса.
 ///
 /// `None` означает «папки ещё нет»: до первой генерации ComfyUI её
@@ -1757,7 +1813,9 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             set_tray_labels,
             busy_instances,
             stop_all_and_quit,
-            hide_to_tray
+            hide_to_tray,
+            check_update,
+            install_update
         ])
         .events(tauri_specta::collect_events![
             InstallProgress,
@@ -1765,7 +1823,8 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             RunLog,
             RunChanged,
             duplicates::DupProgress,
-            tray::QuitRequested
+            tray::QuitRequested,
+            update::UpdateProgress
         ])
 }
 
@@ -1812,6 +1871,10 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        // Апдейтер спрашивает манифест только по нашей команде: прав
+        // на прямой вызов плагина у вебвью нет, и гард «работают сборки»
+        // обойти со стороны фронта нечем.
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(SizeJobs::default())
         .manage(InstallLock::default())
         .manage(InstallCancel::default())

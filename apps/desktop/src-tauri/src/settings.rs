@@ -36,8 +36,13 @@ pub enum ThemeChoice {
     System,
 }
 
+/// `default` на контейнере обязателен, а не украшение: файл настроек
+/// пишется прошлой версией приложения и новых полей не содержит. Без него
+/// разбор всей структуры проваливается на первом же незнакомом поле,
+/// а вызывающий код трактует провал как «настроек нет» — и молча сбрасывает
+/// тему с языком заодно с тем полем, которое всего лишь добавили.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct UiSettings {
     pub theme: ThemeChoice,
     /// `None`, пока пользователь не выбрал язык явно: тогда работает
@@ -45,12 +50,20 @@ pub struct UiSettings {
     /// обязательно, иначе смена языка Windows перестанет учитываться.
     pub locale: Option<String>,
     pub rail_collapsed: bool,
+    /// Проверять ли обновления при запуске. Единственное исходящее
+    /// обращение приложения, поэтому выключаемое — `NFR-355`.
+    pub check_updates: bool,
 }
 
 impl Default for UiSettings {
     fn default() -> Self {
         // Тёмная — оформление по умолчанию для первого запуска.
-        Self { theme: ThemeChoice::Dark, locale: None, rail_collapsed: false }
+        Self {
+            theme: ThemeChoice::Dark,
+            locale: None,
+            rail_collapsed: false,
+            check_updates: true,
+        }
     }
 }
 

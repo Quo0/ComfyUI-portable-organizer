@@ -20,6 +20,17 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, FolderOpen } from '@lucide
 процесса, и на списке папок он обещал бы состояние, которого у папки
 нет. Границу держат заголовки блоков и строка под каждым списком.
 
+Обновление живёт здесь же, над сеткой и во всю ширину. Версия уже стоит
+в шапке этого экрана, и вопрос «что у меня установлено и есть ли новее» —
+один вопрос, а не два в разных разделах. В сетку пятым блоком он не встаёт:
+остальные четыре отвечают, где что лежит, а этот предлагает действие.
+
+Новую версию видно и снаружи экрана — точкой у раздела в рейле. Тост для
+этого не годится: проверка идёт при запуске, тост пришлось бы либо закрыть,
+либо потерять, и узнать о версии второй раз было бы неоткуда. Точка синяя,
+из палитры акцентов: зелёная обещала бы работающий процесс, красная —
+падение, а речь про новость.
+
 Сборки в реестре — свой блок, а не список внутри «Останется на диске»:
 их бывает восемь, и вперемешку с общими папками имена сборок читались бы
 ещё двумя видами общего добра. В приложении раскладка — CSS-грид
@@ -39,7 +50,7 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, FolderOpen } from '@lucide
       <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
       <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
       <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item on"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item on"><Info class="ico" /><span>О приложении</span><i class="dot nav-mark"></i></div>
     </nav>
   </template>
   <div class="content">
@@ -48,6 +59,31 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, FolderOpen } from '@lucide
          Название приложения здесь не повторяется: оно и так
          в заголовке окна. -->
     <div class="row"><h3>О приложении</h3><span class="hint">Версия 0.1.0</span></div>
+    <!-- Обновление над сеткой и во всю ширину: остальные четыре блока
+         о том, где что лежит, а этот предлагает действие, и в пару
+         ни к одному из них не встаёт. Номер версии в заголовке
+         обязателен — «доступно обновление» без него не даёт решить,
+         нужно ли оно прямо сейчас. -->
+    <div class="group">
+      <span class="t-label">Обновления</span>
+      <div class="banner">
+        <div><b>Доступна версия 0.2.0</b><p class="t-sm">У вас 0.1.0 · Выпущена 22 авг. 2026 г.</p></div>
+        <span class="spacer"></span>
+        <span class="btn primary">Скачать и установить</span>
+      </div>
+      <div>
+        <span class="t-label">Что изменилось</span>
+        <p class="t-sm">Библиотека воркфлоу переехала в «Настройки». Отмена распаковки больше не выглядит зависанием.</p>
+      </div>
+      <div class="row"><span class="btn secondary">Проверить сейчас</span></div>
+      <div class="toggle-row">
+        <span class="toggle"></span>
+        <div>
+          <div class="t-base">Проверять обновления при запуске</div>
+          <p class="hint">Единственное, что приложение отправляет наружу: номер версии, чтобы спросить, вышла ли новее.</p>
+        </div>
+      </div>
+    </div>
     <!-- Каждый блок — подпись, обведённый список и одна строка
          объяснения под ним. Раньше блоки различались только
          размером заголовка, и экран читался одним полотном.
@@ -142,11 +178,36 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, FolderOpen } from '@lucide
       <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
       <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
       <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item on"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item on"><Info class="ico" /><span>О приложении</span><i class="dot nav-mark"></i></div>
     </nav>
   </template>
   <div class="content">
     <div class="row"><h3>О приложении</h3><span class="hint">Версия 0.1.0</span></div>
+    <!-- Обновление над сеткой и во всю ширину: остальные четыре блока
+         о том, где что лежит, а этот предлагает действие, и в пару
+         ни к одному из них не встаёт. Номер версии в заголовке
+         обязателен — «доступно обновление» без него не даёт решить,
+         нужно ли оно прямо сейчас. -->
+    <div class="group">
+      <span class="t-label">Обновления</span>
+      <div class="banner">
+        <div><b>Доступна версия 0.2.0</b><p class="t-sm">У вас 0.1.0 · Выпущена 22 авг. 2026 г.</p></div>
+        <span class="spacer"></span>
+        <span class="btn primary">Скачать и установить</span>
+      </div>
+      <div>
+        <span class="t-label">Что изменилось</span>
+        <p class="t-sm">Библиотека воркфлоу переехала в «Настройки». Отмена распаковки больше не выглядит зависанием.</p>
+      </div>
+      <div class="row"><span class="btn secondary">Проверить сейчас</span></div>
+      <div class="toggle-row">
+        <span class="toggle"></span>
+        <div>
+          <div class="t-base">Проверять обновления при запуске</div>
+          <p class="hint">Единственное, что приложение отправляет наружу: номер версии, чтобы спросить, вышла ли новее.</p>
+        </div>
+      </div>
+    </div>
     <div class="cols">
       <div class="group">
         <span class="t-label">Что исчезнет при удалении</span>
@@ -205,6 +266,63 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, FolderOpen } from '@lucide
           </div>
         </div>
         <p class="hint">Реестр только запоминает, где лежит каждая сборка. Удаление приложения стирает записи, а не сами сборки.</p>
+      </div>
+    </div>
+  </div>
+</Window>
+
+## Установка при работающих сборках
+
+Инсталлятор Windows закрывает приложение принудительно, а дочерние
+процессы живут в Job Object и уходят вместе с ним. Обновиться посреди
+генерации — потерять очередь и минуты холодного старта, поэтому решение
+принимает пользователь, а не мы.
+
+Развилка раскрывается баннером на месте: модалку над областью контента
+положить нельзя (дисциплина z-order), а у тоста не бывает кнопок. Кнопка
+установки из верхнего баннера при этом уходит — иначе на экране было бы
+два способа начать одно и то же, и один из них в обход только что
+заданного вопроса.
+
+Полоса загрузки индетерминантная, пока сервер не прислал длину: доля
+скачанного без известного целого — выдумка.
+
+<Window>
+  <template #nav>
+    <nav class="nav in-win">
+      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
+      <div class="nav-item on"><Info class="ico" /><span>О приложении</span><i class="dot nav-mark"></i></div>
+    </nav>
+  </template>
+  <div class="content">
+    <div class="row"><h3>О приложении</h3><span class="hint">Версия 0.1.0</span></div>
+    <div class="group">
+      <span class="t-label">Обновления</span>
+      <div class="banner">
+        <div><b>Доступна версия 0.2.0</b><p class="t-sm">У вас 0.1.0 · Выпущена 22 авг. 2026 г.</p></div>
+      </div>
+      <!-- Имена сборок в вопросе не для красоты: пользователь должен
+           узнать в них ту, где сейчас идёт генерация. -->
+      <div class="banner">
+        <div>
+          <b>Сборки ещё работают</b>
+          <p class="t-sm">Установка закроет приложение, и работающие серверы уйдут вместе с ним: SDXL стабильная, Flux тест. Несохранённые графы и очередь генерации — тоже.</p>
+        </div>
+        <span class="spacer"></span>
+        <span class="btn secondary">Остановить и установить</span>
+        <span class="btn ghost">Отложить до следующего запуска</span>
+      </div>
+      <div class="track"><i style="width: 42%"></i></div>
+      <p class="hint">18,4 МБ из 43,7 МБ</p>
+      <div class="row"><span class="btn secondary">Проверить сейчас</span></div>
+      <div class="toggle-row">
+        <span class="toggle"></span>
+        <div>
+          <div class="t-base">Проверять обновления при запуске</div>
+          <p class="hint">Единственное, что приложение отправляет наружу: номер версии, чтобы спросить, вышла ли новее.</p>
+        </div>
       </div>
     </div>
   </div>

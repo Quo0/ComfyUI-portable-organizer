@@ -240,6 +240,28 @@
       "yamlWhen": "Solo en el modo «archivo dentro de la instalación»",
       "workflows": "Copias de flujos",
       "workflowsWhen": "Solo los que añadiste a una instalación"
+    },
+    "update": {
+      "title": "Actualizaciones",
+      "check": "Comprobar ahora",
+      "checking": "Comprobando…",
+      "upToDate": "Tienes la última versión.",
+      "available": "La versión {version} está disponible",
+      "released": "Publicada el {date}",
+      "notes": "Qué ha cambiado",
+      "install": "Descargar e instalar",
+      "installing": "Instalando…",
+      "progress": "{done} de {total}",
+      "progressUnknown": "{done} descargados",
+      "auto": "Buscar actualizaciones al iniciar",
+      "autoHint": "Es lo único que la aplicación envía fuera de tu equipo: el número de versión, para preguntar si hay una más reciente.",
+      "running": {
+        "title": "Hay compilaciones en marcha",
+        "body": "La instalación cierra la aplicación y se lleva consigo todos los servidores en marcha: {names}. También los grafos sin guardar y la cola de generación.",
+        "stopAndInstall": "Detenerlas e instalar",
+        "later": "Aplazar hasta el próximo inicio"
+      },
+      "from": "Tienes la {current}"
     }
   },
   "toast": {
@@ -347,6 +369,12 @@
     },
     "shell": {
       "openFailed": "No se pudo abrir la carpeta: {reason}"
+    },
+    "update": {
+      "checkFailed": "No se han podido comprobar las actualizaciones. {reason}",
+      "installFailed": "No se ha podido instalar la actualización. {reason}",
+      "notAvailable": "No hay ninguna actualización que instalar.",
+      "instancesRunning": "Estas compilaciones siguen en marcha: {names}."
     }
   },
   "run": {

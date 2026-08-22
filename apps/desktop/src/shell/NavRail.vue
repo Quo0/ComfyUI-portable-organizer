@@ -8,10 +8,12 @@ import { displayStatus, isLive, STATE_DOT } from '../lib/status';
 import { useInstancesStore } from '../stores/instances';
 import { useRunStore } from '../stores/run';
 import { useUiStore } from '../stores/ui';
+import { useUpdatesStore } from '../stores/updates';
 
 const ui = useUiStore();
 const instances = useInstancesStore();
 const run = useRunStore();
+const updates = useUpdatesStore();
 const { t } = useI18n();
 
 onMounted(async () => {
@@ -28,11 +30,16 @@ onMounted(async () => {
 // с ними. Пока она была разделом рейла, путь к папке жил в настройках,
 // а её содержимое — в рейле, и на вопрос «куда это складывается» нельзя
 // было ответить, не уходя с экрана.
+//
+// Точка у «О приложении» — единственный способ сообщить о новой версии,
+// не перебивая работу: проверка идёт при запуске, а тост с этим известием
+// пришлось бы либо закрывать, либо терять, и в обоих случаях узнать
+// о версии второй раз было бы неоткуда.
 const sections = computed(() => [
-  { to: '/instances', icon: Layers, label: t('nav.instances') },
-  { to: '/install', icon: FolderPlus, label: t('nav.install') },
-  { to: '/settings', icon: SlidersHorizontal, label: t('nav.settings') },
-  { to: '/about', icon: Info, label: t('nav.about') },
+  { to: '/instances', icon: Layers, label: t('nav.instances'), mark: false },
+  { to: '/install', icon: FolderPlus, label: t('nav.install'), mark: false },
+  { to: '/settings', icon: SlidersHorizontal, label: t('nav.settings'), mark: false },
+  { to: '/about', icon: Info, label: t('nav.about'), mark: updates.info !== null },
 ]);
 
 /**
@@ -79,6 +86,7 @@ const toggleLabel = computed(() =>
       >
         <component :is="item.icon" class="ico" />
         <span>{{ item.label }}</span>
+        <i v-if="item.mark" class="dot nav-mark" :title="t('about.update.title')"></i>
       </RouterLink>
 
       <template v-if="live.length">

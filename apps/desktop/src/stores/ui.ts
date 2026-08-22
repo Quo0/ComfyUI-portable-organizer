@@ -29,6 +29,8 @@ export const useUiStore = defineStore('ui', () => {
   const theme = ref<ThemeChoice>('dark');
   const locale = ref<Locale>('en');
   const railCollapsed = ref(false);
+  /** Проверять ли обновления при запуске — единственное исходящее обращение. */
+  const checkUpdates = ref(true);
   const toasts = ref<Toast[]>([]);
 
   /** Пути и версия для раздела «О приложении». */
@@ -83,8 +85,14 @@ export const useUiStore = defineStore('ui', () => {
     }
 
     const boot = res.data;
-    theme.value = boot.settings.theme;
-    railCollapsed.value = boot.settings.railCollapsed;
+    // Значения справа — не второй источник правды: Rust заполняет
+    // недостающие поля своим `Default` и присылает структуру целиком.
+    // Но `#[serde(default)]` на ней (без него добавленное поле роняло бы
+    // разбор всего файла настроек) делает поля необязательными в типах,
+    // и подстраховка нужна компилятору, а не пользователю.
+    theme.value = boot.settings.theme ?? 'dark';
+    railCollapsed.value = boot.settings.railCollapsed ?? false;
+    checkUpdates.value = boot.settings.checkUpdates ?? true;
     appDataDir.value = boot.appDataDir;
     appLocalDataDir.value = boot.appLocalDataDir;
     version.value = boot.version;
@@ -135,9 +143,13 @@ export const useUiStore = defineStore('ui', () => {
     railCollapsed.value = !railCollapsed.value;
   }
 
+  function setCheckUpdates(value: boolean): void {
+    checkUpdates.value = value;
+  }
+
   // Сохранение отдельным наблюдателем, а не внутри сеттеров: тогда ни одно
   // изменение не потеряется, даже если появится новый способ его сделать.
-  watch([theme, locale, railCollapsed, localeChosen], () => {
+  watch([theme, locale, railCollapsed, localeChosen, checkUpdates], () => {
     if (!ready.value) return;
     void persist();
   });
@@ -147,6 +159,7 @@ export const useUiStore = defineStore('ui', () => {
       theme: theme.value,
       locale: localeChosen.value ? locale.value : null,
       railCollapsed: railCollapsed.value,
+      checkUpdates: checkUpdates.value,
     });
     if (res.status === 'error') pushError(res.error);
   }
@@ -188,6 +201,7 @@ export const useUiStore = defineStore('ui', () => {
     theme,
     locale,
     railCollapsed,
+    checkUpdates,
     toasts,
     appDataDir,
     appLocalDataDir,
@@ -199,6 +213,7 @@ export const useUiStore = defineStore('ui', () => {
     setTheme,
     setLocale,
     toggleRail,
+    setCheckUpdates,
     pushOk,
     pushError,
     dismiss,

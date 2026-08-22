@@ -240,6 +240,28 @@
       "yamlWhen": "仅在“文件位于安装目录内”模式下",
       "workflows": "工作流副本",
       "workflowsWhen": "仅限你添加到整合包中的"
+    },
+    "update": {
+      "title": "更新",
+      "check": "立即检查",
+      "checking": "正在检查…",
+      "upToDate": "已是最新版本。",
+      "available": "有新版本 {version}",
+      "released": "发布于 {date}",
+      "notes": "更新内容",
+      "install": "下载并安装",
+      "installing": "正在安装…",
+      "progress": "{done} / {total}",
+      "progressUnknown": "已下载 {done}",
+      "auto": "启动时检查更新",
+      "autoHint": "这是本应用唯一对外发送的内容：版本号，用于询问是否有更新版本。",
+      "running": {
+        "title": "仍有实例在运行",
+        "body": "安装会关闭应用，正在运行的服务器也会随之停止：{names}。未保存的工作流和生成队列同样会丢失。",
+        "stopAndInstall": "停止并安装",
+        "later": "推迟到下次启动"
+      },
+      "from": "当前为 {current}"
     }
   },
   "toast": {
@@ -347,6 +369,12 @@
     },
     "shell": {
       "openFailed": "无法打开文件夹：{reason}"
+    },
+    "update": {
+      "checkFailed": "无法检查更新。{reason}",
+      "installFailed": "无法安装更新。{reason}",
+      "notAvailable": "没有可安装的更新。",
+      "instancesRunning": "以下实例仍在运行：{names}。"
     }
   },
   "run": {

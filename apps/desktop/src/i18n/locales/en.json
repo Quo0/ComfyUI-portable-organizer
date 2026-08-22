@@ -240,6 +240,28 @@
       "yamlWhen": "Only in “file inside the build” mode",
       "workflows": "Workflow copies",
       "workflowsWhen": "Only the ones you added to a build"
+    },
+    "update": {
+      "title": "Updates",
+      "check": "Check now",
+      "checking": "Checking…",
+      "upToDate": "You are on the latest version.",
+      "available": "Version {version} is available",
+      "released": "Released {date}",
+      "notes": "What changed",
+      "install": "Download and install",
+      "installing": "Installing…",
+      "progress": "{done} of {total}",
+      "progressUnknown": "{done} downloaded",
+      "auto": "Check for updates on startup",
+      "autoHint": "The only thing the app sends outside your computer: the version number, to ask whether a newer one exists.",
+      "running": {
+        "title": "Builds are still running",
+        "body": "Installing closes the app, and every running server goes with it: {names}. Unsaved graphs and the generation queue go too.",
+        "stopAndInstall": "Stop them and install",
+        "later": "Postpone until next launch"
+      },
+      "from": "You have {current}"
     }
   },
   "toast": {
@@ -347,6 +369,12 @@
     },
     "shell": {
       "openFailed": "Could not open the folder: {reason}"
+    },
+    "update": {
+      "checkFailed": "Could not check for updates. {reason}",
+      "installFailed": "Could not install the update. {reason}",
+      "notAvailable": "There is no update to install.",
+      "instancesRunning": "These builds are still running: {names}."
     }
   },
   "run": {

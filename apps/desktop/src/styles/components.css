@@ -102,6 +102,7 @@ var {
   align-items: stretch;
 }
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -112,6 +113,23 @@ var {
   font-size: var(--text-base);
   white-space: nowrap;
   overflow: hidden;
+}
+/* Точка «в разделе есть новость» — сейчас это вышедшая версия.
+   Абсолютно, а не в потоке: у свёрнутого рейла подпись скрыта, и в потоке
+   точка встала бы вплотную к значку, притворяясь его частью.
+   Цвет из палитры акцентов, а не из состояний: зелёный здесь обещал бы
+   работающий процесс, красный — падение, а речь просто о новости. */
+.nav-mark {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--accent-azure);
+}
+.nav.collapsed .nav-mark {
+  right: 5px;
+  top: 5px;
+  transform: none;
 }
 .nav.collapsed .nav-item {
   justify-content: center;

@@ -36,6 +36,9 @@ tauri-specta = { version = "2.0.0-rc.25", features = ["derive", "typescript"] }
 specta = "2.0.0-rc.25"
 specta-typescript = "0.0.12"
 tauri-plugin-store = "2.4.4"
+# Обновление приложения. Подпись манифеста плагин проверяет сам по ключу
+# из `plugins.updater.pubkey` — не сошлась, установка не начинается.
+tauri-plugin-updater = "2"
 tauri-plugin-os = "2.3.2"
 dunce = "1.0.5"
 tauri-plugin-dialog = "2.7.2"
