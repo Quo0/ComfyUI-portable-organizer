@@ -51,7 +51,8 @@
 [3](plan/notes/phase-3-tabs.md) ·
 [4а](plan/notes/phase-4a-polish.md) ·
 [4б](plan/notes/phase-4b-ui.md) ·
-[4в](plan/notes/phase-4v-release.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
+[4в](plan/notes/phase-4v-release.md) ·
+[5](plan/notes/phase-5-docs.md). Там же живут правила, найденные дорогой ценой; их короткие формулировки продублированы в `CLAUDE.md`, а обоснование целиком — здесь.
 
 ---
 
