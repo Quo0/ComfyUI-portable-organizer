@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Три слоя-карточки: сборки одна за другой, как в списке приложения. -->
+  <rect width="32" height="32" rx="7" fill="#201f1b"/>
+  <rect x="7" y="7" width="18" height="5" rx="2" fill="#2e7bc4"/>
+  <rect x="7" y="14" width="18" height="5" rx="2" fill="#5c8a2e"/>
+  <rect x="7" y="21" width="18" height="4" rx="2" fill="#5c574e"/>
+</svg>
