@@ -16,6 +16,8 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { openPath } from '@tauri-apps/plugin-opener';
 
+import { useUiStore } from '../stores/ui';
+
 const props = withDefaults(
   defineProps<{
     /** Что показать. Пусто — кнопка погашена, звать проводник не с чем. */
@@ -34,11 +36,25 @@ const props = withDefaults(
 );
 
 const { t } = useI18n();
+const ui = useUiStore();
 
 const name = computed(() => props.label ?? t('common.openFolder'));
 
-function open(): void {
-  if (props.path) void openPath(props.path);
+// `openPath` — команда плагина, а не наша, и ошибку она отдаёт отказом
+// промиса, а не `AppError`. Брошенный `void` съедал этот отказ целиком:
+// кнопка нажималась, проводник не открывался, и на экране не было ничего —
+// ни папки, ни причины. Приводим отказ к обычному коду ошибки и показываем
+// его тостом, как любую другую.
+async function open(): Promise<void> {
+  if (!props.path) return;
+  try {
+    await openPath(props.path);
+  } catch (e) {
+    ui.pushError({
+      code: 'shell.openFailed',
+      params: { reason: String(e), path: props.path },
+    });
+  }
 }
 </script>
 

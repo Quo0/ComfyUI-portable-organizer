@@ -344,6 +344,9 @@
       "writeFailed": "Could not write to the shared folder: {reason}",
       "verifyFailed": "The copy did not match the original, so nothing was removed.",
       "removeFailed": "Could not remove the file: {reason}"
+    },
+    "shell": {
+      "openFailed": "Could not open the folder: {reason}"
     }
   },
   "run": {

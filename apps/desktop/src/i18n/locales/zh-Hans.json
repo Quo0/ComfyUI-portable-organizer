@@ -344,6 +344,9 @@
       "writeFailed": "无法写入共享文件夹：{reason}",
       "verifyFailed": "副本与原文件不一致，因此未删除任何内容。",
       "removeFailed": "无法删除文件：{reason}"
+    },
+    "shell": {
+      "openFailed": "无法打开文件夹：{reason}"
     }
   },
   "run": {

@@ -344,6 +344,9 @@
       "writeFailed": "No se pudo escribir en la carpeta compartida: {reason}",
       "verifyFailed": "La copia no coincidió con el original, así que no se eliminó nada.",
       "removeFailed": "No se pudo eliminar el archivo: {reason}"
+    },
+    "shell": {
+      "openFailed": "No se pudo abrir la carpeta: {reason}"
     }
   },
   "run": {
