@@ -112,3 +112,15 @@ jobs:
           gh release edit "$GITHUB_REF_NAME" \
             --notes-file release-notes.md \
             --draft=false
+
+  # Кнопка «Скачать» на сайте собирается на этапе сборки: она знает
+  # о версии, размере и сумме ровно то, что GitHub отдал в тот момент.
+  # Без пересборки после публикации она отставала бы от свежего релиза
+  # до следующей правки документации.
+  docs:
+    needs: release
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml

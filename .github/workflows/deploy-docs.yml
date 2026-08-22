@@ -1,0 +1,67 @@
+# Публикация сайта документации на GitHub Pages.
+#
+# Фильтр по путям здесь работает и нужен: доки живут в одном репозитории
+# с приложением, а перекладывать сайт на каждый коммит в Rust незачем.
+# У выпуска фильтра нет и быть не может — там триггер по тегу.
+#
+# Второй триггер — workflow_call: воркфлоу выпуска зовёт этот в конце,
+# потому что кнопка «Скачать» собирается на этапе сборки сайта. Без вызова
+# она отставала бы от свежего релиза до следующей правки документации.
+
+name: Публикация документации
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'apps/docs/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Одна публикация за раз. Отменять начатую не будем: полусобранный сайт
+# лучше не выкладывать вовсе, а следующая всё равно догонит.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Сборка сайта не зависит от Rust-части и не должна от неё зависеть:
+      # доки обязаны публиковаться, даже когда приложение временно
+      # не компилируется.
+      - run: pnpm build:docs
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/docs/.vitepress/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
