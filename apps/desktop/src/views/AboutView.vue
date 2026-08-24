@@ -72,10 +72,6 @@ onMounted(async () => {
              на `.screen-pad`), а не окна: рейл сворачивается независимо
              от окна, и ширина панели от окна не зависит один в один. -->
         <div class="screen-pad wide">
-          <!-- Обновление — над сеткой и во всю ширину, а не пятым блоком
-               в ней: остальные четыре про то, где что лежит, а этот
-               про действие, и парой ни к одному из них он не встаёт. -->
-          <UpdatePanel />
 
           <div class="about-grid">
             <Group class="cell-uninstall">
@@ -86,7 +82,9 @@ onMounted(async () => {
                 <KeyValueRow>
                   <span class="lbl">
                     {{ t('about.paths.appData') }}
-                    <span class="hint"><PathText :path="ui.appDataDir" /></span>
+                    <span class="hint">
+                      <PathText :path="ui.appDataDir" />
+                    </span>
                   </span>
                   <span class="acts">
                     <OpenFolderButton :path="ui.appDataDir" :title="ui.appDataDir" />
@@ -95,13 +93,12 @@ onMounted(async () => {
                 <KeyValueRow>
                   <span class="lbl">
                     {{ t('about.paths.localData') }}
-                    <span class="hint"><PathText :path="ui.appLocalDataDir" /></span>
+                    <span class="hint">
+                      <PathText :path="ui.appLocalDataDir" />
+                    </span>
                   </span>
                   <span class="acts">
-                    <OpenFolderButton
-                      :path="ui.appLocalDataDir"
-                      :title="ui.appLocalDataDir"
-                    />
+                    <OpenFolderButton :path="ui.appLocalDataDir" :title="ui.appLocalDataDir" />
                   </span>
                 </KeyValueRow>
               </KeyValueList>
@@ -137,10 +134,7 @@ onMounted(async () => {
                     </span>
                   </span>
                   <span class="acts">
-                    <OpenFolderButton
-                      :path="libraryPath"
-                      :title="libraryPath || undefined"
-                    />
+                    <OpenFolderButton :path="libraryPath" :title="libraryPath || undefined" />
                   </span>
                 </KeyValueRow>
               </KeyValueList>
@@ -179,20 +173,24 @@ onMounted(async () => {
                        под ним — тоже: по нему идут разбираться руками. -->
                   <span class="lbl">
                     {{ instance.name }}
-                    <span class="hint"><PathText :path="instance.path" /></span>
+                    <span class="hint">
+                      <PathText :path="instance.path" />
+                    </span>
                   </span>
                   <span class="acts">
-                    <OpenFolderButton
-                      :path="instance.path"
-                      :disabled="!instance.available"
-                      :title="instance.path"
-                    />
+                    <OpenFolderButton :path="instance.path" :disabled="!instance.available" :title="instance.path" />
                   </span>
                 </KeyValueRow>
               </KeyValueList>
               <p class="hint">{{ t('about.content.instancesBody') }}</p>
             </Group>
           </div>
+
+
+          <!-- Обновление — над сеткой и во всю ширину, а не пятым блоком
+               в ней: остальные четыре про то, где что лежит, а этот
+               про действие, и парой ни к одному из них он не встаёт. -->
+          <UpdatePanel />
         </div>
       </div>
     </section>
