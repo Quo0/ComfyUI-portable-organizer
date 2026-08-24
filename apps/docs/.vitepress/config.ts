@@ -277,7 +277,7 @@ export default defineConfig({
     ru: {
       label: 'Русский',
       lang: 'ru',
-      description: 'Несколько портабл-сборок ComfyUI в одном окне',
+      description: 'Несколько portable-сборок ComfyUI в одном окне',
       themeConfig: {
         nav: navRu,
         sidebar: sidebarRu,
