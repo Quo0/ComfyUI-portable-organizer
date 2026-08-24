@@ -49,18 +49,18 @@
     "count": "{n} 个实例",
     "empty": {
       "title": "还没有实例",
-      "body": "本应用启动 ComfyUI 便携版，显示启动日志，并直接在此窗口内打开界面。"
+      "body": "本应用启动便携版 ComfyUI 整合包，显示启动日志，并直接在此窗口内打开界面。"
     },
     "add": {
       "title": "添加实例",
-      "lead": "选择便携版 ComfyUI 所在的文件夹。其中的内容不会被改动。",
+      "lead": "选择便携版 ComfyUI 整合包所在的文件夹。其中的内容不会被改动。",
       "chooseFolder": "选择文件夹…",
       "checking": "正在检查文件夹…",
       "submit": "加入列表",
       "openExisting": "该文件夹已在列表中。打开它"
     },
     "field": {
-      "folder": "构建文件夹",
+      "folder": "整合包文件夹",
       "name": "名称",
       "description": "说明",
       "accent": "标识颜色",
@@ -84,7 +84,7 @@
     },
     "unavailable": {
       "title": "文件夹已不存在",
-      "body": "{path} 处已经没有这份安装了：可能被移动、改名，或者磁盘未连接。在你移除之前，该实例仍会留在列表中。"
+      "body": "{path} 处已经没有这个整合包了：可能被移动、改名，或者磁盘未连接。在你移除之前，该实例仍会留在列表中。"
     },
     "remove": {
       "action": "从列表移除",
@@ -113,10 +113,10 @@
     }
   },
   "install": {
-    "title": "添加构建",
+    "title": "添加整合包",
     "existing": {
       "title": "已经有文件夹",
-      "body": "登记一份已经解压好的安装。文件夹保持原样。",
+      "body": "登记一份已经解压好的整合包。文件夹保持原样。",
       "action": "选择文件夹"
     },
     "wizard": {
@@ -129,7 +129,7 @@
         "shared": "共享资源"
       },
       "next": "下一步",
-      "body": "把便携版解压到一个或多个位置，并一次性登记。"
+      "body": "把便携版整合包解压到一个或多个位置，并一次性登记。"
     },
     "archive": {
       "lead": "便携版压缩包需要自行下载，本应用不会代为获取。",
@@ -175,8 +175,8 @@
       "toInstances": "前往实例列表"
     },
     "shared": {
-      "title": "将新安装连接到共享模型",
-      "connect": "连接全部 {n} 个新安装",
+      "title": "将新整合包连接到共享模型",
+      "connect": "连接全部 {n} 个新整合包",
       "models": "共享模型",
       "workflows": "工作流库"
     }
@@ -235,9 +235,9 @@
     },
     "written": {
       "title": "应用写入你的整合包中的内容",
-      "body": "卸载应用后它们都会保留——它们位于别人的安装目录中，我们无权清理。",
+      "body": "卸载应用后它们都会保留——它们位于别人的整合包里，我们无权清理。",
       "yaml": "extra_model_paths.yaml",
-      "yamlWhen": "仅在“文件位于安装目录内”模式下",
+      "yamlWhen": "仅在“文件位于整合包内”模式下",
       "workflows": "工作流副本",
       "workflowsWhen": "仅限你添加到整合包中的"
     },
@@ -256,7 +256,7 @@
       "auto": "启动时检查更新",
       "autoHint": "这是本应用唯一对外发送的内容：版本号，用于询问是否有更新版本。",
       "running": {
-        "title": "仍有实例在运行",
+        "title": "仍有整合包在运行",
         "body": "安装会关闭应用，正在运行的服务器也会随之停止：{names}。未保存的工作流和生成队列同样会丢失。",
         "stopAndInstall": "停止并安装",
         "later": "推迟到下次启动"
@@ -281,8 +281,8 @@
       "noPython": "这个文件夹里没有内置 Python：缺少 {expected}。",
       "noMainPy": "这个文件夹里没有 ComfyUI：缺少 {expected}。",
       "notComfy": "{path} 看起来不是便携版 ComfyUI。",
-      "tryChild": "差一点：安装在下一层。请选择 {suggested}。",
-      "tryParent": "差一点：这只是安装的一部分。请选择上一层文件夹：{suggested}。"
+      "tryChild": "差一点：整合包在下一层。请选择 {suggested}。",
+      "tryParent": "差一点：这只是整合包的一部分。请选择上一层文件夹：{suggested}。"
     },
     "instances": {
       "loadFailed": "无法读取实例列表：{reason}",
@@ -295,10 +295,10 @@
       "badAccent": "应用无法使用该颜色：{value}"
     },
     "comfy": {
-      "unreachable": "该安装无响应：{reason}",
-      "badResponse": "该安装返回了意外的响应：{reason}",
-      "notFound": "该安装中没有此项。",
-      "uploadFailed": "无法将工作流放入该安装：{reason}"
+      "unreachable": "该整合包无响应：{reason}",
+      "badResponse": "该整合包返回了意外的响应：{reason}",
+      "notFound": "该整合包中没有此项。",
+      "uploadFailed": "无法将工作流放入该整合包：{reason}"
     },
     "webview": {
       "embedFailed": "无法打开 ComfyUI 标签页：{reason}",
@@ -323,7 +323,7 @@
       "historyFailed": "无法读取压缩包历史：{reason}"
     },
     "run": {
-      "spawnFailed": "无法启动：{reason}",
+      "spawnFailed": "无法启动该整合包：{reason}",
       "stopFailed": "无法停止进程：{reason}",
       "noFreePort": "找不到空闲端口。",
       "noProfiles": "这个实例没有任何启动配置。",
@@ -338,8 +338,8 @@
     "shared": {
       "rootUnavailable": "共享模型文件夹不可用：{path}",
       "noRoots": "尚未设置共享模型文件夹。",
-      "foreignConfig": "该安装已有自己的配置：{path}",
-      "fileUnreadable": "无法读取该安装中的配置，因此未做改动：{path}",
+      "foreignConfig": "该整合包已有自己的配置：{path}",
+      "fileUnreadable": "无法读取该整合包中的配置，因此未做改动：{path}",
       "writeFailed": "无法写入配置：{reason}",
       "backupFailed": "无法保存现有配置的副本：{reason}",
       "removeFailed": "无法删除配置：{reason}",
@@ -354,13 +354,13 @@
       "scanFailed": "无法读取库：{reason}",
       "manifestWriteFailed": "无法保存标签和备注：{reason}",
       "noGraphInImage": "这张图片不包含工作流：{path}",
-      "verifyFailed": "库中的副本与读取的内容不一致，因此未从该安装中删除任何内容。",
-      "removeFailed": "工作流已在库中，但无法从该安装中删除：{reason}",
+      "verifyFailed": "库中的副本与读取的内容不一致，因此未从该整合包中删除任何内容。",
+      "removeFailed": "工作流已在库中，但无法从该整合包中删除：{reason}",
       "badName": "该名称不可用：{name}。它会成为文件名，因此不能包含斜杠、冒号等路径字符。"
     },
     "migrate": {
-      "instanceRunning": "该安装正在运行。请先停止再移动其文件。",
-      "notConnected": "该安装未连接到共享模型，删除其副本会让它失去这些模型。",
+      "instanceRunning": "该整合包正在运行。请先停止再移动其文件。",
+      "notConnected": "该整合包未连接到共享模型，删除其副本会让它失去这些模型。",
       "noSpace": "{path} 中空间不足",
       "readFailed": "无法读取文件：{reason}",
       "writeFailed": "无法写入共享文件夹：{reason}",
@@ -374,7 +374,7 @@
       "checkFailed": "无法检查更新。{reason}",
       "installFailed": "无法安装更新。{reason}",
       "notAvailable": "没有可安装的更新。",
-      "instancesRunning": "以下实例仍在运行：{names}。"
+      "instancesRunning": "以下整合包仍在运行：{names}。"
     }
   },
   "run": {
@@ -414,9 +414,9 @@
       "howto": "选择一个文件夹，其中的子文件夹按模型类别命名——checkpoints、loras、vae 等。目前可以是空的。",
       "unavailable": "该文件夹当前不可用。已连接的实例会在启动前提醒您。",
       "noCategories": "尚无子文件夹——暂时没有可共享的内容。",
-      "insideInstance": "此文件夹位于安装「{name}」内部。这样可行，但删除该安装会连带删除其他所有安装的共享模型。",
+      "insideInstance": "此文件夹位于整合包「{name}」内部。这样可行，但删除该整合包会连带删除其他所有整合包的共享模型。",
       "changeTitle": "更改共享文件夹？",
-      "changeBody": "已连接的 {n} 个安装将在下次启动时改用新文件夹。",
+      "changeBody": "已连接的 {n} 个整合包将在下次启动时改用新文件夹。",
       "changeConfirm": "更改",
       "open": "打开共享模型文件夹"
     },
@@ -433,7 +433,7 @@
         "unknown": "未识别",
         "blocked": "已排除"
       },
-      "whyBlocked": "自定义节点从不共享：正因为节点相互冲突，才需要分开的安装。"
+      "whyBlocked": "自定义节点从不共享：正因为节点相互冲突，才需要分开的整合包。"
     },
     "missing": {
       "hint": "缺少标准文件夹：{list}",
@@ -442,7 +442,7 @@
     "default": {
       "label": "将新模型下载到共享文件夹",
       "hint": "在一个实例中下载的模型将对所有实例可见。",
-      "restartNote": "在安装下次启动时生效。"
+      "restartNote": "在整合包下次启动时生效。"
     },
     "yaml": {
       "show": "显示生成的配置",
@@ -451,28 +451,28 @@
     },
     "instance": {
       "label": "共享模型",
-      "hint": "让此安装访问共享文件夹，无需复制任何内容。",
+      "hint": "让此整合包访问共享文件夹，无需复制任何内容。",
       "noRoot": "尚未设置共享文件夹。",
       "setUp": "去设置",
       "badge": "共享模型",
-      "needsRestart": "该安装仅在启动时读取此设置。请重启以使更改生效。",
+      "needsRestart": "该整合包仅在启动时读取此设置。请重启以使更改生效。",
       "backupMade": "先前的配置已保存为 {path}"
     },
     "mode": {
       "label": "应用方式",
       "flag": {
-        "title": "不修改安装目录",
-        "short": "未修改安装目录",
-        "hint": "共享目录清单保存在 ComfyUI Portable Organizer 中，启动时作为命令行参数传给该安装。不会向其目录写入任何内容，但只有由本应用启动它时才有共享模型。"
+        "title": "不修改整合包目录",
+        "short": "未修改整合包目录",
+        "hint": "共享目录清单保存在 ComfyUI Portable Organizer 中，启动时作为命令行参数传给该整合包。不会向其目录写入任何内容，但只有由本应用启动它时才有共享模型。"
       },
       "instanceFile": {
-        "title": "写入文件到安装目录",
-        "short": "文件位于安装目录内",
-        "hint": "会在该安装目录中写入 extra_model_paths.yaml，这样无论怎样启动都有共享模型，包括用它自带的 .bat 绕过本应用启动。"
+        "title": "写入文件到整合包目录",
+        "short": "文件位于整合包内",
+        "hint": "会在该整合包目录中写入 extra_model_paths.yaml，这样无论怎样启动都有共享模型，包括用它自带的 .bat 绕过本应用启动。"
       }
     },
     "foreign": {
-      "title": "此安装已有自己的配置",
+      "title": "此整合包已有自己的配置",
       "body": "文件 {path} 并非本应用创建。未经您决定不会改动它。",
       "whatsThere": "文件当前内容",
       "replace": "替换并保留副本",
@@ -480,7 +480,7 @@
     },
     "unavailable": {
       "title": "共享模型文件夹不可用",
-      "body": "无法访问 {path}。现在启动意味着该安装只能看到自己的模型。",
+      "body": "无法访问 {path}。现在启动意味着该整合包只能看到自己的模型。",
       "startAnyway": "不使用共享模型启动"
     },
     "cats": {
@@ -515,8 +515,8 @@
     "compatOk": "所有节点齐全",
     "compatCached": "根据上次运行，全部齐全",
     "compatMissing": "缺少 {n} 个节点",
-    "compatUnknown": "未知——该安装尚未运行过",
-    "noInstances": "尚未注册任何安装。",
+    "compatUnknown": "未知——该整合包尚未运行过",
+    "noInstances": "尚未注册任何整合包。",
     "note": "标签与备注",
     "noNote": "暂无备注。",
     "tagsPlaceholder": "标签，用逗号分隔",
@@ -536,32 +536,32 @@
       "push": "添加"
     },
     "pick": {
-      "all": "全部安装"
+      "all": "全部整合包"
     },
     "refresh": "刷新",
     "push": {
       "action": "添加到这里",
-      "done": "已添加到该安装",
+      "done": "已添加到该整合包",
       "doneRunning": "已添加。刷新 ComfyUI 页面后即可看到。",
-      "replace": "该安装中已有名为 {name} 的工作流。要替换吗？",
-      "again": "该安装已有——再放一次"
+      "replace": "该整合包中已有名为 {name} 的工作流。要替换吗？",
+      "again": "该整合包已有——再放一次"
     },
     "pull": {
-      "done": "{name} 已移入库中，并从该安装中删除",
+      "done": "{name} 已移入库中，并从该整合包中删除",
       "underNewName": "库中已有 {name}，且内容与此不同。是否以 {as} 取入？库中的内容不会被替换。"
     },
     "instance": {
-      "title": "此安装中的工作流",
+      "title": "此整合包中的工作流",
       "pull": "取入库中",
       "already": "已在库中",
-      "empty": "此安装尚无已保存的工作流。",
+      "empty": "此整合包尚无已保存的工作流。",
       "noLibrary": "无处可取：尚未设置库文件夹。",
-      "fromRunning": "该列表来自正在运行的安装，因此包含它刚刚保存的内容。",
-      "fromDisk": "该安装已停止，因此列表读取自其文件夹。",
-      "moves": "取走即移动：文件离开该构建，只留在库中。",
+      "fromRunning": "该列表来自正在运行的整合包，因此包含它刚刚保存的内容。",
+      "fromDisk": "该整合包已停止，因此列表读取自其文件夹。",
+      "moves": "取走即移动：文件离开该整合包，只留在库中。",
       "diverged": "同名但文件不同",
       "alreadyMeans": "——库中已有同一个工作流：无可取走，按钮为灰。",
-      "divergedMeans": "——内容已经不同：这是两份不同的工作，构建中的那份会以空闲名称取走，而不会覆盖他人的。"
+      "divergedMeans": "——内容已经不同：这是两份不同的工作，整合包中的那份会以空闲名称取走，而不会覆盖他人的。"
     },
     "bulk": {
       "title": "已标记 {n} 个工作流",
@@ -594,23 +594,23 @@
     }
   },
   "migrate": {
-    "title": "此安装的模型",
+    "title": "此整合包的模型",
     "noRoot": "无处可移：尚未设置共享模型文件夹。",
     "entries": "{n} 项",
-    "summary": "将移动 {files} 个文件，共 {size}。随安装附带的内容会保留：占位标记文件和模型配置文件夹。",
-    "mustStop": "请先停止该安装：运行时无法取走其文件。",
+    "summary": "将移动 {files} 个文件，共 {size}。随整合包附带的内容会保留：占位标记文件和模型配置文件夹。",
+    "mustStop": "请先停止该整合包：运行时无法取走其文件。",
     "action": "移动到共享文件夹",
-    "empty": "没有可移动的内容：此安装没有自己的模型。",
-    "moved": "已移动 {n} 项，在该安装中释放了 {size}。",
+    "empty": "没有可移动的内容：此整合包没有自己的模型。",
+    "moved": "已移动 {n} 项，在该整合包中释放了 {size}。",
     "failed": "有 {n} 项无法移动",
     "dup": {
       "remove": "删除本地副本",
-      "needsConnection": "请先将此安装连接到共享模型——否则删除副本只会让它失去这些模型。",
+      "needsConnection": "请先将此整合包连接到共享模型——否则删除副本只会让它失去这些模型。",
       "inCategory": "{n} 项已共享",
-      "line": "发现 {n} 个重复项：共享文件夹中已有相同文件，该安装会从那里读取。删除本地副本可释放 {size}。"
+      "line": "发现 {n} 个重复项：共享文件夹中已有相同文件，该整合包会从那里读取。删除本地副本可释放 {size}。"
     },
     "diff": {
-      "line": "{n} 处同名但并非重复：共享文件夹中存在同名文件，但内容不同。它们会留在该安装中，并且永远不会提供删除。"
+      "line": "{n} 处同名但并非重复：共享文件夹中存在同名文件，但内容不同。它们会留在该整合包中，并且永远不会提供删除。"
     },
     "verdict": {
       "duplicate": "相同文件",

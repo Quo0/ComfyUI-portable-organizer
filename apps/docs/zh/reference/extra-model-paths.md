@@ -75,7 +75,7 @@ ComfyUI 0.30 自带的那些类别（`checkpoints`、`loras`、`vae`、`controln
 **参数模式** —— `%APPDATA%\io.github.quo0.comfyui-organizer\shared-models.yaml`，
 通过 `--extra-model-paths-config` 交过去。你的整合包里什么都不写。
 
-**文件位于安装目录内** —— `<整合包>\ComfyUI\extra_model_paths.yaml`。已经
+**文件位于整合包内** —— `<整合包>\ComfyUI\extra_model_paths.yaml`。已经
 存在、但不是我们那份的文件，会备份为
 `extra_model_paths.yaml.bak-<时间戳>`，并且只有在你于一个同时展示两者的
 页面上确认之后才会被替换。
