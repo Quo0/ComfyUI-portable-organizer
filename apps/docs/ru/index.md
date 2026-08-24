@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: ComfyUI Portable Organizer
-  text: Несколько portable сборок, одно окно
+  text: Несколько portable сборок,<br>одно окно
   tagline: Реестр ваших portable-установок ComfyUI, запуск со свободным портом без вашего участия и сам ComfyUI вкладкой внутри приложения — плюс одна общая папка моделей вместо пяти копий одного чекпоинта.
   actions:
     - theme: brand

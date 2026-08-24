@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: ComfyUI Portable Organizer
-  text: Several portable builds, one window
+  text: Several portable builds,<br>one window
   tagline: A registry for your portable ComfyUI installs, a launcher that picks the port for you, and ComfyUI itself as a tab inside the app — plus one shared models folder instead of five copies of the same checkpoint.
   actions:
     - theme: brand

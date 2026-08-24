@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: ComfyUI Portable Organizer
-  text: Varias instalaciones portables, una sola ventana
+  text: Varias instalaciones portables,<br>una sola ventana
   tagline: Un registro de tus instalaciones portables de ComfyUI, un lanzador que elige el puerto por ti y el propio ComfyUI como pestaña dentro de la aplicación — más una única carpeta de modelos compartida en lugar de cinco copias del mismo checkpoint.
   actions:
     - theme: brand

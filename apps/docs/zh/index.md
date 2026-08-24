@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: ComfyUI Portable Organizer
-  text: 多个整合包，一个窗口
+  text: 多个整合包，<br>一个窗口
   tagline: 便携版 ComfyUI 的注册表、自动挑选空闲端口的启动器，以及直接嵌在应用里的 ComfyUI 标签页——再加上一个共享模型文件夹，取代同一个大模型的五份副本。
   actions:
     - theme: brand
