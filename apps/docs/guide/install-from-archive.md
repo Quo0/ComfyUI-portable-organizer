@@ -21,7 +21,7 @@ version next to the old ones.
    and an accent colour. The app checks that the folder is empty or absent,
    that there is enough free space, and that the path is not dangerously
    long.
-4. **Shared resources.** Optional toggles for the
+4. **Shared resources.** Optional (but highly recommended) toggles for the
    [shared models folder](/guide/shared-models) and the
    [workflow library](/guide/workflows).
 5. **Unpacking**, then **Done**, with the new builds ready to start.
@@ -62,12 +62,3 @@ Checked before anything starts, from the archive header, with a margin,
 multiplied by the number of destinations landing on the same volume.
 Running out of space nineteen gigabytes into a twenty-gigabyte unpack is
 the worst possible moment to find out.
-
-## Why the progress bar counts files, not bytes
-
-Because that is where the time goes. Measured on a real archive, the two
-numbers disagree in both directions: 65% of files at 30% of bytes in one
-place, 45% of files at 98% of bytes in another. Time is spent creating each
-file and letting the antivirus look at it — roughly per file, not per byte.
-Bytes are shown next to the bar as a caption, where they are useful and
-honest.
