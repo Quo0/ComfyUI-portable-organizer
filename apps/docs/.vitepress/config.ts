@@ -10,6 +10,13 @@ import { defineConfig, type DefaultTheme } from 'vitepress';
 
 const REPO = 'https://github.com/Quo0/ComfyUI-portable-organizer';
 
+// Сайт живёт в подпапке GitHub Pages, и подвал темы выводится через
+// `v-html`. Разметку оттуда VitePress не разбирает и пути в ней не
+// переписывает — в отличие от ссылок в markdown. Значит, ссылка на
+// лицензию в подвале обязана нести префикс сама, иначе уедет в корень
+// домена. Отсюда общая константа: `base` и подвал не должны разъехаться.
+const BASE = '/ComfyUI-portable-organizer/';
+
 // Навигация задаётся по локали целиком, а не переводом заголовков поверх
 // общей раскладки: ссылки у переведённой локали ведут внутрь неё
 // (`/ru/guide/`), и подмешивать сюда корневые пути нечем.
@@ -17,6 +24,7 @@ const navEn: DefaultTheme.NavItem[] = [
   { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
   { text: 'Reference', link: '/reference/', activeMatch: '/reference/' },
   { text: 'Download', link: '/download' },
+  { text: 'License', link: '/license' },
 ];
 
 const sidebarEn: DefaultTheme.Sidebar = {
@@ -72,6 +80,7 @@ const navRu: DefaultTheme.NavItem[] = [
   { text: 'Руководство', link: '/ru/guide/', activeMatch: '/ru/guide/' },
   { text: 'Справочник', link: '/ru/reference/', activeMatch: '/ru/reference/' },
   { text: 'Скачать', link: '/ru/download' },
+  { text: 'Лицензия', link: '/ru/license' },
 ];
 
 const sidebarRu: DefaultTheme.Sidebar = {
@@ -127,6 +136,7 @@ const navEs: DefaultTheme.NavItem[] = [
   { text: 'Guía', link: '/es/guide/', activeMatch: '/es/guide/' },
   { text: 'Referencia', link: '/es/reference/', activeMatch: '/es/reference/' },
   { text: 'Descargar', link: '/es/download' },
+  { text: 'Licencia', link: '/es/license' },
 ];
 
 const sidebarEs: DefaultTheme.Sidebar = {
@@ -182,6 +192,7 @@ const navZh: DefaultTheme.NavItem[] = [
   { text: '指南', link: '/zh/guide/', activeMatch: '/zh/guide/' },
   { text: '参考', link: '/zh/reference/', activeMatch: '/zh/reference/' },
   { text: '下载', link: '/zh/download' },
+  { text: '许可证', link: '/zh/license' },
 ];
 
 const sidebarZh: DefaultTheme.Sidebar = {
@@ -236,7 +247,7 @@ const sidebarZh: DefaultTheme.Sidebar = {
 export default defineConfig({
   // Репозиторий публикуется на GitHub Pages как проектный сайт, то есть
   // живёт в подпапке. Без base все ссылки на ассеты уедут в корень домена.
-  base: '/ComfyUI-portable-organizer/',
+  base: BASE,
 
   title: 'ComfyUI Portable Organizer',
   description: 'Manage several portable ComfyUI builds from one window',
@@ -258,7 +269,7 @@ export default defineConfig({
         },
         footer: {
           message: 'Not affiliated with the ComfyUI project.',
-          copyright: 'MIT-licensed. Models and workflows stay yours.',
+          copyright: `Free software under the <a href="${BASE}license">GNU GPL v3</a>. Models and workflows stay yours.`,
         },
       },
     },
@@ -288,7 +299,7 @@ export default defineConfig({
         },
         footer: {
           message: 'Проект не связан с командой ComfyUI.',
-          copyright: 'Лицензия MIT. Модели и воркфлоу остаются вашими.',
+          copyright: `Свободная программа под <a href="${BASE}ru/license">GNU GPL v3</a>. Модели и воркфлоу остаются вашими.`,
         },
         notFound: {
           title: 'СТРАНИЦА НЕ НАЙДЕНА',
@@ -323,7 +334,7 @@ export default defineConfig({
         },
         footer: {
           message: 'Sin relación con el proyecto ComfyUI.',
-          copyright: 'Licencia MIT. Tus modelos y tus flujos siguen siendo tuyos.',
+          copyright: `Software libre bajo la <a href="${BASE}es/license">GNU GPL v3</a>. Tus modelos y tus flujos siguen siendo tuyos.`,
         },
         notFound: {
           title: 'PÁGINA NO ENCONTRADA',
@@ -361,7 +372,7 @@ export default defineConfig({
         },
         footer: {
           message: '本项目与 ComfyUI 项目无关。',
-          copyright: 'MIT 许可证。模型和工作流始终属于你。',
+          copyright: `自由软件，采用 <a href="${BASE}zh/license">GNU GPL v3</a>。模型和工作流始终属于你。`,
         },
         notFound: {
           title: '页面不存在',
