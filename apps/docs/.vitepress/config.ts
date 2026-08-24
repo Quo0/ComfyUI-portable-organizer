@@ -1,10 +1,10 @@
 import { defineConfig, type DefaultTheme } from 'vitepress';
 
 // Сайт пользовательской документации. Английский — язык, на котором люди
-// ищут ответы про ComfyUI, поэтому он лежит в корне; русский переведён
-// целиком и живёт под `/ru/`. Китайский и испанский пока заглушки: их
-// адреса зафиксированы заранее, чтобы перевод, добавленный позже,
-// не ломал ссылки, которыми уже поделились.
+// ищут ответы про ComfyUI, поэтому он лежит в корне; русский и испанский
+// переведены целиком и живут под `/ru/` и `/es/`. Китайский пока
+// заглушка: его адрес зафиксирован заранее, чтобы перевод, добавленный
+// позже, не ломал ссылки, которыми уже поделились.
 //
 // Пакет намеренно ничего не знает про apps/desktop: сборка сайта обязана
 // оставаться зелёной, когда Rust-часть временно не компилируется.
@@ -124,6 +124,61 @@ const sidebarRu: DefaultTheme.Sidebar = {
   ],
 };
 
+const navEs: DefaultTheme.NavItem[] = [
+  { text: 'Guía', link: '/es/guide/', activeMatch: '/es/guide/' },
+  { text: 'Referencia', link: '/es/reference/', activeMatch: '/es/reference/' },
+  { text: 'Descargar', link: '/es/download' },
+];
+
+const sidebarEs: DefaultTheme.Sidebar = {
+  '/es/guide/': [
+    {
+      text: 'Para empezar',
+      items: [
+        { text: 'Qué es esto', link: '/es/guide/' },
+        { text: 'Instalar la aplicación', link: '/es/guide/install-app' },
+        { text: 'El aviso de SmartScreen', link: '/es/guide/smartscreen' },
+      ],
+    },
+    {
+      text: 'Instalaciones',
+      items: [
+        { text: 'Añadir una instalación', link: '/es/guide/add-build' },
+        { text: 'Instalar desde un archivo', link: '/es/guide/install-from-archive' },
+        { text: 'Perfiles de arranque', link: '/es/guide/profiles' },
+        { text: 'Puertos y conflictos', link: '/es/guide/ports' },
+      ],
+    },
+    {
+      text: 'Contenido compartido',
+      items: [
+        { text: 'Modelos compartidos', link: '/es/guide/shared-models' },
+        { text: 'Biblioteca de flujos', link: '/es/guide/workflows' },
+      ],
+    },
+    {
+      text: 'Mantenimiento',
+      items: [
+        { text: 'Actualizar', link: '/es/guide/updating' },
+        { text: 'Desinstalar', link: '/es/guide/uninstall' },
+        { text: 'Limitaciones conocidas', link: '/es/guide/limitations' },
+      ],
+    },
+  ],
+  '/es/reference/': [
+    {
+      text: 'Referencia',
+      items: [
+        { text: 'Resumen', link: '/es/reference/' },
+        { text: 'Opciones que añadimos', link: '/es/reference/flags' },
+        { text: 'instances.json', link: '/es/reference/instances-json' },
+        { text: 'Perfiles de arranque', link: '/es/reference/launch-profile' },
+        { text: 'El YAML generado', link: '/es/reference/extra-model-paths' },
+      ],
+    },
+  ],
+};
+
 export default defineConfig({
   // Репозиторий публикуется на GitHub Pages как проектный сайт, то есть
   // живёт в подпапке. Без base все ссылки на ассеты уедут в корень домена.
@@ -191,15 +246,49 @@ export default defineConfig({
       },
     },
 
-    // Переводов ещё нет, и страницы под этими путями честно об этом
-    // говорят вместо того, чтобы отдавать 404. Пути зафиксированы сейчас,
-    // потому что менять их потом — ломать чужие закладки.
+    es: {
+      label: 'Español',
+      lang: 'es',
+      description: 'Varias instalaciones portables de ComfyUI en una ventana',
+      themeConfig: {
+        nav: navEs,
+        sidebar: sidebarEs,
+        outline: { label: 'En esta página' },
+        docFooter: { prev: 'Página anterior', next: 'Página siguiente' },
+        lastUpdated: { text: 'Actualizado el' },
+        returnToTopLabel: 'Volver arriba',
+        sidebarMenuLabel: 'Secciones',
+        darkModeSwitchLabel: 'Apariencia',
+        lightModeSwitchTitle: 'Cambiar al tema claro',
+        darkModeSwitchTitle: 'Cambiar al tema oscuro',
+        langMenuLabel: 'Cambiar de idioma',
+        skipToContentLabel: 'Ir al contenido',
+        editLink: {
+          pattern: `${REPO}/edit/master/apps/docs/:path`,
+          text: 'Editar esta página en GitHub',
+        },
+        footer: {
+          message: 'Sin relación con el proyecto ComfyUI.',
+          copyright: 'Licencia MIT. Tus modelos y tus flujos siguen siendo tuyos.',
+        },
+        notFound: {
+          title: 'PÁGINA NO ENCONTRADA',
+          quote:
+            'Esta página no existe. Revisa la dirección — o empieza por la guía.',
+          linkLabel: 'ir al inicio',
+          linkText: 'Volver al inicio',
+        },
+      },
+    },
+
+    // Перевода ещё нет, и страница под этим путём честно об этом говорит
+    // вместо того, чтобы отдавать 404. Путь зафиксирован заранее, потому
+    // что менять его потом — ломать чужие закладки.
     //
     // Ключ локали — это имя папки: `zh` даёт `/zh/`, а не `/zh-Hans/`.
     // Само письмо объявлено в `lang`, потому что традиционного у нас нет
     // и не планируется.
     zh: { label: '简体中文', lang: 'zh-Hans' },
-    es: { label: 'Español', lang: 'es' },
   },
 
   themeConfig: {
@@ -224,6 +313,26 @@ export default defineConfig({
                   navigateUpKeyAriaLabel: 'Стрелка вверх',
                   navigateDownKeyAriaLabel: 'Стрелка вниз',
                   closeText: 'закрыть',
+                  closeKeyAriaLabel: 'Esc',
+                },
+              },
+            },
+          },
+          es: {
+            translations: {
+              button: { buttonText: 'Buscar', buttonAriaLabel: 'Buscar' },
+              modal: {
+                displayDetails: 'Mostrar detalles',
+                resetButtonTitle: 'Borrar la búsqueda',
+                backButtonTitle: 'Cerrar la búsqueda',
+                noResultsText: 'Sin resultados para',
+                footer: {
+                  selectText: 'seleccionar',
+                  selectKeyAriaLabel: 'Intro',
+                  navigateText: 'navegar',
+                  navigateUpKeyAriaLabel: 'Flecha arriba',
+                  navigateDownKeyAriaLabel: 'Flecha abajo',
+                  closeText: 'cerrar',
                   closeKeyAriaLabel: 'Esc',
                 },
               },
