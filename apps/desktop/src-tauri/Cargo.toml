@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Управление портабл-сборками ComfyUI"
 authors = ["Andrew Blokhin"]
 edition = "2021"
+license = "GPL-3.0-only"
+repository = "https://github.com/Quo0/ComfyUI-portable-organizer"
+homepage = "https://github.com/Quo0/ComfyUI-portable-organizer"
 
 [lib]
 # Суффикс _lib нужен, чтобы имя библиотеки не конфликтовало с именем

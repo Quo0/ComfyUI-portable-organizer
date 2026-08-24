@@ -26,6 +26,11 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "publisher": "Andrew Blokhin",
+    "copyright": "Copyright (C) 2026 Andrew Blokhin. Licensed under the GNU GPL v3.",
+    "homepage": "https://github.com/Quo0/ComfyUI-portable-organizer",
+    "license": "GPL-3.0-only",
+    "licenseFile": "../../../LICENSE",
     "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",

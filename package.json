@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "description": "Управление портабл-сборками ComfyUI: реестр, запуск, встроенные вкладки, общие модели",
+  "license": "GPL-3.0-only",
+  "author": "Andrew Blokhin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Quo0/ComfyUI-portable-organizer.git"
+  },
   "packageManager": "pnpm@11.21.0",
   "engines": {
     "node": ">=20"

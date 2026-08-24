@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Andrew Blokhin
+// SPDX-License-Identifier: GPL-3.0-only
+
 //! Точка сборки приложения: команды Tauri тонкими обёртками над модулями.
 //!
 //! Здесь же — список команд и событий для `tauri-specta`, из которого
