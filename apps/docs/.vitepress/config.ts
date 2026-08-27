@@ -385,6 +385,13 @@ export default defineConfig({
   },
 
   themeConfig: {
+    // Марка слева от названия во всех локалях: `logo` объявлен здесь,
+    // а не в каждой локали отдельно — по локалям разъезжается только то,
+    // что переводится. Путь без `base`: тема прогоняет его через
+    // `withBase` сама, а с префиксом получилось бы `/ComfyUI-portable-
+    // organizer/ComfyUI-portable-organizer/logo.svg`.
+    logo: '/logo.svg',
+
     socialLinks: [{ icon: 'github', link: REPO }],
 
     search: {

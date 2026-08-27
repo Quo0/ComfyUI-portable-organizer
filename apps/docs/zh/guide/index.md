@@ -4,7 +4,7 @@ ComfyUI Portable Organizer 是一个 Windows 桌面应用，用来管理多份�
 ComfyUI：整合包的注册表、启动器，以及直接绘制在应用窗口内的 ComfyUI
 标签页。
 
-它是你已有的那些文件夹外面的一层壳。它从不修改 ComfyUI，从不改写你的
+它是你已装好的 ComfyUI 文件外面的一层壳。它从不修改这些文件，从不改写你的
 `.bat` 文件，也从不碰 `custom_nodes`。
 
 ## 名词

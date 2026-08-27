@@ -5,8 +5,8 @@ gestiona varias instalaciones portables de ComfyUI: un registro de tus
 instalaciones, un lanzador y el propio ComfyUI dibujado como pestaña dentro
 de la ventana de la aplicación.
 
-Es una envoltura alrededor de carpetas que ya tienes. Nunca parchea
-ComfyUI, nunca edita tus archivos `.bat` y nunca toca `custom_nodes`.
+Es una envoltura **alrededor** de los archivos de ComfyUI ya instalados. Nunca
+los parchea, nunca edita tus archivos `.bat` y nunca toca `custom_nodes`.
 
 ## El vocabulario
 

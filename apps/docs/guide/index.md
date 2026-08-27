@@ -4,8 +4,9 @@ ComfyUI Portable Organizer is a Windows desktop app that manages several
 portable ComfyUI installations: a registry of your builds, a launcher, and
 ComfyUI itself rendered as a tab inside the app window.
 
-It is a shell around folders you already have. It never patches ComfyUI,
-never edits your `.bat` files, and never touches `custom_nodes`.
+It is a shell **around** the ComfyUI files you already installed. It never
+patches them, never edits your `.bat` files, and never touches
+`custom_nodes`.
 
 ## The vocabulary
 

@@ -62,19 +62,3 @@ Get-FileHash '.\ComfyUI Portable Organizer_0.1.0_x64-setup.exe' -Algorithm SHA25
 
 安装之后，应用会自己检查更新，并在 **关于** 中提示。这项检查是它唯一
 发往你电脑之外的内容，而且可以关掉。详见 [更新应用](/zh/guide/updating)。
-
-<style>
-.download-button {
-  display: inline-block;
-  margin: 1rem 0;
-  padding: 0.6rem 1.4rem;
-  border-radius: 20px;
-  background: var(--vp-c-brand-3);
-  color: var(--vp-c-white);
-  font-weight: 600;
-  text-decoration: none;
-}
-.download-button:hover {
-  background: var(--vp-c-brand-2);
-}
-</style>

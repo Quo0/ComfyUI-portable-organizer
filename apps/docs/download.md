@@ -63,19 +63,3 @@ no signature on it.
 Once installed, the app checks for updates itself and offers them in
 **About**. That check is the only thing it ever sends outside your
 computer, and it can be turned off. See [Updating](/guide/updating).
-
-<style>
-.download-button {
-  display: inline-block;
-  margin: 1rem 0;
-  padding: 0.6rem 1.4rem;
-  border-radius: 20px;
-  background: var(--vp-c-brand-3);
-  color: var(--vp-c-white);
-  font-weight: 600;
-  text-decoration: none;
-}
-.download-button:hover {
-  background: var(--vp-c-brand-2);
-}
-</style>
