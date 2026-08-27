@@ -1,12 +1,9 @@
 <script setup lang="ts">
-// Органы управления запуском: кнопка, выбор профиля, остановка.
+
 //
-// Живут в шапке экрана сборки, а не внутри вкладки: запустить и остановить
-// нужно с любой из них, и прятать это за переключением вкладок значило бы
-// заставлять искать главное действие.
+
 //
-// Выпадашка профилей рендерится, пока вебвью ещё не создан, поэтому
-// конфликта с ним нет — так и записано в дисциплине z-order.
+
 import { ExternalLink } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -36,7 +33,6 @@ onMounted(() => {
   chosen.value = profiles.value[0]?.id ?? null;
 });
 
-// Профили грузит экран, и приехать они могут позже нас.
 watch(profiles, (list) => {
   if (!chosen.value) chosen.value = list[0]?.id ?? null;
 });
@@ -50,9 +46,7 @@ function openInBrowser(): void {
 <template>
   <var class="LaunchControls">
     <template v-if="!active">
-      <!-- Сплит-кнопка: основное действие слева, выбор профиля справа.
-           Профилей у портабл-сборки обычно четыре, и прятать их
-           в настройки значило бы прятать выбор видеокарты. -->
+
       <button
         type="button"
         class="btn primary lg"
@@ -67,7 +61,7 @@ function openInBrowser(): void {
         class="input"
         :aria-label="t('run.profile')"
       >
-        <!-- Имена профилей — имена файлов, они не переводятся. -->
+
         <option v-for="p in profiles" :key="p.id" :value="p.id">
           {{ p.name }}{{ p.advanced ? ' · ' + t('instances.field.profilesAdvanced') : '' }}
         </option>
@@ -75,8 +69,7 @@ function openInBrowser(): void {
     </template>
 
     <template v-else>
-      <!-- Ради вкладки всё и затевалось, поэтому она — главное действие
-           работающей сборки, а не пункт где-то сбоку. -->
+
       <RouterLink
         v-if="state === 'running' || state === 'starting'"
         class="btn primary lg"

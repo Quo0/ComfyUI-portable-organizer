@@ -10,13 +10,6 @@ import {
 import { useInstancesStore } from './instances';
 import { useUiStore } from './ui';
 
-/**
- * Общее хранилище моделей.
- *
- * Настройки и результат сканирования держим в сторе, а не в экране:
- * подключение инстанса спрашивают и с экрана инстанса, и из мастера
- * установки, и оба должны видеть одно и то же состояние.
- */
 export const useSharedStore = defineStore('shared', () => {
   const ui = useUiStore();
   const instances = useInstancesStore();
@@ -25,14 +18,9 @@ export const useSharedStore = defineStore('shared', () => {
   const scan = ref<RootScan | null>(null);
   const yaml = ref('');
 
-  /**
-   * Идёт обход дерева. На папке в сотни гигабайт это десятки тысяч
-   * обращений к метаданным; без индикатора экран выглядит замершим.
-   */
   const scanning = ref(false);
   const loaded = ref(false);
 
-  /** Первый корень: интерфейс заводит один, модель допускает несколько. */
   const root = computed(() => settings.value.roots[0] ?? null);
   const configured = computed(() => root.value !== null);
   const available = computed(() => scan.value?.available === true);
@@ -47,13 +35,6 @@ export const useSharedStore = defineStore('shared', () => {
     () => scan.value?.categories.filter((c) => c.status === 'blocked') ?? [],
   );
 
-  /**
-   * Сколько инстансов подключено — для сводки на экране настроек.
-   *
-   * `shared` необязательное: у записей реестра, сделанных до этой фазы,
-   * поля нет вовсе. Так и должно быть — умолчание на стороне Rust спасает
-   * старый реестр от падения разбора, а фронт обязан это учитывать.
-   */
   const connected = computed(
     () => instances.items.filter((i) => i.shared?.enabled).length,
   );
@@ -99,7 +80,6 @@ export const useSharedStore = defineStore('shared', () => {
     if (res.status === 'error') ui.pushError(res.error);
   }
 
-  /** Задаёт общий корень. Пустой путь означает «убрать». */
   async function setRoot(path: string): Promise<void> {
     settings.value.roots = path
       ? [{ id: 'root-0', path, label: '', enabled: true }]
@@ -111,8 +91,7 @@ export const useSharedStore = defineStore('shared', () => {
   async function setDefaultTarget(value: boolean): Promise<void> {
     settings.value.makeDefaultTarget = value;
     await persist();
-    // Предпросмотр обязан отреагировать сразу: тумблер меняет ровно одну
-    // строку YAML, и увидеть её — единственный способ понять, что он делает.
+
     await refreshPreview();
   }
 
@@ -135,14 +114,6 @@ export const useSharedStore = defineStore('shared', () => {
     }
   }
 
-  /**
-   * Подключает инстанс. Возвращает путь резервной копии, если чужой файл
-   * пришлось подвинуть, `false` — если отказано, и `null` — если копии
-   * не потребовалось.
-   *
-   * Отказ по коду `shared.foreignConfig` — не ошибка, а развилка: экран
-   * инстанса покажет сравнение и переспросит.
-   */
   async function connect(
     id: string,
     mode: ApplyMode,

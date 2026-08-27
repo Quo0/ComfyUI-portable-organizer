@@ -1,8 +1,5 @@
 <script setup lang="ts">
-// Добавление инстанса — отдельный роут, а не модалка: дочерний вебвью
-// с ComfyUI это нативное окно поверх нашего HTML, и модалка над ним
-// физически невозможна. Правило применяется всюду, а не только там,
-// где вебвью уже есть, — иначе оно расползётся исключениями.
+
 import { ArrowLeft } from '@lucide/vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -29,8 +26,7 @@ const { t } = useI18n();
 const probing = ref(false);
 const saving = ref(false);
 const probe = ref<ProbeResult | null>(null);
-/** Ошибка проверки показывается на месте, а не тостом: она про эту папку
-    и должна остаться на экране, пока пользователь не выберет другую. */
+
 const problem = ref<AppError | null>(null);
 
 const edit = ref<InstanceEdit>({
@@ -82,9 +78,7 @@ async function submit(): Promise<void> {
 <template>
   <var class="AddInstanceView">
     <section class="screen">
-      <!-- Ряд шага, как в мастере: обе дорожки «Добавления» начинаются
-           одинаково. «Назад» ведёт в «Добавление», а не в список сборок:
-           сюда приходят только оттуда, и «Назад» всегда левее действия. -->
+
       <StepBar>
         <h2 class="title">{{ t('instances.add.title') }}</h2>
         <span class="spacer"></span>
@@ -93,14 +87,7 @@ async function submit(): Promise<void> {
             <ArrowLeft class="ico" />
             {{ t('common.back') }}
           </RouterLink>
-          <!-- Главное действие экрана стоит там же, где во всём разделе, —
-               в ряду шага. Внизу, под формой, оно уезжало из виду вместе
-               с прочитанным о папке.
 
-               Пока папку не выбрали, добавлять нечего, и кнопка выключена,
-               а не спрятана: пропадающая кнопка не говорит, чем экран
-               закончится. Исчезает она только там, где действие другое, —
-               когда папка уже в списке. -->
           <button
             v-if="!probe?.existingId"
             type="button"
@@ -121,8 +108,7 @@ async function submit(): Promise<void> {
             <span class="t-label">{{ t('instances.field.folder') }}</span>
             <div class="path-row">
               <div class="input mono">
-                <!-- Путь не переводится и не сокращается: по нему пользователь
-                     идёт разбираться руками. -->
+
                 <span>{{ probe?.probe.path ?? '' }}</span>
               </div>
               <button type="button" class="btn secondary" @click="chooseFolder">
@@ -134,17 +120,13 @@ async function submit(): Promise<void> {
           </Field>
 
           <template v-if="probe">
-            <!-- Повторная регистрация той же папки не создаёт второй инстанс:
-                 ведём к уже существующему. -->
+
             <Group v-if="probe.existingId">
               <RouterLink class="btn primary" :to="`/instances/${probe.existingId}`">
                 {{ t('instances.add.openExisting') }}
               </RouterLink>
             </Group>
 
-            <!-- Две колонки: слева то, что прочитали в папке, справа то,
-                 что заполняет пользователь. Одним свитком прочитанное
-                 оттесняло форму вниз, за край экрана. -->
             <div v-else class="cols">
               <div>
                 <KeyValueList>
@@ -186,9 +168,6 @@ async function submit(): Promise<void> {
 
               <div>
                 <InstanceFields v-model="edit" />
-
-                <!-- Кнопок под формой нет: действие уехало в ряд шага,
-                     «Отмена» ушла как второй выход. -->
               </div>
             </div>
           </template>
@@ -199,14 +178,7 @@ async function submit(): Promise<void> {
 </template>
 
 <style scoped>
-/* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
-   без него заголовок прилипает к заголовку окна. `:deep()` обязателен:
-   корень `StepBar` — обёртка `<var>`, а не сам `.step-bar`, и обычный
-   скоуп-атрибут родителя до вложенного div не достаёт.
 
-   Якорь `.AddInstanceView` перед `:deep()` обязателен тоже: голый
-   `:deep(.step-bar)` компилируется без scope-атрибута вовсе и утекает
-   на все `StepBar` в приложении, а не только на этот экран. */
 .AddInstanceView :deep(.step-bar) {
   padding-top: var(--space-4);
 }

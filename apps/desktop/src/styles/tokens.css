@@ -1,50 +1,31 @@
-/* Палитра и метрики приложения — правится здесь напрямую, это источник
- * правды. Витрина (apps/design) показывает те же значения на .t-light/
- * .t-dark для панелей ThemePair.vue — тот файл генерируется отсюда
- * командой `pnpm design:tokens`, а не наоборот.
- *
- * Тёмные объявления повторяются дважды намеренно: медиа-запрос
- * (`prefers-color-scheme`) нельзя объединить с атрибутным селектором
- * (`[data-theme="dark"]`) в один блок, а разойтись им нельзя — проверяет
- * `pnpm design:check`.
- */
+
 
 :root {
-  /* Основания и поверхности.
-     Нейтраль тёплая (тон ~45°, хрома 3-6%) — достаточно, чтобы читаться
-     выбранной, и достаточно мало, чтобы не подкрашивать акценты инстансов. */
   --ground:            #f7f6f3;
   --surface:           #ffffff;
   --surface-sunken:    #efeeea;
   --surface-hover:     #f2f1ec;
   --surface-active:    #e9e7e1;
 
-  /* Границы */
   --line:              #dedbd4;
   --line-strong:       #c7c3b9;
   --line-faint:        #eae8e2;
 
-  /* Текст */
   --ink:               #1c1a16;
   --ink-secondary:     #5c574e;
   --ink-muted:         #6e6960;
   --ink-on-accent:     #ffffff;
 
-  /* Состояния инстанса. Эти же цвета идут и в текст, и в точку,
-     поэтому подобраны под контраст текста, а не только заливки. */
   --state-stopped:     #6e6960;
   --state-starting:    #8a5d06;
   --state-running:     #2f7a38;
   --state-crashed:     #b23124;
   --state-unavailable: #8b8579;
 
-  /* Мягкие подложки под пилюли состояний */
   --state-starting-bg: #f5ecd6;
   --state-running-bg:  #e2f0e3;
   --state-crashed-bg:  #f7e2df;
 
-  /* Акценты инстансов. Полоса яркости выбрана так, чтобы каждый
-     проходил 3:1 и на светлом, и на тёмном основании. */
   --accent-ember:      #c2542b;
   --accent-amber:      #a87a12;
   --accent-moss:       #5c8a2e;
@@ -54,26 +35,18 @@
   --accent-orchid:     #9b4fa8;
   --accent-rose:       #c24169;
 
-  /* Фокус */
   --focus-ring:        #2e7bc4;
 
-  /* Главное действие. Нейтральное намеренно: фирменный цвет здесь
-     конкурировал бы с акцентами инстансов, которые выбирает пользователь. */
   --btn-primary-bg:    #2a2721;
   --btn-primary-hover: #1c1a16;
   --btn-primary-ink:   #ffffff;
 
-  /* Консоль логов */
   --console-bg:        #201f1b;
   --console-ink:       #ddd9d1;
   --console-dim:       #8b8579;
 
-  /* Тень всплывающих элементов — тостов */
   --shadow-pop:        0 4px 16px rgb(0 0 0 / 0.13);
 
-  /* Прокрутка. Полоса тонкая и из палитры: системная светлая полоса
-     в тёмном интерфейсе выглядит чужеродно. Затухание у края —
-     полупрозрачный цвет, показывающий, что содержимое продолжается. */
   --scroll-thumb:      #c7c3b9;
   --edge-fade:         #1c1a1618;
 }
@@ -183,16 +156,12 @@
 }
 
 :root {
-  /* Шрифты. Приложение только под Windows, поэтому стек начинается
-     с системных гарнитур Windows — интерфейс будет отрисован именно ими.
-     Microsoft YaHei обязателен: без него китайский падает в фолбэк. */
   --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei",
              system-ui, sans-serif;
   --font-ui-display: "Segoe UI Variable Display", "Segoe UI",
                      "Microsoft YaHei", system-ui, sans-serif;
   --font-mono: "Cascadia Mono", "Consolas", "Courier New", monospace;
 
-  /* Шкала. Плотный инструмент: базовый кегль 13, шаг небольшой. */
   --text-xs:   11px;
   --text-sm:   12px;
   --text-base: 13px;
@@ -209,7 +178,6 @@
 
   --tracking-label: 0.06em;
 
-  /* Шаг сетки 4px */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -218,42 +186,28 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Радиусы. Мелкие — инструмент, а не карточки соцсети. */
   --radius-sm: 3px;
   --radius-md: 5px;
   --radius-pill: 999px;
 
-  /* Размеры контролов */
   --control-h: 28px;
   --control-h-lg: 34px;
 
-  /* Рейл навигации */
   --rail-w: 208px;
-  /* Высота пункта рейла. Из неё же выводится ширина свёрнутого рейла:
-     кнопка обязана быть квадратной, иначе в свёрнутом виде получается
-     полоса с иконкой посередине. */
+
   --rail-item-h: 30px;
-  /* Высота пункта плюс поля рейла (--space-2 с каждой стороны). */
+
   --rail-w-collapsed: 46px;
 
-  /* Тени. Едва заметные: плоский инструмент. */
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.08);
 
-  /* ---------------------------------------------------------- движение */
-  /* Общая шкала transitions.dev (github.com/Jakubantalik/transitions.dev) —
-     согласованный словарь длительностей и кривых вместо чисел, придуманных
-     на каждый компонент заново. На неё ссылаются переменные ниже: тост,
-     выпадающее меню, аккордеон категории общих моделей, смена текста
-     пилюли статуса и бейдж упавшего инстанса в рейле. */
-  --duration-quick:  150ms; /* закрытие: дропдаун, тост, смена текста */
-  --duration-fast:   250ms; /* открытие: дропдаун, аккордеон */
-  --duration-medium: 350ms; /* открытие тоста */
-  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1); /* дропдаун, аккордеон, тост */
-  --ease-in-out:     ease-in-out; /* смена текста статуса */
-  --blur-small:      2px; /* тост, аккордеон, смена текста, бейдж */
+  --duration-quick:  150ms;
+  --duration-fast:   250ms;
+  --duration-medium: 350ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out:     ease-in-out;
+  --blur-small:      2px;
 
-  /* Тост: приход медленнее ухода — появление читается как заявление
-     о себе, исчезновение не должно задерживать. */
   --toast-open:     var(--duration-medium);
   --toast-close:    var(--duration-quick);
   --toast-ease:     var(--ease-smooth-out);
@@ -261,34 +215,22 @@
   --toast-blur:     var(--blur-small);
   --toast-scale:    0.97;
 
-  /* Выпадающее меню: растёт от места клика, схлопывается чуть быстрее
-     и до чуть другого масштаба — следующее открытие не наследует
-     масштаб закрытия. */
   --dropdown-open-dur:      var(--duration-fast);
   --dropdown-close-dur:     var(--duration-quick);
   --dropdown-ease:          var(--ease-smooth-out);
   --dropdown-pre-scale:     0.97;
   --dropdown-closing-scale: 0.99;
 
-  /* Аккордеон категории общих моделей: высота через grid-rows, без замера
-     в JS. Шеврон продолжает крутиться transform-ом (кросс-браузерно
-     всегда), а не флипаться, как в исходном снипете, — у нас это уже
-     не морф контура. */
   --acc-expand:   var(--duration-fast);
   --acc-collapse: var(--duration-fast);
   --acc-chevron:  var(--duration-fast);
   --acc-ease:     var(--ease-smooth-out);
 
-  /* Смена текста пилюли статуса: старое уезжает вверх и размывается,
-     новое приходит снизу тем же путём. */
   --text-swap-dur:         var(--duration-quick);
   --text-swap-translate-y: 4px;
   --text-swap-blur:        var(--blur-small);
   --text-swap-ease:        var(--ease-in-out);
 
-  /* Бейдж «!» на упавшем инстансе в рейле: точка выезжает по диагонали
-     и пружинит при появлении, при исчезновении гасится быстрее и без
-     пружины. */
   --badge-slide-dur:      260ms;
   --badge-pop-dur:        500ms;
   --badge-pop-close-dur:  180ms;
@@ -301,12 +243,6 @@
   --badge-pop-ease:       cubic-bezier(0.34, 1.36, 0.64, 1);
   --badge-close-ease:     cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Тумблер: ползунок перехлёстывает мимо края и возвращается, дорожка
-     меняет цвет отдельно и чуть быстрее. Кривая перехлёста та же, что
-     у пружины бейджа выше, — не заводим второй почти одинаковый изгиб.
-     Расстояние хода не из демо transitions.dev: у него другая геометрия
-     дорожки, здесь оно посчитано по своей — 32px дорожка минус по 2px
-     полей минус 14px кружка. */
   --toggle-thumb-dur:   var(--duration-medium);
   --toggle-thumb-ease:  var(--badge-pop-ease);
   --toggle-track-dur:   var(--duration-quick);
@@ -314,11 +250,6 @@
   --toggle-overshoot-1: 1px;
   --toggle-overshoot-2: 0px;
 
-  /* Толчок поля при занятом имени: две большие дуги вправо-влево, потом
-     доводка с перелётом — ритм короче, чем у прыжка тумблера, и без
-     остановки посередине. Автосброса нет: ошибка гаснет, только когда
-     пользователь её решит, как и везде в приложении, — поэтому у этого
-     отказа нет ни `--shake-hold`, ни `--shake-revert` из образца. */
   --shake-dur-a:     80ms;
   --shake-dur-b:     60ms;
   --shake-ease:      var(--ease-smooth-out);

@@ -1,9 +1,7 @@
 <script setup lang="ts">
-// Подключение инстанса к общим моделям.
+
 //
-// Всё раскрывается на месте, включая сравнение с чужим конфигом: модалок
-// в приложении нет по дисциплине z-order, а решение «заменить чужой файл»
-// требует показать, что именно заменяется.
+
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -28,21 +26,15 @@ const ui = useUiStore();
 const { t } = useI18n();
 
 const mode = ref<ApplyMode>(props.instance.shared?.applyMode ?? 'flag');
-/** Чужой конфиг, который придётся подвинуть. Пусто — вопроса нет. */
+
 const foreign = ref<InstanceFileInfo | null>(null);
 const backup = ref<string | null>(null);
 const busy = ref(false);
 
-/** Перехлёст ползунка тумблера играет только с первого клика, не с отрисовки. */
 const toggleTouched = ref(false);
 
 const enabled = computed(() => props.instance.shared?.enabled === true);
 
-/**
- * Настройка прочитается только при следующем старте: аргументы командной
- * строки у работающего процесса поменять нечем. Сказать это обязательно —
- * иначе пользователь сочтёт, что функция сломана.
- */
 const running = computed(() =>
   ['starting', 'running', 'stopping', 'detached'].includes(
     displayStatus(props.instance, run.statusOf(props.instance.id)),
@@ -54,12 +46,6 @@ onMounted(() => {
   if (!shared.loaded) void shared.load();
 });
 
-/**
- * Блок «путь и способ» и панель режима под тумблером появляются
- * и пропадают вместе с `enabled` — с переходом (transitions.dev). Само
- * состояние переписывает стор уже после ответа бэкенда, поэтому обёртка
- * асинхронная (`withViewTransitionAsync`): синхронной здесь нечего ловить.
- */
 async function toggle(): Promise<void> {
   if (busy.value) return;
   toggleTouched.value = true;
@@ -84,8 +70,6 @@ async function toggle(): Promise<void> {
 async function connect(confirmOverwrite: boolean): Promise<void> {
   const result = await shared.connect(props.instance.id, mode.value, confirmOverwrite);
   if (result === false) {
-    // Отказ по чужому файлу — единственный случай, когда стор молчит:
-    // это развилка, а не ошибка. Показываем, что там лежит.
     const res = await commands.inspectInstanceConfig(props.instance.id);
     if (res.status === 'ok' && res.data.state === 'foreign') foreign.value = res.data;
     return;
@@ -96,14 +80,11 @@ async function connect(confirmOverwrite: boolean): Promise<void> {
   if (result) ui.pushOk(t('shared.instance.backupMade', { path: result }));
 }
 
-/** Смена способа применения у уже подключённого инстанса. */
 async function setMode(next: ApplyMode): Promise<void> {
   mode.value = next;
   if (!enabled.value || busy.value) return;
   busy.value = true;
   try {
-    // Сначала снимаем прежний способ, иначе файл в папке инстанса остался
-    // бы лежать после перехода на флаг.
     await shared.disconnect(props.instance.id);
     await connect(false);
   } finally {
@@ -115,18 +96,10 @@ async function setMode(next: ApplyMode): Promise<void> {
 <template>
   <var class="SharedPanel">
     <Group>
-      <!-- Вкладка это два отдела: общая папка и модели самой сборки.
-           Заголовок у них одной формы — подпись, значок своей папки, дальше
-           содержимое: иначе верх вкладки читался набором разрозненных строк
-           без границы между отделами. -->
+
       <div class="row">
         <span class="t-label">{{ t('shared.instance.label') }}</span>
-        <!-- Тот же значок папки, что у моделей сборки ниже, но ведёт в общую:
-             разбираться руками с тем, что уже перенесено, приходится именно
-             там, а пути к ней на этой вкладке больше нет нигде — в строке
-             под тумблером он показан только у подключённой сборки.
-             Доступное имя своё: две одинаково подписанные кнопки-папки
-             на одном экране неразличимы на слух. -->
+
         <OpenFolderButton
           :path="shared.root?.path"
           :title="shared.root?.path"
@@ -135,9 +108,6 @@ async function setMode(next: ApplyMode): Promise<void> {
         />
       </div>
 
-      <!-- Тумблер отдельной строкой, а подпись справа от него говорит, что он
-           делает. Название отдела ушло в заголовок, и повторять его здесь
-           незачем. -->
       <ToggleRow>
         <Toggle
           :checked="enabled"
@@ -149,8 +119,6 @@ async function setMode(next: ApplyMode): Promise<void> {
         <div>
           <div class="t-base">{{ t('shared.instance.hint') }}</div>
 
-          <!-- Корень не задан — подключать не к чему. Вместо мёртвого
-               тумблера ведём туда, где его задают. -->
           <div v-if="!shared.configured" class="hint">
             {{ t('shared.instance.noRoot') }}
             <RouterLink to="/settings/shared-models">
@@ -188,14 +156,10 @@ async function setMode(next: ApplyMode): Promise<void> {
         <p class="hint">{{ t(`shared.mode.${mode}.hint`) }}</p>
       </Group>
 
-      <!-- Плашка про рестарт. Живёт до перезапуска, а не гаснет по таймеру:
-           пользователь может уйти в другой раздел и вернуться. -->
       <p v-if="needsRestart && running" class="hint bad">
         {{ t('shared.instance.needsRestart') }}
       </p>
 
-      <!-- В папке инстанса уже лежит чужой файл. Показываем его целиком:
-           решение «заменить» принимается не вслепую. -->
       <Group v-if="foreign" danger>
         <p class="t-md">{{ t('shared.foreign.title') }}</p>
         <p class="t-sm">{{ t('shared.foreign.body', { path: foreign.path }) }}</p>

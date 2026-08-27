@@ -1,12 +1,9 @@
 <script setup lang="ts">
-// История архивов установщика.
+
 //
-// Раздел был серым пунктом-заглушкой: команды `archive_history`
-// и `forget_archive` существовали с Фазы 1.5, но экрана у них не было,
-// и посмотреть, что приложение помнит, было негде.
+
 //
-// Список ничего не удаляет с диска: «забыть» убирает запись, а сам
-// архив остаётся там, куда его скачали.
+
 import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -40,9 +37,7 @@ onMounted(() => void installer.loadHistory());
           <KeyValueList v-if="installer.history.length" with-acts>
             <KeyValueRow v-for="record in installer.history" :key="record.path">
               <span class="lbl">
-                <!-- Имя файла и путь не переводятся никогда, а путь ещё
-                     и не сокращается: он переносится по разделителям
-                     папок, а не срезается краем списка. -->
+
                 {{ record.label }}
                 <span class="hint"><PathText :path="record.path" /></span>
               </span>

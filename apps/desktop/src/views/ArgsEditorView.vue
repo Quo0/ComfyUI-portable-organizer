@@ -1,13 +1,9 @@
 <script setup lang="ts">
-// Редактор аргументов запуска.
+
 //
-// Отдельный роут, а не модалка: дисциплина z-order. И отдельный экран
-// по существу — здесь пользователь читает итоговую команду, а это не то,
-// что разглядывают во всплывашке.
+
 //
-// Файлы .bat самой сборки не меняются никогда. Правка сохраняется своим
-// профилем поверх одного из них: разбор `.bat` перечитывается при каждом
-// запуске, и удержать правку внутри него было бы негде.
+
 import { ArrowLeft, X } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,7 +26,7 @@ const { t } = useI18n();
 
 const instance = computed(() => instances.byId(props.id));
 const all = computed<LaunchProfile[]>(() => run.profiles[props.id] ?? []);
-/** Профили из `.bat`: только они могут быть основой. */
+
 const bases = computed(() => all.value.filter((p) => !p.id.startsWith('custom:')));
 const mine = computed(() => instance.value?.customProfiles ?? []);
 
@@ -47,7 +43,6 @@ watch(bases, (list) => {
   if (!draft.value.baseId && list.length) reset(list[0].id);
 });
 
-/** Берёт аргументы базового профиля как есть — то, что написано в .bat. */
 function reset(baseId: string): void {
   const base = all.value.find((p) => p.id === baseId);
   draft.value = {
@@ -73,15 +68,6 @@ function removeArg(index: number): void {
   void refreshPreview();
 }
 
-/**
- * Предпросмотр считает Rust, а не фронт: мутацию аргументов делает он,
- * и повторять её здесь значило бы завести вторую правду о команде.
- *
- * Пока профиль не сохранён, Rust о черновике не знает — поэтому от него
- * берётся только хвост, дописываемый при запуске, а сами аргументы
- * подставляются из черновика. Иначе предпросмотр показывал бы то,
- * что лежит в `.bat`, а не то, что пользователь только что набрал.
- */
 async function refreshPreview(): Promise<void> {
   const source = draft.value.baseId;
   if (!source) return;
@@ -99,8 +85,6 @@ async function refreshPreview(): Promise<void> {
   ];
 }
 
-// Реактивность вместо кнопки «обновить»: предпросмотр обязан отвечать
-// на каждый набранный символ.
 watch(
   () => [draft.value.args.join(' '), draft.value.baseId],
   () => void refreshPreview(),
@@ -139,17 +123,10 @@ async function remove(profile: CustomProfile): Promise<void> {
 <template>
   <var class="ArgsEditorView">
     <section v-if="instance" class="screen">
-      <!-- Ряд шага, как в мастере и на добавлении инстанса: экран линейный —
-           пришли сюда с экрана сборки, сохранили, вернулись. Поэтому «Назад»
-           здесь не навигация у левого края, а шаг назад рядом с действием,
-           и стоит левее его.
 
-           Внизу «Сохранить» уезжала из виду тем вернее, чем больше аргументов
-           правят: под ней скроллится их список. -->
       <StepBar>
         <h2 class="title">{{ t('args.title') }}</h2>
-        <!-- Имя сборки при заголовке, а не у правого края: оно уточняет,
-             чьи аргументы правятся, и в отрыве читалось как чужая строка. -->
+
         <span class="hint">{{ instance.name }}</span>
         <span class="spacer"></span>
         <span class="acts">
@@ -192,7 +169,7 @@ async function remove(profile: CustomProfile): Promise<void> {
           <div class="two">
             <Field>
               <label for="base">{{ t('args.base') }}</label>
-              <!-- Имена профилей — имена файлов, они не переводятся. -->
+
               <select
                 id="base"
                 class="input"
@@ -211,11 +188,9 @@ async function remove(profile: CustomProfile): Promise<void> {
           <Group>
             <span class="t-label">{{ t('args.list') }}</span>
             <div v-for="(_, index) in draft.args" :key="index" class="path-row">
-              <!-- Предпросмотр обновляется на каждый ввод, а не по потере
-                   фокуса: правишь аргумент — сразу видишь команду. -->
+
               <input v-model="draft.args[index]" class="input mono" type="text" />
-              <!-- Тот же крестик, что убирает строку в списке назначений
-                   мастера: одна операция — один значок. -->
+
               <span class="acts">
                 <button
                   type="button"
@@ -240,12 +215,10 @@ async function remove(profile: CustomProfile): Promise<void> {
 
           <Group>
             <span class="t-label">{{ t('args.preview') }}</span>
-            <!-- Команда не переводится и не сокращается: по ней разбираются. -->
+
             <pre class="console preview">{{ preview.join(' ') }}</pre>
             <p class="hint">{{ t('args.previewHint') }}</p>
           </Group>
-
-          <!-- Кнопки под формой нет: действие уехало в ряд шага. -->
         </div>
       </div>
     </section>
@@ -253,19 +226,8 @@ async function remove(profile: CustomProfile): Promise<void> {
 </template>
 
 <style scoped>
-/* Ряд шага встал на место шапки экрана и берёт её верхнее поле:
-   без него заголовок прилипает к заголовку окна. `:deep()` обязателен:
-   корень `StepBar` — обёртка `<var>`, а не сам `.step-bar`, и обычный
-   скоуп-атрибут родителя до вложенного div не достаёт.
 
-   Якорь `.ArgsEditorView` перед `:deep()` обязателен тоже: голый
-   `:deep(.step-bar)` компилируется без scope-атрибута вовсе и утекает
-   на все `StepBar` в приложении, а не только на этот экран. */
 .ArgsEditorView :deep(.step-bar) {
   padding-top: var(--space-4);
 }
-
-/* Вид предпросмотра живёт в дизайн-системе (`.console.preview`):
-   здесь он был только у приложения, и макет рисовал команду одной
-   строкой с прокруткой — то есть показывал не то, что на экране. */
 </style>

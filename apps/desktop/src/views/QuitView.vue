@@ -1,9 +1,7 @@
 <script setup lang="ts">
-// Что делать с работающими серверами при закрытии окна.
+
 //
-// Экран, а не диалог: у работающей сборки поверх нашего HTML лежит
-// нативное окно вкладки, и перекрыть его нечем. Rust прячет вкладки
-// и присылает событие, роутер приводит сюда.
+
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -26,7 +24,6 @@ const { t } = useI18n();
 
 const busy = ref(false);
 
-/** Только те, кого закрытие унесёт с собой. */
 const running = computed(() =>
   run.active
     .filter((status) => status.state !== 'detached')
@@ -40,16 +37,14 @@ const running = computed(() =>
 onMounted(async () => {
   if (!instances.loaded) await instances.load();
   await run.load();
-  // Пока читали сообщение, сборки могли остановиться сами. Держать
-  // пользователя на экране вопроса, у которого больше нет предмета, незачем.
+
   if (running.value.length === 0) await router.replace('/instances');
 });
 
 async function stopAndExit(): Promise<void> {
   busy.value = true;
   const res = await commands.stopAllAndQuit();
-  // Сюда попадаем только если выйти не удалось: обычно приложение
-  // закрывается прямо внутри вызова.
+
   busy.value = false;
   if (res.status === 'error') ui.pushError(res.error);
 }
@@ -60,8 +55,7 @@ async function toTray(): Promise<void> {
     ui.pushError(res.error);
     return;
   }
-  // Возврат из трея не должен приводить на экран вопроса, который
-  // пользователь уже закрыл.
+
   await router.replace('/instances');
 }
 </script>

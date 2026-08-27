@@ -30,7 +30,6 @@ export const useInstancesStore = defineStore('instances', () => {
     loaded.value = true;
   }
 
-  /** Проверка выбранной папки. Ошибку показывает вызывающий экран. */
   async function probe(path: string): Promise<ProbeResult | null> {
     const res = await commands.probeFolder(path);
     if (res.status === 'error') return null;
@@ -63,18 +62,11 @@ export const useInstancesStore = defineStore('instances', () => {
     return res.data;
   }
 
-  /**
-   * Кладёт на место инстанс, обновлённый другой командой.
-   *
-   * Нужен там, где реестр меняет не `update`: свои профили запуска правит
-   * своя команда, и перечитывать весь список ради одной записи незачем.
-   */
   function replace(instance: Instance): void {
     const at = items.value.findIndex((i) => i.id === instance.id);
     if (at >= 0) items.value[at] = instance;
   }
 
-  /** Убирает из реестра. Папку на диске не трогает. */
   async function remove(id: string): Promise<boolean> {
     const res = await commands.removeInstance(id);
     if (res.status === 'error') {
@@ -85,11 +77,6 @@ export const useInstancesStore = defineStore('instances', () => {
     return true;
   }
 
-  /**
-   * Считает размер на диске. Обход 52 ГБ занимает минуты, поэтому вызов
-   * ничего не блокирует: команда `async`, а результат прилетает, когда
-   * досчитается. `null` означает, что подсчёт этого инстанса уже идёт.
-   */
   async function measureSize(id: string): Promise<void> {
     const res = await commands.measureInstanceSize(id);
     if (res.status === 'error') {

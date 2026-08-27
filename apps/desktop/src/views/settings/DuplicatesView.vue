@@ -1,9 +1,7 @@
 <script setup lang="ts">
-// Отчёт о дубликатах моделей.
+
 //
-// Только отчёт. Ни одной кнопки, что-либо делающей с файлами: уборка
-// дублей живёт своей командой на экране сборки, где виден перечень
-// и понятно, из какой именно установки уйдёт копия.
+
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { UnlistenFn } from '@tauri-apps/api/event';
@@ -41,18 +39,10 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   unlisten.forEach((off) => off());
-  // Уход с экрана прекращает обход: держать диск занятым ради отчёта,
-  // который никто не увидит, незачем.
+
   if (scanning.value) void commands.cancelDuplicatesScan();
 });
 
-/**
- * Полоса хода и итоговый отчёт подменяют друг друга целиком — с переходом
- * (transitions.dev), а не рывком. Мутация синхронна по обе стороны
- * единственного `await`: `report.value` переписывается сразу по ответу
- * бэкенда, без вложенных стора и вторых `await` между ними, — как
- * и у выбора строки в библиотеке воркфлоу, ловить здесь нечего.
- */
 async function scan(): Promise<void> {
   withViewTransition(() => {
     scanning.value = true;
@@ -78,8 +68,7 @@ async function cancel(): Promise<void> {
 <template>
   <var class="DuplicatesView">
     <div class="screen">
-      <!-- Экран называется отчётом, а не «дубликатами»: дубликаты — это
-           то, что он нашёл, а не то, чем он является. -->
+
       <ScreenHeader>
         <h1 class="t-lg">{{ t('settings.section.report') }}</h1>
       </ScreenHeader>
@@ -97,8 +86,6 @@ async function cancel(): Promise<void> {
             </button>
           </div>
 
-          <!-- Пауза без подписи читается как зависание, поэтому здесь и полоса,
-               и название места, которое обходим прямо сейчас. -->
           <Group v-if="scanning">
             <div class="bar"><i :style="{ width: `${percent}%` }"></i></div>
             <span class="hint">{{ t('dups.scanning', { place: progress.place }) }}</span>
@@ -111,16 +98,14 @@ async function cancel(): Promise<void> {
               <span class="t-label">
                 {{ t('dups.wasted', { size: bytes(report.wastedBytes) }) }}
               </span>
-              <!-- Строка отчёта: имя, категория, где лежит, сколько впустую.
-                   Список «подпись — значение» здесь не годится — колонок
-                   четыре, и места, где лежат копии, важнее размера. -->
+
               <div class="dup-list">
                 <div
                   v-for="group in report.duplicates"
                   :key="group.category + group.name"
                   class="dup-row"
                 >
-                  <!-- Имена файлов и категорий не переводятся. -->
+
                   <span class="nm">{{ group.name }}</span>
                   <span class="tag">{{ group.category }}</span>
                   <span class="t-mono">{{ bytes(group.wastedBytes) }}</span>

@@ -1,12 +1,7 @@
 import { nextTick } from 'vue';
 import { createRouter, createWebHashHistory, START_LOCATION } from 'vue-router';
 
-// Настройки, добавление инстанса и редактор аргументов — отдельные роуты,
-// а не модалки: дочерний вебвью с ComfyUI это нативное окно поверх нашего
-// HTML, и перекрыть его наш интерфейс физически не может.
 export const router = createRouter({
-  // Хеш, а не история: у окна приложения нет сервера, который отдал бы
-  // index.html по произвольному пути после перезагрузки вебвью.
   history: createWebHashHistory(),
   routes: [
     { path: '/', redirect: '/instances' },
@@ -15,7 +10,7 @@ export const router = createRouter({
       name: 'instances',
       component: () => import('../views/InstancesView.vue'),
     },
-    // Добавление — отдельный роут, а не модалка: см. дисциплину z-order.
+
     {
       path: '/instances/add',
       name: 'instance-add',
@@ -27,25 +22,21 @@ export const router = createRouter({
       component: () => import('../views/InstanceView.vue'),
       props: true,
     },
-    // Встроенная вкладка — свой роут, а не режим экрана инстанса: панели
-    // сборки должны оставаться доступны при работающем сервере, а вход
-    // и выход из роута дают естественные точки показа и скрытия вебвью.
+
     {
       path: '/instances/:id/tab',
       name: 'instance-tab',
       component: () => import('../views/InstanceTabView.vue'),
       props: true,
     },
-    // Редактор аргументов — отдельный роут по той же причине, что
-    // и настройки: модалку поверх области контента положить нельзя.
+
     {
       path: '/instances/:id/args',
       name: 'instance-args',
       component: () => import('../views/ArgsEditorView.vue'),
       props: true,
     },
-    // Закрытие окна при работающих серверах. Не диалог, а экран: у
-    // работающей сборки поверх нашего HTML лежит нативное окно вкладки.
+
     {
       path: '/quit',
       name: 'quit',
@@ -61,10 +52,7 @@ export const router = createRouter({
       name: 'install-wizard',
       component: () => import('../views/InstallWizardView.vue'),
     },
-    // Библиотека переехала в настройки вместе со своей папкой. Редирект
-    // оставлен не ради истории: у хеш-роутера сохранённый адрес окна
-    // переживает перезапуск, и без него старый `#/workflows` уводил бы
-    // в пустоту вместо раздела.
+
     { path: '/workflows', redirect: '/settings/workflow-library' },
     {
       path: '/settings',
@@ -107,12 +95,6 @@ export const router = createRouter({
   ],
 });
 
-// Плавность между экранами — View Transitions API, тем же рецептом, что
-// в официальных примерах Vue Router: обёртки-библиотеки тут не нужно.
-// Пропускаем на первой навигации (первый экран не с чем сравнивать) и на
-// входе или выходе из вкладки сборки — там поверх нашего HTML встаёт
-// нативное окно вебвью, оно не попадает в снимок для перехода, и кроссфейд
-// HTML вокруг мгновенно возникающего окна выглядел бы двойным движением.
 router.beforeResolve((to, from) => {
   if (!document.startViewTransition) return;
   if (from === START_LOCATION) return;
@@ -121,14 +103,10 @@ router.beforeResolve((to, from) => {
   return new Promise<void>((resolve) => {
     const transition = document.startViewTransition(async () => {
       resolve();
-      // Переход снимает «после» только следующим тиком — раньше DOM ещё
-      // не отражает новый маршрут.
+
       await nextTick();
     });
-    // Быстрая повторная навигация обрывает предыдущий переход браузером —
-    // это штатно (следующий `startViewTransition` уже вызван, свой кадр
-    // «после» он снимет сам), но необработанным отказом `finished` вылетало
-    // необработанное исключение прямо в консоль.
+
     transition.finished.catch(() => {});
   });
 });

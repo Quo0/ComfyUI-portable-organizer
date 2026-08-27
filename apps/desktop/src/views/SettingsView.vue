@@ -4,11 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-// Канонический дом настроек общих ресурсов — именно этот раздел. Мастер
-// установки в Фазе 1.5 встроит те же компоненты отдельным шагом, чтобы
-// первый запуск был цельным; логика при этом не дублируется.
 //
-// Разделы, кроме «Внешнего вида», появятся вместе со своими фазами.
 </script>
 
 <template>
@@ -27,8 +23,7 @@ const { t } = useI18n();
           <Workflow class="ico" />
           <span>{{ t('settings.section.library') }}</span>
         </RouterLink>
-        <!-- Отчёт по диску — не настройка, но и не раздел рейла: рейл
-             фиксирован планом, а отчёт про то же, про что общие модели. -->
+
         <RouterLink class="nav-item" active-class="on" to="/settings/duplicates">
           <HardDrive class="ico" />
           <span>{{ t('settings.section.report') }}</span>

@@ -1,13 +1,9 @@
 <script setup lang="ts">
-// Экран сборки.
+
 //
-// До ревизии это была одна лента: запуск, общие модели, модели сборки,
-// воркфлоу, путь, версии, размер, профили, источник, форма редактирования
-// и удаление — подряд, примерно на тысячу строк вёрстки. Найти нужное
-// можно было только прокруткой.
+
 //
-// Вкладки разводят четыре независимых набора данных. Шапка со сборкой
-// и кнопкой запуска закреплена: она нужна на любой вкладке.
+
 import { ArrowLeft } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -51,51 +47,27 @@ const { bytes, moment } = useFormat();
 type Tab = 'overview' | 'models' | 'workflows' | 'settings';
 const TABS: Tab[] = ['overview', 'models', 'workflows', 'settings'];
 
-/**
- * Начальная вкладка берётся из адреса: `?tab=workflows`.
- *
- * Единственное место во всём приложении, где используется query, и это
- * осознанно. Вкладка — состояние вида, а не отдельная страница: своего
- * роута она не заслуживает, а `/instances/:id/tab` уже занят встроенным
- * вебвью ComfyUI и к разделам отношения не имеет.
- *
- * Чужое значение молча игнорируется: адрес приходит и из библиотеки,
- * и из сохранённого адреса окна, и падать из-за опечатки в нём экран
- * сборки не должен.
- */
 function tabFromQuery(value: unknown): Tab {
   return TABS.includes(value as Tab) ? (value as Tab) : 'overview';
 }
 
 const tab = ref<Tab>(tabFromQuery(useRoute().query.tab));
 
-/** Плашка скользит к выбранной вкладке сама, замером в DOM. */
 const tabsBar = ref<HTMLElement | null>(null);
 useSlidingTabs(tabsBar, tab);
 
-/** Смена вкладки — с переходом (transitions.dev), как шаг мастера установки. */
 function selectTab(next: Tab): void {
   if (tab.value === next) return;
   withViewTransition(() => { tab.value = next; });
 }
 
-/**
- * Открытие и закрытие лога — с переходом (transitions.dev): лог занимает
- * область данных целиком, и без перехода подмена была резкой сменой кадра.
- */
 function toggleLog(open: boolean): void {
   if (logOpen.value === open) return;
   withViewTransition(() => { logOpen.value = open; });
 }
 
-/** Лог занимает всю область данных, а не висит куском посреди свитка. */
 const logOpen = ref(false);
-/**
- * Лог принадлежит обзору: кнопка, которая его раскрывает, стоит там же.
- * На других вкладках он занимал их место — «Модели» открывались пустыми.
- * Условие остаётся страховкой на случай, когда флаг подняли не с обзора:
- * старт можно запустить с любой вкладки, кнопка запуска в шапке.
- */
+
 const logShown = computed(() => logOpen.value && tab.value === 'overview');
 const editing = ref(false);
 const confirming = ref(false);
@@ -116,17 +88,12 @@ const lines = computed(() => run.logs[props.id] ?? []);
 const profiles = computed(() => run.profiles[props.id] ?? []);
 const custom = computed(() => instance.value?.customProfiles ?? []);
 
-/** Пустая строка означает «ещё не посчитано»: показывать нечего. */
 const sizeText = computed(() => bytes(instance.value?.sizeBytes));
 const sizeMeasuredText = computed(() => {
   const when = moment(instance.value?.sizeMeasuredAt);
   return when ? t('instances.field.sizeMeasuredAt', { when }) : '';
 });
-/**
- * Строка про общие модели для обзора. Пустая означает «не подключены»:
- * подключение — не ошибка и не пропуск, поэтому в строке стоит прочерк,
- * а не предложение что-то сделать.
- */
+
 const sharedText = computed(() => {
   if (instance.value?.shared?.enabled !== true) return '';
   const mode = instance.value.shared.applyMode;
@@ -142,33 +109,23 @@ const lastRunText = computed(() => {
 
 onMounted(async () => {
   if (!instances.loaded) await instances.load();
-  // Путь общей папки нужен уже на обзоре, а не только на вкладке «Модели».
+
   if (!shared.loaded) await shared.load();
   await run.loadProfiles(props.id);
   await run.loadLog(props.id);
   await measureIfNeeded();
 });
 
-// Прямой переход по ссылке отдаёт экран раньше, чем загрузился реестр.
 watch(instance, () => void measureIfNeeded());
 
-// Старт — это когда лог и есть содержимое экрана: минуты холодного старта
-// без него выглядят как зависание.
 watch(state, (now, before) => {
   if (now === 'starting' && before !== 'starting') logOpen.value = true;
 });
 
-// Смена вкладки закрывает лог: раскрытым он остаётся ровно до тех пор,
-// пока с ним работают. Обзор всегда открывается обычным, а не тем, что
-// на нём раскрывали в прошлый заход.
 watch(tab, () => {
   logOpen.value = false;
 });
 
-/**
- * Размер считается сам при первом открытии и кэшируется. Обход 52 ГБ
- * занимает минуты — без кэша экран показывал бы «считаю…» каждый раз.
- */
 async function measureIfNeeded(): Promise<void> {
   const it = instance.value;
   if (!it || !it.available || it.sizeBytes !== null || measuring.value) return;
@@ -229,8 +186,7 @@ function openFolder(): void {
         >{{ initial(instance.name) }}</span>
         <h1 class="t-lg inst-name">{{ instance.name }}</h1>
         <span class="spacer"></span>
-        <!-- Состояние стоит справа, вплотную к тому, что его меняет:
-             слева, сразу после имени, оно читалось как часть имени. -->
+
         <StatusPill :status="state" />
         <span v-if="status?.port" class="t-mono">:{{ status.port }}</span>
         <LaunchControls :instance="instance" />
@@ -240,8 +196,6 @@ function openFolder(): void {
 
       <LaunchNotices :instance="instance" />
 
-      <!-- Инстанс с исчезнувшей папкой не пропадает из списка: иначе
-           выглядит так, будто приложение потеряло чужую сборку. -->
       <div v-if="!instance.available" class="notices">
         <div class="banner bad">
           <div>
@@ -265,9 +219,6 @@ function openFolder(): void {
         </button>
       </nav>
 
-      <!-- Лог занимает область данных целиком и сворачивается кнопкой.
-           Поверх лечь он не может: у работающей сборки поверх нашего HTML
-           лежит нативное окно вкладки. -->
       <div v-if="logShown" class="log-area">
         <div class="log-head">
           <span class="t-label">{{ t('run.console') }}</span>
@@ -285,11 +236,9 @@ function openFolder(): void {
 
       <div v-else class="screen-body">
         <div class="screen-pad wide">
-          <!-- ------------------------------------------------------- обзор -->
+
           <div v-if="tab === 'overview'" class="cols">
-            <!-- Подписи здесь те же `.field > label`, что и в правой колонке:
-                 две разные подписи в одной форме читаются как два разных
-                 уровня вложенности, которых нет. -->
+
             <div>
               <Field>
                 <label>{{ t('instances.field.lastRunTitle') }}</label>
@@ -300,10 +249,7 @@ function openFolder(): void {
                       {{ status?.readySecs ? t('run.readyIn', { secs: status.readySecs }) : '' }}
                     </span>
                   </KeyValueRow>
-                  <!-- Именно предпочитаемый: настоящий порт выдаётся при
-                       старте и стоит в шапке рядом с состоянием. Показывать
-                       под этой подписью выданный значило бы врать в тот
-                       единственный момент, когда они разошлись. -->
+
                   <KeyValueRow>
                     <span class="lbl">{{ t('instances.field.port') }}</span>
                     <span class="val">{{ instance.preferredPort }}</span>
@@ -321,8 +267,7 @@ function openFolder(): void {
                   <button type="button" class="btn secondary" @click="toggleLog(true)">
                     {{ t('run.showLog') }}
                   </button>
-                  <!-- Про всю область сказано заранее: кнопка не открывает
-                       панельку сбоку, а забирает экран целиком. -->
+
                   <span class="hint">
                     {{ t('run.lines', lines.length) }} · {{ t('run.logExpands') }}
                   </span>
@@ -368,9 +313,7 @@ function openFolder(): void {
                 </KeyValueRow>
                 <KeyValueRow>
                   <span class="lbl">{{ t('instances.field.profiles') }}</span>
-                  <!-- «4 + 1» не говорит, что за плюс один: свои профили
-                       заводит пользователь, и найденные в папке .bat с ними
-                       не смешиваются. -->
+
                   <span class="val">
                     {{ profiles.length
                     }}{{
@@ -380,10 +323,7 @@ function openFolder(): void {
                     }}
                   </span>
                 </KeyValueRow>
-                <!-- Подключение к общим моделям — факт про сборку, а не только
-                     про вкладку «Модели»: почему у двух сборок разный набор
-                     чекпоинтов, спрашивают на обзоре. Здесь он только
-                     показан — тумблер живёт в одном месте, на своей вкладке. -->
+
                 <KeyValueRow>
                   <span class="lbl">{{ t('shared.instance.label') }}</span>
                   <span class="val">
@@ -421,16 +361,13 @@ function openFolder(): void {
             </div>
           </div>
 
-          <!-- ------------------------------------------------------ модели -->
           <template v-else-if="tab === 'models'">
             <SharedPanel :instance="instance" />
             <ModelsPanel :instance="instance" />
           </template>
 
-          <!-- ---------------------------------------------------- воркфлоу -->
           <WorkflowPanel v-else-if="tab === 'workflows'" :instance="instance" />
 
-          <!-- --------------------------------------------------- параметры -->
           <template v-else>
             <template v-if="editing">
               <InstanceFields v-model="draft" />
@@ -470,8 +407,6 @@ function openFolder(): void {
               </div>
             </Group>
 
-            <!-- Подтверждение раскрывается на месте, а не всплывает диалогом:
-                 модалок в приложении нет, и объяснение важнее, чем вопрос. -->
             <Group danger>
               <button
                 v-if="!confirming"
@@ -502,10 +437,7 @@ function openFolder(): void {
 </template>
 
 <style scoped>
-/* Колонка, а не сетка с посчитанными строками: над областью данных стоят
-   шапка, полоса старта, два независимых блока уведомлений и вкладки, и все,
-   кроме шапки и вкладок, появляются и исчезают. Заранее выписанные строки
-   разъезжались с их настоящим числом, и область данных теряла свою долю. */
+
 .inst-screen {
   min-height: 0;
   display: flex;
@@ -517,17 +449,11 @@ function openFolder(): void {
   flex: 1;
 }
 
-/* Имя даёт себя ужать и перенести: длинное не должно выталкивать
-   состояние и кнопку запуска за край шапки. Обрезать его нельзя —
-   имя сборки пользователь придумал сам. */
 .inst-name {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-/* Старт длится минуты, доля выполненного неизвестна. Полоса не сообщает
-   прогресс, а показывает, что процесс жив: без неё пауза читается
-   как зависание. */
 .starting-track {
   margin: 0 var(--space-5) var(--space-2);
 }
@@ -544,7 +470,6 @@ function openFolder(): void {
   padding: 0 var(--space-5);
 }
 
-/* Лог на всё оставшееся место: прокрутка внутри него, а не снаружи. */
 .log-area {
   min-height: 0;
   display: grid;

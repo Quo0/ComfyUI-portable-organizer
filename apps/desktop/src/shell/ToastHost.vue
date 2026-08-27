@@ -7,7 +7,6 @@ import { useUiStore } from '../stores/ui';
 const ui = useUiStore();
 const { t } = useI18n();
 
-/** Раскрытые подробности — по одной ошибке за раз хватает. */
 const opened = ref<number | null>(null);
 const copied = ref<number | null>(null);
 
@@ -23,16 +22,13 @@ async function copy(id: number, text: string): Promise<void> {
       if (copied.value === id) copied.value = null;
     }, 2000);
   } catch {
-    // Буфер обмена может быть недоступен. Показывать ошибку про ошибку
-    // бессмысленно: текст и так на экране, его можно выделить.
   }
 }
 </script>
 
 <template>
   <var class="ToastHost">
-    <!-- Тосты появляются только на экранах оболочки: на экране работающего
-         инстанса пользователь внутри ComfyUI, и перекрывать его нечем. -->
+
     <div class="toasts toast-host" role="status" aria-live="polite">
       <div
         v-for="toast in ui.toasts"

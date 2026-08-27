@@ -20,7 +20,6 @@ const themeOptions = computed<{ value: ThemeChoice; label: string }[]>(() => [
   { value: 'system', label: t('settings.appearance.theme.system') },
 ]);
 
-/** Что сейчас выбрано в Windows — видно только в режиме следования системе. */
 const systemNow = computed(() =>
   t('settings.appearance.theme.systemNow', {
     mode: ui.systemDark
@@ -29,9 +28,6 @@ const systemNow = computed(() =>
   }),
 );
 
-// Предпросмотр на выдуманных, но правдоподобных данных: он показывает
-// не оформление, а то, как выбранный язык влияет на числа, даты
-// и формы слов. Проверить это иначе можно только запустив четыре сборки.
 const PREVIEW_SIZE = 41.7 * 1024 ** 3;
 const PREVIEW_COUNT = 3;
 const previewDate = new Date(2026, 7, 9, 21, 42);
@@ -64,10 +60,7 @@ function onLocale(event: Event): void {
                   {{ option.label }}
                 </button>
               </div>
-              <!-- Рядом с кнопкой «Как в системе», а не строкой под всем
-                   переключателем: факт относится к этому варианту
-                   и должен читаться как его продолжение, а не как общая
-                   подпись ко всем трём кнопкам. -->
+
               <span v-if="ui.theme === 'system'" class="hint">{{ systemNow }}</span>
             </div>
           </Group>
@@ -77,8 +70,7 @@ function onLocale(event: Event): void {
               {{ t('settings.appearance.language.label') }}
             </label>
             <select id="locale" class="input" :value="ui.locale" @change="onLocale">
-              <!-- Подписи языков всегда на самом языке: искать свой
-                   в чужом переводе неудобно. -->
+
               <option v-for="code in LOCALES" :key="code" :value="code">
                 {{ LOCALE_NAMES[code] }}
               </option>

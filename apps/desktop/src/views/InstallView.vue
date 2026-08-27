@@ -5,10 +5,6 @@ import InstallForks from '../components/InstallForks.vue';
 import ScreenHeader from '../components/ui/ScreenHeader.vue';
 
 const { t } = useI18n();
-
-// Раздел постоянный, а не только для первого запуска. Первая дорожка —
-// регистрация существующей папки — работает с Фазы 1; мастер распаковки
-// придёт в Фазе 1.5.
 </script>
 
 <template>

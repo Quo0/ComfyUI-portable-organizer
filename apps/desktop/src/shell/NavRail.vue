@@ -18,23 +18,14 @@ const { t } = useI18n();
 
 onMounted(async () => {
   if (!instances.loaded) await instances.load();
-  // Подписка на события живёт в сторе и заводится один раз: рейл виден
-  // всегда, значит и слушать он обязан всегда.
+
   await run.load();
 });
 
-// Порядок фиксирован планом: инстансы, установка, настройки, сведения.
 //
-// Библиотеки воркфлоу здесь нет намеренно: это папка снаружи сборок,
-// устроенная ровно как общие модели, и её место — в «Настройках», рядом
-// с ними. Пока она была разделом рейла, путь к папке жил в настройках,
-// а её содержимое — в рейле, и на вопрос «куда это складывается» нельзя
-// было ответить, не уходя с экрана.
+
 //
-// Точка у «О приложении» — единственный способ сообщить о новой версии,
-// не перебивая работу: проверка идёт при запуске, а тост с этим известием
-// пришлось бы либо закрывать, либо терять, и в обоих случаях узнать
-// о версии второй раз было бы неоткуда.
+
 const sections = computed(() => [
   { to: '/instances', icon: Layers, label: t('nav.instances'), mark: false },
   { to: '/install', icon: FolderPlus, label: t('nav.install'), mark: false },
@@ -42,12 +33,6 @@ const sections = computed(() => [
   { to: '/about', icon: Info, label: t('nav.about'), mark: updates.info !== null },
 ]);
 
-/**
- * Второй блок рейла: всё, что сейчас не лежит в покое. Смысл его в том,
- * что события, не вызванные действием пользователя, обязаны быть видны
- * независимо от открытого раздела: упавший процесс, самоперезапуск
- * от ComfyUI-Manager, исчезнувшая папка.
- */
 const live = computed(() =>
   instances.items
     .map((instance) => ({
@@ -57,11 +42,6 @@ const live = computed(() =>
     .filter((row) => isLive(row.status)),
 );
 
-/**
- * Работающая сборка ведёт прямо на свою вкладку: ради неё пользователь
- * сюда и жмёт. У упавшей и недоступной вкладки нет — там нужен экран
- * инстанса с логом и кнопкой запуска.
- */
 function target(row: (typeof live.value)[number]): string {
   const inTab = row.status === 'running' || row.status === 'starting';
   return `/instances/${row.instance.id}${inTab ? '/tab' : ''}`;
@@ -92,8 +72,7 @@ const toggleLabel = computed(() =>
       <template v-if="live.length">
         <div class="nav-sep"></div>
         <div class="nav-note">{{ t('nav.active') }} · {{ live.length }}</div>
-        <!-- Собственная прокрутка: восемь инстансов не должны выталкивать
-             кнопку сворачивания за пределы окна. -->
+
         <div class="nav-runs">
           <RouterLink
             v-for="row in live"
@@ -116,8 +95,6 @@ const toggleLabel = computed(() =>
         </div>
       </template>
 
-      <!-- Сворачивание внизу: наверху оно перетягивало бы внимание с разделов,
-           а нажимают его редко и осознанно. -->
       <button
         type="button"
         class="nav-item rail-toggle"

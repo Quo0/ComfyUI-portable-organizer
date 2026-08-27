@@ -1,15 +1,9 @@
 <script setup lang="ts">
-// Перенос моделей этой сборки в общую папку и уборка дубликатов.
+
 //
-// Зеркало панели воркфлоу, но с двумя отличиями, вытекающими из того, что
-// здесь двигаются десятки гигабайт и удаляются файлы: перечень показывается
-// до начала, а уборка — отдельное действие, хоть и по тому же списку.
+
 //
-// Список ровно один: категория раскрывается, и модели внутри показаны
-// со своими вердиктами. Раньше их было три — категории, дубликаты
-// и «совпало имя», — и одна и та же модель попадала то в один перечень,
-// то в другой, а связь с категорией приходилось восстанавливать по имени
-// в строке.
+
 import { ChevronRight, RotateCw } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -50,35 +44,18 @@ const outcome = ref<MigrateOutcome | null>(null);
 const busy = ref(false);
 const cleaning = ref(false);
 
-/** Ключ модели в наборах выбора: категория и имя внутри неё. */
 function keyOf(folder: string, name: string): string {
   return `${folder}/${name}`;
 }
 
-/**
- * Чужое содержимое под тем же именем не трогается ничем: переносить некуда
- * (имя в общей папке занято), убирать нельзя (это не дубликат). Тумблера
- * у такой строки нет вовсе, и в выбор она не попадает никогда.
- */
 function selectable(entry: ModelEntry): boolean {
   return entry.sameName !== 'different';
 }
 
-/**
- * Что тронем. Ключи помодельные, а не покатегорийные: одна лора
- * из двадцати может быть нужна сборке локально, и ради неё не должно
- * приходиться отказываться от переноса целой категории.
- */
 const chosen = ref<Set<string>>(new Set());
 
-/**
- * Свёрнутые категории — храним именно свёрнутые, потому что по умолчанию
- * раскрыто всё. Пересканирование этот набор не трогает: имена категорий
- * переживают скан, в отличие от ключей моделей.
- */
 const collapsed = ref<Set<string>>(new Set());
 
-/** Перехлёст ползунка играет только с первого клика, не с отрисовки. */
 const { isTouched, touch } = useToggleTouch();
 
 let unlisten: (() => void) | null = null;
@@ -96,8 +73,6 @@ onMounted(async () => {
 });
 onUnmounted(() => unlisten?.());
 
-// Перенос меняет содержимое папки — после запуска и остановки сборки
-// список мог поменяться и сам.
 watch(running, () => void refresh());
 
 async function refresh(): Promise<void> {
@@ -106,15 +81,11 @@ async function refresh(): Promise<void> {
   try {
     const res = await commands.scanInstanceModels(props.instance.id);
     if (res.status === 'error') {
-      // Общий корень не задан — это не ошибка сборки, молчим:
-      // об этом уже сказано отдельной строкой.
       if (res.error.code !== 'shared.noRoots') ui.pushError(res.error);
       return;
     }
     scan.value = res.data;
-    // Отмечено всё, что можно тронуть. Снятые галки между сканами
-    // не помнятся: список пришёл из файловой системы, и тот же ключ
-    // мог означать уже другой файл.
+
     chosen.value = new Set(
       res.data.categories.flatMap((category) =>
         category.entries
@@ -134,12 +105,10 @@ function toggle(key: string): void {
   chosen.value = next;
 }
 
-/** Ключи всего, чем распоряжается тумблер категории. */
 function keysOf(category: ModelCategory): string[] {
   return category.entries.filter(selectable).map((entry) => keyOf(category.folder, entry.name));
 }
 
-/** Положение тумблера категории: по её моделям, а не по ней самой. */
 function catState(category: ModelCategory): 'on' | 'off' | 'mixed' {
   const keys = keysOf(category);
   const on = keys.filter((key) => chosen.value.has(key)).length;
@@ -151,9 +120,7 @@ function toggleCategory(category: ModelCategory): void {
   touch(category.folder);
   const keys = keysOf(category);
   const next = new Set(chosen.value);
-  // Частичный выбор нажатие доводит до полного, а не сбрасывает:
-  // промежуточный тумблер читается как «ещё не всё», и жест к нему —
-  // «включить остальное».
+
   if (catState(category) === 'on') keys.forEach((key) => next.delete(key));
   else keys.forEach((key) => next.add(key));
   chosen.value = next;
@@ -165,7 +132,6 @@ function toggleCollapse(folder: string): void {
   collapsed.value = next;
 }
 
-/** Выбранные модели вместе с категорией — основа обоих действий. */
 type Chosen = { category: string; name: string; entry: ModelEntry };
 
 const chosenEntries = computed<Chosen[]>(() =>
@@ -176,13 +142,11 @@ const chosenEntries = computed<Chosen[]>(() =>
   ),
 );
 
-/** Что поедет: занятые имена остаются на месте и в перенос не идут. */
 const moving = computed(() => chosenEntries.value.filter((item) => item.entry.sameName === null));
 
-/** Сколько поедет — числами, которые видит пользователь до начала. */
 const plan = computed(() => ({
   files: moving.value.reduce((sum, item) => sum + item.entry.files, 0),
-  // specta отдаёт f64 как `number | null`: в JSON нет NaN.
+
   size: moving.value.reduce((sum, item) => sum + (item.entry.sizeBytes ?? 0), 0),
 }));
 
@@ -208,18 +172,6 @@ async function migrate(): Promise<void> {
   }
 }
 
-/**
- * Занятые имена — все, независимо от выбора.
- *
- * Раньше это было видно только в отчёте после переноса, а до него сборка
- * с уже перенесёнными моделями выглядела тупиком: категории на месте,
- * «перенесётся 0 файлов», кнопка погашена и сделать нечего. Теперь то же
- * самое видно сразу из скана — переносить и не требовалось, требовалось
- * убрать локальные копии.
- *
- * Держится на этом счёте всё, что говорится словами: строки-пояснения
- * под списком и метка на свёрнутой категории.
- */
 const occupied = computed(() =>
   (scan.value?.categories ?? []).flatMap((category) =>
     category.entries
@@ -228,32 +180,24 @@ const occupied = computed(() =>
   ),
 );
 
-/** Признано дубликатом — такое можно убрать. */
 const duplicates = computed(() =>
   occupied.value.filter((item) => item.entry.sameName !== 'different'),
 );
 
-/** Совпало имя, но не содержимое. Удалять такое нельзя. */
 const different = computed(() =>
   occupied.value.filter((item) => item.entry.sameName === 'different'),
 );
 
-/** Сколько дубликатов в категории — метка нужна свёрнутой строке. */
 function dupCount(folder: string): number {
   return duplicates.value.filter((item) => item.category === folder).length;
 }
 
-/**
- * Что именно убираем: выбранное среди дубликатов. Каждую строку можно
- * снять — одна модель из двадцати может быть нужна в сборке локально,
- * и ради неё не должно приходиться отказываться от уборки целиком.
- */
 const picked = computed(() =>
   chosenEntries.value.filter(
     (item) => item.entry.sameName !== null && item.entry.sameName !== 'different',
   ),
 );
-// specta отдаёт f64 как `number | null`: в JSON нет NaN.
+
 const freeable = computed(() =>
   picked.value.reduce((sum, item) => sum + (item.entry.sizeBytes ?? 0), 0),
 );
@@ -283,8 +227,7 @@ async function cleanup(): Promise<void> {
     <Group>
       <div class="row">
         <span class="t-label">{{ t('migrate.title') }}</span>
-        <!-- Подсказкой идёт сам путь: в этой панели он больше нигде
-             не показан, а идти разбираться руками приходится именно туда. -->
+
         <OpenFolderButton
           :path="scan?.path"
           :title="scan?.path"
@@ -297,7 +240,6 @@ async function cleanup(): Promise<void> {
         </button>
       </div>
 
-      <!-- Общий корень не задан — переносить некуда. -->
       <p v-if="!shared.configured" class="hint">
         {{ t('migrate.noRoot') }}
         <RouterLink to="/settings/shared-models">{{ t('shared.instance.setUp') }}</RouterLink>
@@ -307,10 +249,7 @@ async function cleanup(): Promise<void> {
         <div v-if="loading" class="bar indet"><i></i></div>
 
         <template v-else-if="scan?.categories.length">
-          <!-- Один список на всё: категория раскрывается, и модели внутри
-               показаны со своими вердиктами. Раскрытием управляет отдельная
-               кнопка, а не вся строка, — в той же строке стоит тумблер,
-               а кнопка внутри кнопки невалидна. -->
+
           <div class="cats">
             <template v-for="category in scan.categories" :key="category.folder">
               <div class="cat" :class="{ marked: dupCount(category.folder) > 0 }">
@@ -327,15 +266,11 @@ async function cleanup(): Promise<void> {
                   {{ t('migrate.entries', category.entries.length) }} ·
                   {{ bytes(category.sizeBytes) }}
                 </span>
-                <!-- Метка нужна свёрнутой строке: иначе про дубликаты внутри
-                     приходилось догадываться по нулю в сводке переноса. -->
+
                 <span v-if="dupCount(category.folder) > 0" class="tag warn">
                   {{ t('migrate.dup.inCategory', dupCount(category.folder)) }}
                 </span>
-                <!-- Роль `checkbox`, а не `switch`, как у моделей: `switch`
-                     состояния «частично» не знает вовсе, и `mixed` на нём
-                     программа чтения с экрана прочитает как «выключено» —
-                     то есть соврёт. -->
+
                 <Toggle
                   role="checkbox"
                   :checked="catState(category) !== 'off'"
@@ -356,10 +291,7 @@ async function cleanup(): Promise<void> {
                 >
                   <code>{{ entry.name }}</code>
                   <span class="n">{{ bytes(entry.sizeBytes) }}</span>
-                  <!-- Вердикт носит подсказку: из двух слов не видно, на чём
-                       он основан, а разница существенная. У файла сверены
-                       байты, у папки — только объём и число файлов внутри,
-                       и «похоже, тот же» ровно об этом. -->
+
                   <span
                     v-if="entry.sameName"
                     class="tag"
@@ -371,9 +303,7 @@ async function cleanup(): Promise<void> {
                   >
                     {{ t(`migrate.verdict.${entry.sameName}`) }}
                   </span>
-                  <!-- У чужого содержимого под тем же именем тумблера нет:
-                       его не переносят и не убирают никогда. Место под него
-                       остаётся, иначе вердикты в соседних строках разъедутся. -->
+
                   <Toggle
                     v-if="selectable(entry)"
                     :checked="chosen.has(keyOf(category.folder, entry.name))"
@@ -388,28 +318,16 @@ async function cleanup(): Promise<void> {
             </template>
           </div>
 
-          <!-- Действия к этому списку не относится: чужое содержимое
-               под тем же именем не переносят и не убирают. -->
           <p v-if="different.length" class="hint">
             {{ t('migrate.diff.line', { n: different.length }) }}
           </p>
 
-          <!-- Файлы забираются из-под ComfyUI — у работающей сборки этого
-               делать нельзя, и сказать надо прямо, а не гасить кнопки молча. -->
           <p v-if="running" class="hint bad">{{ t('migrate.mustStop') }}</p>
-          <!-- Без подключения уборка лишила бы сборку моделей вовсе. -->
+
           <p v-if="duplicates.length && !instance.shared?.enabled" class="hint bad">
             {{ t('migrate.dup.needsConnection') }}
           </p>
 
-          <!-- Каждая кнопка стоит рядом со своим описанием: одна удаляет
-               файлы, другая переносит, и путать их нельзя. Уборка идёт
-               первой — она про то, что уже перенесено, а перенос про то,
-               что ещё нет.
-
-               Сетка одна на оба ряда, а обёрток на ряд нет намеренно:
-               от этого зависит, что кнопки одной ширины. Подробности
-               в `.acts` в styles/components.css. -->
           <div class="act-grid">
             <template v-if="duplicates.length">
               <button
@@ -425,7 +343,6 @@ async function cleanup(): Promise<void> {
               </p>
             </template>
 
-            <!-- Во время переноса ряд уступает место полосе прогресса ниже. -->
             <template v-if="!progress">
               <button
                 type="button"
@@ -452,14 +369,8 @@ async function cleanup(): Promise<void> {
           </Group>
         </template>
 
-        <!-- Не пустой экран, а строка состояния внутри отдела: заголовок
-             «Модели этой сборки» с кнопкой папки остаётся на месте, и крупный
-             блок пустоты под ним выглядел бы отдельным экраном, приехавшим
-             в середину вкладки. Ровно за этим и заведён `EmptyNote`. -->
         <EmptyNote v-else>{{ t('migrate.empty') }}</EmptyNote>
 
-        <!-- Отчёт о переносе. Что не поехало и почему — уже в списках выше,
-             здесь только итог и сбои. -->
         <template v-if="outcome">
           <p class="hint">
             {{ t('migrate.moved', { n: outcome.moved.length, size: bytes(outcome.movedBytes) }) }}

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-// Всё, что запуск говорит пользователю: развилки и объяснения.
+
 //
-// Стоит под шапкой экрана сборки и видно на любой вкладке. Это ответы
-// на только что нажатую кнопку, и прятать их за переключением вкладок
-// значило бы отвечать в пустоту.
+
 //
-// Развилки раскрываются на месте: модалку над областью контента положить
-// нельзя (дисциплина z-order), а у тоста не бывает кнопок.
+
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -40,8 +37,7 @@ function openInBrowser(): void {
 <template>
   <var class="LaunchNotices">
     <div v-if="shared || other || state === 'crashed' || state === 'detached' || profile?.fallback" class="notices">
-      <!-- Общий корень недоступен. Не ошибка запуска, а развилка: продолжить
-           без общих моделей или отменить. -->
+
       <div v-if="shared" class="banner">
         <div>
           <b>{{ t('shared.unavailable.title') }}</b>
@@ -60,9 +56,6 @@ function openInBrowser(): void {
         </button>
       </div>
 
-      <!-- Соседняя сборка уже держит видеопамять. Запретить второй запуск
-           нельзя — бывает две видеокарты, — но и молчать нельзя: вторая
-           сборка упадёт посреди генерации. -->
       <div v-if="other" class="banner">
         <div>
           <b>{{ t('run.otherRunning.title') }}</b>
@@ -92,8 +85,6 @@ function openInBrowser(): void {
         <b>{{ t('run.crashed', { code: status?.exitCode ?? '—' }) }}</b>
       </div>
 
-      <!-- Сервер перезапустился сам. Кнопка возвращает над ним контроль:
-           PID нового процесса ищется по владельцу порта. -->
       <div v-if="state === 'detached'" class="banner">
         <div>
           <p class="t-sm">{{ t('run.detached') }}</p>
@@ -124,5 +115,4 @@ function openInBrowser(): void {
   gap: var(--space-2);
   padding: 0 var(--space-5);
 }
-
 </style>

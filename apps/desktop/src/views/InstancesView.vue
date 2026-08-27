@@ -1,8 +1,7 @@
 <script setup lang="ts">
-// Список сборок.
+
 //
-// Кнопки «Добавить» здесь нет намеренно: сборки заводит раздел «Добавление»,
-// и двух дверей в одно место быть не должно. Пустое состояние туда и ведёт.
+
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
@@ -31,10 +30,6 @@ const sort = ref<Sort>('lastRun');
 
 const SORTS: Sort[] = ['lastRun', 'name', 'size'];
 
-/**
- * Поиск идёт и по пути: сборки часто называют одинаково («SDXL», «тест»),
- * а путь у каждой свой, и именно по нему их и различают в проводнике.
- */
 const visible = computed(() => {
   const needle = query.value.trim().toLowerCase();
   const found = instances.items.filter((instance) =>
@@ -48,14 +43,12 @@ const visible = computed(() => {
 
   return [...found].sort((a, b) => {
     if (sort.value === 'size') return (b.sizeBytes ?? 0) - (a.sizeBytes ?? 0);
-    // Ни разу не запускавшиеся уезжают вниз, а не притворяются
-    // запущенными в начале эпохи.
+
     if (sort.value === 'lastRun') return (b.lastStartedAt ?? 0) - (a.lastStartedAt ?? 0);
     return a.name.localeCompare(b.name);
   });
 });
 
-/** Размер показывается, только когда посчитан. */
 function sizeText(instance: Instance): string {
   return bytes(instance.sizeBytes);
 }
@@ -75,8 +68,7 @@ onMounted(() => {
     <section class="screen">
       <ScreenHeader>
         <h1 class="t-lg">{{ t('instances.title') }}</h1>
-        <!-- Рядом с заголовком «Инстансы» слово «инстансов» — то же слово
-             дважды. Число молча, фраза целиком остаётся подсказкой. -->
+
         <span
           v-if="instances.items.length"
           class="t-sm"
@@ -104,13 +96,9 @@ onMounted(() => {
         </template>
       </ScreenHeader>
 
-      <!-- Единственная область прокрутки экрана: шапка с заголовком и поиском
-           остаётся на месте, иначе при длинном списке непонятно, где ты. -->
       <div class="screen-body">
         <div class="screen-pad wide">
-          <!-- Смена набора карточек — с переходом (transitions.dev): фильтр
-               и сортировка меняют список каждым нажатием клавиши, и без
-               перехода карточки прыгали бы на новые места рывком. -->
+
           <TransitionGroup v-if="visible.length" name="card" tag="div" class="cards grid">
             <Card
               v-for="instance in visible"
@@ -129,13 +117,8 @@ onMounted(() => {
                 <StatusPill :status="displayStatus(instance, run.statusOf(instance.id))" />
               </div>
 
-              <!-- Строка есть всегда, даже пустая: иначе строки версий
-                   в соседних карточках встают на разной высоте. -->
               <div class="card-desc">{{ instance.description }}</div>
 
-              <!-- У пропавшей сборки версия, порт и размер описывают то,
-                   чего на диске уже нет. Вместо них — путь: единственное,
-                   с чем можно пойти разбираться. -->
               <div v-if="!instance.available" class="meta">
                 <span><PathText :path="instance.path" /></span>
               </div>
@@ -144,18 +127,12 @@ onMounted(() => {
                 <span v-if="instance.comfyVersion">{{ instance.comfyVersion }}</span>
                 <span>:{{ instance.preferredPort }}</span>
                 <span v-if="sizeText(instance)">{{ sizeText(instance) }}</span>
-                <!-- Подключение к общим моделям видно из списка: иначе
-                     разобраться, почему у двух сборок разный набор
-                     чекпоинтов, можно только зайдя в каждую. -->
+
                 <span v-if="instance.shared?.enabled" class="tag">
                   {{ t('shared.instance.badge') }}
                 </span>
               </div>
 
-              <!-- Из какого архива развёрнута сборка, видно прямо в списке:
-                   две версии рядом различаются не номером ComfyUI, а вариантом
-                   архива, и без этой строки различить их можно было бы только
-                   открыв папки (US-INST-07/AC-5). -->
               <div class="src">
                 <div v-if="instance.source">
                   {{
@@ -174,11 +151,6 @@ onMounted(() => {
             {{ t('instances.nothingFound') }}
           </EmptyNote>
 
-          <!-- Отдельного Welcome-экрана нет: его роль берёт это состояние.
-               Поэтому здесь не ссылка на «Добавление», а сама развилка: у того,
-               у кого ещё ничего нет, выбор между «папка уже есть»
-               и «распаковать архив» — первое же решение, и прятать его
-               за лишним переходом незачем. -->
           <div v-else class="empty">
             <h4>{{ t('instances.empty.title') }}</h4>
             <p>{{ t('instances.empty.body') }}</p>
@@ -191,7 +163,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Поиск в шапке: тянется, но не расползается на всю ширину окна. */
+
 .search {
   flex: 1;
   max-width: 320px;

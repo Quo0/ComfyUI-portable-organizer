@@ -1,8 +1,5 @@
 <script setup lang="ts">
-// Мастер установки — отдельный роут с шагами внутри, а не череда модалок.
-// Шаги: архив → назначения → общие ресурсы → выполнение → итог.
-// Шаг общих ресурсов собран из тех же компонентов, что экран настроек,
-// и пользуется тем же стором: логика подключения не дублируется.
+
 import { ArrowLeft, Ban, Check, Pencil, X } from '@lucide/vue';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -40,30 +37,11 @@ const library = useWorkflowsStore();
 const { t, n } = useI18n();
 const { bytes, moment } = useFormat();
 
-/**
- * Количество файлов через форматтер локали.
- *
- * В сообщение о числе файлов подставлялось сырое число, и на экране
- * стояло «56128 файлов» — пять цифр подряд без разделителя разрядов
- * не читаются. Формат `integer` для этого уже заведён в `i18n/index.ts`,
- * и там же записано, что числа идут только через `n()`.
- */
 const count = (value: number): string => n(value, 'integer');
 
-/** Порядок шагов. Он же порядок показа в полосе состояния мастера. */
 const STEPS: WizardStep[] = ['archive', 'targets', 'shared', 'running', 'done'];
 const current = computed(() => STEPS.indexOf(wizard.step));
 
-/**
- * Название текущего шага для ряда с кнопками перехода.
- *
- * У трёх шагов оно своё и говорит о деле («Куда распаковать»), у двух
- * совпадает с названием в полосе шагов — придумывать им второе имя
- * значило бы говорить об одном и том же двумя словами. Запасного
- * варианта тут быть не должно: раньше он подписывал первый шаг
- * «Распаковкой», и не всплыло это лишь потому, что на первом шаге
- * ряда шага не было вовсе.
- */
 const stepTitle = computed(() => {
   switch (wizard.step) {
     case 'archive':
@@ -79,21 +57,12 @@ const stepTitle = computed(() => {
   }
 });
 
-/** Сколько назначений уже пройдено — для счётчика в ряду шага. */
 const runCounter = computed(() => {
   const p = wizard.progress;
   if (!p?.targets) return '';
   return t('install.run.counter', { done: p.target, total: p.targets });
 });
 
-/**
- * Состояние назначения на шаге распаковки.
- *
- * Считается из индекса: `progress.target` — номер текущего, начиная
- * с единицы. Всё до него сделано, всё после ждёт очереди. Отдельного
- * события на каждое назначение Rust не шлёт, да и незачем — порядок
- * известен заранее.
- */
 type RunState = 'done' | 'now' | 'queued';
 
 function runStateOf(index: number): RunState {
@@ -109,28 +78,12 @@ onMounted(() => {
   if (!library.loaded) void library.load();
 });
 
-/**
- * Полоса идёт по файлам, а не по байтам.
- *
- * Хвост сборки — это `site-packages` с десятками тысяч файлов по паре
- * килобайт: на отметке 98% байт сделано меньше половины файлов, и полоса
- * замирает ровно там, где работы остаётся больше всего. Время уходит
- * не на байты, а на создание файлов и проверку каждого антивирусом.
- */
 const percent = computed(() => {
   const p = wizard.progress;
   if (!p?.totalFiles) return 0;
   return Math.min(100, (p.doneFiles / p.totalFiles) * 100);
 });
 
-/**
- * Подпись к текущей фазе.
- *
- * Прежде здесь стоял запасной вариант «Регистрация» на случай отсутствия
- * прогресса — и именно он показывался всю подготовку, то есть врал. Теперь
- * о подготовке сообщает Rust отдельным событием, и запасной вариант нужен
- * только на мгновение до первого события.
- */
 const phaseText = computed(() => {
   const p = wizard.progress;
   if (!p) return t('install.run.preparing');
@@ -149,10 +102,6 @@ const phaseText = computed(() => {
   }
 });
 
-/**
- * Фазы без доли выполненного. Показывать нечего, кроме того, что работа
- * идёт, — полоса бежит вместо того, чтобы стоять на нуле.
- */
 const indeterminate = computed(() => {
   const phase = wizard.progress?.phase;
   return !phase || phase === 'preparing' || phase === 'cleaning' || phase === 'registering';
@@ -172,7 +121,6 @@ async function useRecent(record: ArchiveRecord): Promise<void> {
   if (await wizard.chooseArchive(record.path)) wizard.setStep('targets');
 }
 
-/** Сколько места нужно с учётом того, что цели могут быть на одном диске. */
 const needed = computed(() =>
   bytes((wizard.info?.totalUncompressed ?? 0) * wizard.targets.length),
 );
@@ -181,12 +129,7 @@ const needed = computed(() =>
 <template>
   <var class="InstallWizardView">
     <section class="screen wizard-screen">
-      <!-- Шапки экрана здесь нет намеренно: её «Назад» и заголовок
-           повторяли то, что и так стоит в ряду шага, — два выхода
-           и два заголовка на одном экране. -->
 
-      <!-- Шаги видны целиком: мастер, который не говорит, сколько ещё
-           впереди, читается как бесконечный. -->
       <nav class="steps">
         <template v-for="(name, index) in STEPS" :key="name">
           <span v-if="index" class="step-sep"></span>
@@ -200,26 +143,17 @@ const needed = computed(() =>
         </template>
       </nav>
 
-      <!-- Ряд шага: название слева, переходы справа. Кнопки стоят здесь,
-           а не в подвале и не в области прокрутки: при нескольких
-           назначениях «Дальше» уезжала из виду ровно тогда, когда
-           становилась нужна. «Назад» всегда левее кнопки действия. -->
       <StepBar>
         <h2 class="title">{{ stepTitle }}</h2>
         <span v-if="wizard.step === 'done'" class="t-label">
           {{ t('install.done.added', wizard.created.length) }}
         </span>
-        <!-- Какое назначение идёт из скольких: без счётчика при шести целях
-             непонятно, распаковка в разгаре или почти закончилась. -->
+
         <span v-else-if="wizard.step === 'running' && runCounter" class="t-label">
           {{ runCounter }}
         </span>
         <span class="spacer"></span>
 
-        <!-- На первом шаге «Назад» выводит из мастера, а не переключает
-             шаг, — поэтому ссылка, а не кнопка. Состояние мастера при этом
-             не теряется: стор живёт отдельно от экрана ровно затем, чтобы
-             уход и возврат ничего не стирали. -->
         <span v-if="wizard.step === 'archive'" class="acts">
           <RouterLink class="btn ghost" to="/install">
             <ArrowLeft class="ico" />
@@ -232,8 +166,7 @@ const needed = computed(() =>
             <ArrowLeft class="ico" />
             {{ t('common.back') }}
           </button>
-          <!-- Проверка имени осталась в форме: без имени назначение
-               в список не попадает, и здесь её повторять уже нечего. -->
+
           <button
             type="button"
             class="btn primary lg"
@@ -270,14 +203,10 @@ const needed = computed(() =>
         </span>
       </StepBar>
 
-      <!-- Сводка по архиву закреплена под рядом шага: она нужна, пока
-           выбирают назначения, и уезжать вместе с ними не должна. -->
       <div v-if="wizard.step === 'targets' && wizard.info" class="pinned">
         <div class="meta">
           <span>{{ wizard.info.label }}</span>
-          <!-- Число форматируется отдельно: множественное число выбирается
-               по количеству, а печатается уже готовая строка с разделителем
-               разрядов. -->
+
           <span>
             {{ t('install.archive.files', { n: count(wizard.info.files) }, wizard.info.files) }}
           </span>
@@ -296,16 +225,11 @@ const needed = computed(() =>
 
       <div class="screen-body">
         <div class="screen-pad wide">
-          <!-- ------------------------------------------------ шаг «архив» -->
+
           <template v-if="wizard.step === 'archive'">
-            <!-- Сказано сразу: кнопки «скачать» здесь не будет и не появится.
-                 Без этой строки первое, что ищут на экране, — именно она. -->
+
             <p class="t-sm">{{ t('install.archive.lead') }}</p>
 
-            <!-- Разбор оглавления на 56 тысяч записей занимает больше секунды,
-                 и подпись о нём стоит рядом с кнопкой, которую только что
-                 нажали: отдельным блоком ниже она выглядела ответом
-                 на что-то другое. -->
             <div class="row">
               <button
                 type="button"
@@ -317,18 +241,14 @@ const needed = computed(() =>
               </button>
               <template v-if="wizard.reading">
                 <span class="hint">{{ t('install.archive.reading') }}</span>
-                <!-- Полоса тянется до края блока: короткий индикатор рядом
-                     с кнопкой читается как значок, а не как «идёт работа». -->
+
                 <span class="bar indet grow"><i></i></span>
               </template>
             </div>
 
             <Group v-if="wizard.history.length">
               <span class="t-label">{{ t('install.archive.history') }}</span>
-              <!-- Сетка, а не колонка: карточка архива с полным путём
-                   занимает всю ширину широкого экрана, и четыре архива
-                   давали экран прокрутки на пустом месте. Список сборок
-                   в такой же ситуации давно в сетке. -->
+
               <div class="cards grid">
                 <Card
                   v-for="record in wizard.history"
@@ -341,8 +261,7 @@ const needed = computed(() =>
                       {{ t('install.archive.missing') }}
                     </span>
                   </div>
-                  <!-- Путь не переводится и не сокращается: переносится
-                       по разделителям папок, а не срезается краем. -->
+
                   <div class="src"><code><PathText :path="record.path" /></code></div>
                   <div class="meta">
                     <span>{{ bytes(record.sizeBytes) }}</span>
@@ -370,15 +289,9 @@ const needed = computed(() =>
             </Group>
           </template>
 
-          <!-- --------------------------------------------- шаг «назначения» -->
-          <!-- Форма слева накидывает назначения в список справа. Панель
-               со всеми полями на каждую цель разом занимала по экрану
-               прокрутки на цель, а целей бывает шесть. -->
           <template v-else-if="wizard.step === 'targets' && wizard.info">
             <div class="cols targets">
-              <!-- Кнопка не выключается, а проверяет: выключенная, она ничего
-                   не говорит о том, чего не хватает, и нажатие на пустой
-                   форме выглядит поломкой. -->
+
               <TargetForm
                 v-model="wizard.draft"
                 :title="t('install.targets.form')"
@@ -398,18 +311,12 @@ const needed = computed(() =>
                 <span class="t-label">{{ t('install.targets.list') }}</span>
                 <KeyValueList v-if="wizard.targets.length">
                   <template v-for="(target, index) in wizard.targets" :key="index">
-                    <!-- Описание в строку не помещается и в неё не лезет,
-                         но и пропасть не должно: оно всплывает подсказкой.
-                         Атрибута нет вовсе, когда описания нет, — пустая
-                         подсказка мигала бы рамкой ни о чём. -->
+
                     <KeyValueRow editable :title="target.description || undefined">
-                      <!-- Путь не переводится и не сокращается. -->
+
                       <span class="lbl"><PathText :path="target.path" /></span>
                       <span class="val">{{ target.name }}</span>
-                      <!-- Цвет виден прямо в строке: две сборки с похожими
-                           путями различают по нему, а не по пути. Стоит между
-                           именем и кнопками — там он выстраивается в колонку,
-                           а не гуляет вслед за длиной имени. -->
+
                       <span
                         class="chip sm"
                         :style="{ '--instance-accent': accentVar(target.accent) }"
@@ -441,9 +348,6 @@ const needed = computed(() =>
                       </span>
                     </KeyValueRow>
 
-                    <!-- Правка разворачивается под своей строкой, а не уводит
-                         в отдельный экран: список остаётся на месте, и видно,
-                         что именно правится. -->
                     <TargetForm
                       v-if="wizard.editIndex === index && wizard.editDraft"
                       v-model="wizard.editDraft"
@@ -454,9 +358,7 @@ const needed = computed(() =>
                     >
                       <template #acts>
                         <span class="acts">
-                          <!-- Перечёркнутый круг, а не крестик: крестиком
-                               рядом убирают строку, и одинаковые значки
-                               в одном месте значили бы разное. -->
+
                           <button
                             type="button"
                             class="act"
@@ -483,8 +385,6 @@ const needed = computed(() =>
                 </KeyValueList>
                 <EmptyNote v-else>{{ t('install.targets.empty') }}</EmptyNote>
 
-                <!-- Ошибка на уже добавленном назначении: место на диске
-                     могло кончиться после того, как его добавили. -->
                 <template v-for="(check, index) in wizard.checks" :key="`c${index}`">
                   <p
                     v-for="(problem, i) in check.errors"
@@ -498,11 +398,8 @@ const needed = computed(() =>
             </div>
           </template>
 
-          <!-- ---------------------------------------- шаг «общие ресурсы» -->
           <template v-else-if="wizard.step === 'shared'">
-            <!-- Ресурса два, и они про разное: модели и воркфлоу. Раньше всё
-                 шло одним списком полей, и понять, к чему относится очередной
-                 путь, можно было только по подписи. -->
+
             <Pane>
             <div class="pane-head">
               <span class="title">{{ t('install.shared.models') }}</span>
@@ -510,8 +407,7 @@ const needed = computed(() =>
             <div class="scroll-pad">
             <Field>
               <span class="t-label">{{ t('shared.root.label') }}</span>
-              <!-- Тот же выбор, что в настройках: US-SHARED-01/AC-4 требует
-                   не выгонять пользователя из мастера ради одной папки. -->
+
               <PathPicker
                 :path="shared.root?.path"
                 :empty="t('shared.root.empty')"
@@ -565,9 +461,6 @@ const needed = computed(() =>
             </div>
             </Pane>
 
-            <!-- Библиотека воркфлоу — второй общий ресурс, и подключается
-                 тем же шагом: уводить за ней в настройки посреди установки
-                 незачем. -->
             <Pane>
             <div class="pane-head">
               <span class="title">{{ t('install.shared.workflows') }}</span>
@@ -575,7 +468,7 @@ const needed = computed(() =>
             <div class="scroll-pad">
             <Field>
               <span class="t-label">{{ t('library.path.label') }}</span>
-              <!-- Библиотека независима от общих моделей, но задаётся тут же. -->
+
               <PathPicker
                 :path="library.path"
                 :empty="t('library.path.empty')"
@@ -588,13 +481,8 @@ const needed = computed(() =>
             </Field>
             </div>
             </Pane>
-
           </template>
 
-          <!-- -------------------------------------------- шаг «выполнение» -->
-          <!-- Полоса на каждое назначение, а не одна общая: при шести целях
-               общая полоса три раза проходит путь от нуля до ста, и понять,
-               сколько работы осталось, по ней невозможно. -->
           <template v-else-if="wizard.step === 'running'">
             <div
               v-for="(target, index) in wizard.targets"
@@ -602,7 +490,7 @@ const needed = computed(() =>
               class="prog"
             >
               <div class="prog-head">
-                <!-- Путь не переводится. -->
+
                 <span>{{ target.path }}</span>
                 <span class="count">
                   <template v-if="runStateOf(index) === 'done'">
@@ -632,16 +520,11 @@ const needed = computed(() =>
                 ></i>
               </div>
 
-              <!-- У текущего назначения — что именно сейчас происходит.
-                   В фазах без доли выполненного вместо пути стоит название
-                   фазы: пути там ещё нет, а тишина читается как зависание. -->
               <p v-if="runStateOf(index) === 'now'" class="prog-file">
                 <template v-if="indeterminate">{{ phaseText }}</template>
                 <template v-else>{{ wizard.progress?.current }}</template>
               </p>
 
-              <!-- Байты остаются подписью: они понятны и полезны, просто
-                   мерой прогресса быть не могут. -->
               <p
                 v-if="runStateOf(index) === 'now' && wizard.progress && !indeterminate"
                 class="hint"
@@ -663,10 +546,6 @@ const needed = computed(() =>
             </div>
           </template>
 
-          <!-- -------------------------------------------------- шаг «итог» -->
-          <!-- Карточка ровно та же, что в списке инстансов: итог показывает
-               то, что появилось, и узнавать это в списке пользователь должен
-               без перевода взгляда. -->
           <template v-else>
             <div class="cards grid">
               <Card
@@ -685,8 +564,6 @@ const needed = computed(() =>
                   <StatusPill :status="displayStatus(instance, run.statusOf(instance.id))" />
                 </div>
 
-                <!-- Строка есть всегда, даже пустая: иначе строки версий
-                     в соседних карточках встают на разной высоте. -->
                 <div class="card-desc">{{ instance.description }}</div>
 
                 <div class="meta">
@@ -697,8 +574,6 @@ const needed = computed(() =>
                   </span>
                 </div>
 
-                <!-- Путь, а не «последний запуск»: сборку только что
-                     распаковали, и запускать её ещё не запускали. -->
                 <div class="src"><PathText :path="instance.path" /></div>
               </Card>
             </div>
@@ -710,9 +585,7 @@ const needed = computed(() =>
 </template>
 
 <style scoped>
-/* Колонка, а не сетка с посчитанными строками: закреплённая сводка
-   по архиву есть только на шаге назначений, и числу строк меняться
-   вместе с шагом нельзя. */
+
 .wizard-screen {
   min-height: 0;
   display: flex;
@@ -723,8 +596,6 @@ const needed = computed(() =>
   flex: 1;
 }
 
-/* Полоса шагов встала на место шапки экрана и берёт её верхнее поле:
-   без него она прилипает к заголовку окна. */
 .steps {
   padding: var(--space-4) var(--space-5) var(--space-2);
 }
@@ -736,7 +607,4 @@ const needed = computed(() =>
   padding: 0 var(--space-5) var(--space-3);
   border-bottom: 1px solid var(--line);
 }
-
-/* Копия полей назначения — палитра со своим цветом в том числе —
-   уехала в TargetForm поверх InstanceFields, и стили ушли вместе с ней. */
 </style>

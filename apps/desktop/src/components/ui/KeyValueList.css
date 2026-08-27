@@ -5,7 +5,5 @@
   font-family: var(--font-mono);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-/* Унаследовано от домиграционной разметки TargetForm: уже сейчас
-   не матчится (у TargetForm корень `<var>`, а не `.pane` напрямую) —
-   почистить эту грабли предстоит отдельной задачей, не этой. */
+
 .paths > .pane { border: 0; border-radius: 0; }

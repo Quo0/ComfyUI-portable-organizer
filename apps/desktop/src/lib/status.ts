@@ -1,10 +1,5 @@
 import type { Instance, RunStatus } from '../bindings';
 
-/**
- * Что показывать про инстанс. Состояния процесса приходят из Rust,
- * недоступность папки добавляется здесь: для пользователя это одна и та же
- * колонка «что сейчас», хотя источники у них разные.
- */
 export type DisplayStatus =
   | 'stopped'
   | 'starting'
@@ -15,22 +10,14 @@ export type DisplayStatus =
   | 'unavailable';
 
 export function displayStatus(instance: Instance, run?: RunStatus): DisplayStatus {
-  // Пропавшая папка важнее любого состояния процесса: запустить нечего.
   if (!instance.available) return 'unavailable';
   return run?.state ?? 'stopped';
 }
 
-/**
- * Состояния, о которых рейл сообщает независимо от открытого раздела:
- * всё, что не лежит в покое. Называлось `needsAttention`, а возвращало
- * истину и для спокойно работающей сборки — подпись над списком обещала
- * проблему там, где её не было.
- */
 export function isLive(status: DisplayStatus): boolean {
   return status !== 'stopped';
 }
 
-/** Цвет точки в рейле. Значения — токены состояний из дизайн-системы. */
 export const STATE_DOT: Record<DisplayStatus, string> = {
   stopped: 'var(--state-stopped)',
   starting: 'var(--state-starting)',

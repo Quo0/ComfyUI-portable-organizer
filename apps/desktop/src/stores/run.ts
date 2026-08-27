@@ -12,14 +12,8 @@ import {
 import { i18n } from '../i18n';
 import { useUiStore } from './ui';
 
-/** Столько строк держим на экране. В Rust буфер тот же, менять их порознь нельзя. */
 const LOG_LIMIT = 5000;
 
-/**
- * Состояние запусков. Живёт в сторе, а не в экране инстанса, по той же
- * причине, что и мастер установки: уход в другой раздел не должен ни ронять
- * подписку на лог, ни терять уже пришедшие строки.
- */
 export const useRunStore = defineStore('run', () => {
   const ui = useUiStore();
 
@@ -28,20 +22,10 @@ export const useRunStore = defineStore('run', () => {
   const profiles = ref<Record<string, LaunchProfile[]>>({});
   const busy = ref<Record<string, boolean>>({});
 
-  /**
-   * Инстансы, у которых запуск упёрся в недоступный общий корень.
-   * Держим и профиль: повторный запуск обязан пойти тем же профилем,
-   * который выбрал пользователь, а не первым попавшимся.
-   */
   const sharedWarning = ref<
     Record<string, { path: string; profileId: string | null }>
   >({});
 
-  /**
-   * Инстансы, запуск которых упёрся в уже работающую соседнюю сборку.
-   * Держим её имя и выбранный профиль: и то и другое понадобится, когда
-   * пользователь ответит.
-   */
   const busyWarning = ref<
     Record<string, { other: string; profileId: string | null }>
   >({});
@@ -60,7 +44,6 @@ export const useRunStore = defineStore('run', () => {
 
   let listening = false;
 
-  /** Инстансы, о которых рейл обязан сообщать независимо от раздела. */
   const active = computed(() =>
     Object.values(statuses.value).filter((s) => s.state !== 'stopped'),
   );
@@ -74,8 +57,6 @@ export const useRunStore = defineStore('run', () => {
     listening = true;
 
     await events.runChanged.listen((e) => {
-      // Кортежная структура из Rust экспортируется как сам внутренний тип,
-      // а не как массив из одного элемента.
       const status = e.payload;
       statuses.value = { ...statuses.value, [status.instanceId]: status };
     });
@@ -83,8 +64,7 @@ export const useRunStore = defineStore('run', () => {
     await events.runLog.listen((e) => {
       const { instanceId, line } = e.payload;
       const list = logs.value[instanceId] ?? [];
-      // Прогресс от tqdm заменяет предыдущую строку, а не добавляется.
-      // Флаг приходит из Rust: делить поток на строки должен тот, кто его читает.
+
       const next = line.replacesLast ? list.slice(0, -1) : list;
       next.push(line);
       logs.value = {
@@ -115,23 +95,12 @@ export const useRunStore = defineStore('run', () => {
     profiles.value = { ...profiles.value, [id]: res.data };
   }
 
-  /** Догоняет лог, накопленный пока экран был закрыт. */
   async function loadLog(id: string): Promise<void> {
     const res = await commands.runLog(id);
     if (res.status === 'error') return;
     logs.value = { ...logs.value, [id]: res.data };
   }
 
-  /**
-   * Две развилки запуска устроены одинаково: бэкенд отказывает кодом,
-   * экран инстанса раскрывает выбор на месте, и повторный вызов приходит
-   * с согласием. Тостом это сделать нельзя — у тоста нет кнопок, а модалку
-   * над областью контента положить невозможно (дисциплина z-order).
-   *
-   * `withoutShared` — согласие стартовать без общих моделей: недоступный
-   * корень дал бы «model not found» уже посреди работы.
-   * `allowMultiple` — согласие поднять вторую сборку на той же видеокарте.
-   */
   async function start(
     id: string,
     profileId: string | null,
@@ -168,7 +137,6 @@ export const useRunStore = defineStore('run', () => {
     }
   }
 
-  /** Остановить соседнюю сборку и запустить эту. */
   async function stopOthersAndStart(
     id: string,
     profileId: string | null,
@@ -179,13 +147,6 @@ export const useRunStore = defineStore('run', () => {
     await start(id, profileId, { withoutShared: false, allowMultiple: true });
   }
 
-  /**
-   * Забрать под управление сервер, который перезапустился сам.
-   *
-   * PID нового процесса ищется по владельцу порта. Если не нашёлся —
-   * это не молчаливый провал: пользователю говорят, что именно перестало
-   * работать, а интерфейс сборки остаётся доступным.
-   */
   async function adopt(id: string): Promise<void> {
     busy.value = { ...busy.value, [id]: true };
     try {
@@ -201,7 +162,6 @@ export const useRunStore = defineStore('run', () => {
     }
   }
 
-  /** Перезапуск: остановка, ожидание порта и старт тем же профилем. */
   async function restart(id: string): Promise<void> {
     busy.value = { ...busy.value, [id]: true };
     try {

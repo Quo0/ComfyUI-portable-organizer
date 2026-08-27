@@ -11,15 +11,14 @@ export type ToastKind = 'ok' | 'err';
 export interface Toast {
   id: number;
   kind: ToastKind;
-  /** Уже переведённый текст: стор не знает, откуда он взялся. */
+
   text: string;
-  /** Полный текст с кодом — только у ошибок, для копирования. */
+
   details?: string;
-  /** Сколько раз подряд пришло одно и то же. */
+
   count: number;
 }
 
-/** Больше трёх одновременно — это уже не уведомление, а стена. */
 const MAX_TOASTS = 3;
 const OK_LIFETIME_MS = 4000;
 
@@ -29,21 +28,18 @@ export const useUiStore = defineStore('ui', () => {
   const theme = ref<ThemeChoice>('dark');
   const locale = ref<Locale>('en');
   const railCollapsed = ref(false);
-  /** Проверять ли обновления при запуске — единственное исходящее обращение. */
+
   const checkUpdates = ref(true);
   const toasts = ref<Toast[]>([]);
 
-  /** Пути и версия для раздела «О приложении». */
   const appDataDir = ref('');
   const appLocalDataDir = ref('');
   const version = ref('');
 
-  /** Тёмная ли тема в Windows прямо сейчас. */
   const systemDark = ref(false);
-  /** Пользователь выбрал язык сам — определение по системе больше не применяется. */
+
   const localeChosen = ref(false);
-  /** До конца загрузки настройки не сохраняем: иначе первый же watch
-      перезапишет файл значениями по умолчанию. */
+
   const ready = ref(false);
 
   const effectiveTheme = computed<'light' | 'dark'>(() =>
@@ -55,28 +51,23 @@ export const useUiStore = defineStore('ui', () => {
   function applyTheme(): void {
     const root = document.documentElement;
     if (theme.value === 'system') {
-      // Атрибута нет — работает @media (prefers-color-scheme), как задумано
-      // в tokens.css. Явный атрибут победил бы медиа-запрос в обе стороны.
       delete root.dataset.theme;
     } else {
       root.dataset.theme = theme.value;
     }
-    // Декорации окна системные, и без этого тёмное окно получит белый
-    // заголовок. null означает «следовать системе».
+
     void getCurrentWindow().setTheme(theme.value === 'system' ? null : theme.value);
   }
 
   async function init(): Promise<void> {
     systemDark.value = darkQuery.matches;
-    // Смена темы Windows на лету: перезапуск ради этого не нужен.
+
     darkQuery.addEventListener('change', (e) => {
       systemDark.value = e.matches;
     });
 
     const res = await commands.loadBootstrap();
     if (res.status === 'error') {
-      // Настройки не прочитались — работаем на значениях по умолчанию.
-      // Останавливать запуск из-за этого нельзя.
       applyTheme();
       applyLocale(detectLocale(null));
       pushError(res.error);
@@ -85,11 +76,7 @@ export const useUiStore = defineStore('ui', () => {
     }
 
     const boot = res.data;
-    // Значения справа — не второй источник правды: Rust заполняет
-    // недостающие поля своим `Default` и присылает структуру целиком.
-    // Но `#[serde(default)]` на ней (без него добавленное поле роняло бы
-    // разбор всего файла настроек) делает поля необязательными в типах,
-    // и подстраховка нужна компилятору, а не пользователю.
+
     theme.value = boot.settings.theme ?? 'dark';
     railCollapsed.value = boot.settings.railCollapsed ?? false;
     checkUpdates.value = boot.settings.checkUpdates ?? true;
@@ -111,13 +98,6 @@ export const useUiStore = defineStore('ui', () => {
     ready.value = true;
   }
 
-  /**
-   * Подписи меню трея.
-   *
-   * Меню нативное, и `t()` до него не дотягивается: строки приходится
-   * отправлять в Rust. Зато перевод остаётся в локалях, а не расползается
-   * по двум языкам, и меню следует за сменой языка вместе со всем остальным.
-   */
   async function syncTray(): Promise<void> {
     const t = i18n.global.t as unknown as (k: string) => string;
     await commands.setTrayLabels({
@@ -147,8 +127,6 @@ export const useUiStore = defineStore('ui', () => {
     checkUpdates.value = value;
   }
 
-  // Сохранение отдельным наблюдателем, а не внутри сеттеров: тогда ни одно
-  // изменение не потеряется, даже если появится новый способ его сделать.
   watch([theme, locale, railCollapsed, localeChosen, checkUpdates], () => {
     if (!ready.value) return;
     void persist();
@@ -165,9 +143,6 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   function push(kind: ToastKind, text: string, details?: string): void {
-    // Повторы схлопываются: десять одинаковых ошибок подряд — это одна
-    // ошибка, случившаяся десять раз, и место на экране она занимать
-    // не должна десять раз тоже.
     const same = toasts.value.find((t) => t.kind === kind && t.text === text);
     if (same) {
       same.count += 1;
@@ -178,8 +153,6 @@ export const useUiStore = defineStore('ui', () => {
     toasts.value.push(toast);
     if (toasts.value.length > MAX_TOASTS) toasts.value.shift();
 
-    // Успех уходит сам, ошибка ждёт закрытия: её надо успеть прочитать
-    // и, возможно, скопировать.
     if (kind === 'ok') {
       window.setTimeout(() => dismiss(toast.id), OK_LIFETIME_MS);
     }
