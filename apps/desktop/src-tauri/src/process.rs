@@ -1,7 +1,7 @@
-//! Жизненный цикл запущенной сборки.
+//! The lifecycle of a running build.
 //!
-//! Стейт-машина, живой лог и определение готовности. Всё платформо-нейтрально:
-//! спавн и убийство спрятаны за `ProcessSupervisor`.
+//! The state machine, the live log and readiness detection. All of it is
+//! platform-neutral: spawning and killing are hidden behind `ProcessSupervisor`.
 
 use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
@@ -13,16 +13,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
 
-/// Сколько строк лога держим в памяти. Хватает, чтобы после возврата
-/// на экран инстанса увидеть весь старт целиком, включая трейсбек падения.
+/// How many log lines we keep in memory. Enough that after coming back to the
+/// instance screen the whole startup is visible, crash traceback included.
 const LOG_LIMIT: usize = 5000;
 
-/// Холодный старт с кучей кастомных нод — это реально минуты.
+/// A cold start with a pile of custom nodes really does take minutes.
 pub const READY_TIMEOUT: Duration = Duration::from_secs(300);
 
-/// Сколько ждём чужой сервер после неожиданного выхода процесса.
-/// ComfyUI-Manager после установки нод поднимает новый процесс и гасит
-/// старый: наш хэндл теряется, а порт остаётся занятым.
+/// How long we wait for someone else's server after an unexpected process exit.
+/// After installing nodes, ComfyUI-Manager brings up a new process and kills the
+/// old one: our handle is lost while the port stays taken.
 const RESPAWN_GRACE: Duration = Duration::from_secs(15);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -32,27 +32,27 @@ pub enum RunState {
     Starting,
     Running,
     Stopping,
-    /// Процесс завершился сам, и мы его об этом не просили.
+    /// The process exited on its own, and we did not ask it to.
     Crashed,
-    /// Сервер на порту жив, но управляет им уже не наш процесс.
+    /// The server on the port is alive, but our process no longer controls it.
     Detached,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct LogLine {
-    /// `stdout` или `stderr`. ComfyUI пишет старт в stderr, и различать
-    /// потоки полезно: по stdout видно, что сборка уже работает.
+    /// `stdout` or `stderr`. ComfyUI writes its startup to stderr, and telling
+    /// the streams apart is useful: stdout shows the build is already working.
     pub stream: String,
-    /// Содержимое не переводится никогда.
+    /// The contents are never translated.
     pub text: String,
-    /// Строка заменяет предыдущую, а не добавляется. Так ведёт себя tqdm:
-    /// он печатает прогресс через `\r`, и без замены сотня обновлений
-    /// превращается в сотню строк.
+    /// The line replaces the previous one instead of being appended. That is how
+    /// tqdm behaves: it prints progress with a carriage return, and without
+    /// replacement a hundred updates turn into a hundred lines.
     pub replaces_last: bool,
 }
 
-/// Снимок состояния для интерфейса.
+/// A state snapshot for the UI.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RunStatus {
@@ -60,13 +60,13 @@ pub struct RunStatus {
     pub state: RunState,
     pub port: Option<u16>,
     pub pid: Option<u32>,
-    /// Момент запуска в миллисекундах эпохи.
+    /// The launch moment, in epoch milliseconds.
     pub started_at: Option<f64>,
-    /// Секунды до готовности. Появляется, когда сервер ответил.
+    /// Seconds until readiness. Appears once the server has answered.
     pub ready_secs: Option<u32>,
-    /// Код выхода, если процесс завершился сам.
+    /// The exit code, if the process exited on its own.
     pub exit_code: Option<i32>,
-    /// Профиль, которым запускали.
+    /// The profile it was launched with.
     pub profile_id: Option<String>,
 }
 
@@ -85,7 +85,7 @@ impl RunStatus {
     }
 }
 
-/// Кольцевой буфер строк одного инстанса.
+/// A ring buffer of one instance's lines.
 #[derive(Default)]
 pub struct LogBuffer(VecDeque<LogLine>);
 
@@ -105,15 +105,15 @@ impl LogBuffer {
     }
 }
 
-/// Один запущенный инстанс.
+/// A single running instance.
 pub struct Running {
     pub status: RunStatus,
     pub log: LogBuffer,
-    /// Просили ли мы остановку. Отличает штатный выход от падения.
+    /// Whether we asked for the stop. Tells an orderly exit from a crash.
     pub stopping: bool,
 }
 
-/// Состояние всех запусков. Живёт в `tauri::State`.
+/// The state of every launch. Lives in `tauri::State`.
 #[derive(Default)]
 pub struct Runtime {
     inner: Mutex<HashMap<String, Arc<Mutex<Running>>>>,
@@ -124,8 +124,9 @@ impl Runtime {
         self.inner.lock().unwrap().get(id).cloned()
     }
 
-    /// Кладёт готовую ячейку, а не создаёт новую: в неё уже пишут треды
-    /// чтения логов, и подмена стоила бы всех строк, пришедших до неё.
+    /// Stores a ready-made cell rather than creating a new one: the log reader
+    /// threads already write into it, and swapping it would cost every line that
+    /// arrived before the swap.
     pub fn insert(&self, id: &str, cell: Arc<Mutex<Running>>) {
         self.inner.lock().unwrap().insert(id.to_string(), cell);
     }
@@ -134,7 +135,7 @@ impl Runtime {
         self.inner.lock().unwrap().remove(id);
     }
 
-    /// Состояния всех инстансов, о которых мы что-то знаем.
+    /// The states of every instance we know anything about.
     pub fn statuses(&self) -> Vec<RunStatus> {
         self.inner
             .lock()
@@ -144,7 +145,7 @@ impl Runtime {
             .collect()
     }
 
-    /// Занят ли инстанс: запущен или в процессе запуска либо остановки.
+    /// Whether the instance is busy: running, or starting, or stopping.
     pub fn is_busy(&self, id: &str) -> bool {
         self.get(id).is_some_and(|cell| {
             matches!(
@@ -155,15 +156,16 @@ impl Runtime {
     }
 }
 
-/// Разбирает поток на строки, понимая возврат каретки.
+/// Splits a stream into lines, understanding carriage returns.
 ///
-/// Наивное деление по `\n` превращает прогрессбар tqdm в десятки тысяч
-/// строк и забивает буфер так, что настоящий старт из него вытесняется.
+/// A naive split on newlines turns a tqdm progress bar into tens of thousands
+/// of lines and floods the buffer so badly that the real startup is pushed out
+/// of it.
 #[derive(Default)]
 pub struct LineSplitter {
     pending: String,
-    /// Предыдущая отданная строка закрыта возвратом каретки, то есть
-    /// временная: следующая должна встать на её место.
+    /// The previously emitted line was closed by a carriage return, meaning it
+    /// is transient: the next one must take its place.
     transient: bool,
 }
 
@@ -173,9 +175,9 @@ impl LineSplitter {
             match ch {
                 '\n' => {
                     if self.pending.is_empty() && self.transient {
-                        // Перевод строки сразу после прогресса лишь закрывает
-                        // его. Пустую строку поверх последнего значения
-                        // печатать нельзя — оно исчезнет с экрана.
+                        // A newline right after progress merely closes it. An
+                        // empty line must not be printed over the last value —
+                        // it would disappear from the screen.
                         self.transient = false;
                         continue;
                     }
@@ -194,8 +196,8 @@ impl LineSplitter {
         }
     }
 
-    /// Остаток без завершающего перевода строки — например, последняя
-    /// строка упавшего процесса.
+    /// The remainder with no trailing newline — for example the last line of
+    /// a crashed process.
     pub fn flush(&mut self, mut emit: impl FnMut(String, bool)) {
         if !self.pending.is_empty() {
             emit(std::mem::take(&mut self.pending), self.transient);
@@ -204,10 +206,10 @@ impl LineSplitter {
     }
 }
 
-/// Читает поток кусками и отдаёт готовые строки.
+/// Reads the stream in chunks and emits finished lines.
 ///
-/// Именно кусками, а не `BufRead::lines()`: тот делит только по `\n`
-/// и проглотил бы возврат каретки вместе с прогрессом.
+/// In chunks specifically, not with `BufRead::lines()`: that one splits only on
+/// newlines and would swallow the carriage return along with the progress.
 pub fn pump<R: Read>(mut stream: R, mut on_line: impl FnMut(String, bool)) {
     let mut splitter = LineSplitter::default();
     let mut buf = [0u8; 8192];
@@ -229,10 +231,10 @@ pub fn push_line(running: &Arc<Mutex<Running>>, stream: &str, text: String, repl
     line
 }
 
-/// Опрашивает `/system_stats`, пока сервер не ответит.
+/// Polls `/system_stats` until the server answers.
 ///
-/// Голый TcpStream вместо HTTP-клиента: один запрос раз в полсекунды
-/// не стоит минут компиляции лишней зависимости.
+/// A bare TcpStream instead of an HTTP client: one request every half second is
+/// not worth the minutes of compiling an extra dependency.
 pub fn probe(port: u16) -> bool {
     let addr = format!("127.0.0.1:{port}");
     let Ok(parsed) = addr.parse() else { return false };
@@ -252,7 +254,7 @@ pub fn probe(port: u16) -> bool {
     }
 }
 
-/// Ждёт готовности, пока не выйдет время или не попросят остановиться.
+/// Waits for readiness until the time runs out or a stop is requested.
 pub fn wait_ready(
     port: u16,
     timeout: Duration,
@@ -275,12 +277,12 @@ pub fn wait_ready(
     ))
 }
 
-/// После неожиданного выхода процесса проверяет, не поднял ли кто-то
-/// сервер заново.
+/// After an unexpected process exit, checks whether someone brought the server
+/// back up.
 ///
-/// Так ведёт себя ComfyUI-Manager после установки нод. Отличать этот
-/// случай от падения обязательно: пользователю надо сказать не «упало»,
-/// а «сервер перезапустился вне нашего контроля».
+/// That is how ComfyUI-Manager behaves after installing nodes. Telling this case
+/// apart from a crash is mandatory: the user must be told not "it crashed" but
+/// "the server restarted outside our control".
 pub fn detached_after_exit(port: u16) -> bool {
     let deadline = Instant::now() + RESPAWN_GRACE;
     while Instant::now() < deadline {

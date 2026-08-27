@@ -1,8 +1,8 @@
-//! Портабл-сборка ComfyUI под Windows: `ComfyUI_windows_portable`.
+//! A ComfyUI portable build on Windows: `ComfyUI_windows_portable`.
 //!
-//! Проверено на реальной установке 0.30.2. Признаки, по которым папка
-//! опознаётся, выбраны так, чтобы полураспакованное дерево их не прошло:
-//! `main.py` появляется в архиве далеко не первым.
+//! Verified against a real 0.30.2 installation. The markers a folder is
+//! recognised by are chosen so that a half-extracted tree does not pass them:
+//! `main.py` is far from the first thing to appear in the archive.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,15 +12,16 @@ use crate::error::AppError;
 
 use super::{FoundProfile, InstanceDiscovery, Probe};
 
-/// Встроенный интерпретатор. Его наличие отличает портабл-сборку
-/// от клона репозитория, который мы запускать не умеем.
+/// The bundled interpreter. Its presence is what tells a portable build apart
+/// from a repository clone, which we do not know how to launch.
 const PYTHON_REL: &str = r"python_embeded\python.exe";
 const MAIN_PY_REL: &str = r"ComfyUI\main.py";
 const VERSION_REL: &str = r"ComfyUI\comfyui_version.py";
 
-/// Папка с вариантами запуска «для продвинутых». Сканируется наравне с корнем.
+/// The folder with "advanced" launch options. Scanned alongside the root.
 const ADVANCED_DIR: &str = "advanced";
-/// Обновление сборки. Эти `.bat` не запускают сервер, и в профилях им не место.
+/// Updating the build. These `.bat` files do not start a server and have no
+/// place among the profiles.
 const UPDATE_DIR: &str = "update";
 
 #[cfg(windows)]
@@ -54,10 +55,10 @@ impl InstanceDiscovery for WindowsPortable {
     }
 }
 
-/// Папка не подошла — и надо сказать, куда смотреть.
+/// The folder did not fit — and we have to say where to look instead.
 ///
-/// Промах на уровень встречается постоянно: сверху лежит папка архива,
-/// снизу — `ComfyUI\`. Обе выглядят правдоподобно, и обе не подходят.
+/// Missing by one level happens constantly: above sits the archive's folder,
+/// below sits `ComfyUI\`. Both look plausible, and neither fits.
 fn mismatch(path: &Path, has_python: bool, has_main: bool) -> AppError {
     if let Some(child) = valid_child(path) {
         return AppError::with("discovery.tryChild", "suggested", canonical(&child));
@@ -77,8 +78,8 @@ fn is_valid(path: &Path) -> bool {
     path.join(PYTHON_REL).is_file() && path.join(MAIN_PY_REL).is_file()
 }
 
-/// Единственная подходящая подпапка. Если их несколько, подсказывать нечего:
-/// выбор за пользователем.
+/// The only suitable subfolder. If there are several, there is nothing to
+/// suggest: the choice is the user's.
 fn valid_child(path: &Path) -> Option<PathBuf> {
     let mut found = None;
     for entry in fs::read_dir(path).ok()?.flatten() {
@@ -94,10 +95,10 @@ fn valid_child(path: &Path) -> Option<PathBuf> {
     found
 }
 
-/// Убирает `\\?\`, который добавляет `canonicalize` на Windows.
+/// Strips the `\\?\` prefix that `canonicalize` adds on Windows.
 ///
-/// Путь показывается пользователю и хранится в реестре: с префиксом он
-/// выглядит поломанным, а вставленный обратно в проводник — не работает.
+/// The path is shown to the user and stored in the registry: with the prefix it
+/// looks broken, and pasted back into Explorer it does not work.
 fn canonical(path: &Path) -> String {
     match fs::canonicalize(path) {
         Ok(p) => dunce::simplified(&p).display().to_string(),
@@ -105,7 +106,7 @@ fn canonical(path: &Path) -> String {
     }
 }
 
-/// `__version__ = "0.30.2"` из сгенерированного сборкой файла.
+/// `__version__ = "0.30.2"` from the file the build generates.
 fn read_comfy_version(file: &Path) -> Option<String> {
     let text = fs::read_to_string(file).ok()?;
     text.lines()
@@ -116,8 +117,9 @@ fn read_comfy_version(file: &Path) -> Option<String> {
 
 /// `python.exe --version` → `Python 3.12.10`.
 ///
-/// Читаем оба потока: до 3.4 версия печаталась в stderr, и встретить
-/// древний интерпретатор в чужой сборке вполне возможно.
+/// We read both streams: before 3.4 the version was printed to stderr, and
+/// running into an ancient interpreter in someone else's build is entirely
+/// possible.
 fn read_python_version(python: &Path) -> Option<String> {
     let mut cmd = Command::new(python);
     cmd.arg("--version");
@@ -138,19 +140,20 @@ fn read_python_version(python: &Path) -> Option<String> {
     }
 }
 
-/// `.bat` в корне и в `advanced\`. Папка `update\` не сканируется вовсе.
+/// `.bat` files in the root and in `advanced\`. The `update\` folder is not
+/// scanned at all.
 fn scan_profiles(root: &Path) -> Vec<FoundProfile> {
     let mut profiles = Vec::new();
     collect_bats(root, root, false, &mut profiles);
     collect_bats(&root.join(ADVANCED_DIR), root, true, &mut profiles);
-    // Порядок обхода каталога зависит от файловой системы, а список
-    // показывается пользователю — сортируем, чтобы он не прыгал.
+    // Directory traversal order depends on the file system, and the list is
+    // shown to the user — we sort it so that it does not jump around.
     profiles.sort_by(|a, b| a.id.cmp(&b.id));
     profiles
 }
 
 fn collect_bats(dir: &Path, root: &Path, advanced: bool, out: &mut Vec<FoundProfile>) {
-    debug_assert!(!dir.ends_with(UPDATE_DIR), "папка обновления не сканируется");
+    debug_assert!(!dir.ends_with(UPDATE_DIR), "the update folder is not scanned");
 
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {

@@ -1,11 +1,12 @@
-//! Ошибки, пересекающие границу Rust → фронт.
+//! Errors that cross the Rust → frontend boundary.
 //!
-//! Бэкенд не переводит ничего. Он отдаёт код и подстановки, а текст
-//! собирает фронт из `errors.<code>`. Иначе переводы размазались бы
-//! по двум языкам и двум слоям, а `pnpm i18n:check` видел бы только половину.
+//! The backend translates nothing. It returns a code and interpolations, and
+//! the frontend assembles the text from `errors.<code>`. Otherwise the
+//! translations would be smeared across two languages and two layers, and
+//! `pnpm i18n:check` would see only half of them.
 //!
-//! Неизвестный фронту код показывается как сам код: интерфейс не должен
-//! падать или показывать пустоту из-за пропущенного ключа.
+//! A code the frontend does not know is shown as the code itself: the UI must
+//! not crash or show blankness because of a missing key.
 
 use std::collections::HashMap;
 
@@ -13,10 +14,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct AppError {
-    /// Ключ перевода без префикса: `settings.saveFailed` → `errors.settings.saveFailed`.
+    /// The translation key without its prefix: `settings.saveFailed` → `errors.settings.saveFailed`.
     pub code: String,
-    /// Подстановки в сообщение. Только строки: числа всё равно форматирует
-    /// фронт по правилам локали, а не Rust.
+    /// Interpolations for the message. Strings only: numbers are formatted by
+    /// the frontend according to the locale's rules anyway, not by Rust.
     pub params: HashMap<String, String>,
 }
 
@@ -25,18 +26,18 @@ impl AppError {
         Self { code: code.to_string(), params: HashMap::new() }
     }
 
-    /// Ошибка с одной подстановкой — подавляющее большинство случаев.
+    /// An error with a single interpolation — the vast majority of cases.
     pub fn with(code: &str, key: &str, value: impl ToString) -> Self {
         let mut params = HashMap::new();
         params.insert(key.to_string(), value.to_string());
         Self { code: code.to_string(), params }
     }
 
-    /// Техническая причина от нижележащего слоя.
+    /// A technical cause from a lower layer.
     ///
-    /// Текст причины не переводится и не должен: это сообщение ОС или
-    /// парсера, и подменять его выдумкой значит лишить пользователя
-    /// единственной зацепки при разборе.
+    /// The cause text is not translated and must not be: it is a message from
+    /// the OS or a parser, and replacing it with an invention would deprive the
+    /// user of their only foothold while investigating.
     pub fn because(code: &str, cause: impl ToString) -> Self {
         Self::with(code, "reason", cause)
     }

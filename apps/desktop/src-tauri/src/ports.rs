@@ -1,38 +1,39 @@
-//! Выдача портов.
+//! Handing out ports.
 //!
-//! Порт нужен до старта: он уходит в аргументы командной строки, и узнать
-//! его постфактум из чужого процесса неоткуда.
+//! The port is needed before launch: it goes into the command line arguments,
+//! and there is nowhere to learn it after the fact from someone else's process.
 
 use std::net::TcpListener;
 use std::time::{Duration, Instant};
 
-/// Ниже 1024 нужны права администратора, выше 65535 портов не бывает.
+/// Below 1024 requires administrator rights, above 65535 there are no ports.
 const FIRST: u16 = 1024;
 
-/// Свободен ли порт прямо сейчас.
+/// Whether the port is free right now.
 ///
-/// Проверка через настоящий `bind`, а не через список соединений: только
-/// она отвечает на нужный вопрос — сможем ли мы его занять.
+/// Checked with a real `bind` rather than against a list of connections: only
+/// that answers the question we actually have — can we take it.
 pub fn is_free(port: u16) -> bool {
     TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
 
-/// Порт для запуска: предпочитаемый, если свободен, иначе ближайший выше.
+/// The port to launch on: the preferred one if free, otherwise the nearest one
+/// above it.
 ///
-/// Между проверкой и стартом процесса остаётся зазор, в который кто-то
-/// может успеть занять порт. Сузить его нечем: отдать сокет чужому процессу
-/// мы не можем. Поэтому занятый порт — не ошибка выдачи, а причина, по
-/// которой сборка не поднимется, и её видно в логе.
+/// Between the check and the process start there is a gap in which someone else
+/// can take the port. There is nothing to narrow it with: we cannot hand our
+/// socket to another process. So a taken port is not a fault of the handout but
+/// the reason a build will not come up, and that is visible in the log.
 pub fn pick(preferred: u16) -> Option<u16> {
     let start = preferred.max(FIRST);
     (start..=u16::MAX).find(|p| is_free(*p))
 }
 
-/// Ждёт, пока порт освободится после остановки.
+/// Waits for the port to be released after a stop.
 ///
-/// Процесс успевает умереть раньше, чем система отпустит его сокет.
-/// Без этого ожидания перезапуск инстанса натыкается на собственный
-/// предыдущий порт и выглядит как случайный сбой.
+/// A process manages to die before the system lets go of its socket. Without
+/// this wait, restarting an instance runs into its own previous port and looks
+/// like a random glitch.
 pub fn wait_released(port: u16, timeout: Duration) -> bool {
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {

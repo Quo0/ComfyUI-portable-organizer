@@ -1,9 +1,9 @@
-//! Распознавание установки ComfyUI на диске.
+//! Recognising a ComfyUI installation on disk.
 //!
-//! Один из двух трейтов, где живёт платформозависимость. Всё, что выше,
-//! работает с `Probe` и не знает ни про `python_embeded`, ни про `.bat`.
-//! Когда дойдёт до Linux, появится вторая реализация, а вызывающий код
-//! не изменится.
+//! One of the two traits where platform dependence lives. Everything above it
+//! works with a `Probe` and knows nothing about `python_embeded` or `.bat`
+//! files. When Linux comes around, a second implementation will appear and the
+//! calling code will not change.
 
 pub mod windows_portable;
 
@@ -13,25 +13,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
 
-/// Найденный вариант запуска. В Фазе 1 это только факт наличия файла:
-/// разбор `.bat` в редактируемый профиль — задача Фазы 2.
+/// A launch option that was found. In Phase 1 this is only the fact that the
+/// file exists: parsing a `.bat` into an editable profile is Phase 2's job.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct FoundProfile {
-    /// Путь относительно корня инстанса: `run_nvidia_gpu.bat`,
+    /// Path relative to the instance root: `run_nvidia_gpu.bat`,
     /// `advanced\run_nvidia_gpu_disable_api_nodes.bat`.
     pub id: String,
-    /// Имя файла без расширения. Не переводится: это имя файла.
+    /// File name without the extension. Not translated: it is a file name.
     pub name: String,
-    /// Из папки `advanced\` — такие варианты стоит показывать отдельно.
+    /// From the `advanced\` folder — such options are worth showing separately.
     pub advanced: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Probe {
-    /// Канонический путь. Сравнение инстансов на дубликат идёт по нему,
-    /// а не по тому, что ввёл пользователь.
+    /// The canonical path. Duplicate detection between instances goes by this,
+    /// not by what the user typed.
     pub path: String,
     pub comfy_version: Option<String>,
     pub python_version: Option<String>,
@@ -39,10 +39,10 @@ pub struct Probe {
 }
 
 pub trait InstanceDiscovery: Send + Sync {
-    /// Проверяет папку и собирает всё, что о ней известно.
+    /// Checks the folder and collects everything known about it.
     ///
-    /// Ошибка обязана называть, чего не хватило: «папка не подошла» без
-    /// причины заставляет пользователя гадать, а типичная причина —
-    /// выбран уровень выше или ниже нужного.
+    /// The error must say what was missing: "the folder did not fit" without
+    /// a reason leaves the user guessing, and the typical reason is that they
+    /// picked a level above or below the right one.
     fn probe(&self, path: &Path) -> Result<Probe, AppError>;
 }

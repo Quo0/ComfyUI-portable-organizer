@@ -373,11 +373,11 @@ export const events = {
 export type Accent = string;
 
 export type AppError = {
-	/**  Ключ перевода без префикса: `settings.saveFailed` → `errors.settings.saveFailed`. */
+	/**  The translation key without its prefix: `settings.saveFailed` → `errors.settings.saveFailed`. */
 	code: string,
 	/**
-	 *  Подстановки в сообщение. Только строки: числа всё равно форматирует
-	 *  фронт по правилам локали, а не Rust.
+	 *  Interpolations for the message. Strings only: numbers are formatted by
+	 *  the frontend according to the locale's rules anyway, not by Rust.
 	 */
 	params: { [key in string]: string },
 };
@@ -564,18 +564,18 @@ export type Failed = {
 };
 
 /**
- *  Найденный вариант запуска. В Фазе 1 это только факт наличия файла:
- *  разбор `.bat` в редактируемый профиль — задача Фазы 2.
+ *  A launch option that was found. In Phase 1 this is only the fact that the
+ *  file exists: parsing a `.bat` into an editable profile is Phase 2's job.
  */
 export type FoundProfile = {
 	/**
-	 *  Путь относительно корня инстанса: `run_nvidia_gpu.bat`,
+	 *  Path relative to the instance root: `run_nvidia_gpu.bat`,
 	 *  `advanced\run_nvidia_gpu_disable_api_nodes.bat`.
 	 */
 	id: string,
-	/**  Имя файла без расширения. Не переводится: это имя файла. */
+	/**  File name without the extension. Not translated: it is a file name. */
 	name: string,
-	/**  Из папки `advanced\` — такие варианты стоит показывать отдельно. */
+	/**  From the `advanced\` folder — such options are worth showing separately. */
 	advanced: boolean,
 };
 
@@ -866,16 +866,16 @@ export type LibrarySettings = {
 
 export type LogLine = {
 	/**
-	 *  `stdout` или `stderr`. ComfyUI пишет старт в stderr, и различать
-	 *  потоки полезно: по stdout видно, что сборка уже работает.
+	 *  `stdout` or `stderr`. ComfyUI writes its startup to stderr, and telling
+	 *  the streams apart is useful: stdout shows the build is already working.
 	 */
 	stream: string,
-	/**  Содержимое не переводится никогда. */
+	/**  The contents are never translated. */
 	text: string,
 	/**
-	 *  Строка заменяет предыдущую, а не добавляется. Так ведёт себя tqdm:
-	 *  он печатает прогресс через `\r`, и без замены сотня обновлений
-	 *  превращается в сотню строк.
+	 *  The line replaces the previous one instead of being appended. That is how
+	 *  tqdm behaves: it prints progress with a carriage return, and without
+	 *  replacement a hundred updates turn into a hundred lines.
 	 */
 	replacesLast: boolean,
 };
@@ -928,8 +928,8 @@ export type ModelsScan = {
 
 export type Probe = {
 	/**
-	 *  Канонический путь. Сравнение инстансов на дубликат идёт по нему,
-	 *  а не по тому, что ввёл пользователь.
+	 *  The canonical path. Duplicate detection between instances goes by this,
+	 *  not by what the user typed.
 	 */
 	path: string,
 	comfyVersion: string | null,
@@ -1007,24 +1007,24 @@ export type RunLog = {
 };
 
 export type RunState = "stopped" | "starting" | "running" | "stopping" | 
-/**  Процесс завершился сам, и мы его об этом не просили. */
+/**  The process exited on its own, and we did not ask it to. */
 "crashed" | 
-/**  Сервер на порту жив, но управляет им уже не наш процесс. */
+/**  The server on the port is alive, but our process no longer controls it. */
 "detached";
 
-/**  Снимок состояния для интерфейса. */
+/**  A state snapshot for the UI. */
 export type RunStatus = {
 	instanceId: string,
 	state: RunState,
 	port: number | null,
 	pid: number | null,
-	/**  Момент запуска в миллисекундах эпохи. */
+	/**  The launch moment, in epoch milliseconds. */
 	startedAt: number | null,
-	/**  Секунды до готовности. Появляется, когда сервер ответил. */
+	/**  Seconds until readiness. Appears once the server has answered. */
 	readySecs: number | null,
-	/**  Код выхода, если процесс завершился сам. */
+	/**  The exit code, if the process exited on its own. */
 	exitCode: number | null,
-	/**  Профиль, которым запускали. */
+	/**  The profile it was launched with. */
 	profileId: string | null,
 };
 

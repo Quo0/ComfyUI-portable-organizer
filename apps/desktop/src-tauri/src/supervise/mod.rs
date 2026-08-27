@@ -1,13 +1,13 @@
-//! Запуск и остановка дочерних процессов.
+//! Starting and stopping child processes.
 //!
-//! Второй из двух трейтов, где живёт платформозависимость. Контракт узкий
-//! намеренно: всё, что выше, знает только «запустить», «убить дерево»
-//! и гарантию «дети умирают вместе с родителем».
+//! The second of the two traits where platform dependence lives. The contract
+//! is deliberately narrow: everything above it knows only "spawn", "kill the
+//! tree" and the guarantee that "children die with the parent".
 //!
-//! Гарантия не косметическая. Python с загруженной моделью держит
-//! видеопамять, и осиротевший процесс после падения приложения делает
-//! видеокарту непригодной до перезагрузки — при этом окна у него нет,
-//! и найти его пользователю нечем.
+//! That guarantee is not cosmetic. Python with a model loaded holds video
+//! memory, and an orphaned process left behind by an app crash makes the GPU
+//! unusable until a reboot — while having no window, so the user has no way to
+//! find it.
 
 pub mod windows;
 
@@ -24,12 +24,12 @@ pub struct SpawnRequest {
 }
 
 pub trait ProcessSupervisor: Send + Sync {
-    /// Запускает процесс с перехваченными stdout и stderr.
+    /// Spawns the process with stdout and stderr captured.
     fn spawn(&self, request: &SpawnRequest) -> Result<Child, AppError>;
 
-    /// Убивает процесс вместе со всем его поддеревом.
+    /// Kills the process together with its entire subtree.
     ///
-    /// Дерево, а не один процесс: портабл-сборка запускает python, тот —
-    /// свои воркеры, и убийство головы оставило бы их жить.
+    /// The tree, not a single process: a portable build starts python, which
+    /// starts its own workers, and killing the head would leave them alive.
     fn kill_tree(&self, pid: u32) -> Result<(), AppError>;
 }

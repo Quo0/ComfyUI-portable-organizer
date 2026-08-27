@@ -1,18 +1,18 @@
-//! Реализация супервизора под Windows.
+//! The supervisor implementation for Windows.
 //!
-//! Ключевая часть — Job Object с `KILL_ON_JOB_CLOSE`. Приложение кладёт
-//! **само себя** в job один раз при старте, а членство в job наследуется
-//! потомками. Поэтому специального обращения с каждым дочерним процессом
-//! не нужно: он попадает в тот же job автоматически, а закрытие последнего
-//! хэндла — то есть смерть нашего процесса, штатная или аварийная —
-//! забирает с собой всех.
+//! The key part is a Job Object with `KILL_ON_JOB_CLOSE`. The app puts
+//! **itself** into the job once at startup, and job membership is inherited by
+//! descendants. So no special handling is needed for each child process: it
+//! lands in the same job automatically, and closing the last handle — that is,
+//! the death of our process, orderly or not — takes everyone with it.
 //!
-//! План предполагал `CREATE_SUSPENDED` → `AssignProcessToJobObject` →
-//! `ResumeThread` для каждого потомка. От этого пути пришлось отказаться
-//! по конкретной причине: `std::process::Command` не отдаёт хэндл главного
-//! потока, а без него возобновлять нечего. Городить ради этого собственный
-//! `CreateProcessW` со всей обвязкой пайпов значит переписать половину
-//! `std::process` — при том что наследование job даёт ровно ту же гарантию.
+//! The plan called for `CREATE_SUSPENDED` → `AssignProcessToJobObject` →
+//! `ResumeThread` for every child. That route had to be abandoned for
+//! a specific reason: `std::process::Command` does not hand out the main
+//! thread's handle, and without it there is nothing to resume. Building our own
+//! `CreateProcessW` with all the pipe plumbing just for that would mean
+//! rewriting half of `std::process` — while job inheritance gives exactly the
+//! same guarantee.
 
 use std::collections::HashMap;
 use std::process::{Child, Command, Stdio};
@@ -21,8 +21,8 @@ use crate::error::AppError;
 
 use super::{ProcessSupervisor, SpawnRequest};
 
-/// Скрывает окно консоли у дочернего процесса. Без него при каждом запуске
-/// поверх интерфейса всплывал бы чёрный терминал.
+/// Hides the child process's console window. Without it a black terminal would
+/// pop up over the UI on every launch.
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 pub struct WindowsSupervisor;
@@ -34,8 +34,9 @@ impl ProcessSupervisor for WindowsSupervisor {
             .current_dir(&request.cwd)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            // stdin закрыт намеренно: `pause` в конце .bat и любой input()
-            // внутри иначе повиснут в ожидании клавиши, которую нажать негде.
+            // stdin is closed deliberately: `pause` at the end of a .bat and any
+            // input() inside would otherwise hang waiting for a key there is
+            // nowhere to press.
             .stdin(Stdio::null());
 
         for (key, value) in &request.env {
@@ -54,8 +55,9 @@ impl ProcessSupervisor for WindowsSupervisor {
     }
 
     fn kill_tree(&self, pid: u32) -> Result<(), AppError> {
-        // На Windows нельзя послать чужому процессу SIGINT, а `Child::kill`
-        // убивает только голову дерева. taskkill /T обходит поддерево целиком.
+        // On Windows you cannot send SIGINT to someone else's process, and
+        // `Child::kill` kills only the head of the tree. taskkill /T walks the
+        // whole subtree.
         let mut cmd = Command::new("taskkill");
         cmd.args(["/PID", &pid.to_string(), "/T", "/F"])
             .stdout(Stdio::null())
@@ -68,24 +70,24 @@ impl ProcessSupervisor for WindowsSupervisor {
         }
 
         match cmd.status() {
-            // 128 — процесса уже нет. Это не ошибка: цель достигнута.
+            // 128 — the process is already gone. Not an error: goal achieved.
             Ok(status) if status.success() || status.code() == Some(128) => Ok(()),
             Ok(status) => Err(AppError::with(
                 "run.stopFailed",
                 "reason",
-                format!("taskkill вернул {}", status.code().unwrap_or(-1)),
+                format!("taskkill returned {}", status.code().unwrap_or(-1)),
             )),
             Err(e) => Err(AppError::because("run.stopFailed", e)),
         }
     }
 }
 
-/// Переменные, без которых лог приходит пачкой в конце.
+/// The variables without which the log arrives in one lump at the end.
 ///
-/// Проверено спайком Фазы 0: без `PYTHONUNBUFFERED` stdout при
-/// перенаправлении в пайп буферизуется блоками, и первые минуты старта
-/// выглядят как зависание. Пользовательские `set` из `.bat` не затираем —
-/// если человек задал своё, у него была причина.
+/// Verified by the Phase 0 spike: without `PYTHONUNBUFFERED`, stdout redirected
+/// into a pipe is buffered in blocks, and the first minutes of startup look
+/// like a hang. User `set` lines from the `.bat` are not overwritten — if
+/// someone set their own, they had a reason.
 fn apply_python_env(cmd: &mut Command, existing: &HashMap<String, String>) {
     if !existing.contains_key("PYTHONUNBUFFERED") {
         cmd.env("PYTHONUNBUFFERED", "1");
@@ -95,11 +97,11 @@ fn apply_python_env(cmd: &mut Command, existing: &HashMap<String, String>) {
     }
 }
 
-/// Кладёт текущий процесс в job, из которого потомки не выберутся.
+/// Puts the current process into a job its descendants cannot escape.
 ///
-/// Вызывается один раз при старте приложения. Хэндл job намеренно
-/// «утекает»: пока он открыт, job жив, а закрывается он вместе с процессом —
-/// именно в этот момент система и убивает всех потомков.
+/// Called once at app startup. The job handle is deliberately "leaked": while
+/// it is open the job is alive, and it closes together with the process — which
+/// is exactly the moment the system kills all descendants.
 #[cfg(windows)]
 pub fn install_job_object() -> Result<(), String> {
     use std::mem::{size_of, zeroed};
@@ -110,12 +112,12 @@ pub fn install_job_object() -> Result<(), String> {
     };
     use windows_sys::Win32::System::Threading::GetCurrentProcess;
 
-    // SAFETY: все вызовы — обычный Win32 без хитростей с временем жизни;
-    // структура инициализируется нулями, как того требует документация.
+    // SAFETY: every call is plain Win32 with no lifetime trickery; the struct
+    // is zero-initialised, as the documentation requires.
     unsafe {
         let job = CreateJobObjectW(std::ptr::null(), std::ptr::null());
         if job.is_null() {
-            return Err("CreateJobObjectW вернул null".into());
+            return Err("CreateJobObjectW returned null".into());
         }
 
         let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = zeroed();
@@ -128,11 +130,11 @@ pub fn install_job_object() -> Result<(), String> {
             size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
         );
         if ok == 0 {
-            return Err("SetInformationJobObject не сработал".into());
+            return Err("SetInformationJobObject failed".into());
         }
 
         if AssignProcessToJobObject(job, GetCurrentProcess()) == 0 {
-            return Err("AssignProcessToJobObject не сработал".into());
+            return Err("AssignProcessToJobObject failed".into());
         }
     }
     Ok(())
@@ -143,16 +145,16 @@ pub fn install_job_object() -> Result<(), String> {
     Ok(())
 }
 
-/// Кто слушает этот порт на локальной петле.
+/// Who is listening on this port on the loopback interface.
 ///
-/// Нужен ровно в одном случае: ComfyUI-Manager после установки нод гасит
-/// сервер и поднимает новый процесс. Наш хэндл при этом теряется, порт
-/// остаётся занятым, а PID мы не знаем — то есть остановить сборку
-/// из приложения больше нечем.
+/// Needed in exactly one case: after installing nodes, ComfyUI-Manager shuts
+/// the server down and brings up a new process. Our handle is lost in the
+/// process, the port stays taken, and we do not know the PID — meaning there is
+/// nothing left to stop the build with from the app.
 ///
-/// Таблица берётся целиком и один раз: соединений на машине сотни, но
-/// вызов стоит десятки микросекунд, а звать его приходится по одному разу
-/// на переподключение.
+/// The table is fetched whole and once: there are hundreds of connections on
+/// a machine, but the call costs tens of microseconds and has to be made once
+/// per reconnection.
 #[cfg(windows)]
 pub fn pid_listening_on(port: u16) -> Option<u32> {
     use std::mem::size_of;
@@ -161,12 +163,12 @@ pub fn pid_listening_on(port: u16) -> Option<u32> {
     };
     use windows_sys::Win32::Networking::WinSock::AF_INET;
 
-    // SAFETY: буфер выделяется под размер, который система же и назвала,
-    // и читается ровно столько записей, сколько она объявила в dwNumEntries.
+    // SAFETY: the buffer is allocated for the size the system itself reported,
+    // and exactly as many rows are read as it declared in dwNumEntries.
     unsafe {
         let mut size: u32 = 0;
-        // Первый вызов только узнаёт нужный размер и потому обязан
-        // вернуть ошибку переполнения буфера.
+        // The first call only learns the required size and therefore must
+        // return a buffer-overflow error.
         GetExtendedTcpTable(
             std::ptr::null_mut(),
             &mut size,
@@ -207,7 +209,7 @@ pub fn pid_listening_on(port: u16) -> Option<u32> {
     }
 }
 
-/// Порт в таблице лежит в сетевом порядке байт, да ещё и в 32-битном поле.
+/// In the table the port sits in network byte order, and in a 32-bit field.
 #[cfg(windows)]
 fn local_port(raw: u32) -> u16 {
     u16::from_be((raw & 0xFFFF) as u16)
