@@ -1,24 +1,24 @@
-# Выпуск приложения по тегу.
+# Releasing the app by tag.
 #
-# Порядок шагов — не вкусовщина. Сверка тега с версией стоит первой, потому
-# что расхождение обязано ронять сборку до её начала. Ворота качества стоят
-# до сборки, потому что откатывать опубликованный инсталлятор с рассыпавшейся
-# тёмной темой или недостающим переводом дороже, чем не выпускать. Релиз
-# создаётся черновиком и публикуется только после того, как в его тело
-# дописаны контрольные суммы: не бывает состояния, когда файл уже виден,
-# а сверить его нечем.
+# The order of the steps is not a matter of taste. The tag-versus-version check
+# comes first because a mismatch must fail the build before it starts. The
+# quality gates come before the build because rolling back a published
+# installer with a broken dark theme or a missing translation costs more than
+# not releasing. The release is created as a draft and published only after the
+# checksums have been appended to its body: there is never a state where the
+# file is already visible and there is nothing to verify it against.
 #
-# Приложение неподписанное (см. plan/release.md), и сумма — единственный
-# доступный пользователю способ убедиться, что файл не подменили.
+# The app is unsigned (see plan/release.md), and the checksum is the only way
+# a user can make sure the file was not swapped.
 
-name: Выпуск приложения
+name: Release the app
 
 on:
   push:
     tags:
       - 'v*'
 
-# Воркфлоу создаёт релиз, дописывает его тело и публикует.
+# The workflow creates the release, appends to its body and publishes it.
 permissions:
   contents: write
 
@@ -29,15 +29,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # До установки чего бы то ни было: два отказа, которые обязаны
-      # случиться раньше сборки. Скрипт заодно вырезает секцию CHANGELOG —
-      # тело релиза берётся оттуда, а не пишется в интерфейсе GitHub.
-      - name: Сверка тега с версией и секция CHANGELOG
+      # Before installing anything at all: two refusals that must happen
+      # earlier than the build. The script also cuts out the CHANGELOG section
+      # — the release body comes from there, it is not written in the GitHub UI.
+      - name: Check the tag against the version and cut the CHANGELOG section
         shell: bash
         run: node tools/release-notes.mjs "$GITHUB_REF_NAME" release-notes.md
 
       - uses: pnpm/action-setup@v4
 
+      # The version is pinned to a number rather than the `lts/*` alias: the
+      # alias moves to the next LTS line on its own, without a commit, and
+      # breaks the build on a day when nobody changed anything. The lower bound
+      # is set by pnpm — it requires Node 22.13 or newer, otherwise it fails on
+      # `node:sqlite`.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -45,80 +50,108 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # Кэш Cargo: без него каждая сборка тянет и компилирует зависимости
-      # Tauri заново, а это большая часть времени выпуска.
+      # Cargo cache: without it every build fetches and compiles the Tauri
+      # dependencies from scratch, which is most of the release time.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
 
       - run: pnpm install --frozen-lockfile
 
-      # Ворота качества. Паритет тем и контраст, паритет ключей локалей,
-      # типы фронта. Каждое из трёх уже ловило то, что глазами не видно.
-      - name: Ворота качества
+      # Quality gates. Theme parity and contrast, locale key parity, frontend
+      # types. Each of the three has already caught something invisible to the
+      # eye.
+      - name: Quality gates
         run: |
           pnpm design:check
           pnpm i18n:check
           pnpm typecheck
 
-      - name: Сборка и черновик релиза
+      - name: Build and draft release
         id: build
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Подпись обновления, а не подпись кода: доказывает, что выпуск
-          # наш, и на SmartScreen не влияет. Без ключа `latest.json` соберётся
-          # без подписи, и апдейтер откажется ставить такое обновление.
+          # An update signature, not a code signature: it proves the release is
+          # ours and has no effect on SmartScreen. Without the key `latest.json`
+          # is built unsigned, and the updater refuses to install such an
+          # update.
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}
           releaseName: ${{ github.ref_name }}
-          releaseBody: 'Тело релиза дописывается следующим шагом.'
+          releaseBody: 'The release body is appended by the next step.'
           releaseDraft: true
-          # Тег с дефисом — предрелиз: `releases/latest` его пропустит,
-          # и кнопка на сайте продолжит вести на стабильную версию.
+          # A tag with a hyphen is a prerelease: `releases/latest` skips it, and
+          # the button on the site keeps pointing at the stable version.
           prerelease: ${{ contains(github.ref_name, '-') }}
 
-      # Суммы считаются с тех самых файлов, что только что собраны, а не
-      # со скачанных обратно из релиза: скачивание добавило бы ещё одно
-      # место, где файл мог подмениться.
-      - name: Контрольные суммы
+      # The sums are computed from the very files that were just built, not
+      # from ones downloaded back out of the release: downloading would add one
+      # more place where the file could have been swapped.
+      - name: Checksums
         shell: bash
         run: |
           cd apps/desktop/src-tauri/target/release/bundle/nsis
           sha256sum *.exe | tee SHA256SUMS.txt
           {
             echo
-            echo '## Контрольные суммы (SHA-256)'
+            echo '## Checksums (SHA-256)'
             echo
             echo '```'
             cat SHA256SUMS.txt
             echo '```'
             echo
-            echo 'Приложение не подписано сертификатом разработчика — Windows покажет предупреждение SmartScreen. Сверка суммы это единственный способ убедиться, что файл не подменили.'
+            echo 'The app is not signed with a developer certificate — Windows will show a SmartScreen warning. Verifying the checksum is the only way to make sure the file was not swapped.'
           } >> "$GITHUB_WORKSPACE/release-notes.md"
 
-      # Публикация последним шагом: до неё релиз черновик, и его не видно
-      # ни на странице релизов, ни в `releases/latest`, ни апдейтеру.
-      - name: Публикация
+      # Publishing is the last step: until then the release is a draft, invisible
+      # on the releases page, in `releases/latest` and to the updater.
+      - name: Publish
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "$GITHUB_REF_NAME" \
             "apps/desktop/src-tauri/target/release/bundle/nsis/SHA256SUMS.txt" --clobber
-          gh release edit "$GITHUB_REF_NAME" \
-            --notes-file release-notes.md \
-            --draft=false
 
-  # Кнопка «Скачать» на сайте собирается на этапе сборки: она знает
-  # о версии, размере и сумме ровно то, что GitHub отдал в тот момент.
-  # Без пересборки после публикации она отставала бы от свежего релиза
-  # до следующей правки документации.
+          # The prerelease flag is set explicitly here, not only at draft
+          # creation time: on the first release it came out raised for a tag
+          # without a hyphen, and that broke two things at once. Both ask GitHub
+          # for "the latest non-prerelease release": the updater goes to
+          # `releases/latest/download/latest.json`, the "Download" button to
+          # `releases/latest` through the API. A release marked as a prerelease
+          # is invisible to either of them, and both get a 404 while the assets
+          # are perfectly fine.
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            gh release edit "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md \
+              --draft=false \
+              --prerelease
+          else
+            gh release edit "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md \
+              --draft=false \
+              --prerelease=false \
+              --latest
+          fi
+
+  # The "Download" button on the site is assembled at build time: it knows
+  # exactly as much about the version, size and checksum as GitHub returned at
+  # that moment. Without a rebuild after publishing it would lag behind a fresh
+  # release until the next documentation edit.
+  #
+  # A prerelease does not rebuild the site, and the condition here is the same
+  # as for the prerelease flag above — a hyphen in the tag. The "Download"
+  # button asks GitHub for the latest non-prerelease release, so after
+  # `v1.0.0-rc.1` it would build exactly the same site as before it. There is no
+  # point publishing Pages for an unchanged result, and an extra deployment is
+  # one more way to break a live site.
   docs:
     needs: release
+    if: ${{ !contains(github.ref_name, '-') }}
     permissions:
       contents: read
       pages: write

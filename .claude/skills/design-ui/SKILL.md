@@ -1,122 +1,123 @@
 ---
 name: design-ui
-description: Вёрстка экранов ComfyUI Portable Organizer — что уже есть в дизайн-системе, куда вносить правки стилей и как их доставить в приложение. Использовать при вёрстке нового экрана или компонента, правке стилей и добавлении индикаторов, состояний и цветов.
+description: Laying out ComfyUI Portable Organizer screens — what the design system already has, where to make style edits and how to get them into the app. Use when laying out a new screen or component, editing styles, and adding indicators, states and colours.
 ---
 
-# Вёрстка экрана
+# Laying out a screen
 
-Дизайн-система здесь не украшение, а каталог готового. Прежде чем рисовать
-компонент — искать его.
+The design system here is not decoration but a catalogue of what already exists.
+Before drawing a component — look for it.
 
-## Сначала искать, потом рисовать
+## Search first, draw second
 
-Это правило заведено дорогой ценой. Индетерминантная полоса `.track.indet`
-с анимацией и корректным поведением при `prefers-reduced-motion` лежала
-в системе с самого начала и доехала в приложение — а мастер установки её
-не использовал, потому что никто не посмотрел.
+This rule was established the expensive way. The indeterminate `.track.indet`
+bar, with its animation and correct behaviour under `prefers-reduced-motion`,
+had been in the system from the start and had reached the app — and the install
+wizard did not use it, because nobody looked.
 
-Где искать:
+Where to look:
 
 ```
-apps/desktop/src/styles/components.css   компоненты, ~104 класса
-apps/desktop/src/styles/tokens.css       цвета, метрики, тени, радиусы
-apps/design/screens/                     экраны по сценариям, по одному файлу на экран
-apps/design/styleguide/                  библиотека компонентов, по одному файлу на раздел
+apps/desktop/src/styles/components.css   components, ~104 classes
+apps/desktop/src/styles/tokens.css       colours, metrics, shadows, radii
+apps/design/screens/                     screens by scenario, one file per screen
+apps/design/styleguide/                  component library, one file per section
 ```
 
-Листать — `pnpm dev:design`, поднимает `apps/design` (VitePress): «Стайлгайд»
-и «Экраны» отдельными пунктами меню.
+To browse — `pnpm dev:design`, which starts `apps/design` (VitePress):
+"Стайлгайд" and "Экраны" are separate menu items.
 
-## Что уже есть
+## What already exists
 
-| Область | Классы |
+| Area | Classes |
 |---|---|
-| Оболочка | `.app` `.rail` `.nav` `.nav-item` `.nav-run` `.masthead` `.aside` |
-| Панели | `.panel` `.pane` `.pane-head` `.pane-foot` `.card` `.cards` `.split-master` |
-| Управление | `.btn` (`.primary` `.secondary` `.ghost` `.danger` `.lg`) `.split` `.seg` `.toggle` `.picker` |
-| Поля | `.field` `.input` (`.mono` `.num` `.bad`) `.chip` `.tag` |
-| Состояния | `.pill` (`.stopped` `.starting` `.running` `.crashed` `.gone`) `.badge` `.dot` |
-| Прогресс | `.bar` и `.bar.indet` · `.track` и `.track.indet` · `.prog` `.prog-head` `.prog-file` · `.spin` |
-| Логи | `.log` `.console` `.log-follow` |
-| Уведомления | `.toast` `.toasts` `.toast-head` `.toast-life` |
-| Мастер | `.steps` `.step` `.step-sep` `.wizard-foot` |
-| Прочее | `.scroll` `.empty` `.hint` `.meta` `.eyebrow` `.longform` |
+| Shell | `.app` `.rail` `.nav` `.nav-item` `.nav-run` `.masthead` `.aside` |
+| Panels | `.panel` `.pane` `.pane-head` `.pane-foot` `.card` `.cards` `.split-master` |
+| Controls | `.btn` (`.primary` `.secondary` `.ghost` `.danger` `.lg`) `.split` `.seg` `.toggle` `.picker` |
+| Fields | `.field` `.input` (`.mono` `.num` `.bad`) `.chip` `.tag` |
+| States | `.pill` (`.stopped` `.starting` `.running` `.crashed` `.gone`) `.badge` `.dot` |
+| Progress | `.bar` and `.bar.indet` · `.track` and `.track.indet` · `.prog` `.prog-head` `.prog-file` · `.spin` |
+| Logs | `.log` `.console` `.log-follow` |
+| Notifications | `.toast` `.toasts` `.toast-head` `.toast-life` |
+| Wizard | `.steps` `.step` `.step-sep` `.wizard-foot` |
+| Other | `.scroll` `.empty` `.hint` `.meta` `.eyebrow` `.longform` |
 
-## Состояние компонента: смотреть контракт, а не угадывать
+## Component state: read the contract, do not guess
 
-Модификаторы в этой системе двух видов, и по имени компонента не угадать,
-какой у него. **Читать `apps/desktop/src/styles/components.css` перед тем,
-как связывать состояние.**
+Modifiers in this system come in two kinds, and the component name does not tell
+you which one it uses. **Read `apps/desktop/src/styles/components.css` before
+wiring up a state.**
 
-| Компонент | Чем показывает состояние |
+| Component | How it shows state |
 |---|---|
-| `.toggle` | класс `.off` — голый значит **включён** |
-| `.seg > *` | атрибут `[aria-pressed="true"]` |
-| `.bar`, `.track` | класс `.indet` |
-| `.pill` | класс состояния: `.running`, `.crashed`, `.gone` … |
-| `.cat` | класс `.unknown`, `.blocked` |
-| `.tag` | класс `.warn`, `.stop` |
-| `.card` | класс `.gone` |
-| `.input` | класс `.bad` |
+| `.toggle` | class `.off` — bare means **on** |
+| `.seg > *` | attribute `[aria-pressed="true"]` |
+| `.bar`, `.track` | class `.indet` |
+| `.pill` | state class: `.running`, `.crashed`, `.gone` … |
+| `.cat` | class `.unknown`, `.blocked` |
+| `.tag` | class `.warn`, `.stop` |
+| `.card` | class `.gone` |
+| `.input` | class `.bad` |
 
-**ARIA-атрибут сам по себе ничего не рисует.** Он обязателен для программ
-чтения с экрана и ставится всегда, но если компонент стилизован по классу,
-одного `aria-checked` мало — тумблер останется в одном положении навсегда.
-Ровно так и вышло с «Скачивать новые модели в общую папку»: состояние
-менялось и сохранялось, а картинка не двигалась.
+**An ARIA attribute draws nothing by itself.** It is mandatory for screen
+readers and is always set, but if a component is styled by class, `aria-checked`
+alone is not enough — the toggle will stay in one position forever. That is
+exactly what happened with "Download new models into the shared folder": the
+state changed and persisted while the picture did not move.
 
-## Правки идут в источник
+## Edits go into the source
 
-Источник правды — само приложение, витрина только читает его:
+The source of truth is the app itself; the showcase only reads it:
 
 ```
-apps/desktop/src/styles/tokens.css        ←  правится только он, цвета и метрики
-apps/desktop/src/styles/components.css    ←  правится только он, компоненты
+apps/desktop/src/styles/tokens.css        ←  the only file to edit, colours and metrics
+apps/desktop/src/styles/components.css    ←  the only file to edit, components
         │  pnpm design:tokens (node tools/build-preview-tokens.mjs)
         ↓
-apps/design/.vitepress/theme/preview-tokens.css   ←  РУКАМИ НЕ ПРАВИТСЯ
+apps/design/.vitepress/theme/preview-tokens.css   ←  NEVER EDITED BY HAND
 ```
 
-`components.css` витрина читает как есть, без копии — правка видна сразу
-на `pnpm dev:design`. А вот `.t-light`/`.t-dark` для панелей `ThemePair.vue`
-считаются отдельным шагом: `:root[data-theme="dark"]` внутри страницы не
-сработает, `:root` матчится только на `<html>`. Цель сборки — в `.gitignore`,
-правка копии переживёт ровно до следующего `pnpm design:tokens`.
+The showcase reads `components.css` as is, without a copy — an edit shows up
+immediately under `pnpm dev:design`. The `.t-light`/`.t-dark` rules for the
+`ThemePair.vue` panels, however, are computed in a separate step:
+`:root[data-theme="dark"]` will not fire inside a page, since `:root` matches
+only `<html>`. The build target is in `.gitignore`; an edit to the copy survives
+exactly until the next `pnpm design:tokens`.
 
-Проверка перед коммитом: `pnpm design:check` (сам пересобирает
-`preview-tokens.css` и гоняет проверки контраста и паритета тем).
+Check before committing: `pnpm design:check` (it rebuilds `preview-tokens.css`
+itself and runs the contrast and theme-parity checks).
 
-`<style scoped>` в компонентах Vue остаётся только для раскладки
-конкретного экрана. Компоненты — общие, глобально, из `components.css`.
+`<style scoped>` in Vue components stays only for the layout of a specific
+screen. Components are shared, globally, from `components.css`.
 
-## Правила палитры
+## Palette rules
 
-- **Ни одного цвета литералом.** Только `var(--token)`. Проверяется
-  автоматически: объявленный, но не использованный токен — сигнал, что
-  палитра разошлась с макетом.
-- **Каждый токен светлой темы обязан существовать в тёмной.** Пропуск
-  оставляет цвет неопределённым ровно в одном из трёх состояний темы,
-  и на светлой это не видно. Проверяется автоматически.
-- Акцент инстанса приезжает как `--instance-accent` на корень его карточки.
+- **Not a single colour as a literal.** Only `var(--token)`. Checked
+  automatically: a token that is declared but unused is a signal that the
+  palette has drifted from the mockup.
+- **Every light-theme token must exist in the dark theme.** A miss leaves the
+  colour undefined in exactly one of the three theme states, and on the light
+  one it is invisible. Checked automatically.
+- An instance's accent arrives as `--instance-accent` on the root of its card.
 
-## Скролл
+## Scrolling
 
-Окно не скроллится никогда. На экране одна область прокрутки; исключение —
-мастер-детейл, где их две. Область ComfyUI не скроллится и не съезжает.
-Панели с фиксированной шапкой и подвалом держат прокрутку внутри, между
-ними — это `.pane` + `.pane-head` + `.pane-foot`.
+The window never scrolls. A screen has one scroll area; the exception is
+master-detail, which has two. The ComfyUI area neither scrolls nor drifts.
+Panels with a fixed header and footer keep the scroll inside, between them —
+that is `.pane` + `.pane-head` + `.pane-foot`.
 
-## Модалок нет
+## There are no modals
 
-Дочерний вебвью с ComfyUI — нативное окно поверх нашего HTML, и перекрыть
-его дропдауном или модалкой физически невозможно. Поэтому настройки,
-добавление инстанса и редактор аргументов — **отдельные роуты**. Любой
-новый компонент, который хочет всплыть над областью контента, спроектирован
-неверно. Обоснование целиком — `plan/ui.md`, раздел «Дисциплина z-order».
+The child webview with ComfyUI is a native window on top of our HTML, and
+covering it with a dropdown or a modal is physically impossible. That is why
+settings, adding an instance and the argument editor are **separate routes**.
+Any new component that wants to pop up over the content area is designed wrong.
+The full reasoning is in `plan/ui.md`, section «Дисциплина z-order».
 
-## Анимация
+## Animation
 
-Всё, что движется, обязано иметь вариант при `prefers-reduced-motion:
-reduce` — не «выключить и оставить пустоту», а осмысленное статичное
-состояние. Образец: `.bar.indet` при выключенном движении становится
-приглушённой полосой во всю ширину, а не исчезает.
+Everything that moves must have a variant under `prefers-reduced-motion:
+reduce` — not "switch it off and leave a hole", but a meaningful static state.
+The model to follow: with motion off, `.bar.indet` becomes a muted full-width
+bar instead of disappearing.

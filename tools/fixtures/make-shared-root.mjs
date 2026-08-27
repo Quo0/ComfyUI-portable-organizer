@@ -1,19 +1,19 @@
-// Стенд общей папки моделей для Фазы 2.5.
+// The shared models folder rig for Phase 2.5.
 //
-// Генератор YAML строит секции из реально существующих подпапок корня,
-// а не из захардкоженного списка. Значит, проверять его надо на настоящей
-// файловой системе, и в стенде должны быть представлены все ветви:
-// канонические категории, устаревшие имена под map_legacy, чёрный список
-// и нераспознанное.
+// The YAML generator builds its sections from the subfolders that actually
+// exist in the root, not from a hardcoded list. So it has to be checked against
+// a real file system, and the rig must have every branch represented: canonical
+// categories, legacy names under map_legacy, the blacklist and the
+// unrecognised.
 //
-// Имена категорий взяты из реальной сборки ComfyUI 0.30 (WIP\q1), а не
-// придуманы: список ключей растёт от версии к версии, и выдуманное имя
-// проверяло бы фантазию, а не код.
+// The category names are taken from a real ComfyUI 0.30 build (WIP\q1) rather
+// than invented: the list of keys grows from version to version, and a made-up
+// name would test imagination instead of code.
 //
-// Файлы нулевого размера: содержимое моделей никого не интересует,
-// а гигабайты в стенде — нет.
+// Zero-size files: nobody cares about the contents of the models, and gigabytes
+// in a rig are not wanted.
 //
-// Запуск: node tools/fixtures/make-shared-root.mjs
+// Run: node tools/fixtures/make-shared-root.mjs
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, 'shared-models');
 
-/** Канонические категории — попадают в YAML под своим именем. */
+/** Canonical categories — they go into the YAML under their own name. */
 const CANONICAL = {
   checkpoints: ['sd15-fake.safetensors', 'sdxl-fake.safetensors'],
   loras: ['style-fake.safetensors'],
@@ -36,10 +36,10 @@ const CANONICAL = {
 };
 
 /**
- * Устаревшие имена. `folder_paths.py:111-114` маппит их на канонические,
- * поэтому обе папки обязаны съехаться в один ключ многострочным блоком:
+ * Legacy names. `folder_paths.py:111-114` maps them onto the canonical ones, so
+ * both folders must converge into a single key as a multi-line block:
  * unet + diffusion_models → diffusion_models, clip + text_encoders →
- * text_encoders. Это самая тонкая ветвь генератора.
+ * text_encoders. This is the generator's subtlest branch.
  */
 const LEGACY = {
   unet: ['flux-fake.safetensors'],
@@ -47,14 +47,16 @@ const LEGACY = {
 };
 
 /**
- * Чёрный список. Ключ валиден для ComfyUI и есть в его же примере конфига,
- * поэтому пользователь легко заведёт такую папку. Шаринг кастомных нод
- * отменяет причину существования проекта — генератор обязан исключить
- * этот ключ, даже когда папка реально лежит в корне.
+ * The blacklist. The key is valid for ComfyUI and appears in its own example
+ * config, so a user can easily end up with such a folder. Sharing custom nodes
+ * cancels the very reason this project exists — the generator must exclude this
+ * key even when the folder really is in the root.
  */
 const BLACKLISTED = { custom_nodes: ['ComfyUI-Manager-fake/__init__.py'] };
 
-/** Нераспознанное: в UI показывается списком, в YAML не попадает. */
+/** Unrecognised: shown as a list in the UI, never written into the YAML.
+ *  The Cyrillic names stay as they are on purpose — this is the non-ASCII path
+ *  case, and check-shared-live.mjs asserts on this exact key. */
 const UNKNOWN = {
   '_архив': ['старое-fake.safetensors'],
   'my notes': ['readme.txt'],
@@ -77,13 +79,13 @@ for (const group of [CANONICAL, LEGACY, BLACKLISTED, UNKNOWN]) {
   }
 }
 
-// Файл в корне, а не папка: сканер обязан его пропустить, а не принять
-// за категорию с пустым именем.
-writeFileSync(join(root, 'README.txt'), 'Стенд общей папки моделей. Файлы пустые.\n');
+// A file in the root, not a folder: the scanner must skip it rather than take
+// it for a category with an empty name.
+writeFileSync(join(root, 'README.txt'), 'Shared models folder rig. The files are empty.\n');
 
-console.log(`Стенд общей папки собран: ${root}`);
-console.log(`  категорий: ${dirs}, файлов: ${files + 1}`);
-console.log(`  канонических: ${Object.keys(CANONICAL).length}`);
-console.log(`  устаревших имён (map_legacy): ${Object.keys(LEGACY).join(', ')}`);
-console.log(`  в чёрном списке: ${Object.keys(BLACKLISTED).join(', ')}`);
-console.log(`  нераспознанных: ${Object.keys(UNKNOWN).length}`);
+console.log(`Shared folder rig built: ${root}`);
+console.log(`  categories: ${dirs}, files: ${files + 1}`);
+console.log(`  canonical: ${Object.keys(CANONICAL).length}`);
+console.log(`  legacy names (map_legacy): ${Object.keys(LEGACY).join(', ')}`);
+console.log(`  blacklisted: ${Object.keys(BLACKLISTED).join(', ')}`);
+console.log(`  unrecognised: ${Object.keys(UNKNOWN).length}`);

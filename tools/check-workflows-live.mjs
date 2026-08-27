@@ -1,15 +1,15 @@
-// Проверка клиента API против настоящей сборки ComfyUI.
+// Checks the API client against a real ComfyUI build.
 //
-// Скрипт поднимает указанную сборку и передаёт порт примеру
-// `check_comfy_live`, который ходит на сервер **нашим же** клиентом.
-// Проверяется наш код, а не поведение ComfyUI.
+// The script starts the given build and passes the port to the
+// `check_comfy_live` example, which talks to the server with **our own**
+// client. What is being checked is our code, not ComfyUI's behaviour.
 //
-// Стенд `fake-instance` этого не заменяет: у него нет ни /userdata,
-// ни /object_info, он заглушка супервизора.
+// The `fake-instance` rig does not replace this: it has neither /userdata nor
+// /object_info, it is a supervisor stub.
 //
-// Запускается с `--cpu`: проверяется работа с API, а не видеокарта.
+// Started with `--cpu`: what is being checked is API work, not the GPU.
 //
-// Запуск: node tools/check-workflows-live.mjs <путь-к-сборке>
+// Run: node tools/check-workflows-live.mjs <build-path>
 
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, rmSync } from 'node:fs';
@@ -19,12 +19,12 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const build = process.argv[2];
 if (!build) {
-  console.error('Использование: node tools/check-workflows-live.mjs <путь-к-сборке>');
+  console.error('Usage: node tools/check-workflows-live.mjs <build-path>');
   process.exit(2);
 }
 
 const PORT = 8189;
-/** Файл, который оставит за собой проверка. Убираем его в конце. */
+/** The file the check leaves behind. We remove it at the end. */
 const LEFTOVER = resolve(build, 'ComfyUI/user/default/workflows/cpo-live-check.json');
 
 const child = spawn(
@@ -54,16 +54,16 @@ try {
     try {
       ready = (await fetch(`http://127.0.0.1:${PORT}/system_stats`)).ok;
     } catch {
-      // Холодный старт идёт десятки секунд — это нормально.
+      // A cold start takes tens of seconds — that is normal.
     }
     if (child.exitCode !== null) break;
     if (!ready) await sleep(1000);
   }
   if (!ready) {
-    console.error('Сервер не поднялся:\n' + log.slice(-2000));
+    console.error('The server did not come up:\n' + log.slice(-2000));
     process.exit(1);
   }
-  console.log(`Сервер готов на :${PORT}, гоняем клиент\n`);
+  console.log(`Server ready on :${PORT}, running the client\n`);
 
   const run = spawnSync(
     'cargo',
@@ -83,8 +83,8 @@ try {
 } finally {
   child.kill();
   await sleep(500);
-  // За собой прибираем: сборка пользователя должна вернуться в то же
-  // состояние, в каком была до проверки.
+  // We clean up after ourselves: the user's build must come back to the same
+  // state it was in before the check.
   rmSync(LEFTOVER, { force: true });
-  console.log(`\nПрибрано: ${LEFTOVER} → ${existsSync(LEFTOVER) ? 'ОСТАЛСЯ' : 'нет'}`);
+  console.log(`\nCleaned up: ${LEFTOVER} → ${existsSync(LEFTOVER) ? 'STILL THERE' : 'gone'}`);
 }

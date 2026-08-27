@@ -1,14 +1,16 @@
-# Публикация сайта документации на GitHub Pages.
+# Publishing the documentation site to GitHub Pages.
 #
-# Фильтр по путям здесь работает и нужен: доки живут в одном репозитории
-# с приложением, а перекладывать сайт на каждый коммит в Rust незачем.
-# У выпуска фильтра нет и быть не может — там триггер по тегу.
+# The path filter here works and is needed: the docs live in the same
+# repository as the app, and there is no reason to redeploy the site on every
+# Rust commit. The release workflow has no filter and cannot have one — it is
+# triggered by a tag.
 #
-# Второй триггер — workflow_call: воркфлоу выпуска зовёт этот в конце,
-# потому что кнопка «Скачать» собирается на этапе сборки сайта. Без вызова
-# она отставала бы от свежего релиза до следующей правки документации.
+# The second trigger is workflow_call: the release workflow calls this one at
+# the end, because the "Download" button is assembled while the site is built.
+# Without that call it would lag behind a fresh release until the next docs
+# edit.
 
-name: Публикация документации
+name: Publish documentation
 
 on:
   push:
@@ -24,8 +26,9 @@ permissions:
   pages: write
   id-token: write
 
-# Одна публикация за раз. Отменять начатую не будем: полусобранный сайт
-# лучше не выкладывать вовсе, а следующая всё равно догонит.
+# One publication at a time. We will not cancel one already running: a
+# half-built site is better not published at all, and the next run catches up
+# anyway.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -38,6 +41,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
+      # The version is pinned to a number rather than the `lts/*` alias: the
+      # alias moves to the next LTS line on its own, without a commit, and
+      # breaks the build on a day when nobody changed anything. The lower bound
+      # is set by pnpm — it requires Node 22.13 or newer, otherwise it fails on
+      # `node:sqlite`.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -45,9 +53,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Сборка сайта не зависит от Rust-части и не должна от неё зависеть:
-      # доки обязаны публиковаться, даже когда приложение временно
-      # не компилируется.
+      # Building the site does not depend on the Rust side and must not: the
+      # docs have to be publishable even while the app temporarily does not
+      # compile.
       - run: pnpm build:docs
 
       - uses: actions/configure-pages@v5

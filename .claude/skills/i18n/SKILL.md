@@ -1,20 +1,20 @@
 ---
 name: i18n
-description: Строки интерфейса ComfyUI Portable Organizer — добавление и правка ключей в четырёх локалях, плюрализация, подстановки, коды ошибок из Rust. Использовать при любой правке текста на экране, добавлении нового экрана и когда падает pnpm i18n:check.
+description: UI strings of ComfyUI Portable Organizer — adding and editing keys across four locales, pluralisation, interpolations, error codes from Rust. Use for any change to on-screen text, when adding a new screen, and when pnpm i18n:check fails.
 ---
 
-# Строки интерфейса
+# UI strings
 
-Ни одной строки в разметке. Всё через `t()`, с самого первого экрана —
-это записано в `CLAUDE.md` и нарушению не подлежит. Причина простая:
-локализация, добавленная позже, не добавляется никогда.
+Not a single string in the markup. Everything through `t()`, starting from the
+very first screen — this is written into `CLAUDE.md` and is not open to
+violation. The reason is simple: localisation added later never gets added.
 
-Четыре локали: `en` (источник правды), `ru`, `es`, `zh-Hans`. Файлы —
+Four locales: `en` (source of truth), `ru`, `es`, `zh-Hans`. The files are
 `apps/desktop/src/i18n/locales/*.json`.
 
-## Добавить ключ
+## Adding a key
 
-Одной командой во все четыре файла:
+One command writes into all four files:
 
 ```
 node tools/i18n-add.mjs install.run.preparing \
@@ -24,52 +24,54 @@ node tools/i18n-add.mjs install.run.preparing \
   --zh "正在检查文件夹并打开压缩包…"
 ```
 
-Пачкой — `--file keys.json` с объектом `{ "ключ": { "en": …, "ru": … } }`.
+In bulk — `--file keys.json` with an object of
+`{ "key": { "en": …, "ru": … } }`.
 
-Скрипт отказывается перезаписывать существующий ключ без `--force`
-и правит все четыре файла либо ни одного. Ключ дописывается в конец своей
-группы, порядок остальных не едет — иначе диф превращался бы в
-перетасовку всего файла.
+The script refuses to overwrite an existing key without `--force`, and edits
+either all four files or none. A key is appended at the end of its own group so
+the order of the rest does not shift — otherwise the diff would turn into
+a reshuffle of the whole file.
 
-Заканчивать всегда `pnpm i18n:check`.
+Always finish with `pnpm i18n:check`.
 
-## Что проверяет `i18n:check`
+## What `i18n:check` checks
 
-Недостающие ключи, лишние ключи, пустые значения и **набор подстановок**.
-Последнее — самое ценное: перевод, потерявший `{reason}`, выглядит целым
-и теряет половину смысла. Проверка ловит это, глаз — нет.
+Missing keys, extra keys, empty values and **the set of interpolations**. The
+last one is the most valuable: a translation that lost `{reason}` looks intact
+and loses half its meaning. The check catches that; the eye does not.
 
-## Плюрализация
+## Pluralisation
 
-`vue-i18n` разделяет формы вертикальной чертой. Русский требует трёх форм,
-английский двух:
+`vue-i18n` separates forms with a vertical bar. Russian requires three forms,
+English two:
 
 ```
 "instances": "1 instance | {n} instances"
 "instances": "{n} инстанс | {n} инстанса | {n} инстансов"
 ```
 
-Правила выбора формы настроены в `apps/desktop/src/i18n/index.ts`.
-Проверять на 1, 2 и 5 — три разные формы, и вторая теряется чаще всего.
+The form-selection rules are configured in `apps/desktop/src/i18n/index.ts`.
+Check against 1, 2 and 5 — three different forms, and the second is the one lost
+most often.
 
-## Ошибки из Rust
+## Errors from Rust
 
-Бэкенд **не переводит ничего**. Команды возвращают `AppError { code, params }`,
-фронт мапит на `errors.<code>` через `apps/desktop/src/lib/errors.ts`.
-Неизвестный код показывается как сам код: интерфейс не падает и не
-показывает пустоту. Добавил вариант ошибки в Rust — добавь `errors.<code>`
-во все четыре локали, иначе пользователь увидит `installer.extractFailed`
-вместо текста.
+The backend **translates nothing**. Commands return `AppError { code, params }`,
+and the frontend maps them onto `errors.<code>` through
+`apps/desktop/src/lib/errors.ts`. An unknown code is shown as the code itself:
+the UI neither crashes nor shows blankness. Added an error variant in Rust — add
+`errors.<code>` to all four locales, otherwise the user sees
+`installer.extractFailed` instead of text.
 
-## Что не переводится никогда
+## What is never translated
 
-Пути, имена инстансов, содержимое логов, имена профилей запуска
-(`run_nvidia_gpu`), названия ключей конфигурации. Они одинаковы во всех
-локалях, и «перевод» здесь — это поломка: пользователь ищет ту же строку
-в проводнике или в документации ComfyUI.
+Paths, instance names, log contents, launch profile names (`run_nvidia_gpu`),
+configuration key names. They are identical across locales, and "translating"
+them here is a breakage: the user is looking for that same string in Explorer or
+in the ComfyUI documentation.
 
-## Длина строк
+## String length
 
-Немецкого нет, но испанский длиннее английского процентов на двадцать,
-а китайский вдвое короче. Кнопки и таблицы верстаются так, чтобы пережить
-и то и другое. В `plan/verification.md` это отдельные пункты проверки.
+There is no German, but Spanish runs about twenty percent longer than English
+and Chinese is half the length. Buttons and tables are laid out to survive both.
+`plan/verification.md` has separate check items for this.

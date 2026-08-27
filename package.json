@@ -2,7 +2,7 @@
   "name": "comfyui-portable-organizer",
   "private": true,
   "version": "0.1.0",
-  "description": "Управление портабл-сборками ComfyUI: реестр, запуск, встроенные вкладки, общие модели",
+  "description": "Managing ComfyUI portable builds: registry, launch, embedded tabs, shared models",
   "license": "GPL-3.0-only",
   "author": "Andrew Blokhin",
   "repository": {

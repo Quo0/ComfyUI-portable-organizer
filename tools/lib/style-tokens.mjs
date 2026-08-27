@@ -1,11 +1,11 @@
-// Разбор apps/desktop/src/styles/tokens.css и работа с цветом.
-// Общий код для tools/build-preview-tokens.mjs и tools/check-styles.mjs.
+// Parsing of apps/desktop/src/styles/tokens.css and colour helpers.
+// Shared code for tools/build-preview-tokens.mjs and tools/check-styles.mjs.
 //
-// Источник — приложение: `:root {светлая}`, `@media (prefers-color-scheme:
-// dark) { :root:not(...) {тёмная} }`, `:root[data-theme="dark"] {тёмная}`,
-// затем второй `:root {метрики}` — то же самое, что и в приложении, метрики
-// от темы не зависят. Медиа-блок — дубликат тёмной темы для системного
-// предпочтения, второй источник для неё не заводим.
+// The source is the app: `:root {light}`, `@media (prefers-color-scheme: dark)
+// { :root:not(...) {dark} }`, `:root[data-theme="dark"] {dark}`, then a second
+// `:root {metrics}` — the same as in the app, since metrics do not depend on
+// the theme. The media block is a duplicate of the dark theme for the system
+// preference; we do not keep a second source for it.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -18,14 +18,15 @@ export const COMPONENTS_SRC = join(APP_STYLES_DIR, 'components.css');
 export const APPS_DESIGN = join(ROOT_DIR, 'apps', 'design');
 export const DESIGN_CHROME_SRC = join(APPS_DESIGN, '.vitepress', 'theme', 'style.css');
 
-/** Достаёт тело блока по имени селектора, начиная поиск с символа `from`.
- *  Селектор ищется с начала строки — иначе совпадёт упоминание в комментарии.
- *  Возвращает и конец блока — нужен, чтобы найти следующий блок с тем же
- *  именем селектора (в файле их два: светлая тема и метрики, оба `:root`). */
+/** Extracts a block body by selector name, starting the search at `from`.
+ *  The selector is matched from the start of a line — otherwise a mention in
+ *  a comment would match. The end of the block is returned too: it is needed to
+ *  find the next block with the same selector name (there are two in the file:
+ *  the light theme and the metrics, both `:root`). */
 function blockBody(css, selector, from = 0) {
   const anchor = new RegExp(`^${selector.replace(/[.[\]"]/g, '\\$&')}\\s*\\{`, 'm');
   const found = anchor.exec(css.slice(from));
-  if (!found) throw new Error(`Блок ${selector} не найден`);
+  if (!found) throw new Error(`Block ${selector} not found`);
   const start = from + found.index;
   const open = css.indexOf('{', start);
   let depth = 0;
@@ -36,10 +37,10 @@ function blockBody(css, selector, from = 0) {
       if (depth === 0) return { body: css.slice(open + 1, i), end: i + 1 };
     }
   }
-  throw new Error(`Блок ${selector} не закрыт`);
+  throw new Error(`Block ${selector} is not closed`);
 }
 
-/** Пары «имя токена → значение» из тела блока. */
+/** Pairs of "token name → value" from a block body. */
 export function declarations(body) {
   const out = new Map();
   for (const m of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
@@ -64,7 +65,7 @@ export function loadTokens() {
   };
 }
 
-// ---------------------------------------------------------------- цвет
+// --------------------------------------------------------------- colour
 
 export function hexToRgb(hex) {
   const h = hex.trim().replace('#', '');
@@ -104,13 +105,13 @@ export const ACCENTS = [
   ['rose', 'Rose'],
 ];
 
-// Семантические роли палитры, показанные в разделе «Палитра» стайлгайда.
+// Semantic palette roles, shown in the "Палитра" section of the style guide.
 export const ROLES = [
-  ['--ground', 'основание окна'],
-  ['--surface', 'карточки, рейл, поля'],
-  ['--surface-sunken', 'шапки, вдавленные зоны'],
-  ['--line', 'границы'],
-  ['--ink', 'основной текст'],
-  ['--ink-secondary', 'описания'],
-  ['--ink-muted', 'метаданные, пути'],
+  ['--ground', 'window ground'],
+  ['--surface', 'cards, rail, fields'],
+  ['--surface-sunken', 'headers, sunken areas'],
+  ['--line', 'borders'],
+  ['--ink', 'body text'],
+  ['--ink-secondary', 'descriptions'],
+  ['--ink-muted', 'metadata, paths'],
 ];

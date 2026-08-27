@@ -1,20 +1,20 @@
-"""Заглушка ComfyUI для отладки процессной части.
+"""A ComfyUI stub for debugging the process side.
 
-Отлаживать супервизор на реальной сборке невозможно: холодный старт идёт
-до пяти минут, падение приходится подстраивать руками, а зависание
-не воспроизвести вовсе. Здесь всё это включается флагом.
+Debugging the supervisor against a real build is impossible: a cold start takes
+up to five minutes, a crash has to be arranged by hand, and a hang cannot be
+reproduced at all. Here all of that is turned on with a flag.
 
-Поведение скопировано с настоящего ComfyUI там, где это важно:
+The behaviour is copied from the real ComfyUI where it matters:
 
-* основная часть старта идёт в **stderr**, а не в stdout — читать надо оба;
-* прогресс загрузки нод печатается через ``\\r`` без перевода строки,
-  как это делает tqdm: наивный сборщик строк превратит его в тысячи записей;
-* строка ``To see the GUI go to`` появляется одновременно с готовностью
-  сервера — по ней можно ловить старт, не дожидаясь опроса порта;
-* ``/system_stats`` отвечает JSON-ом, по нему определяется готовность.
+* most of the startup goes to **stderr**, not stdout — both have to be read;
+* the node loading progress is printed with ``\\r`` and no line feed, the way
+  tqdm does it: a naive line collector turns that into thousands of records;
+* the line ``To see the GUI go to`` appears at the same moment the server
+  becomes ready — it can be used to catch the start without polling the port;
+* ``/system_stats`` answers with JSON, and readiness is determined from it.
 
-Режимы задаются ``--cpo-mode``; каждому соответствует свой ``.bat``,
-поэтому в интерфейсе они выглядят как обычные профили запуска.
+The modes are selected with ``--cpo-mode``; each has its own ``.bat``, so in the
+UI they look like ordinary launch profiles.
 """
 
 import argparse
@@ -30,7 +30,7 @@ MODES = ("normal", "slow", "crash", "hang", "restart", "hold")
 
 
 def err(text: str) -> None:
-    """ComfyUI пишет старт в stderr. Повторяем, чтобы поймать эту ошибку рано."""
+    """ComfyUI writes its startup to stderr. We do the same, to hit that early."""
     sys.stderr.write(text + "\n")
     sys.stderr.flush()
 
@@ -41,10 +41,10 @@ def out(text: str) -> None:
 
 
 def progress(total: int, seconds: float) -> None:
-    """Прогресс в стиле tqdm: возврат каретки без перевода строки.
+    """tqdm-style progress: a carriage return with no line feed.
 
-    Ровно то место, где кольцевой буфер логов обязан заменять последнюю
-    строку, а не добавлять новую.
+    Exactly the place where the ring log buffer must replace the last line
+    instead of appending a new one.
     """
     step = seconds / max(total, 1)
     for i in range(1, total + 1):
@@ -56,7 +56,7 @@ def progress(total: int, seconds: float) -> None:
 
 
 class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):  # noqa: N802 — имя задано базовым классом
+    def do_GET(self):  # noqa: N802 — the name is dictated by the base class
         if self.path.startswith("/system_stats"):
             body = json.dumps(
                 {
@@ -79,7 +79,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, *_args):
-        """Гасим собственный лог сервера: он забивает вывод и мешает замеру."""
+        """Silence the server's own log: it floods the output and skews timing."""
 
 
 def serve(port: int) -> ThreadingHTTPServer:
@@ -99,8 +99,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--port", type=int, default=8188)
     parser.add_argument("--cpo-mode", choices=MODES, default="normal")
-    # Флаги настоящего ComfyUI: важно, что заглушка их принимает и не падает,
-    # иначе не проверить мутацию аргументов перед стартом.
+    # Flags of the real ComfyUI: what matters is that the stub accepts them and
+    # does not crash, otherwise argument mutation before launch is untestable.
     parser.add_argument("--disable-auto-launch", action="store_true")
     parser.add_argument("--windows-standalone-build", action="store_true")
     parser.add_argument("--listen", nargs="?", default=None)
@@ -111,8 +111,8 @@ def main() -> int:
     banner(args)
 
     if args.cpo_mode == "hang":
-        # Ни готовности, ни падения: процесс живёт, порт не занят.
-        # Проверяет таймаут ожидания и кнопку отмены.
+        # Neither readiness nor a crash: the process lives, the port is free.
+        # Exercises the wait timeout and the cancel button.
         err("Loading nodes: 1/200")
         while True:
             time.sleep(3600)
@@ -125,8 +125,8 @@ def main() -> int:
         return 1
 
     if args.cpo_mode == "hold":
-        # Просто занимает порт. Нужен, чтобы проверить выдачу другого порта
-        # и сообщение о занятом.
+        # Simply holds the port. Needed to check that another port is handed
+        # out and that the "port taken" message appears.
         serve(args.port)
         err(f"Holding port {args.port}, not a real server")
         while True:
@@ -139,14 +139,14 @@ def main() -> int:
     err(f"To see the GUI go to: http://127.0.0.1:{args.port}")
 
     if args.cpo_mode == "restart":
-        # Так ведёт себя ComfyUI-Manager после установки нод: он поднимает
-        # новый процесс и гасит старый. Наш хэндл при этом теряется,
-        # а порт остаётся занятым — самый неприятный сценарий.
+        # This is how ComfyUI-Manager behaves after installing nodes: it starts
+        # a new process and kills the old one. Our handle is lost in the
+        # process while the port stays taken — the nastiest scenario.
         time.sleep(8)
         err("[FAKE] restarting myself, the old process is going away")
-        # Потоки копии обязаны быть отвязаны от наших. Унаследованный stderr
-        # закрывается вместе с уходом родителя, и копия падает на первой же
-        # записи — ровно этим сценарий и провалился в первый раз.
+        # The copy's streams must be detached from ours. An inherited stderr is
+        # closed when the parent goes away, and the copy dies on its very first
+        # write — which is exactly how this scenario failed the first time.
         subprocess.Popen(
             [sys.executable, os.path.abspath(__file__), "--port", str(args.port),
              "--cpo-mode", "normal"],

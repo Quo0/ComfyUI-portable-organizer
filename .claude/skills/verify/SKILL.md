@@ -1,85 +1,87 @@
 ---
 name: verify
-description: Проверки перед коммитом в ComfyUI Portable Organizer — что и в каком порядке гонять после правки Rust, Vue, локалей или дизайна, и какие проверки здесь устроены нештатно. Использовать перед любым коммитом и когда просят «проверь».
+description: Pre-commit checks for ComfyUI Portable Organizer — what to run and in what order after editing Rust, Vue, locales or design, and which checks here behave unusually. Use before any commit and when asked to "verify".
 ---
 
-# Проверки перед коммитом
+# Checks before a commit
 
-Гонять всё подряд не нужно: полный круг занимает минуты, а из них
-осмысленны обычно две команды. Ниже — что достаточно запустить в каждом
-случае и что здесь устроено не так, как ожидается.
+There is no need to run everything: the full circle takes minutes, and usually
+only two commands out of it are meaningful. Below is what is enough to run in
+each case, and what here does not work the way you would expect.
 
-## Что запускать под правку
+## What to run for which edit
 
-| Правил | Команды |
+| Edited | Commands |
 |---|---|
-| Локали `src/i18n/locales/*.json` | `pnpm i18n:check` |
-| `apps/desktop/src/styles/tokens.css` или `components.css` | `pnpm design:check` |
-| Vue, TS, стили приложения | `pnpm typecheck` |
-| Rust в `src-tauri/src/**` | `cargo check`, при правке логики — примеры из `examples/` |
-| Сигнатуру команды или события Tauri | перезапустить `pnpm dev:desktop`, потом `pnpm typecheck` |
-| Готовим коммит фазы | всё выше плюс сборка фронта |
+| Locales `src/i18n/locales/*.json` | `pnpm i18n:check` |
+| `apps/desktop/src/styles/tokens.css` or `components.css` | `pnpm design:check` |
+| Vue, TS, app styles | `pnpm typecheck` |
+| Rust in `src-tauri/src/**` | `cargo check`; for logic edits, the examples from `examples/` |
+| A Tauri command or event signature | restart `pnpm dev:desktop`, then `pnpm typecheck` |
+| Preparing a phase commit | all of the above plus a frontend build |
 
-Сборка фронта: `pnpm --filter @cpo/desktop exec vite build`.
+Frontend build: `pnpm --filter @cpo/desktop exec vite build`.
 
-## Четыре вещи, которые здесь устроены нештатно
+## Four things that work unusually here
 
-**`cargo test` не работает и работать не будет.** Тестовый бинарь падает
-с `STATUS_ENTRYPOINT_NOT_FOUND` на загрузке образа, ещё до `main`. Причина
-не в `cdylib` — это проверено дважды: любой бинарь, кроме самого приложения
-Tauri, падает так же, если тянет машинерию `tauri_specta`. Разбор —
+**`cargo test` does not work and will not.** The test binary fails with
+`STATUS_ENTRYPOINT_NOT_FOUND` while loading the image, before `main`. The cause
+is not `cdylib` — that was verified twice: any binary other than the Tauri app
+itself fails the same way if it pulls in the `tauri_specta` machinery. Write-up:
 `plan/notes/phase-25-shared-models.md`.
 
-Поэтому проверки Rust живут в `apps/desktop/src-tauri/examples/`
-и запускаются как `cargo run --example check_profiles`. Пиша новую проверку,
-клади её туда же и той же формы: печать шагов и ненулевой код выхода
-при расхождении.
+So the Rust checks live in `apps/desktop/src-tauri/examples/` and are run as
+`cargo run --example check_profiles`. When writing a new check, put it in the
+same place and give it the same shape: print the steps, exit non-zero on
+a mismatch.
 
-Из того же следует: **`bindings.ts` генерируется только запуском
-`pnpm dev:desktop`.** Обойти это примером не выйдет, пробовать не стоит.
+From the same fact it follows that **`bindings.ts` is generated only by running
+`pnpm dev:desktop`.** There is no working around this with an example; do not
+try.
 
-Что уже есть: `check_profiles` (разбор `.bat` и мутация аргументов,
-20 проверок), `check_shared` (сканер общей папки и генератор YAML, 29),
-`check_instance_file` (запись в чужую установку, бэкапы, 14), `check_run`
-(жизненный цикл процесса, 4 сценария), `check_rename` (запись
-опровергнутой гипотезы про `fs::rename`), `spike_7z` и `spike_install`
-(замеры распаковки).
+What already exists: `check_profiles` (`.bat` parsing and argument mutation,
+20 checks), `check_shared` (shared folder scanner and YAML generator, 29),
+`check_instance_file` (writing into someone else's install, backups, 14),
+`check_run` (process lifecycle, 4 scenarios), `check_rename` (a record of the
+disproved hypothesis about `fs::rename`), `spike_7z` and `spike_install`
+(extraction measurements).
 
-**Проверки, которым нужна настоящая сборка ComfyUI**, живут в `tools/`
-и запускаются руками: `check-shared-live.mjs` поднимает указанную сборку
-с нашим конфигом и спрашивает `/internal/folder_paths`. Стенд
-`fake-instance` их не заменяет — он заглушка и YAML не разбирает.
+**Checks that need a real ComfyUI build** live in `tools/` and are run by hand:
+`check-shared-live.mjs` starts the given build with our config and asks
+`/internal/folder_paths`. The `fake-instance` rig does not replace them — it is
+a stub and does not parse YAML.
 
-**Правка `components.css` доезжает до витрины сразу, `tokens.css` — только
-после `pnpm design:tokens`.** Источник правды теперь в приложении:
-`apps/design` читает `components.css` напрямую, а `.t-light`/`.t-dark` для
-панелей `ThemePair.vue` — производная от `tokens.css`, которую `design:check`
-пересобирает сам, но при живом `pnpm dev:design` витрина её не подхватит,
-пока не прогнать эту команду.
+**An edit to `components.css` reaches the showcase immediately, `tokens.css`
+only after `pnpm design:tokens`.** The source of truth now lives in the app:
+`apps/design` reads `components.css` directly, while `.t-light`/`.t-dark` for
+the `ThemePair.vue` panels are derived from `tokens.css`. `design:check`
+rebuilds that derivative itself, but a running `pnpm dev:design` will not pick
+it up until the command is run.
 
-**`bindings.ts` генерируется дев-сборкой, а не сборкой фронта.** После
-правки сигнатуры команды или события `pnpm typecheck` до перезапуска
-`pnpm dev:desktop` проверяет старые типы и потому врёт — молча и
-убедительно.
+**`bindings.ts` is generated by the dev build, not by the frontend build.**
+After editing a command or event signature, `pnpm typecheck` run before
+restarting `pnpm dev:desktop` checks the old types and therefore lies — silently
+and convincingly.
 
-**Стенд, а не реальная сборка.** Сценарии запуска проверяются на
-`tools/fixtures/fake-instance/` — он стартует за секунду вместо пяти
-минут. Если junction `python_embeded` отсутствует, создать его:
+**A rig, not a real build.** Launch scenarios are checked against
+`tools/fixtures/fake-instance/` — it starts in a second instead of five minutes.
+If the `python_embeded` junction is missing, create it with
 `node tools/fixtures/make-fixture.mjs`.
 
-## Чего проверки не заменяют
+## What these checks do not replace
 
-`plan/verification.md` держит список инженерных проверок, которые делаются
-руками: отсутствие 403 у дочернего вебвью, перетаскивание картинок на
-холст, поведение при смене темы Windows, деинсталляция. Автоматике они
-не поддаются, и закрывать фазу без них нельзя — но и гонять их на каждый
-коммит незачем.
+`plan/verification.md` holds the list of engineering checks done by hand: no 403
+in the child webview, dragging images onto the canvas, behaviour on a Windows
+theme change, uninstallation. They do not yield to automation, and a phase
+cannot be closed without them — but there is no reason to run them on every
+commit either.
 
-Пользовательские тест-кейсы отсюда не выводятся: их источник — критерии
-приёмки в `specs/`.
+User-facing test cases are not derived from here: their source is the acceptance
+criteria in `specs/`.
 
-## Как докладывать результат
+## How to report the result
 
-Прогнал — говори что именно прогнал и что вышло. Упавшая проверка
-называется вместе с её выводом, пропущенная — вместе с причиной. Фраза
-«всё проверено» без перечня команд не значит ничего.
+Once you have run something, say what exactly you ran and what came out.
+A failing check is named together with its output, a skipped one together with
+the reason. The phrase "everything checked" without a list of commands means
+nothing.

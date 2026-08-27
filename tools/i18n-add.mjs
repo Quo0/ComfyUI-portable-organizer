@@ -1,20 +1,21 @@
-// Добавление ключа интерфейса сразу во все четыре локали.
+// Adds a UI key to all four locales at once.
 //
-// Без этого добавление одной строки — четыре правки в четырёх файлах,
-// и потерянный перевод обнаруживается только `i18n:check`, а то и глазами
-// в чужой локали. Скрипт делает операцию атомарной: либо все четыре файла,
-// либо ни одного.
+// Without this, adding one string means four edits in four files, and a lost
+// translation surfaces only through `i18n:check` — or by eye, in a locale
+// nobody reads. The script makes the operation atomic: either all four files or
+// none of them.
 //
-// Порядок ключей сохраняется: новый ключ дописывается в конец своей группы,
-// как это делает рука. Иначе диф превращался бы в перетасовку всего файла.
+// Key order is preserved: a new key is appended at the end of its own group,
+// the way a hand would do it. Otherwise the diff would turn into a reshuffle of
+// the whole file.
 //
-// Использование:
+// Usage:
 //   node tools/i18n-add.mjs install.run.preparing \
 //     --en "Checking the folders…" --ru "Проверяем папки…" \
 //     --es "Comprobando…" --zh "正在检查…"
 //
 //   node tools/i18n-add.mjs --file keys.json
-//   где keys.json: { "install.run.preparing": { "en": "…", "ru": "…", … } }
+//   where keys.json: { "install.run.preparing": { "en": "…", "ru": "…", … } }
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -23,7 +24,8 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'apps', 'desktop', 'src', 'i18n', 'locales');
 
-/** Флаг `--zh` короче имени файла `zh-Hans`, но писать его каждый раз длинно. */
+/** The `--zh` flag is shorter than the file name `zh-Hans`, which is tedious to
+ *  type every time. */
 const LOCALES = { en: 'en', ru: 'ru', es: 'es', zh: 'zh-Hans' };
 
 const args = process.argv.slice(2);
@@ -34,24 +36,24 @@ if (args.length === 0 || args.includes('--help')) {
 
 const force = args.includes('--force');
 
-/** Разбирает либо один ключ с флагами, либо файл с пачкой ключей. */
+/** Parses either a single key with flags, or a file with a batch of keys. */
 function parseInput() {
   const fileAt = args.indexOf('--file');
   if (fileAt !== -1) {
     const path = args[fileAt + 1];
-    if (!path) fail('--file без пути к файлу');
+    if (!path) fail('--file without a file path');
     return JSON.parse(readFileSync(path, 'utf8'));
   }
 
   const key = args[0];
-  if (key.startsWith('--')) fail('первым аргументом должен идти ключ');
+  if (key.startsWith('--')) fail('the first argument must be a key');
 
   const values = {};
   for (const short of Object.keys(LOCALES)) {
     const at = args.indexOf(`--${short}`);
-    if (at === -1) fail(`нет перевода --${short}`);
+    if (at === -1) fail(`no --${short} translation`);
     const value = args[at + 1];
-    if (value === undefined || value.startsWith('--')) fail(`пустое значение --${short}`);
+    if (value === undefined || value.startsWith('--')) fail(`empty --${short} value`);
     values[short] = value;
   }
   return { [key]: values };
@@ -63,19 +65,19 @@ function fail(message) {
 }
 
 const entries = Object.entries(parseInput());
-if (entries.length === 0) fail('ни одного ключа');
+if (entries.length === 0) fail('no keys at all');
 
 for (const [key, values] of entries) {
   for (const short of Object.keys(LOCALES)) {
     const value = values[short];
     if (typeof value !== 'string' || value.trim() === '') {
-      fail(`${key}: нет или пуст перевод «${short}»`);
+      fail(`${key}: the «${short}» translation is missing or empty`);
     }
   }
 }
 
-// Сначала читаем и правим всё в памяти: падение на третьей локали не должно
-// оставлять первые две уже записанными.
+// First read and edit everything in memory: failing on the third locale must
+// not leave the first two already written.
 const files = new Map();
 for (const [short, name] of Object.entries(LOCALES)) {
   const path = join(dir, `${name}.json`);
@@ -89,13 +91,13 @@ for (const [key, values] of entries) {
     for (const part of parts.slice(0, -1)) {
       if (node[part] === undefined) node[part] = {};
       if (typeof node[part] !== 'object' || Array.isArray(node[part])) {
-        fail(`${key}: в ${file.path} на «${part}» уже лежит строка, а не группа`);
+        fail(`${key}: in ${file.path} «${part}» already holds a string, not a group`);
       }
       node = node[part];
     }
     const leaf = parts.at(-1);
     if (node[leaf] !== undefined && !force) {
-      fail(`${key}: уже есть в ${LOCALES[short]}.json, перезапись только с --force`);
+      fail(`${key}: already exists in ${LOCALES[short]}.json, overwrite only with --force`);
     }
     node[leaf] = values[short];
   }
@@ -105,5 +107,5 @@ for (const { path, data } of files.values()) {
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
 
-console.log(`Добавлено ключей: ${entries.length}, в ${files.size} локали.`);
-console.log('Дальше: pnpm i18n:check');
+console.log(`Keys added: ${entries.length}, across ${files.size} locales.`);
+console.log('Next: pnpm i18n:check');

@@ -1,47 +1,49 @@
-# Изменения
+# Changelog
 
-Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
-нумерация — [семантическая](https://semver.org/lang/ru/).
+The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the
+numbering is [semantic](https://semver.org/).
 
-**Тело релиза на GitHub собирается отсюда.** Воркфлоу выпуска берёт секцию
-`## <версия>` целиком, до следующего заголовка того же уровня. Секции нет —
-сборка падает до того, как что-либо соберётся: релиз без описания изменений
-хуже отложенного релиза.
+**The GitHub release body is assembled from here.** The release workflow takes
+the `## <version>` section whole, up to the next heading of the same level. If
+the section is missing, the build fails before anything is built: a release with
+no description of the changes is worse than a postponed release.
 
-Порядок выпуска поэтому такой: раздел «Не выпущено» переименовывается
-в `## <версия> — <дата>`, версия в `apps/desktop/src-tauri/tauri.conf.json`
-поднимается до той же, и только потом ставится тег `v<версия>`.
+Hence the release order: the "Unreleased" section is renamed to
+`## <version> — <date>`, the version in
+`apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
+the `v<version>` tag created.
 
 ## 0.1.0 — 2026-08-27
 
-### Добавлено
+### Added
 
-- **Реестр сборок.** Портабл-папка ComfyUI добавляется как есть: приложение
-  проверяет `python_embeded\python.exe` и `ComfyUI\main.py`, читает версию
-  сборки и Python. Имя, описание, цвет и предпочитаемый порт — свои у каждой.
-- **Мастер установки** из архива: чтение состава без распаковки, несколько
-  назначений за один проход (второе и следующие получаются копированием,
-  а не повторной распаковкой), проверка свободного места до начала работы,
-  отмена без следов.
-- **Запуск.** Профили разбираются из `.bat` самой сборки, файлы при этом
-  не меняются. Свои профили и редактор аргументов — поверх разобранных.
-  Порт выдаётся свободный, браузер не открывается, лог старта виден живьём.
-- **ComfyUI внутри окна** отдельной вкладкой у каждой сборки: переключение
-  между запущенными, тулбар с логами, папкой результатов, перезапуском
-  и остановкой. Внешние ссылки уходят в системный браузер.
-- **Общее хранилище моделей** через `extra_model_paths.yaml`: общая папка
-  подключается к любой сборке тумблером, двумя режимами на выбор.
-  `custom_nodes` не шарится никогда. Модели переносятся в общую папку
-  с проверкой копии до удаления исходника.
-- **Библиотека воркфлоу** снаружи сборок: наполнение файлом, перетаскиванием,
-  вставкой текста и картинкой PNG с графом внутри; добавление в сборку
-  со сверкой недостающих нод.
-- **Отчёт о дубликатах моделей** по всем сборкам разом. Только отчёт:
-  ни одного автоматического действия над файлами.
-- **Трей и один экземпляр приложения.** Закрытие окна при работающих
-  серверах спрашивает, что с ними делать.
-- **Четыре языка** интерфейса (английский, русский, китайский, испанский),
-  светлая и тёмная темы, следование теме Windows на лету.
-- **Обновление приложения**: проверка при запуске, отключаемая в разделе
-  «О приложении». Установка не начинается, пока работает хоть одна сборка,
-  — сначала выбор, останавливать их или отложить обновление.
+- **Build registry.** A ComfyUI portable folder is added as is: the app checks
+  `python_embeded\python.exe` and `ComfyUI\main.py`, and reads the build and
+  Python versions. Name, description, colour and preferred port are per build.
+- **Install wizard** from an archive: reading the contents without extracting,
+  several destinations in one pass (the second and later ones are produced by
+  copying rather than extracting again), a free space check before the work
+  starts, cancellation without a trace.
+- **Launching.** Profiles are parsed from the build's own `.bat` files, which
+  are left unchanged. Custom profiles and the argument editor sit on top of the
+  parsed ones. A free port is handed out, no browser is opened, and the startup
+  log is visible live.
+- **ComfyUI inside the window** as a separate tab per build: switching between
+  running ones, a toolbar with logs, the output folder, restart and stop.
+  External links go to the system browser.
+- **Shared model storage** through `extra_model_paths.yaml`: the shared folder
+  is connected to any build with a toggle, with two modes to choose from.
+  `custom_nodes` is never shared. Models are moved into the shared folder with
+  the copy verified before the source is deleted.
+- **Workflow library** outside the builds: filled from a file, by drag and drop,
+  by pasting text, and from a PNG image with a graph inside; adding to a build
+  reports the missing nodes.
+- **Duplicate model report** across all builds at once. A report only: not
+  a single automatic action on files.
+- **Tray icon and a single app instance.** Closing the window while servers are
+  running asks what to do with them.
+- **Four UI languages** (English, Russian, Chinese, Spanish), light and dark
+  themes, following the Windows theme on the fly.
+- **App updates**: a check at startup, which can be turned off in the "About"
+  section. Installation does not start while any build is running — first comes
+  the choice of stopping them or postponing the update.

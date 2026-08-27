@@ -1,15 +1,16 @@
-// Стенд библиотеки воркфлоу для Фазы 2.6.
+// The workflow library rig for Phase 2.6.
 //
-// Библиотека — это папка с файлами; манифест лишь обогащает её тегами
-// и заметками. Значит проверять сканер надо на настоящей файловой системе,
-// и в стенде обязаны быть представлены все расхождения между папкой
-// и манифестом, а не только счастливый путь.
+// The library is a folder of files; the manifest only enriches it with tags and
+// notes. So the scanner has to be checked against a real file system, and the
+// rig must have every divergence between folder and manifest represented, not
+// just the happy path.
 //
-// Имена нод взяты из NODE_CLASS_MAPPINGS реальной сборки ComfyUI 0.30
-// (WIP\q1), а не придуманы: воркфлоу «совместим со всем» должен быть
-// совместим по-настоящему, иначе проверка проверяет фантазию.
+// The node names are taken from NODE_CLASS_MAPPINGS of a real ComfyUI 0.30
+// build (WIP\q1) rather than invented: a workflow that is "compatible with
+// everything" has to be genuinely compatible, otherwise the check tests
+// imagination.
 //
-// Запуск: node tools/fixtures/make-workflow-library.mjs
+// Run: node tools/fixtures/make-workflow-library.mjs
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -18,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, 'workflow-library');
 
-/** Минимальный воркфлоу в формате, который сохраняет сам ComfyUI. */
+/** A minimal workflow in the format ComfyUI itself saves. */
 const workflow = (nodes) => ({
   last_node_id: nodes.length,
   last_link_id: 0,
@@ -41,7 +42,7 @@ const workflow = (nodes) => ({
   version: 0.4,
 });
 
-/** Только базовые классы — такой воркфлоу открывается в любой сборке. */
+/** Core classes only — such a workflow opens in any build. */
 const CORE = [
   'CheckpointLoaderSimple',
   'CLIPTextEncode',
@@ -51,7 +52,7 @@ const CORE = [
   'SaveImage',
 ];
 
-/** Ноды из кастомных пакетов: в чистой сборке их нет. */
+/** Nodes from custom packages: a clean build does not have them. */
 const CUSTOM = [
   'CheckpointLoaderSimple',
   'IPAdapterUnifiedLoader',
@@ -61,53 +62,53 @@ const CUSTOM = [
 ];
 
 const files = {
-  // Совместим с чем угодно.
+  // Compatible with anything.
   'basic-txt2img.json': JSON.stringify(workflow(CORE), null, 2),
 
-  // Вложенная подпапка — US-WF-06/AC-5.
+  // A nested subfolder — US-WF-06/AC-5.
   'flux/portrait-v3.json': JSON.stringify(workflow(CUSTOM), null, 2),
 
-  // Файл есть, записи в манифесте нет — US-WF-06/AC-1, AC-2.
+  // The file exists, the manifest entry does not — US-WF-06/AC-1, AC-2.
   'sdxl/base-upscale.json': JSON.stringify(workflow(CORE), null, 2),
 
-  // Не воркфлоу, хотя и JSON: массива nodes нет — US-WF-03/AC-7.
+  // Not a workflow even though it is JSON: no nodes array — US-WF-03/AC-7.
   'not-a-workflow.json': JSON.stringify({ hello: 'world' }, null, 2),
 
-  // Битый JSON — сканер обязан пережить и не уронить весь список.
+  // Broken JSON — the scanner must survive it and not take the whole list down.
   'broken.json': '{ "nodes": [ {"type": "KSampler"',
 
-  // Посторонний файл: в список воркфлоу попадать не должен — US-WF-01/AC-7.
-  'README.txt': 'Стенд библиотеки воркфлоу. Файлы игрушечные.\n',
+  // An unrelated file: it must not appear in the workflow list — US-WF-01/AC-7.
+  'README.txt': 'Workflow library rig. The files are toys.\n',
 };
 
 /**
- * Манифест лежит в самой библиотеке, а не в данных приложения: она обязана
- * пережить переустановку приложения и переезд на другую машину.
+ * The manifest lives in the library itself, not in the app's data: the library
+ * must survive an app reinstall and a move to another machine.
  *
- * Запись `lost/deleted.json` намеренно указывает на несуществующий файл —
- * так проверяется, что удалённый мимо приложения воркфлоу помечается
- * потерянным, а не исчезает молча (US-WF-06/AC-3).
+ * The `lost/deleted.json` entry deliberately points at a file that does not
+ * exist — that is how it is checked that a workflow deleted behind the app's
+ * back is marked as lost rather than silently disappearing (US-WF-06/AC-3).
  */
 const manifest = {
   version: 1,
   items: {
     'basic-txt2img.json': {
       favorite: true,
-      tags: ['базовый', 'txt2img'],
-      note: 'Простейший граф на стоковых нодах. Открывается везде.',
+      tags: ['basic', 'txt2img'],
+      note: 'The simplest graph on stock nodes. Opens everywhere.',
       addedAt: 1754000000000,
     },
     'flux/portrait-v3.json': {
       favorite: true,
-      tags: ['flux', 'портрет'],
-      note: 'Требует IPAdapter и ReActor. Без них не откроется.',
+      tags: ['flux', 'portrait'],
+      note: 'Requires IPAdapter and ReActor. Will not open without them.',
       addedAt: 1754000100000,
       sourceInstanceId: 'q1',
     },
     'lost/deleted.json': {
       favorite: false,
-      tags: ['потерян'],
-      note: 'Файла нет — запись обязана показаться потерянной.',
+      tags: ['lost'],
+      note: 'The file is missing — the entry must show up as lost.',
       addedAt: 1754000200000,
     },
   },
@@ -121,8 +122,8 @@ for (const [rel, content] of Object.entries(files)) {
 }
 writeFileSync(join(root, '_library.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 
-console.log(`Стенд библиотеки собран: ${root}`);
-console.log(`  файлов: ${Object.keys(files).length + 1}`);
-console.log(`  воркфлоу в манифесте: ${Object.keys(manifest.items).length}`);
-console.log('  ветви: вложенная папка, файл без записи, запись без файла,');
-console.log('         не-воркфлоу, битый JSON, посторонний файл');
+console.log(`Library rig built: ${root}`);
+console.log(`  files: ${Object.keys(files).length + 1}`);
+console.log(`  workflows in the manifest: ${Object.keys(manifest.items).length}`);
+console.log('  branches: nested folder, file without an entry, entry without a file,');
+console.log('            not-a-workflow, broken JSON, unrelated file');

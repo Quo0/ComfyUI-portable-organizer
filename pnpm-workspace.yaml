@@ -2,8 +2,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
-# pnpm 11 не запускает postinstall-скрипты зависимостей, пока их не разрешат
-# поимённо. esbuild нужен Vite: его скрипт распаковывает нативный бинарь,
-# без которого дев-сервер не поднимется.
+# pnpm 11 does not run dependencies' postinstall scripts until they are allowed
+# by name. Vite needs esbuild: its script unpacks the native binary without
+# which the dev server will not start.
 allowBuilds:
   esbuild: true

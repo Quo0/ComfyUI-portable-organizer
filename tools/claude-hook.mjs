@@ -1,15 +1,15 @@
-// Хуки Claude Code для этого репозитория.
+// Claude Code hooks for this repository.
 //
-// Один диспетчер вместо команд в строке настроек: на Windows одна и та же
-// строка по-разному ломается в PowerShell и в Git Bash, а Node здесь есть
-// гарантированно.
+// One dispatcher instead of commands in a settings line: on Windows the same
+// line breaks differently in PowerShell and in Git Bash, while Node is
+// guaranteed to be here.
 //
-// Подключается в .claude/settings.json:
+// Wired up in .claude/settings.json:
 //   node "$CLAUDE_PROJECT_DIR/tools/claude-hook.mjs" pre
 //   node "$CLAUDE_PROJECT_DIR/tools/claude-hook.mjs" post
 //
-// Хук не имеет права уронить сессию: любая внутренняя ошибка гасится
-// и трактуется как «замечаний нет».
+// A hook has no right to bring down the session: any internal error is
+// swallowed and treated as "nothing to report".
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Путь относительно корня репозитория, прямыми слэшами. */
+/** Path relative to the repository root, with forward slashes. */
 function inRepo(filePath) {
   if (!filePath) return null;
   const rel = relative(root, resolve(root, filePath)).replaceAll('\\', '/');
@@ -26,15 +26,15 @@ function inRepo(filePath) {
 }
 
 /**
- * Генерируемые файлы. Правило есть в CLAUDE.md, но правила нарушаются
- * именно тогда, когда контекст поджат, — поэтому здесь запрет, а не
- * напоминание. Правка любого из них живёт до следующей сборки.
+ * Generated files. The rule is in CLAUDE.md, but rules get broken exactly when
+ * context is tight — so this is a ban, not a reminder. An edit to any of them
+ * lives until the next build.
  */
 const GENERATED = [
   {
     match: (p) => p === 'apps/desktop/src/bindings.ts',
-    source: 'сигнатуры команд и событий в apps/desktop/src-tauri/src/',
-    rebuild: 'pnpm dev:desktop (tauri-specta генерирует файл при запуске)',
+    source: 'command and event signatures in apps/desktop/src-tauri/src/',
+    rebuild: 'pnpm dev:desktop (tauri-specta generates the file on startup)',
   },
   {
     match: (p) => p === 'apps/design/.vitepress/theme/preview-tokens.css',
@@ -44,12 +44,12 @@ const GENERATED = [
 ];
 
 const isLocale = (p) => /^apps\/desktop\/src\/i18n\/locales\/[\w-]+\.json$/.test(p);
-// Источник правды для витрины: правка токенов приложения не доедет до
-// apps/design сама — .t-light/.t-dark считаются из этого файла отдельным
-// шагом (см. GENERATED выше).
+// The source of truth for the showcase: an edit to the app's tokens does not
+// reach apps/design by itself — .t-light/.t-dark are computed from this file in
+// a separate step (see GENERATED above).
 const isAppTokensSource = (p) => p === 'apps/desktop/src/styles/tokens.css';
 
-/** Дескриптор 0 — событие приходит на stdin одним JSON. */
+/** Descriptor 0 — the event arrives on stdin as a single JSON document. */
 function readStdin() {
   try {
     return JSON.parse(readFileSync(0, 'utf8'));
@@ -58,7 +58,7 @@ function readStdin() {
   }
 }
 
-/** Пути, которые трогает вызов инструмента. */
+/** The paths a tool call touches. */
 function targets(event) {
   const input = event?.tool_input ?? {};
   const raw = [input.file_path, input.notebook_path, input.path].filter(Boolean);
@@ -92,9 +92,9 @@ function pre(event) {
     const rule = GENERATED.find((r) => r.match(path));
     if (rule) {
       deny(
-        `Файл ${path} генерируется, руками не правится — правка исчезнет ` +
-          `при следующей сборке. Источник: ${rule.source}. ` +
-          `Пересборка: ${rule.rebuild}.`,
+        `The file ${path} is generated and is not edited by hand — the edit ` +
+          `will disappear on the next build. Source: ${rule.source}. ` +
+          `Rebuild: ${rule.rebuild}.`,
       );
     }
   }
@@ -112,15 +112,15 @@ function post(event) {
     const output = `${run.stdout ?? ''}${run.stderr ?? ''}`.trim();
     notes.push(
       run.status === 0
-        ? output || 'Локали: паритет сохранён.'
-        : `Локали разошлись, i18n:check упал:\n${output}`,
+        ? output || 'Locales: parity holds.'
+        : `The locales have diverged, i18n:check failed:\n${output}`,
     );
   }
 
   if (paths.some(isAppTokensSource)) {
     notes.push(
-      'Правка токенов приложения. До витрины (apps/design) она доедет ' +
-        'только после `pnpm design:tokens`.',
+      'App tokens edited. It will not reach the showcase (apps/design) ' +
+        'until `pnpm design:tokens` is run.',
     );
   }
 
@@ -135,6 +135,6 @@ try {
     else if (mode === 'post') post(event);
   }
 } catch {
-  // Молча: сломанный хук не должен мешать работе.
+  // Silently: a broken hook must not get in the way of the work.
 }
 process.exit(0);

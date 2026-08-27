@@ -1,15 +1,15 @@
-// Паритет локалей с en.json.
+// Locale parity against en.json.
 //
-// Самая ценная часть затеи с переводами: без проверки локали расходятся
-// молча. Недостающий ключ показывает английский текст посреди русского
-// интерфейса, лишний — мёртвый груз, который никто не удалит.
+// The most valuable part of the whole translation effort: without a check the
+// locales drift apart silently. A missing key shows English text in the middle
+// of a Russian UI; an extra one is dead weight nobody will ever remove.
 //
-// Проверяются четыре вещи:
-//   1. недостающие ключи,
-//   2. лишние ключи,
-//   3. пустые значения,
-//   4. набор подстановок `{...}` — перевод, потерявший `{reason}`,
-//      выглядит целым, но теряет половину смысла.
+// Four things are checked:
+//   1. missing keys,
+//   2. extra keys,
+//   3. empty values,
+//   4. the set of `{...}` interpolations — a translation that lost `{reason}`
+//      looks intact but loses half its meaning.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -23,7 +23,7 @@ const LOCALES = ['ru', 'zh-Hans', 'es'];
 
 const read = (name) => JSON.parse(readFileSync(join(dir, `${name}.json`), 'utf8'));
 
-/** Разворачивает вложенный объект в плоскую карту `ключ.через.точку` → строка. */
+/** Flattens a nested object into a map of `dot.separated.key` → string. */
 function flatten(obj, prefix = '', out = new Map()) {
   for (const [k, v] of Object.entries(obj)) {
     const key = prefix ? `${prefix}.${k}` : k;
@@ -33,7 +33,7 @@ function flatten(obj, prefix = '', out = new Map()) {
   return out;
 }
 
-/** Подстановки вида {reason}. Формы множественного числа разделены `|`. */
+/** Interpolations of the form {reason}. Plural forms are separated by `|`. */
 const placeholders = (value) =>
   new Set(String(value).match(/\{[a-zA-Z0-9_]+\}/g) ?? []);
 
@@ -44,33 +44,33 @@ for (const locale of LOCALES) {
   const target = flatten(read(locale));
 
   for (const key of source.keys()) {
-    if (!target.has(key)) problems.push(`${locale}: нет ключа ${key}`);
+    if (!target.has(key)) problems.push(`${locale}: missing key ${key}`);
   }
   for (const key of target.keys()) {
-    if (!source.has(key)) problems.push(`${locale}: лишний ключ ${key}`);
+    if (!source.has(key)) problems.push(`${locale}: extra key ${key}`);
   }
   for (const [key, value] of target) {
     if (!source.has(key)) continue;
     if (typeof value !== 'string' || value.trim() === '') {
-      problems.push(`${locale}: пустое значение ${key}`);
+      problems.push(`${locale}: empty value ${key}`);
       continue;
     }
     const want = placeholders(source.get(key));
     const got = placeholders(value);
     const lost = [...want].filter((p) => !got.has(p));
     const extra = [...got].filter((p) => !want.has(p));
-    if (lost.length) problems.push(`${locale}: ${key} потерял ${lost.join(', ')}`);
-    if (extra.length) problems.push(`${locale}: ${key} содержит лишние ${extra.join(', ')}`);
+    if (lost.length) problems.push(`${locale}: ${key} lost ${lost.join(', ')}`);
+    if (extra.length) problems.push(`${locale}: ${key} has extra ${extra.join(', ')}`);
   }
 }
 
 if (problems.length) {
-  console.error(`Локали разошлись с ${SOURCE}.json:\n`);
+  console.error(`The locales have diverged from ${SOURCE}.json:\n`);
   for (const p of problems) console.error(`  ${p}`);
-  console.error(`\nВсего расхождений: ${problems.length}`);
+  console.error(`\nDivergences in total: ${problems.length}`);
   process.exit(1);
 }
 
 console.log(
-  `Локали совпадают с ${SOURCE}.json: ${source.size} ключей × ${LOCALES.length} переводов`,
+  `The locales match ${SOURCE}.json: ${source.size} keys × ${LOCALES.length} translations`,
 );

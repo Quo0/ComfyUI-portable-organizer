@@ -1,4 +1,4 @@
-rem Обновление сборки. В список профилей запуска попадать не должно:
-rem сервер это не поднимает.
+rem Updates the build. Must not show up in the list of launch profiles:
+rem this does not bring up a server.
 ..\python_embeded\python.exe .\update.py
 pause

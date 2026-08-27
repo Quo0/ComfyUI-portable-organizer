@@ -1,14 +1,15 @@
-// Достраивает стенд `fake-instance` до валидного инстанса.
+// Completes the `fake-instance` rig into a valid instance.
 //
-// В git лежит всё, кроме `python_embeded`: это junction на системный Python,
-// а ссылку в репозиторий не положишь. Копировать интерпретатор целиком —
-// сотня мегабайт в истории ради того, что уже есть на машине.
+// Everything except `python_embeded` is in git: that one is a junction to the
+// system Python, and a link cannot be put into a repository. Copying the whole
+// interpreter would mean a hundred megabytes of history for something that is
+// already on the machine.
 //
-// Стенд нужен потому, что отлаживать супервизор на реальной сборке нельзя:
-// холодный старт идёт минуты, падение приходится подстраивать руками,
-// а зависание не воспроизвести вовсе.
+// The rig exists because the supervisor cannot be debugged against a real
+// build: a cold start takes minutes, a crash has to be arranged by hand, and
+// a hang cannot be reproduced at all.
 //
-// Запуск: node tools/fixtures/make-fixture.mjs
+// Run: node tools/fixtures/make-fixture.mjs
 
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
@@ -20,16 +21,18 @@ const instance = join(here, 'fake-instance');
 const link = join(instance, 'python_embeded');
 
 /**
- * Вторая копия стенда по пути с пробелом и кириллицей.
+ * A second copy of the rig under a path with a space and non-ASCII characters.
  *
- * Грабля названа в плане: `d:\program files\Модели ИИ\...` встречается
- * у пользователей чаще, чем кажется, а ломается на ней квотирование при
- * спавне и резолв `..\` внутри `advanced\`. Проверять это на английском
- * пути без пробелов бессмысленно — там всё работает всегда.
+ * The trap is named in the plan: `d:\program files\Модели ИИ\...` shows up in
+ * users' setups more often than one would think, and it breaks quoting on spawn
+ * and the resolution of `..\` inside `advanced\`. Checking this on an English
+ * path without spaces is pointless — everything always works there.
+ *
+ * The name below stays in Cyrillic on purpose: it is the test data, not a note.
  */
 const oddInstance = join(here, 'стенд с пробелом');
 
-/** Папка установленного Python. Ищем сам интерпретатор и берём его директорию. */
+/** The installed Python's folder. We find the interpreter and take its directory. */
 function findPython() {
   let out = '';
   try {
@@ -40,20 +43,19 @@ function findPython() {
   for (const line of out.split('\n')) {
     const path = line.trim();
     if (!path) continue;
-    // WindowsApps содержит заглушку, открывающую магазин приложений,
-    // а не интерпретатор. Она бы прошла проверку существования файла
-    // и сорвала бы весь стенд.
+    // WindowsApps holds a stub that opens the app store rather than an
+    // interpreter. It would pass a file-existence check and wreck the whole rig.
     if (path.includes('WindowsApps')) continue;
     if (existsSync(path)) return dirname(path);
   }
   return null;
 }
 
-/** Собирает копию стенда по пути с пробелом и кириллицей. */
+/** Builds the copy of the rig under a path with a space and non-ASCII characters. */
 function makeOdd(pythonDir) {
   rmSync(oddInstance, { recursive: true, force: true });
-  // Копируем всё, кроме junction: его нельзя скопировать как содержимое,
-  // да и не нужно — сделаем свой такой же.
+  // We copy everything except the junction: it cannot be copied as content, and
+  // there is no need — we make our own identical one.
   cpSync(instance, oddInstance, {
     recursive: true,
     filter: (src) => !src.endsWith('python_embeded') && !src.includes('python_embeded'),
@@ -61,11 +63,11 @@ function makeOdd(pythonDir) {
   execFileSync('cmd', ['/c', 'mklink', '/J', join(oddInstance, 'python_embeded'), pythonDir], {
     stdio: 'pipe',
   });
-  console.log(`Копия с пробелом и кириллицей: ${oddInstance}`);
+  console.log(`Copy with a space and non-ASCII characters: ${oddInstance}`);
 }
 
 if (existsSync(link)) {
-  console.log('Стенд уже собран:', link);
+  console.log('The rig is already built:', link);
   const pythonDir = findPython();
   if (pythonDir && !existsSync(join(oddInstance, 'python_embeded'))) makeOdd(pythonDir);
   process.exit(0);
@@ -74,8 +76,8 @@ if (existsSync(link)) {
 const pythonDir = findPython();
 if (!pythonDir) {
   console.error(
-    'Не нашёл системный Python. Установите его и убедитесь, что `where python`\n' +
-      'показывает настоящий интерпретатор, а не заглушку из WindowsApps.',
+    'Could not find a system Python. Install one and make sure `where python`\n' +
+      'shows a real interpreter rather than the WindowsApps stub.',
   );
   process.exit(1);
 }
@@ -83,17 +85,17 @@ if (!pythonDir) {
 mkdirSync(instance, { recursive: true });
 
 try {
-  // Junction, а не symlink: символические ссылки на Windows требуют прав
-  // администратора или режима разработчика, junction — нет.
+  // A junction, not a symlink: symbolic links on Windows require administrator
+  // rights or developer mode, a junction does not.
   execFileSync('cmd', ['/c', 'mklink', '/J', link, pythonDir], { stdio: 'pipe' });
 } catch (e) {
-  console.error(`Не удалось создать junction: ${e.message}`);
+  console.error(`Could not create the junction: ${e.message}`);
   process.exit(1);
 }
 
 const ok = existsSync(join(link, 'python.exe')) && existsSync(join(instance, 'ComfyUI', 'main.py'));
-console.log(`Стенд собран: ${instance}`);
+console.log(`Rig built: ${instance}`);
 console.log(`  python_embeded -> ${pythonDir}`);
-console.log(`  валиден как инстанс: ${ok ? 'да' : 'НЕТ'}`);
+console.log(`  valid as an instance: ${ok ? 'yes' : 'NO'}`);
 
 makeOdd(pythonDir);

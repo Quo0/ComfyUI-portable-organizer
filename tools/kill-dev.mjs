@@ -1,12 +1,13 @@
-// Снимает процесс, занявший порт дев-сервера Vite.
+// Kills the process holding the Vite dev server port.
 //
-// Нужен потому, что закрытие окна приложения крестиком оставляет Vite
-// жить: следующий `pnpm dev:desktop` падает с «Port 1420 is already in use».
-// Штатный способ остановки — Ctrl+C в терминале, этот скрипт для случаев,
-// когда терминал уже закрыт.
+// Needed because closing the app window with the X leaves Vite alive: the next
+// `pnpm dev:desktop` fails with "Port 1420 is already in use". The regular way
+// to stop it is Ctrl+C in the terminal; this script is for when the terminal is
+// already gone.
 //
-// Ищем именно слушателя порта. `taskkill /PID 1420` убил бы процесс
-// с номером 1420 — номера выдаёт система, и под ним окажется что угодно.
+// We look for the port's listener specifically. `taskkill /PID 1420` would kill
+// the process numbered 1420 — the numbers are handed out by the system, and
+// anything at all could be behind that one.
 
 import { execFileSync } from 'node:child_process';
 
@@ -17,7 +18,7 @@ function listeners(port) {
   try {
     out = execFileSync('netstat', ['-ano'], { encoding: 'utf8' });
   } catch {
-    console.error('netstat недоступен');
+    console.error('netstat is unavailable');
     return [];
   }
 
@@ -26,8 +27,8 @@ function listeners(port) {
     if (!line.includes('LISTENING')) continue;
     const parts = line.trim().split(/\s+/);
     const local = parts[1] ?? '';
-    // Отрезаем адрес: порт всегда после последнего двоеточия, и это
-    // единственный способ не спутать 1420 с 11420 или с адресом [::1].
+    // Cut off the address: the port always follows the last colon, and this is
+    // the only way not to confuse 1420 with 11420 or with the address [::1].
     if (local.slice(local.lastIndexOf(':') + 1) !== String(port)) continue;
     const pid = parts[parts.length - 1];
     if (pid && pid !== '0') pids.add(pid);
@@ -37,15 +38,15 @@ function listeners(port) {
 
 const pids = listeners(PORT);
 if (pids.length === 0) {
-  console.log(`Порт ${PORT} свободен`);
+  console.log(`Port ${PORT} is free`);
   process.exit(0);
 }
 
 for (const pid of pids) {
   try {
     execFileSync('taskkill', ['/F', '/PID', pid], { stdio: 'pipe' });
-    console.log(`Снят процесс ${pid}, державший порт ${PORT}`);
+    console.log(`Killed process ${pid}, which held port ${PORT}`);
   } catch (e) {
-    console.error(`Не удалось снять ${pid}: ${e.message}`);
+    console.error(`Could not kill ${pid}: ${e.message}`);
   }
 }
