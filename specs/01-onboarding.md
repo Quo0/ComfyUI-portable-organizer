@@ -1,103 +1,107 @@
-# EP-ONB — Онбординг и первый запуск
+# EP-ONB — Onboarding and the first launch
 
-Первые тридцать секунд знакомства с приложением. Здесь решается, поймёт ли A1, что делать дальше, и поверит ли A2, что приложение не тронет его рабочую папку.
+The first thirty seconds of acquaintance with the app. This is where it is
+decided whether A1 will understand what to do next, and whether A2 will believe
+that the app will not touch their working folder.
 
-Отдельного приветственного экрана нет: его роль играют пустые состояния разделов. Так пользователь с первого момента видит настоящую структуру приложения, а не временную заглушку, которая потом исчезнет.
+There is no separate welcome screen: its role is played by the empty states of
+the sections. That way, from the very first moment the user sees the app's real
+structure rather than a temporary placeholder that will later disappear.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-ONB-010` | При пустом реестре приложение объясняет, что оно делает, и предлагает два пути: указать имеющуюся папку ComfyUI либо установить ComfyUI из архива | «Навигация и структура приложения» |
-| `FR-ONB-020` | Оба пути доступны в любой момент, а не только при первом запуске | «Навигация и структура приложения» |
-| `FR-ONB-030` | Приложение не требует ни учётной записи, ни подключения к сети для работы | «Экраны» |
-| `FR-ONB-040` | Навигация по разделам доступна с первого запуска, включая пустой реестр | «Навигация и структура приложения» |
-| `FR-ONB-050` | Пользователь, у которого нет архива, получает объяснение, что именно нужно скачать | «Мастер установки» |
+| `FR-ONB-010` | With an empty registry the app explains what it does and offers two paths: point at an existing ComfyUI folder, or install ComfyUI from an archive | «Навигация и структура приложения» |
+| `FR-ONB-020` | Both paths are available at any moment, not only on the first launch | «Навигация и структура приложения» |
+| `FR-ONB-030` | The app requires neither an account nor a network connection in order to work | «Экраны» |
+| `FR-ONB-040` | Navigation between the sections is available from the first launch, including with an empty registry | «Навигация и структура приложения» |
+| `FR-ONB-050` | A user who has no archive is given an explanation of exactly what to download | «Мастер установки» |
 
 ---
 
-### US-ONB-01 — Первый запуск с пустым реестром
+### US-ONB-01 — The first launch with an empty registry
 
-**Как** пользователь, впервые открывший приложение
-**я хочу** сразу понять, что оно делает и с чего начать
-**чтобы** не гадать, куда нажимать.
+**As** a user opening the app for the first time
+**I want** to understand at once what it does and where to start
+**so that** I do not have to guess where to click.
 
-Теги: `@FR-ONB-010` `@FR-ONB-040` `@phase-1` `@area-onb`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
+Tags: `@FR-ONB-010` `@FR-ONB-040` `@phase-1` `@area-onb`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
 
-**Предусловия**
-- Приложение запущено, реестр инстансов пуст.
+**Preconditions**
+- The app is running, the instance registry is empty.
 
-**Критерии приёмки**
-- **AC-1.** Пользователю показано краткое объяснение назначения приложения.
-- **AC-2.** Предложены ровно два пути дальше: указать имеющуюся папку ComfyUI и установить ComfyUI из архива.
-- **AC-3.** Каждый путь сопровождён пояснением, кому он подходит, — чтобы пользователь выбрал не угадывая.
-- **AC-4.** Навигация по разделам приложения доступна и на пустом реестре.
-- **AC-5.** Разделы, требующие наличия инстансов, при пустом реестре объясняют это и указывают, что сделать сначала.
+**Acceptance criteria**
+- **AC-1.** The user is shown a brief explanation of the app's purpose.
+- **AC-2.** Exactly two paths forward are offered: point at an existing ComfyUI folder, and install ComfyUI from an archive.
+- **AC-3.** Each path comes with an explanation of who it suits — so the user chooses without guessing.
+- **AC-4.** Navigation between the app's sections is available with an empty registry too.
+- **AC-5.** The sections that require instances to exist explain this on an empty registry and say what to do first.
 
-**Негативные и краевые случаи**
-- **AC-6.** Приложение работает без подключения к сети: ни один из двух путей не требует интернета.
-- **AC-7.** Учётная запись, регистрация и вход не запрашиваются ни на каком шаге.
-
----
-
-### US-ONB-02 — Выбор пути «установить ComfyUI»
-
-**Как** A1, у которого ComfyUI ещё нет
-**я хочу** установить его через приложение
-**чтобы** не разбираться в архивах и `.bat`-файлах самостоятельно.
-
-Теги: `@FR-ONB-010` `@FR-ONB-050` `@phase-1.5` `@area-onb`
-Обоснование: `PLAN.md` → «Мастер установки»
-
-**Предусловия**
-- Пользователь выбрал путь установки.
-
-**Критерии приёмки**
-- **AC-1.** Пользователь попадает в мастер установки, описанный в `US-INST-01`.
-- **AC-2.** До выбора архива объяснено, что архив нужно скачать самостоятельно, и указано, какой именно файл искать.
-- **AC-3.** Объяснено, сколько примерно места потребуется, до того как пользователь выберет папку.
-
-**Негативные и краевые случаи**
-- **AC-4.** Если архива у пользователя нет, он может выйти из мастера, не оставив за собой ни изменённых настроек, ни созданных папок.
+**Negative and edge cases**
+- **AC-6.** The app works without a network connection: neither of the two paths requires the internet.
+- **AC-7.** An account, a registration and a login are not asked for at any step.
 
 ---
 
-### US-ONB-03 — Выбор пути «у меня уже есть ComfyUI»
+### US-ONB-02 — Choosing the "install ComfyUI" path
 
-**Как** A2, у которого есть рабочая папка
-**я хочу** зарегистрировать её в приложении
-**чтобы** запускать привычную сборку отсюда.
+**As** A1, who does not have ComfyUI yet
+**I want** to install it through the app
+**so that** I do not have to work out archives and `.bat` files on my own.
 
-Теги: `@FR-ONB-010` `@phase-1` `@area-onb`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
+Tags: `@FR-ONB-010` `@FR-ONB-050` `@phase-1.5` `@area-onb`
+Rationale: `PLAN.md` → «Мастер установки»
 
-**Предусловия**
-- Пользователь выбрал путь регистрации существующей папки.
+**Preconditions**
+- The user has chosen the installation path.
 
-**Критерии приёмки**
-- **AC-1.** Пользователь попадает к выбору папки, описанному в `US-REG-01`.
-- **AC-2.** До выбора папки сказано, что регистрация ничего в ней не изменит.
-- **AC-3.** Указано, как выглядит подходящая папка, — чтобы пользователь понимал, какой уровень вложенности выбирать.
+**Acceptance criteria**
+- **AC-1.** The user arrives at the install wizard described in `US-INST-01`.
+- **AC-2.** Before the archive is chosen it is explained that the archive has to be downloaded by the user, and which file exactly to look for.
+- **AC-3.** It is explained roughly how much space will be needed, before the user picks a folder.
 
-**Негативные и краевые случаи**
-- **AC-4.** Отказ от выбора папки возвращает пользователя к развилке, не меняя состояние реестра.
+**Negative and edge cases**
+- **AC-4.** If the user has no archive, they can leave the wizard without leaving behind either changed settings or created folders.
 
 ---
 
-### US-ONB-04 — Возврат к обоим путям после первого запуска
+### US-ONB-03 — Choosing the "I already have ComfyUI" path
 
-**Как** пользователь, у которого уже есть инстансы
-**я хочу** добавлять новые тем же способом, что и в первый раз
-**чтобы** не искать другую команду для того же действия.
+**As** A2, who has a working folder
+**I want** to register it in the app
+**so that** I can launch my familiar build from here.
 
-Теги: `@FR-ONB-020` `@phase-1` `@area-onb`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
+Tags: `@FR-ONB-010` `@phase-1` `@area-onb`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
 
-**Предусловия**
-- В реестре есть хотя бы один инстанс.
+**Preconditions**
+- The user has chosen the path of registering an existing folder.
 
-**Критерии приёмки**
-- **AC-1.** Оба пути — регистрация существующей папки и установка из архива — доступны постоянно, без опустошения реестра.
-- **AC-2.** Оба пути ведут к тем же шагам, что и при первом запуске.
-- **AC-3.** Добавление нового инстанса не влияет на существующие: ни их состояние, ни настройки не меняются.
+**Acceptance criteria**
+- **AC-1.** The user arrives at the folder picker described in `US-REG-01`.
+- **AC-2.** Before the folder is chosen it is stated that the registration will change nothing inside it.
+- **AC-3.** It is stated what a suitable folder looks like — so the user understands which nesting level to pick.
+
+**Negative and edge cases**
+- **AC-4.** Declining to pick a folder returns the user to the fork without changing the state of the registry.
+
+---
+
+### US-ONB-04 — Returning to both paths after the first launch
+
+**As** a user who already has instances
+**I want** to add new ones the same way as the first time
+**so that** I do not have to hunt for a different command for the same action.
+
+Tags: `@FR-ONB-020` `@phase-1` `@area-onb`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
+
+**Preconditions**
+- There is at least one instance in the registry.
+
+**Acceptance criteria**
+- **AC-1.** Both paths — registering an existing folder and installing from an archive — are permanently available, without emptying the registry.
+- **AC-2.** Both paths lead to the same steps as on the first launch.
+- **AC-3.** Adding a new instance does not affect the existing ones: neither their state nor their settings change.
