@@ -1,10 +1,10 @@
-//! Прогон переноса по указанным папкам — тем же кодом, что и приложение.
+//! A run of the move over the given folders, with the same code the app uses.
 //!
-//! Нужен, чтобы проверить перенос на настоящей сборке, а не только
-//! на временных папках: там свои маркеры, свой `configs` и категории,
-//! заведённые кастомными нодами.
+//! Needed in order to check the move against a real build rather than only
+//! against temporary folders: a real one has its own markers, its own
+//! `configs` and categories created by custom nodes.
 //!
-//! Запуск: cargo run --example live_migrate -- <папка-моделей> <общий-корень>
+//! Run: cargo run --example live_migrate -- <models-folder> <shared-root>
 
 use std::path::Path;
 
@@ -12,13 +12,13 @@ use cpo_desktop_lib::migrate::{self, MigrateCancel};
 
 fn main() {
     let mut args = std::env::args().skip(1);
-    let models = args.next().expect("укажите папку моделей");
-    let shared = args.next().expect("укажите общий корень");
+    let models = args.next().expect("give the models folder");
+    let shared = args.next().expect("give the shared root");
     let (models, shared) = (Path::new(&models), Path::new(&shared));
 
     let scan = migrate::scan(models, shared);
-    println!("категорий к переносу: {}", scan.categories.len());
-    println!("поедет файлов: {}, объём: {:.0}", scan.total_files, scan.total_bytes);
+    println!("categories to move: {}", scan.categories.len());
+    println!("files to travel: {}, size: {:.0}", scan.total_files, scan.total_bytes);
 
     for category in &scan.categories {
         let busy: Vec<_> = category
@@ -28,13 +28,13 @@ fn main() {
             .map(|e| format!("{} ({:?})", e.name, e.same_name.unwrap()))
             .collect();
         if !busy.is_empty() {
-            println!("  {}: занятые имена — {}", category.folder, busy.join(", "));
+            println!("  {}: taken names — {}", category.folder, busy.join(", "));
         }
     }
 
-    // Переносим только checkpoints: проверка не должна двигать чужие
-    // двадцать гигабайт ради нескольких килобайт смысла. Перечень —
-    // парами «категория и модель», как их шлёт экран.
+    // Only checkpoints are moved: a check must not shift someone's twenty
+    // gigabytes for the sake of a few kilobytes of meaning. The list comes as
+    // "category and model" pairs, the way the screen sends them.
     let offer: Vec<(String, String)> = scan
         .categories
         .iter()
@@ -45,7 +45,7 @@ fn main() {
         println!("  {} / {} — {}/{}", p.done, p.total, p.category, p.name)
     });
 
-    println!("перенесено: {:?}", outcome.moved);
-    println!("пропущено: {:?}", outcome.skipped.iter().map(|s| (&s.name, s.verdict)).collect::<Vec<_>>());
-    println!("сбоев: {:?}", outcome.failed);
+    println!("moved: {:?}", outcome.moved);
+    println!("skipped: {:?}", outcome.skipped.iter().map(|s| (&s.name, s.verdict)).collect::<Vec<_>>());
+    println!("failures: {:?}", outcome.failed);
 }

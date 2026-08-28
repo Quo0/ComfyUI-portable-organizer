@@ -1,7 +1,7 @@
 [package]
 name = "cpo-desktop"
 version = "0.1.0"
-description = "Управление портабл-сборками ComfyUI"
+description = "Managing ComfyUI portable builds"
 authors = ["Andrew Blokhin"]
 edition = "2021"
 license = "GPL-3.0-only"
@@ -9,29 +9,30 @@ repository = "https://github.com/Quo0/ComfyUI-portable-organizer"
 homepage = "https://github.com/Quo0/ComfyUI-portable-organizer"
 
 [lib]
-# Суффикс _lib нужен, чтобы имя библиотеки не конфликтовало с именем
-# бинаря — на Windows иначе ломается сборка.
+# The _lib suffix is needed so the library name does not clash with the binary
+# name — on Windows the build breaks otherwise.
 name = "cpo_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [features]
-# Инспектор WebView2. Отдельной фичей, а не по debug_assertions: профиль
-# в конце файла гасит их у всех зависимостей, и штатный путь devtools
-# внутри tauri и wry вырезается препроцессором. Подставляется скриптом
-# `pnpm dev:desktop`; в релизной сборке фичи нет.
+# The WebView2 inspector. A feature of its own rather than keyed off
+# debug_assertions: the profile at the end of this file switches those off for
+# every dependency, and the regular devtools path inside tauri and wry is cut
+# out by the preprocessor. It is supplied by the `pnpm dev:desktop` script;
+# the release build has no such feature.
 devtools = ["tauri/devtools"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-# Фича unstable обязательна: мультивебвью, на котором держится вся идея
-# встроенных вкладок, пока доступен только за ней.
-# tray-icon — чтобы приложение можно было свернуть, оставив серверы жить.
+# The unstable feature is mandatory: multi-webview, which the whole idea of
+# embedded tabs rests on, is still only available behind it.
+# tray-icon — so the app can be collapsed away while the servers keep living.
 tauri = { version = "2", features = ["unstable", "tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
-# Второй экземпляр приложения — это второй Job Object и второй реестр
-# в одном файле. Плагин вместо запуска показывает уже открытое окно.
+# A second instance of the app means a second Job Object and a second registry
+# in one file. Instead of launching, the plugin shows the window already open.
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -39,39 +40,42 @@ tauri-specta = { version = "2.0.0-rc.25", features = ["derive", "typescript"] }
 specta = "2.0.0-rc.25"
 specta-typescript = "0.0.12"
 tauri-plugin-store = "2.4.4"
-# Обновление приложения. Подпись манифеста плагин проверяет сам по ключу
-# из `plugins.updater.pubkey` — не сошлась, установка не начинается.
+# App updates. The plugin verifies the manifest signature itself against the
+# key from `plugins.updater.pubkey` — a mismatch and the install never starts.
 tauri-plugin-updater = "2"
 tauri-plugin-os = "2.3.2"
 dunce = "1.0.5"
 tauri-plugin-dialog = "2.7.2"
 sevenz-rust2 = "0.21.4"
-# HTTP к работающему ComfyUI. Без TLS: ходим только на 127.0.0.1, шифровать
-# нечего, а с ним крейт тянул бы rustls со всей его роднёй. Синхронный —
-# ложится на правило «логика в обычных функциях, команды — тонкие обёртки».
+# HTTP to a running ComfyUI. Without TLS: we only go to 127.0.0.1, there is
+# nothing to encrypt, and with it the crate would drag in rustls and all its
+# kin. Synchronous — it fits the rule "logic in plain functions, commands are
+# thin wrappers".
 ureq = { version = "3.4.0", default-features = false }
 
 [target."cfg(windows)".dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security", "Win32_NetworkManagement_IpHelper", "Win32_Networking_WinSock"] }
 
-# Зависимости в дев-сборке собираются как в релизе, наш код остаётся
-# отлаживаемым. Обе строки обязательны, и каждая закрывает свою беду.
+# The dependencies in a dev build are compiled as in release, while our own
+# code stays debuggable. Both lines are mandatory, and each closes a trouble of
+# its own.
 #
-# opt-level: без него LZMA2 и BCJ2 декодируют в двадцать раз медленнее
-# (20 файлов в секунду против 404), и мастер выглядит намертво зависшим.
+# opt-level: without it LZMA2 and BCJ2 decode twenty times slower (20 files a
+# second against 404), and the wizard looks dead frozen.
 #
-# debug-assertions: фильтр BCJ2 складывает 32-битные адреса с намеренным
-# переполнением — для него это штатная арифметика. С включёнными проверками
-# lzma-rust2 паникует «attempt to add with overflow» на середине распаковки
-# (decode.rs:149). В релизе проверок нет, поэтому там всё работает, и под
-# релизом библиотека и тестируется.
+# debug-assertions: the BCJ2 filter adds 32-bit addresses with deliberate
+# overflow — for it that is ordinary arithmetic. With the checks on, lzma-rust2
+# panics with "attempt to add with overflow" halfway through the extraction
+# (decode.rs:149). In release there are no checks, which is why everything
+# works there, and it is under release that the library is tested.
 #
-# Побочный эффект, за который заплачено: `"*"` — это и сами tauri, wry
-# и tauri-runtime-wry. Выключенные debug-assertions гасят в них
-# `cfg(debug_assertions)`, а весь путь devtools спрятан именно за ним:
-# `with_devtools()` вырезается, WebView2 получает `AreDevToolsEnabled = false`,
-# и инспектор молчит на F12, на Ctrl+Shift+I и на «Inspect» из меню. Поэтому
-# в дев-сборке он включается фичей `devtools`, а не сам собой.
+# The side effect that was paid for: `"*"` is also tauri itself, wry and
+# tauri-runtime-wry. Switched-off debug-assertions kill `cfg(debug_assertions)`
+# inside them, and the entire devtools path is hidden behind exactly that:
+# `with_devtools()` is cut out, WebView2 gets `AreDevToolsEnabled = false`, and
+# the inspector stays silent on F12, on Ctrl+Shift+I and on "Inspect" from the
+# menu. That is why in the dev build it is switched on by the `devtools`
+# feature rather than by itself.
 [profile.dev.package."*"]
 opt-level = 3
 debug-assertions = false

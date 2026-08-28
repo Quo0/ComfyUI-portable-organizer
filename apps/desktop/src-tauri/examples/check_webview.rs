@@ -1,12 +1,13 @@
-//! Правило «своё остаётся во вкладке, чужое уходит в браузер».
+//! The rule "ours stays in the tab, someone else's goes to the browser".
 //!
-//! Проверяется чистая часть — решение по URL. Само встраивание проверить
-//! отсюда нельзя: для него нужно окно, и потому оно живёт в списке ручных
-//! проверок. Но ошибиться легче всего именно в правиле: слишком узкое
-//! отправит в браузер сам ComfyUI, слишком широкое оставит во вкладке
-//! страницу входа, где нет ни адресной строки, ни кнопки «назад».
+//! The pure part — the decision about a URL — is what gets checked. The
+//! embedding itself cannot be checked from here: it needs a window, which is
+//! why it lives in the list of manual checks. But the rule is the easiest
+//! thing to get wrong: too narrow and ComfyUI itself is sent to the browser,
+//! too wide and a login page stays in the tab, where there is neither an
+//! address bar nor a back button.
 //!
-//! Запуск: cargo run --example check_webview
+//! Run: cargo run --example check_webview
 
 use cpo_desktop_lib::webview::{internal, label};
 use tauri::Url;
@@ -16,46 +17,48 @@ fn main() {
     const PORT: u16 = 8188;
 
     let mut case = |what: &str, url: &str, want: bool| {
-        let parsed = Url::parse(url).expect("валидный URL");
+        let parsed = Url::parse(url).expect("a valid URL");
         let got = internal(&parsed, PORT);
         let ok = got == want;
-        println!("{} {what} — {url}", if ok { "  OK  " } else { "ПРОВАЛ" });
+        println!("{} {what} — {url}", if ok { "  OK  " } else { " FAIL " });
         failures += u32::from(!ok);
     };
 
-    case("сам интерфейс остаётся во вкладке", "http://127.0.0.1:8188", true);
-    case("страница внутри сборки остаётся", "http://127.0.0.1:8188/templates", true);
-    case("запрос к API остаётся", "http://127.0.0.1:8188/api/userdata", true);
+    case("the interface itself stays in the tab", "http://127.0.0.1:8188", true);
+    case("a page inside the build stays", "http://127.0.0.1:8188/templates", true);
+    case("an API request stays", "http://127.0.0.1:8188/api/userdata", true);
 
-    // Скачивание и «Сохранить изображение» в WebView2 идут через эти схемы.
-    // Запрет превратил бы экспорт из ComfyUI в тишину.
-    case("blob остаётся", "blob:http://127.0.0.1:8188/9f1c", true);
-    case("data остаётся", "data:text/plain,hi", true);
-    case("about:blank остаётся", "about:blank", true);
+    // Downloads and "Save image" in WebView2 go through these schemes.
+    // A ban would turn exporting from ComfyUI into silence.
+    case("blob stays", "blob:http://127.0.0.1:8188/9f1c", true);
+    case("data stays", "data:text/plain,hi", true);
+    case("about:blank stays", "about:blank", true);
 
-    case("документация уходит в браузер", "https://docs.comfy.org/", false);
-    case("вход в API-ноды уходит в браузер", "https://platform.comfy.org/login", false);
-    // Соседний инстанс — тоже чужой сервер: своя вкладка у него своя.
-    case("другой порт на локалхосте — чужой", "http://127.0.0.1:8189/", false);
-    // Тот же порт, но другой хост: одинаковое начало строки обмануть
-    // не должно.
-    case("другой хост с тем же портом — чужой", "http://example.com:8188/", false);
-    // Ровно наш адрес в начале строки, а хост чужой: до `@` стоит имя
-    // пользователя. Сравнение по префиксу это пропускало.
+    case("the documentation goes to the browser", "https://docs.comfy.org/", false);
+    case("the API-nodes login goes to the browser", "https://platform.comfy.org/login", false);
+    // A neighbouring instance is someone else's server too: it has a tab of
+    // its own.
+    case("another port on localhost is foreign", "http://127.0.0.1:8189/", false);
+    // The same port but a different host: an identical start of the string
+    // must not fool us.
+    case("another host with the same port is foreign", "http://example.com:8188/", false);
+    // Exactly our address at the start of the string, yet the host belongs to
+    // someone else: what stands before the `@` is a username. A prefix
+    // comparison let this through.
     case(
-        "наш адрес как имя пользователя — чужой",
+        "our address as a username is foreign",
         "http://127.0.0.1:8188@example.com/",
         false,
     );
-    // Схема другая — значит и сервер не тот, что мы поднимали.
-    case("https на тот же адрес — чужой", "https://127.0.0.1:8188/", false);
+    // A different scheme means a different server from the one we brought up.
+    case("https to the same address is foreign", "https://127.0.0.1:8188/", false);
 
     let id = "i1755000000000-2";
     let ok = label(id) == format!("comfy-{id}");
-    println!("{} метка вкладки — {}", if ok { "  OK  " } else { "ПРОВАЛ" }, label(id));
+    println!("{} the tab label — {}", if ok { "  OK  " } else { " FAIL " }, label(id));
     failures += u32::from(!ok);
 
-    println!("\nПроверок провалено: {failures}");
+    println!("\nChecks failed: {failures}");
     if failures > 0 {
         std::process::exit(1);
     }

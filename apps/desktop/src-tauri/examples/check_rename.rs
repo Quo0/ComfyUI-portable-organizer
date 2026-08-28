@@ -1,46 +1,46 @@
-//! Проверка одного утверждения: переживает ли `fs::rename` существующую
-//! папку назначения.
+//! A check of a single claim: does `fs::rename` survive an existing
+//! destination folder?
 //!
-//! Мастер установки распаковывает во временную `<dest>.cpo-partial`
-//! и в конце переименовывает её. Проверки при этом осознанно разрешают
-//! **пустую существующую** папку назначения — и вот на ней всё и ломалось.
+//! The install wizard extracts into a temporary `<dest>.cpo-partial` and
+//! renames it at the end. The checks deliberately allow an **existing empty**
+//! destination folder — and that is exactly where everything broke.
 //!
-//! Запуск: cargo run --example check_rename
+//! Run: cargo run --example check_rename
 
 use std::fs;
 
 fn main() {
     let base = std::env::temp_dir().join("cpo-rename-check");
     let _ = fs::remove_dir_all(&base);
-    fs::create_dir_all(base.join("src")).expect("не создалась исходная папка");
-    fs::write(base.join("src").join("file.txt"), b"x").expect("не записался файл");
+    fs::create_dir_all(base.join("src")).expect("the source folder was not created");
+    fs::write(base.join("src").join("file.txt"), b"x").expect("the file was not written");
 
-    // Случай первый: назначения нет.
+    // Case one: the destination does not exist.
     let missing = base.join("missing");
     let first = fs::rename(base.join("src"), &missing);
-    println!("назначения нет      -> {:?}", first.as_ref().map(|_| "ok"));
+    println!("destination absent      -> {:?}", first.as_ref().map(|_| "ok"));
 
-    // Случай второй: назначение есть и пусто — ровно то, что делает
-    // пользователь, создавая папку заранее.
-    fs::create_dir_all(base.join("src2")).expect("не создалась исходная папка");
-    fs::write(base.join("src2").join("file.txt"), b"x").expect("не записался файл");
+    // Case two: the destination exists and is empty — exactly what the user
+    // does when they create the folder in advance.
+    fs::create_dir_all(base.join("src2")).expect("the source folder was not created");
+    fs::write(base.join("src2").join("file.txt"), b"x").expect("the file was not written");
     let existing = base.join("existing");
-    fs::create_dir_all(&existing).expect("не создалась папка назначения");
+    fs::create_dir_all(&existing).expect("the destination folder was not created");
     let second = fs::rename(base.join("src2"), &existing);
     println!(
-        "назначение есть, пусто -> {}",
+        "destination exists, empty -> {}",
         match &second {
             Ok(()) => "ok".to_string(),
-            Err(e) => format!("ОШИБКА {e}"),
+            Err(e) => format!("ERROR {e}"),
         }
     );
 
     let _ = fs::remove_dir_all(&base);
 
     if second.is_err() {
-        println!("\nПодтверждено: rename на существующую папку не работает,");
-        println!("её нужно снимать до переименования.");
+        println!("\nConfirmed: rename onto an existing folder does not work,");
+        println!("it has to be removed before the rename.");
     } else {
-        println!("\nrename справился сам — снятие папки в installer.rs избыточно.");
+        println!("\nrename coped by itself — removing the folder in installer.rs is redundant.");
     }
 }
