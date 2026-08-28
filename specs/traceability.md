@@ -1,200 +1,214 @@
-# Матрица трассируемости
+# The traceability matrix
 
-Связывает требования, истории, фазы реализации и разделы плана. Нужна для трёх вопросов: что уже покрыто требованиями, что запланировано в ближайшей фазе, и куда смотреть за техническим обоснованием.
+Ties requirements, stories, implementation phases and sections of the plan
+together. It exists for three questions: what is already covered by
+requirements, what is planned for the nearest phase, and where to look for the
+technical reasoning.
 
-Разделы плана названы здесь по имени, а лежат в `plan/`. Таблица разделов — в `PLAN.md`, вход всегда через неё. Фазы — в `plan/phases.md`.
+The sections of the plan are named here by title and live in `plan/`. The
+section table is in `PLAN.md`, and the way in is always through it. The phases
+are in `plan/phases.md`. Both are quoted in Russian because both documents are
+still in Russian; the phase letters `4а` and `4в` are part of those names.
 
-Статус относится к **реализации**, не к написанию спецификации. Все требования ниже описаны.
+Status refers to the **implementation**, not to writing the specification.
+Every requirement below has been described.
 
-**Статусы отстают от кода.** Колонка заполнялась при написании спецификаций и с тех пор обновлялась только по областям `EP-SHARED` (Фаза 2.5) и `EP-WF` (Фаза 2.6). Фазы 0, 0.5, 1, 1.5 и 2 закрыты — их требования реализованы, но здесь всё ещё помечены «не начато». Разобрать это стоит один раз и по строкам, а не мимоходом: статус, поставленный не глядя, хуже отсутствующего.
-
----
-
-## Требования по областям
-
-### EP-ONB — Онбординг
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-ONB-010` | `US-ONB-01`, `US-ONB-02`, `US-ONB-03` | 1 | Навигация и структура приложения | Не начато |
-| `FR-ONB-020` | `US-ONB-04` | 1 | Навигация и структура приложения | Не начато |
-| `FR-ONB-030` | `US-ONB-01` | 1 | Экраны | Не начато |
-| `FR-ONB-040` | `US-ONB-01` | 0.5 | Навигация и структура приложения | Не начато |
-| `FR-ONB-050` | `US-ONB-02` | 1.5 | Мастер установки | Не начато |
-
-### EP-REG — Реестр инстансов
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-REG-010` | `US-REG-01` | 1 | discovery/windows_portable.rs | Не начато |
-| `FR-REG-020` | `US-REG-01` | 1 | Дисциплина хранения данных | Не начато |
-| `FR-REG-030` | `US-REG-01`, `US-REG-03` | 1 | discovery/windows_portable.rs | Не начато |
-| `FR-REG-040` | `US-REG-02` | 1 | discovery/windows_portable.rs | Не начато |
-| `FR-REG-050` | `US-REG-04` | 1 | Экраны | Не начато |
-| `FR-REG-060` | `US-REG-05` | 1 | Чеклист, Фаза 1 | Не начато |
-| `FR-REG-070` | `US-REG-03` | 1.5 | Мастер установки | Не начато |
-| `FR-REG-080` | `US-REG-03` | 1 | Грабли | Не начато |
-| `FR-REG-090` | `US-REG-01` | 1 | discovery/windows_portable.rs | Не начато |
-
-### EP-INST — Мастер установки
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-INST-010` | `US-INST-01` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-020` | `US-INST-01`, `US-INST-07` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-030` | `US-INST-02`, `US-INST-08` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-040` | `US-INST-02`, `US-INST-08` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-050` | `US-INST-03` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-060` | `US-INST-02` | 1.5 | Грабли | Не начато |
-| `FR-INST-070` | `US-INST-05` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-080` | `US-INST-05` | 1.5 | Интерфейс: прогресс | Не начато |
-| `FR-INST-090` | `US-INST-04`, `US-INST-06`, `US-INST-07` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-100` | `US-INST-06`, `US-INST-07` | 1.5 | Мастер установки | Не начато |
-| `FR-INST-110` | `US-INST-02` | 1.5 | Мастер установки | Не начато |
-
-### EP-RUN — Запуск и жизненный цикл
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-RUN-010` | `US-RUN-01` | 2 | Парсинг .bat | Не начато |
-| `FR-RUN-020` | `US-RUN-02` | 0 | Ключевые находки, факт 1 | Не начато |
-| `FR-RUN-030` | `US-RUN-02`, `US-RUN-05` | 2 | ports.rs | Не начато |
-| `FR-RUN-040` | `US-RUN-03` | 2 | supervise/ + process.rs | Не начато |
-| `FR-RUN-050` | `US-RUN-03` | 2 | supervise/ + process.rs | Не начато |
-| `FR-RUN-060` | `US-RUN-06` | 2 | supervise/ + process.rs | Не начато |
-| `FR-RUN-070` | `US-RUN-04` | 2 | supervise/ + process.rs | Не начато |
-| `FR-RUN-080` | `US-RUN-08` | 2, 4а | supervise/ + process.rs | Сделано |
-| `FR-RUN-090` | `US-RUN-05` | 4а | Грабли | Сделано |
-| `FR-RUN-100` | `US-RUN-07` | 4а | Грабли | Сделано |
-| `FR-RUN-110` | `US-RUN-01` | 4а | Парсинг .bat | Сделано |
-| `FR-RUN-120` | `US-RUN-02` | 2 | supervise/windows.rs | Не начато |
-
-### EP-TAB — Навигация и встроенные вкладки
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-TAB-010` | `US-TAB-01` | 0.5 | Навигация и структура приложения | Сделано |
-| `FR-TAB-020` | `US-TAB-02` | 0, 3 | Ключевые находки, факт 3 | Сделано |
-| `FR-TAB-030` | `US-TAB-03` | 2 | Навигация и структура приложения | Сделано |
-| `FR-TAB-040` | `US-TAB-03`, `US-TAB-04` | 2 | Навигация и структура приложения | Сделано |
-| `FR-TAB-050` | `US-TAB-02`, `US-TAB-04` | 3 | webview.rs — встраивание | Сделано |
-| `FR-TAB-060` | `US-TAB-02` | 3 | Грабли | Сделано, подтверждается только руками |
-| `FR-TAB-070` | `US-TAB-05` | 3 | Грабли | Сделано |
-| `FR-TAB-080` | `US-TAB-06` | 3 | Экраны | Сделано |
-| `FR-TAB-090` | `US-TAB-06` | 3 | Экраны | Сделано |
-| `FR-TAB-100` | `US-TAB-01` | 0.5 | Навигация и структура приложения | Сделано |
-
-### EP-SHARED — Общее хранилище моделей
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-SHARED-010` | `US-SHARED-01` | 2.5 | Общее хранилище моделей | Сделано |
-| `FR-SHARED-020` | `US-SHARED-02` | 2.5 | Генерация YAML | Сделано |
-| `FR-SHARED-030` | `US-SHARED-03`, `US-SHARED-07` | 2.5 | Два режима применения | Сделано |
-| `FR-SHARED-040` | `US-SHARED-03` | 2.5 | Что выяснено из исходников | Сделано |
-| `FR-SHARED-050` | `US-SHARED-04` | 2.5 | Два режима применения | Сделано |
-| `FR-SHARED-060` | `US-SHARED-05` | 2.5 | Два режима применения | Сделано |
-| `FR-SHARED-070` | `US-SHARED-06`, `US-SHARED-07` | 2.5 | Два режима применения | Сделано |
-| `FR-SHARED-080` | `US-SHARED-02` | 2.5 | Общее хранилище моделей | Сделано |
-| `FR-SHARED-090` | `US-SHARED-08` | 2.5 | Грабли | Сделано |
-| `FR-SHARED-100` | `US-SHARED-03` | 2.5 | Грабли | Сделано |
-| `FR-SHARED-110` | `US-SHARED-09` | 4а | Чеклист, Фаза 4а | Сделано |
-| `FR-SHARED-120` | `US-SHARED-01` | 2.5 | Модель данных | Сделано |
-| `FR-SHARED-130` | `US-SHARED-10` | 2.5 | Общее хранилище моделей | Сделано |
-| `FR-SHARED-140` | `US-SHARED-10`, `US-SHARED-11` | 2.5 | Общее хранилище моделей | Сделано |
-
-### EP-WF — Библиотека воркфлоу
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-WF-010` | `US-WF-01` | 2.6 | Библиотека воркфлоу | Сделано |
-| `FR-WF-020` | `US-WF-02` | 2.6 | Хранилище | Сделано |
-| `FR-WF-030` | `US-WF-02` | 2.6 | Хранилище | Сделано |
-| `FR-WF-040` | `US-WF-03` | 2.6 | Наполнение библиотеки | Сделано |
-| `FR-WF-050` | `US-WF-04` | 2.6 | Добавление в инстанс | Сделано |
-| `FR-WF-060` | `US-WF-04` | 2.6 | Добавление в инстанс | Сделано |
-| `FR-WF-070` | `US-WF-05` | 2.6 | Проверка совместимости | Сделано |
-| `FR-WF-080` | `US-WF-05` | 2.6 | Проверка совместимости | Сделано |
-| `FR-WF-090` | `US-WF-06` | 2.6 | Хранилище | Сделано |
-| `FR-WF-100` | `US-WF-07` | 2.6 | Добавление в инстанс | Сделано |
-| `FR-WF-110` | `US-WF-06` | 2.6 | Грабли | Сделано |
-
-### EP-UI — Внешний вид, язык, уведомления
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-UI-010` | `US-UI-01` | 0.5 | Интерфейс: тема | Не начато |
-| `FR-UI-020` | `US-UI-01` | 0.5 | Интерфейс: тема | Не начато |
-| `FR-UI-030` | `US-UI-02` | 0.5 | Интерфейс: язык | Не начато |
-| `FR-UI-040` | `US-UI-02` | 0.5 | Интерфейс: язык | Не начато |
-| `FR-UI-050` | `US-UI-02` | 0.5 | Интерфейс: язык | Не начато |
-| `FR-UI-060` | `US-UI-03` | 0.5 | Интерфейс: уведомления | Не начато |
-| `FR-UI-070` | `US-UI-03` | 0.5 | Интерфейс: уведомления | Не начато |
-| `FR-UI-080` | `US-UI-04` | 2 | Интерфейс: уведомления | Не начато |
-| `FR-UI-090` | `US-UI-05` | 1.5 | Интерфейс: прогресс | Не начато |
-| `FR-UI-100` | `US-UI-02` | 0.5 | Интерфейс: язык | Не начато |
-| `FR-UI-110` | `US-UI-02` | 0.5 | Интерфейс: язык | Не начато |
-
-### EP-DATA — Хранение данных и удаление
-
-| FR | Истории | Фаза | Раздел плана | Статус |
-|---|---|---|---|---|
-| `FR-DATA-010` | `US-DATA-01` | 0 | Дисциплина хранения данных | Не начато |
-| `FR-DATA-020` | `US-DATA-03` | 2.5, 2.6 | Дисциплина хранения данных | Не начато |
-| `FR-DATA-030` | `US-DATA-03` | 0 | Дисциплина хранения данных | Не начато |
-| `FR-DATA-040` | `US-DATA-02` | 4в | Дисциплина хранения данных | Не начато |
-| `FR-DATA-050` | `US-DATA-02` | 4в | Дисциплина хранения данных | Не начато |
-| `FR-DATA-060` | `US-DATA-03` | 4в | Дисциплина хранения данных | Не начато |
-| `FR-DATA-070` | `US-DATA-01` | 4а | Дисциплина хранения данных | Сделано |
-| `FR-DATA-080` | `US-DATA-02` | 4в | Дисциплина хранения данных | Не начато |
-| `FR-DATA-090` | `US-DATA-01` | 2.5, 2.6, 4а | Дисциплина хранения данных | Сделано |
-| `FR-DATA-100` | `US-DATA-04` | 4в | Выпуск | Сделано |
-| `FR-DATA-110` | `US-DATA-04` | 4в | Выпуск | Сделано |
-| `FR-DATA-120` | `US-DATA-04` | 4в | Выпуск | Сделано |
+**The statuses lag behind the code.** The column was filled in while the
+specifications were being written and has since been updated only for the areas
+`EP-SHARED` (phase 2.5) and `EP-WF` (phase 2.6). Phases 0, 0.5, 1, 1.5 and 2
+are closed — their requirements are implemented, but here they are still marked
+"Not started". This is worth sorting out once and row by row rather than in
+passing: a status set without looking is worse than no status at all.
 
 ---
 
-## Сквозные сценарии и истории
+## Requirements by area
 
-| Сценарий | Истории |
+### EP-ONB — Onboarding
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-ONB-010` | `US-ONB-01`, `US-ONB-02`, `US-ONB-03` | 1 | Навигация и структура приложения | Not started |
+| `FR-ONB-020` | `US-ONB-04` | 1 | Навигация и структура приложения | Not started |
+| `FR-ONB-030` | `US-ONB-01` | 1 | Экраны | Not started |
+| `FR-ONB-040` | `US-ONB-01` | 0.5 | Навигация и структура приложения | Not started |
+| `FR-ONB-050` | `US-ONB-02` | 1.5 | Мастер установки | Not started |
+
+### EP-REG — The instance registry
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-REG-010` | `US-REG-01` | 1 | discovery/windows_portable.rs | Not started |
+| `FR-REG-020` | `US-REG-01` | 1 | Дисциплина хранения данных | Not started |
+| `FR-REG-030` | `US-REG-01`, `US-REG-03` | 1 | discovery/windows_portable.rs | Not started |
+| `FR-REG-040` | `US-REG-02` | 1 | discovery/windows_portable.rs | Not started |
+| `FR-REG-050` | `US-REG-04` | 1 | Экраны | Not started |
+| `FR-REG-060` | `US-REG-05` | 1 | Чеклист, Фаза 1 | Not started |
+| `FR-REG-070` | `US-REG-03` | 1.5 | Мастер установки | Not started |
+| `FR-REG-080` | `US-REG-03` | 1 | Грабли | Not started |
+| `FR-REG-090` | `US-REG-01` | 1 | discovery/windows_portable.rs | Not started |
+
+### EP-INST — The install wizard
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-INST-010` | `US-INST-01` | 1.5 | Мастер установки | Not started |
+| `FR-INST-020` | `US-INST-01`, `US-INST-07` | 1.5 | Мастер установки | Not started |
+| `FR-INST-030` | `US-INST-02`, `US-INST-08` | 1.5 | Мастер установки | Not started |
+| `FR-INST-040` | `US-INST-02`, `US-INST-08` | 1.5 | Мастер установки | Not started |
+| `FR-INST-050` | `US-INST-03` | 1.5 | Мастер установки | Not started |
+| `FR-INST-060` | `US-INST-02` | 1.5 | Грабли | Not started |
+| `FR-INST-070` | `US-INST-05` | 1.5 | Мастер установки | Not started |
+| `FR-INST-080` | `US-INST-05` | 1.5 | Интерфейс: прогресс | Not started |
+| `FR-INST-090` | `US-INST-04`, `US-INST-06`, `US-INST-07` | 1.5 | Мастер установки | Not started |
+| `FR-INST-100` | `US-INST-06`, `US-INST-07` | 1.5 | Мастер установки | Not started |
+| `FR-INST-110` | `US-INST-02` | 1.5 | Мастер установки | Not started |
+
+### EP-RUN — Launching and the lifecycle
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-RUN-010` | `US-RUN-01` | 2 | Парсинг .bat | Not started |
+| `FR-RUN-020` | `US-RUN-02` | 0 | Ключевые находки, факт 1 | Not started |
+| `FR-RUN-030` | `US-RUN-02`, `US-RUN-05` | 2 | ports.rs | Not started |
+| `FR-RUN-040` | `US-RUN-03` | 2 | supervise/ + process.rs | Not started |
+| `FR-RUN-050` | `US-RUN-03` | 2 | supervise/ + process.rs | Not started |
+| `FR-RUN-060` | `US-RUN-06` | 2 | supervise/ + process.rs | Not started |
+| `FR-RUN-070` | `US-RUN-04` | 2 | supervise/ + process.rs | Not started |
+| `FR-RUN-080` | `US-RUN-08` | 2, 4а | supervise/ + process.rs | Done |
+| `FR-RUN-090` | `US-RUN-05` | 4а | Грабли | Done |
+| `FR-RUN-100` | `US-RUN-07` | 4а | Грабли | Done |
+| `FR-RUN-110` | `US-RUN-01` | 4а | Парсинг .bat | Done |
+| `FR-RUN-120` | `US-RUN-02` | 2 | supervise/windows.rs | Not started |
+
+### EP-TAB — Navigation and embedded tabs
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-TAB-010` | `US-TAB-01` | 0.5 | Навигация и структура приложения | Done |
+| `FR-TAB-020` | `US-TAB-02` | 0, 3 | Ключевые находки, факт 3 | Done |
+| `FR-TAB-030` | `US-TAB-03` | 2 | Навигация и структура приложения | Done |
+| `FR-TAB-040` | `US-TAB-03`, `US-TAB-04` | 2 | Навигация и структура приложения | Done |
+| `FR-TAB-050` | `US-TAB-02`, `US-TAB-04` | 3 | webview.rs — встраивание | Done |
+| `FR-TAB-060` | `US-TAB-02` | 3 | Грабли | Done, verified only by hand |
+| `FR-TAB-070` | `US-TAB-05` | 3 | Грабли | Done |
+| `FR-TAB-080` | `US-TAB-06` | 3 | Экраны | Done |
+| `FR-TAB-090` | `US-TAB-06` | 3 | Экраны | Done |
+| `FR-TAB-100` | `US-TAB-01` | 0.5 | Навигация и структура приложения | Done |
+
+### EP-SHARED — Shared model storage
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-SHARED-010` | `US-SHARED-01` | 2.5 | Общее хранилище моделей | Done |
+| `FR-SHARED-020` | `US-SHARED-02` | 2.5 | Генерация YAML | Done |
+| `FR-SHARED-030` | `US-SHARED-03`, `US-SHARED-07` | 2.5 | Два режима применения | Done |
+| `FR-SHARED-040` | `US-SHARED-03` | 2.5 | Что выяснено из исходников | Done |
+| `FR-SHARED-050` | `US-SHARED-04` | 2.5 | Два режима применения | Done |
+| `FR-SHARED-060` | `US-SHARED-05` | 2.5 | Два режима применения | Done |
+| `FR-SHARED-070` | `US-SHARED-06`, `US-SHARED-07` | 2.5 | Два режима применения | Done |
+| `FR-SHARED-080` | `US-SHARED-02` | 2.5 | Общее хранилище моделей | Done |
+| `FR-SHARED-090` | `US-SHARED-08` | 2.5 | Грабли | Done |
+| `FR-SHARED-100` | `US-SHARED-03` | 2.5 | Грабли | Done |
+| `FR-SHARED-110` | `US-SHARED-09` | 4а | Чеклист, Фаза 4а | Done |
+| `FR-SHARED-120` | `US-SHARED-01` | 2.5 | Модель данных | Done |
+| `FR-SHARED-130` | `US-SHARED-10` | 2.5 | Общее хранилище моделей | Done |
+| `FR-SHARED-140` | `US-SHARED-10`, `US-SHARED-11` | 2.5 | Общее хранилище моделей | Done |
+
+### EP-WF — The workflow library
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-WF-010` | `US-WF-01` | 2.6 | Библиотека воркфлоу | Done |
+| `FR-WF-020` | `US-WF-02` | 2.6 | Хранилище | Done |
+| `FR-WF-030` | `US-WF-02` | 2.6 | Хранилище | Done |
+| `FR-WF-040` | `US-WF-03` | 2.6 | Наполнение библиотеки | Done |
+| `FR-WF-050` | `US-WF-04` | 2.6 | Добавление в инстанс | Done |
+| `FR-WF-060` | `US-WF-04` | 2.6 | Добавление в инстанс | Done |
+| `FR-WF-070` | `US-WF-05` | 2.6 | Проверка совместимости | Done |
+| `FR-WF-080` | `US-WF-05` | 2.6 | Проверка совместимости | Done |
+| `FR-WF-090` | `US-WF-06` | 2.6 | Хранилище | Done |
+| `FR-WF-100` | `US-WF-07` | 2.6 | Добавление в инстанс | Done |
+| `FR-WF-110` | `US-WF-06` | 2.6 | Грабли | Done |
+
+### EP-UI — Appearance, language, notifications
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-UI-010` | `US-UI-01` | 0.5 | Интерфейс: тема | Not started |
+| `FR-UI-020` | `US-UI-01` | 0.5 | Интерфейс: тема | Not started |
+| `FR-UI-030` | `US-UI-02` | 0.5 | Интерфейс: язык | Not started |
+| `FR-UI-040` | `US-UI-02` | 0.5 | Интерфейс: язык | Not started |
+| `FR-UI-050` | `US-UI-02` | 0.5 | Интерфейс: язык | Not started |
+| `FR-UI-060` | `US-UI-03` | 0.5 | Интерфейс: уведомления | Not started |
+| `FR-UI-070` | `US-UI-03` | 0.5 | Интерфейс: уведомления | Not started |
+| `FR-UI-080` | `US-UI-04` | 2 | Интерфейс: уведомления | Not started |
+| `FR-UI-090` | `US-UI-05` | 1.5 | Интерфейс: прогресс | Not started |
+| `FR-UI-100` | `US-UI-02` | 0.5 | Интерфейс: язык | Not started |
+| `FR-UI-110` | `US-UI-02` | 0.5 | Интерфейс: язык | Not started |
+
+### EP-DATA — Data storage and removal
+
+| FR | Stories | Phase | Plan section | Status |
+|---|---|---|---|---|
+| `FR-DATA-010` | `US-DATA-01` | 0 | Дисциплина хранения данных | Not started |
+| `FR-DATA-020` | `US-DATA-03` | 2.5, 2.6 | Дисциплина хранения данных | Not started |
+| `FR-DATA-030` | `US-DATA-03` | 0 | Дисциплина хранения данных | Not started |
+| `FR-DATA-040` | `US-DATA-02` | 4в | Дисциплина хранения данных | Not started |
+| `FR-DATA-050` | `US-DATA-02` | 4в | Дисциплина хранения данных | Not started |
+| `FR-DATA-060` | `US-DATA-03` | 4в | Дисциплина хранения данных | Not started |
+| `FR-DATA-070` | `US-DATA-01` | 4а | Дисциплина хранения данных | Done |
+| `FR-DATA-080` | `US-DATA-02` | 4в | Дисциплина хранения данных | Not started |
+| `FR-DATA-090` | `US-DATA-01` | 2.5, 2.6, 4а | Дисциплина хранения данных | Done |
+| `FR-DATA-100` | `US-DATA-04` | 4в | Выпуск | Done |
+| `FR-DATA-110` | `US-DATA-04` | 4в | Выпуск | Done |
+| `FR-DATA-120` | `US-DATA-04` | 4в | Выпуск | Done |
+
+---
+
+## End-to-end journeys and stories
+
+| Journey | Stories |
 |---|---|
-| `J-01` Чистая машина | `US-ONB-01`, `US-ONB-02`, `US-INST-01`…`US-INST-06`, `US-RUN-02`, `US-RUN-03`, `US-TAB-02` |
-| `J-02` Уже есть папка | `US-ONB-01`, `US-ONB-03`, `US-REG-01`, `US-REG-02`, `US-RUN-01`, `US-RUN-02`, `US-TAB-02` |
-| `J-03` Общие модели | `US-SHARED-01`…`US-SHARED-04`, `US-SHARED-06`…`US-SHARED-09` |
-| `J-04` Новая версия рядом | `US-INST-07`, `US-INST-02`, `US-INST-04`, `US-INST-05`, `US-REG-03`, `US-RUN-02` |
-| `J-05` Перенос воркфлоу | `US-WF-01`…`US-WF-05`, `US-TAB-02` |
-| `J-06` Удаление | `US-DATA-01`, `US-DATA-02`, `US-DATA-03`, `US-DATA-04` |
+| `J-01` A clean machine | `US-ONB-01`, `US-ONB-02`, `US-INST-01`…`US-INST-06`, `US-RUN-02`, `US-RUN-03`, `US-TAB-02` |
+| `J-02` There is already a folder | `US-ONB-01`, `US-ONB-03`, `US-REG-01`, `US-REG-02`, `US-RUN-01`, `US-RUN-02`, `US-TAB-02` |
+| `J-03` Shared models | `US-SHARED-01`…`US-SHARED-04`, `US-SHARED-06`…`US-SHARED-09` |
+| `J-04` A new version alongside | `US-INST-07`, `US-INST-02`, `US-INST-04`, `US-INST-05`, `US-REG-03`, `US-RUN-02` |
+| `J-05` Carrying a workflow over | `US-WF-01`…`US-WF-05`, `US-TAB-02` |
+| `J-06` Uninstalling | `US-DATA-01`, `US-DATA-02`, `US-DATA-03`, `US-DATA-04` |
 
 ---
 
-## Покрытие фаз реализации
+## Coverage of the implementation phases
 
-| Фаза | Покрыта историями | Комментарий |
+| Phase | Covered by stories | Comment |
 |---|---|---|
-| 0 — Репозиторий и спайк | Частично | Технический спайк; пользовательское поведение проверяется через `FR-RUN-020`, `FR-TAB-020` |
-| 0.5 — Каркас интерфейса | Да | `EP-UI`, `US-TAB-01` |
-| 1 — Реестр инстансов | Да | `EP-REG`, `EP-ONB` |
-| 1.5 — Мастер установки | Да | `EP-INST` |
-| 2 — Запуск и жизненный цикл | Да | `EP-RUN`, `US-TAB-03`, `US-TAB-04` |
-| 2.5 — Общее хранилище моделей | Да | `EP-SHARED` |
-| 2.6 — Библиотека воркфлоу | Да | `EP-WF` |
-| 3 — Встроенные табы | Да | `US-TAB-02`, `US-TAB-05`, `US-TAB-06` |
-| 4а — Полировка | Да | `US-DATA-01`, `US-RUN-07`, `US-RUN-08`, `US-SHARED-09` |
-| 4в — Упаковка и выпуск | Да | `US-DATA-02`, `US-DATA-03`, `US-DATA-04` |
-| 5 — Сайт документации | Нет | Не пользовательское поведение приложения; выводится из `journeys.md` |
+| 0 — The repository and the spike | Partly | A technical spike; the user behaviour is checked through `FR-RUN-020`, `FR-TAB-020` |
+| 0.5 — The interface skeleton | Yes | `EP-UI`, `US-TAB-01` |
+| 1 — The instance registry | Yes | `EP-REG`, `EP-ONB` |
+| 1.5 — The install wizard | Yes | `EP-INST` |
+| 2 — Launching and the lifecycle | Yes | `EP-RUN`, `US-TAB-03`, `US-TAB-04` |
+| 2.5 — Shared model storage | Yes | `EP-SHARED` |
+| 2.6 — The workflow library | Yes | `EP-WF` |
+| 3 — Embedded tabs | Yes | `US-TAB-02`, `US-TAB-05`, `US-TAB-06` |
+| 4а — Polish | Yes | `US-DATA-01`, `US-RUN-07`, `US-RUN-08`, `US-SHARED-09` |
+| 4в — Packaging and release | Yes | `US-DATA-02`, `US-DATA-03`, `US-DATA-04` |
+| 5 — The documentation site | No | Not user behaviour of the app; derived from `journeys.md` |
 
 ---
 
-## Разделы плана вне покрытия
+## Plan sections outside the coverage
 
-Описывают внутреннюю механику, не наблюдаемую пользователем напрямую. Требований к ним не пишем; их корректность проверяется через требования, которые на них опираются.
+They describe internal mechanics not directly observable by the user. We write
+no requirements for them; their correctness is checked through the requirements
+that rest on them.
 
-| Раздел | Через что проверяется |
+| Section | What checks it |
 |---|---|
 | Структура репозитория | — |
 | Стек | — |
 | supervise/ + process.rs | `FR-RUN-040`…`FR-RUN-080` |
 | ports.rs | `FR-RUN-030` |
-| installer.rs | `EP-INST` целиком |
+| installer.rs | `EP-INST` as a whole |
 | Кроссплатформенность | `NFR-080` |
 | Дисциплина z-order | `NFR-300` |

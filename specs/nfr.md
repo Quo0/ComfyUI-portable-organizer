@@ -1,141 +1,165 @@
-# Нефункциональные требования
+# Non-functional requirements
 
-Свойства приложения в целом, а не отдельных сценариев. Здесь живут все числа: если в критерии приёмки написано «быстро» или «не блокирует», конкретика должна быть здесь.
+Properties of the app as a whole rather than of individual scenarios. Every
+number lives here: if an acceptance criterion says "quickly" or "does not
+block", the specifics belong here.
 
-Часть значений взята из измерений на реальной установке ComfyUI — они помечены как измеренные и не должны меняться без нового замера.
-
----
-
-## Производительность
-
-| ID | Требование |
-|---|---|
-| `NFR-010` | Приложение открывается и показывает список инстансов не дольше двух секунд на обычном диске |
-| `NFR-020` | Первые строки лога запускаемого инстанса появляются в течение пяти секунд после начала запуска |
-| `NFR-030` | Холодный старт инстанса длительностью до пяти минут считается штатным; более ранний обрыв ожидания недопустим |
-| `NFR-040` | Готовность сервера обнаруживается в течение секунды после того, как он реально готов |
-| `NFR-050` | Разворачивание архива в несколько папок за один прогон заметно быстрее, чем столько же отдельных установок |
-| `NFR-060` | Ни одна операция не блокирует интерфейс: пользователь может перейти в другой раздел во время любой длительной работы |
-| `NFR-070` | Переключение между запущенными инстансами происходит без заметной задержки и без перезагрузки их интерфейсов |
-
-**Измерено на реальной установке:** обход дерева распакованной сборки объёмом 52 ГБ занимает более пяти минут. Отсюда `NFR-060` и требование к асинхронному подсчёту размера на диске в `US-REG-03`.
+Some of the values are taken from measurements on a real ComfyUI installation
+— they are marked as measured and must not be changed without a new
+measurement.
 
 ---
 
-## Ограничения платформы
+## Performance
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-080` | Целевая платформа — Windows. Другие системы не поддерживаются и не тестируются |
-| `NFR-090` | Приложение работает с портабл-сборками ComfyUI; иные способы установки ComfyUI вне области |
-| `NFR-100` | Установка и удаление приложения не требуют прав администратора |
-| `NFR-110` | Приложение работает без подключения к сети; сеть нужна только самому ComfyUI |
-| `NFR-120` | Пути с пробелами и нелатинскими символами поддерживаются наравне с остальными |
-| `NFR-130` | Глубина вложенности файлов внутри сборки не должна приводить к отказу распаковки |
+| `NFR-010` | The app opens and shows the list of instances in no more than two seconds on an ordinary disk |
+| `NFR-020` | The first log lines of an instance being launched appear within five seconds of the launch beginning |
+| `NFR-030` | A cold start of an instance lasting up to five minutes counts as ordinary; breaking the wait off earlier is not acceptable |
+| `NFR-040` | The server's readiness is detected within a second of it actually being ready |
+| `NFR-050` | Unpacking an archive into several folders in one run is noticeably faster than the same number of separate installations |
+| `NFR-060` | No operation blocks the interface: the user can move to another section during any long-running work |
+| `NFR-070` | Switching between running instances happens without a noticeable delay and without reloading their interfaces |
 
-**Измерено:** самый глубокий файл в архиве портабл-сборки имеет путь длиной около 206 символов относительно корня архива. С учётом системного ограничения в 260 символов это оставляет менее шестидесяти символов на путь к папке назначения. Отсюда предупреждение в `US-INST-02/AC-7` и требование `NFR-130`.
+**Measured on a real installation:** walking the tree of an unpacked build of
+52 GB takes more than five minutes. Hence `NFR-060` and the requirement for
+computing the size on disk asynchronously in `US-REG-03`.
 
 ---
 
-## Надёжность
+## Platform constraints
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-140` | Аварийное завершение приложения не оставляет работающих процессов ComfyUI |
-| `NFR-150` | Прерывание длительной операции не оставляет систему в промежуточном состоянии |
-| `NFR-160` | Незавершённая установка не может быть принята за работоспособный инстанс |
-| `NFR-170` | Повреждение служебных сведений приложения не приводит к потере контента пользователя |
-| `NFR-180` | Отсутствие или недоступность внешней папки — общего корня, библиотеки, папки инстанса — не выводит приложение из строя |
-| `NFR-190` | Лог запускаемого инстанса хранится в объёме, достаточном для разбора проблемы, и не растёт бесконечно |
-| `NFR-200` | Одновременно запущен только один экземпляр приложения |
+| `NFR-080` | The target platform is Windows. Other systems are not supported and not tested |
+| `NFR-090` | The app works with portable ComfyUI builds; other ways of installing ComfyUI are out of scope |
+| `NFR-100` | Installing and uninstalling the app do not require administrator rights |
+| `NFR-110` | The app works without a network connection; the network is needed only by ComfyUI itself |
+| `NFR-120` | Paths with spaces and non-Latin characters are supported on the same footing as the rest |
+| `NFR-130` | The nesting depth of files inside a build must not cause the extraction to fail |
+
+**Measured:** the deepest file in a portable build archive has a path about 206
+characters long relative to the archive's root. Against the system limit of 260
+characters that leaves fewer than sixty characters for the path to the
+destination folder. Hence the warning in `US-INST-02/AC-7` and the requirement
+`NFR-130`.
 
 ---
 
-## Локализация
+## Reliability
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-210` | Поддерживаются английский, русский, китайский упрощённый и испанский |
-| `NFR-220` | Английский — исходный язык; остальные переводятся с него |
-| `NFR-230` | Расхождение состава переводов между языками не должно попадать в сборку |
-| `NFR-240` | Ни один текст интерфейса не остаётся непереведённым в поддерживаемом языке |
-| `NFR-250` | Вёрстка выдерживает самые длинные варианты строк среди поддерживаемых языков |
-| `NFR-260` | Формы слов при счёте, числа и даты подчиняются правилам выбранного языка |
-| `NFR-270` | Языки с письмом справа налево не поддерживаются и в область не входят |
+| `NFR-140` | A crash of the app leaves no ComfyUI processes running |
+| `NFR-150` | Interrupting a long operation does not leave the system in an intermediate state |
+| `NFR-160` | An unfinished installation cannot be taken for a working instance |
+| `NFR-170` | Damage to the app's housekeeping information does not lead to losing the user's content |
+| `NFR-180` | The absence or unavailability of an external folder — the shared root, the library, an instance's folder — does not put the app out of action |
+| `NFR-190` | The log of an instance being launched is kept in a volume sufficient to diagnose a problem and does not grow without bound |
+| `NFR-200` | Only one copy of the app runs at a time |
 
 ---
 
-## Оформление
+## Localisation
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-280` | Каждый экран читаем в светлой и тёмной темах |
-| `NFR-290` | Смена темы и языка не требует перезапуска приложения |
-| `NFR-300` | Элементы интерфейса приложения не перекрывают рабочую область ComfyUI |
+| `NFR-210` | English, Russian, Simplified Chinese and Spanish are supported |
+| `NFR-220` | English is the source language; the rest are translated from it |
+| `NFR-230` | A divergence in the set of translations between languages must not reach a build |
+| `NFR-240` | No interface text is left untranslated in a supported language |
+| `NFR-250` | The layout withstands the longest string variants among the supported languages |
+| `NFR-260` | Word forms in counted phrases, numbers and dates obey the rules of the chosen language |
+| `NFR-270` | Right-to-left languages are not supported and are out of scope |
 
 ---
 
-## Поведение при большом объёме данных
+## Styling
 
-Окно фиксированной высоты, а данных может быть сколько угодно: восемь инстансов, двести воркфлоу, двадцать пять категорий моделей, тысячи строк лога.
-
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-420` | Элементы управления экраном — заголовок, первичные действия, подвал с кнопками перехода — остаются доступны без прокрутки при любом объёме данных |
-| `NFR-430` | Консоль запуска следует за последними строками, пока пользователь не прокрутил вверх; после этого следование приостанавливается и возобновляется по явному действию |
-| `NFR-440` | Область встроенной вкладки ComfyUI не участвует в прокрутке: её прямоугольник не смещается относительно окна |
-| `NFR-450` | Список запущенных инстансов в навигации прокручивается внутри себя, не вытесняя разделы приложения |
-| `NFR-460` | Границы области прокрутки различимы: пользователю видно, что содержимое продолжается |
-
-Пояснение к `NFR-420`: уехавший вниз подвал мастера делает мастер непроходимым — кнопку «Далее» становится не достать. Уехавшая панель деталей в библиотеке делает выбранный воркфлоу невидимым. Поэтому прокручивается только область данных.
-
-Пояснение к `NFR-440`: положение нативного окна с интерфейсом ComfyUI задаётся приложением в координатах окна. Прокрутка контейнера сместила бы разметку, но не само окно, и они разошлись бы.
+| `NFR-280` | Every screen is legible in the light and the dark theme |
+| `NFR-290` | Changing the theme and the language does not require restarting the app |
+| `NFR-300` | The app's interface elements do not cover ComfyUI's working area |
 
 ---
 
-## Отношение к чужим данным
+## Behaviour with large amounts of data
 
-| ID | Требование |
+The window has a fixed height and there can be any amount of data: eight
+instances, two hundred workflows, twenty-five model categories, thousands of
+log lines.
+
+| ID | Requirement |
 |---|---|
-| `NFR-310` | Приложение не изменяет содержимое папок инстансов без явной команды пользователя |
-| `NFR-320` | Приложение не изменяет настройки ComfyUI внутри инстансов |
-| `NFR-330` | Любая запись в папку инстанса обратима и названа пользователю |
-| `NFR-340` | Приложение не удаляет модели, воркфлоу и сборки ComfyUI ни при каких обстоятельствах, включая собственное удаление |
-| `NFR-350` | Приложение не передаёт данных за пределы компьютера пользователя, кроме проверки обновлений — см. `NFR-355` |
-| `NFR-355` | Единственное исходящее обращение — проверка обновлений: уходит только номер текущей версии, выполняется по расписанию или по кнопке и отключается в настройках |
+| `NFR-420` | A screen's controls — the header, the primary actions, the footer with the navigation buttons — stay reachable without scrolling for any amount of data |
+| `NFR-430` | The launch console follows the last lines until the user scrolls up; after that the following pauses and resumes on an explicit action |
+| `NFR-440` | The area of the embedded ComfyUI tab does not take part in scrolling: its rectangle does not shift relative to the window |
+| `NFR-450` | The list of running instances in the navigation scrolls inside itself without pushing out the app's sections |
+| `NFR-460` | The boundaries of a scroll area are discernible: the user can see that the content continues |
+
+A note on `NFR-420`: a wizard footer that has slid out of sight makes the
+wizard impassable — the "Next" button becomes unreachable. A details panel that
+has slid out of sight in the library makes the selected workflow invisible.
+That is why only the data area scrolls.
+
+A note on `NFR-440`: the position of the native window holding the ComfyUI
+interface is set by the app in the window's coordinates. Scrolling the
+container would shift the markup but not the window itself, and the two would
+drift apart.
 
 ---
 
-## Безопасность
+## The attitude to other people's data
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-360` | Приложение не ослабляет защитные механизмы ComfyUI ради собственного удобства |
-| `NFR-370` | Локальный сервер ComfyUI не становится доступнее извне из-за действий приложения |
-| `NFR-380` | Переходы за пределы локального сервера выполняются в системном браузере, а не внутри приложения |
-
-Пояснение к `NFR-360`: у ComfyUI есть встроенная защита от обращений с чужих источников. Существует флаг, отключающий её целиком, и он упростил бы встраивание интерфейса — но открыл бы сервер для запросов с любого сайта, открытого в браузере пользователя. Приложение обходится без него.
+| `NFR-310` | The app does not change the contents of instance folders without an explicit command from the user |
+| `NFR-320` | The app does not change ComfyUI's settings inside instances |
+| `NFR-330` | Any write into an instance's folder is reversible and named to the user |
+| `NFR-340` | The app does not delete models, workflows or ComfyUI builds under any circumstances, including its own removal |
+| `NFR-350` | The app does not send data beyond the user's computer, apart from the update check — see `NFR-355` |
+| `NFR-355` | The only outgoing request is the update check: only the current version number leaves, it runs on a schedule or on a button, and it can be switched off in the settings |
 
 ---
 
-## Обновление приложения
+## Security
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-470` | Обновление не устанавливается без явного согласия пользователя |
-| `NFR-480` | Перед установкой проверяется, есть ли работающие инстансы; пользователь решает, что с ними делать |
-| `NFR-490` | Целостность обновления проверяется по подписи до установки; не сошлась — не ставится |
-| `NFR-500` | Недоступность сети не мешает работе и не показывает ошибок сама по себе |
-| `NFR-510` | Обновление сохраняет настройки и реестр инстансов |
+| `NFR-360` | The app does not weaken ComfyUI's protective mechanisms for its own convenience |
+| `NFR-370` | The local ComfyUI server does not become more reachable from outside because of the app's actions |
+| `NFR-380` | Navigation beyond the local server happens in the system browser rather than inside the app |
 
-Пояснение к `NFR-480`: установка обновления на Windows принудительно закрывает приложение, а вместе с ним завершаются и дочерние процессы ComfyUI. Обновление посреди генерации стоило бы пользователю очереди и нескольких минут на новый холодный старт.
+A note on `NFR-360`: ComfyUI has built-in protection against requests from
+other origins. There is a flag that switches it off entirely, and it would have
+made embedding the interface easier — but it would open the server to requests
+from any site open in the user's browser. The app manages without it.
 
 ---
 
-## Совместимость
+## Updating the app
 
-| ID | Требование |
+| ID | Requirement |
 |---|---|
-| `NFR-390` | Приложение работает с разными версиями ComfyUI, не завися от жёстко заданного перечня категорий моделей |
-| `NFR-400` | Появление новых типов моделей в ComfyUI не требует обновления приложения |
-| `NFR-410` | Нестандартное расположение пользовательских данных внутри сборки учитывается, а не предполагается по умолчанию |
+| `NFR-470` | An update is not installed without the user's explicit consent |
+| `NFR-480` | Before the installation it is checked whether there are running instances; the user decides what to do with them |
+| `NFR-490` | The update's integrity is verified by signature before the installation; a mismatch means it is not installed |
+| `NFR-500` | An unavailable network does not get in the way of the work and does not show errors by itself |
+| `NFR-510` | An update keeps the settings and the instance registry |
+
+A note on `NFR-480`: installing an update on Windows closes the app by force,
+and the child ComfyUI processes are terminated along with it. An update in the
+middle of a generation would cost the user their queue and several minutes for
+a new cold start.
+
+---
+
+## Compatibility
+
+| ID | Requirement |
+|---|---|
+| `NFR-390` | The app works with different versions of ComfyUI without depending on a hardcoded list of model categories |
+| `NFR-400` | The appearance of new model types in ComfyUI does not require an update to the app |
+| `NFR-410` | A non-standard location of user data inside a build is taken into account rather than assumed by default |
