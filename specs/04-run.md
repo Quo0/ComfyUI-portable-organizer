@@ -1,222 +1,227 @@
-# EP-RUN — Запуск и жизненный цикл
+# EP-RUN — Launching and the lifecycle
 
-Замена двойного клика по `.bat`. Приложение стартует сервер ComfyUI, показывает логи, дожидается готовности и корректно останавливает — включая случаи, когда что-то пошло не так.
+A replacement for double-clicking a `.bat`. The app starts the ComfyUI server,
+shows the logs, waits for readiness and stops it properly — including the cases
+where something went wrong.
 
-Ключевое отличие от ручного запуска: браузер не открывается, окно консоли не появляется, а после закрытия приложения не остаётся процессов, занимающих видеопамять.
+The key difference from a manual launch: no browser opens, no console window
+appears, and after the app is closed no processes are left occupying the VRAM.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-RUN-010` | Инстанс запускается выбранным профилем; последний использованный профиль запоминается | «Парсинг .bat», «Экраны» |
-| `FR-RUN-020` | При запуске из приложения браузер не открывается | «Ключевые находки», факт 1 |
-| `FR-RUN-030` | Приложение выдаёт инстансу свободный порт, уважая предпочитаемый | «ports.rs» |
-| `FR-RUN-040` | Логи старта видны в реальном времени | «supervise/ + process.rs» |
-| `FR-RUN-050` | Приложение определяет момент готовности сервера | «supervise/ + process.rs» |
-| `FR-RUN-060` | Состояние инстанса отражается в интерфейсе и различает штатные и аварийные исходы | «supervise/ + process.rs» |
-| `FR-RUN-070` | Остановка завершает сервер и освобождает порт | «supervise/ + process.rs» |
-| `FR-RUN-080` | Завершение приложения не оставляет работающих серверов | «supervise/ + process.rs» |
-| `FR-RUN-090` | Пользователь предупреждён о рисках одновременного запуска нескольких инстансов | «Грабли» |
-| `FR-RUN-100` | Перезапуск сервера силами ComfyUI-Manager распознаётся, а не выглядит как падение | «Грабли» |
-| `FR-RUN-110` | Аргументы запуска можно посмотреть и изменить | «Парсинг .bat» |
-| `FR-RUN-120` | Приложение не появляется в виде окна консоли поверх интерфейса | «supervise/windows.rs» |
+| `FR-RUN-010` | An instance launches with the chosen profile; the last profile used is remembered | «Парсинг .bat», «Экраны» |
+| `FR-RUN-020` | When launched from the app, no browser opens | «Ключевые находки», факт 1 |
+| `FR-RUN-030` | The app hands the instance a free port, respecting the preferred one | «ports.rs» |
+| `FR-RUN-040` | The startup logs are visible in real time | «supervise/ + process.rs» |
+| `FR-RUN-050` | The app determines the moment the server becomes ready | «supervise/ + process.rs» |
+| `FR-RUN-060` | An instance's state is reflected in the interface and distinguishes ordinary outcomes from crashes | «supervise/ + process.rs» |
+| `FR-RUN-070` | Stopping terminates the server and releases the port | «supervise/ + process.rs» |
+| `FR-RUN-080` | Quitting the app leaves no servers running | «supervise/ + process.rs» |
+| `FR-RUN-090` | The user is warned about the risks of running several instances at once | «Грабли» |
+| `FR-RUN-100` | A server restart performed by ComfyUI-Manager is recognised rather than looking like a crash | «Грабли» |
+| `FR-RUN-110` | The launch arguments can be viewed and changed | «Парсинг .bat» |
+| `FR-RUN-120` | The app does not appear as a console window on top of the interface | «supervise/windows.rs» |
 
 ---
 
-### US-RUN-01 — Выбор профиля запуска
+### US-RUN-01 — Choosing the launch profile
 
-**Как** владелец инстанса
-**я хочу** выбрать, каким способом его запустить
-**чтобы** использовать нужный режим работы видеокарты.
+**As** the owner of an instance
+**I want** to choose the way it is launched
+**so that** I use the graphics card mode I need.
 
-Теги: `@FR-RUN-010` `@FR-RUN-110` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «Парсинг .bat»
+Tags: `@FR-RUN-010` `@FR-RUN-110` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «Парсинг .bat»
 
-**Предусловия**
-- Инстанс зарегистрирован и остановлен.
+**Preconditions**
+- The instance is registered and stopped.
 
-**Критерии приёмки**
-- **AC-1.** Доступные профили перечислены с понятными названиями.
-- **AC-2.** Запуск одним действием использует последний применявшийся профиль.
-- **AC-3.** При первом запуске по умолчанию предлагается основной профиль сборки.
-- **AC-4.** Выбранный профиль запоминается для следующего раза.
-- **AC-5.** Пользователь может посмотреть аргументы профиля до запуска.
-- **AC-6.** Пользователь может изменить аргументы и сохранить свой вариант профиля.
+**Acceptance criteria**
+- **AC-1.** The available profiles are listed with understandable names.
+- **AC-2.** A launch in one action uses the last profile applied.
+- **AC-3.** On the first launch the build's main profile is offered by default.
+- **AC-4.** The chosen profile is remembered for next time.
+- **AC-5.** The user can view a profile's arguments before launching.
+- **AC-6.** The user can change the arguments and save a variant of the profile as their own.
 
-**Негативные и краевые случаи**
-- **AC-7.** Если профили распознать не удалось, пользователь может задать команду запуска вручную.
-- **AC-8.** Изменённые аргументы не затрагивают исходные файлы сборки.
-
----
-
-### US-RUN-02 — Запуск инстанса
-
-**Как** пользователь
-**я хочу** запустить ComfyUI из приложения
-**чтобы** не искать `.bat` в проводнике и не ловить вкладку в браузере.
-
-Теги: `@FR-RUN-020` `@FR-RUN-030` `@FR-RUN-120` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «Ключевые находки»
-
-**Предусловия**
-- Инстанс зарегистрирован, профиль выбран.
-
-**Критерии приёмки**
-- **AC-1.** Запуск начинается одним действием пользователя.
-- **AC-2.** Браузер по умолчанию не открывается ни в какой момент запуска.
-- **AC-3.** Окно консоли поверх интерфейса не появляется.
-- **AC-4.** Инстанс получает порт: предпочитаемый, если он свободен.
-- **AC-5.** Используемый порт показан пользователю.
-- **AC-6.** Состояние инстанса меняется на «стартует» сразу после начала запуска.
-
-**Негативные и краевые случаи**
-- **AC-7.** Если предпочитаемый порт занят, выдаётся следующий свободный, и пользователю сказано, какой именно и почему.
-- **AC-8.** Если свободный порт найти не удалось, запуск не начинается с объяснением причины.
-- **AC-9.** Если папка инстанса недоступна, запуск не начинается с объяснением причины.
-- **AC-10.** Путь с пробелами и кириллицей не мешает запуску.
+**Negative and edge cases**
+- **AC-7.** If the profiles could not be recognised, the user can set the launch command by hand.
+- **AC-8.** Changed arguments do not affect the build's own files.
 
 ---
 
-### US-RUN-03 — Наблюдение за стартом
+### US-RUN-02 — Launching an instance
 
-**Как** пользователь, запустивший инстанс
-**я хочу** видеть, что происходит
-**чтобы** понимать, идёт загрузка или что-то сломалось.
+**As** a user
+**I want** to launch ComfyUI from the app
+**so that** I do not have to hunt for the `.bat` in Explorer or catch the tab
+in the browser.
 
-Теги: `@FR-RUN-040` `@FR-RUN-050` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «supervise/ + process.rs»
+Tags: `@FR-RUN-020` `@FR-RUN-030` `@FR-RUN-120` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «Ключевые находки»
 
-**Предусловия**
-- Инстанс в состоянии «стартует».
+**Preconditions**
+- The instance is registered, the profile is chosen.
 
-**Критерии приёмки**
-- **AC-1.** Вывод сервера показывается по мере поступления, а не после завершения старта.
-- **AC-2.** Первые строки появляются в течение нескольких секунд после начала запуска.
-- **AC-3.** Индикаторы загрузки моделей, перерисовывающие одну строку, не превращаются в тысячи строк в логе.
-- **AC-4.** Пользователь может отменить запуск, пока он не завершился.
-- **AC-5.** По достижении готовности состояние меняется на «работает».
-- **AC-6.** Холодный старт длительностью в несколько минут считается штатным и не обрывается досрочно.
-- **AC-7.** Лог остаётся доступен после того, как инстанс заработал.
+**Acceptance criteria**
+- **AC-1.** The launch begins with a single action by the user.
+- **AC-2.** The default browser does not open at any moment of the launch.
+- **AC-3.** No console window appears on top of the interface.
+- **AC-4.** The instance receives a port: the preferred one, if it is free.
+- **AC-5.** The port in use is shown to the user.
+- **AC-6.** The instance's state changes to "starting" as soon as the launch begins.
 
-**Негативные и краевые случаи**
-- **AC-8.** Если сервер не пришёл в готовность за отведённое время, старт прекращается, а лог сохраняется для разбора.
-- **AC-9.** Если процесс завершился до готовности, состояние меняется на аварийное, и последние строки лога показаны сразу.
-- **AC-10.** Отмена запуска не оставляет работающего процесса и освобождает порт.
-
----
-
-### US-RUN-04 — Остановка инстанса
-
-**Как** пользователь
-**я хочу** остановить сервер
-**чтобы** освободить видеопамять и порт.
-
-Теги: `@FR-RUN-070` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «supervise/ + process.rs»
-
-**Предусловия**
-- Инстанс работает.
-
-**Критерии приёмки**
-- **AC-1.** Остановка начинается одним действием.
-- **AC-2.** Состояние меняется на «останавливается», затем на «остановлен».
-- **AC-3.** После остановки процесс сервера не остаётся в системе.
-- **AC-4.** После остановки порт свободен и может быть выдан другому инстансу.
-- **AC-5.** Дочерние процессы, порождённые сервером, тоже завершаются.
-
-**Негативные и краевые случаи**
-- **AC-6.** Если процесс не завершается за разумное время, пользователь об этом узнаёт и может повторить остановку.
-- **AC-7.** Перезапуск выполняется как остановка с последующим запуском тем же профилем.
+**Negative and edge cases**
+- **AC-7.** If the preferred port is taken, the next free one is handed out, and the user is told which one and why.
+- **AC-8.** If no free port could be found, the launch does not begin, with the reason explained.
+- **AC-9.** If the instance's folder is unavailable, the launch does not begin, with the reason explained.
+- **AC-10.** A path with spaces and non-Latin characters does not get in the way of the launch.
 
 ---
 
-### US-RUN-05 — Одновременная работа нескольких инстансов
+### US-RUN-03 — Watching the startup
 
-**Как** A3
-**я хочу** держать запущенными несколько инстансов
-**чтобы** сравнивать их, но понимая последствия.
+**As** a user who launched an instance
+**I want** to see what is happening
+**so that** I can tell whether it is loading or something has broken.
 
-Теги: `@FR-RUN-030` `@FR-RUN-090` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «Грабли»
+Tags: `@FR-RUN-040` `@FR-RUN-050` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «supervise/ + process.rs»
 
-**Предусловия**
-- Один инстанс уже работает.
+**Preconditions**
+- The instance is in the "starting" state.
 
-**Критерии приёмки**
-- **AC-1.** При запуске второго инстанса пользователь предупреждён, что видеопамяти может не хватить.
-- **AC-2.** В предупреждении предложено остановить работающий инстанс либо запустить всё равно.
-- **AC-3.** При запуске всё равно второй инстанс получает отдельный порт.
-- **AC-4.** Оба инстанса доступны для переключения.
-- **AC-5.** Остановка одного не влияет на другой.
+**Acceptance criteria**
+- **AC-1.** The server's output is shown as it arrives, not after the startup has finished.
+- **AC-2.** The first lines appear within a few seconds of the launch beginning.
+- **AC-3.** Model-loading indicators that redraw a single line do not turn into thousands of lines in the log.
+- **AC-4.** The user can cancel the launch while it has not finished.
+- **AC-5.** On reaching readiness the state changes to "running".
+- **AC-6.** A cold start lasting several minutes counts as ordinary and is not broken off early.
+- **AC-7.** The log stays available after the instance has started working.
 
-**Негативные и краевые случаи**
-- **AC-6.** Если второй инстанс падает из-за нехватки видеопамяти, состояние отражает аварийное завершение, а лог содержит причину.
-
----
-
-### US-RUN-06 — Аварийное завершение сервера
-
-**Как** пользователь
-**я хочу** сразу узнать, что сервер упал
-**чтобы** не ждать впустую и понять причину.
-
-Теги: `@FR-RUN-060` `@phase-2` `@area-run`
-Обоснование: `PLAN.md` → «supervise/ + process.rs»
-
-**Предусловия**
-- Инстанс работал и его процесс завершился сам.
-
-**Критерии приёмки**
-- **AC-1.** Состояние меняется на аварийное завершение.
-- **AC-2.** Об этом сообщается независимо от того, какой раздел приложения открыт.
-- **AC-3.** Последние строки лога доступны без дополнительных действий.
-- **AC-4.** Пользователь может запустить инстанс заново.
-- **AC-5.** Порт освобождается.
+**Negative and edge cases**
+- **AC-8.** If the server did not reach readiness within the time allowed, the startup is halted and the log is kept for diagnosis.
+- **AC-9.** If the process finished before readiness, the state changes to crashed, and the last lines of the log are shown immediately.
+- **AC-10.** Cancelling the launch leaves no running process and releases the port.
 
 ---
 
-### US-RUN-07 — Самостоятельный перезапуск сервера
+### US-RUN-04 — Stopping an instance
 
-**Как** пользователь, установивший кастомную ноду через ComfyUI-Manager
-**я хочу** чтобы приложение поняло, что сервер перезапустился сам
-**чтобы** это не выглядело как поломка.
+**As** a user
+**I want** to stop the server
+**so that** the VRAM and the port are freed.
 
-Теги: `@FR-RUN-100` `@phase-4` `@area-run`
-Обоснование: `PLAN.md` → «Грабли»
+Tags: `@FR-RUN-070` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «supervise/ + process.rs»
 
-**Предусловия**
-- Инстанс работает, внутри него выполнена операция, перезапускающая сервер.
+**Preconditions**
+- The instance is running.
 
-**Критерии приёмки**
-- **AC-1.** Приложение распознаёт, что сервер снова доступен на том же порту, и не считает это падением.
-- **AC-2.** Пользователю сказано, что сервер перезапустился вне контроля приложения.
-- **AC-3.** Предложено переподключиться к перезапущенному серверу.
-- **AC-4.** После переподключения работа с инстансом продолжается обычным образом.
+**Acceptance criteria**
+- **AC-1.** The stop begins with a single action.
+- **AC-2.** The state changes to "stopping", then to "stopped".
+- **AC-3.** After the stop the server's process is not left in the system.
+- **AC-4.** After the stop the port is free and can be handed to another instance.
+- **AC-5.** The child processes spawned by the server are terminated too.
 
-**Негативные и краевые случаи**
-- **AC-5.** Если сервер не поднялся в течение короткого периода ожидания, случай трактуется как аварийное завершение по `US-RUN-06`.
-- **AC-6.** Ограничения на управление таким сервером, если они есть, названы пользователю явно.
+**Negative and edge cases**
+- **AC-6.** If the process does not finish within a reasonable time, the user learns about it and can repeat the stop.
+- **AC-7.** A restart is performed as a stop followed by a launch with the same profile.
 
 ---
 
-### US-RUN-08 — Закрытие приложения при работающих серверах
+### US-RUN-05 — Several instances running at once
 
-**Как** пользователь
-**я хочу** контролировать, что будет с запущенными серверами при закрытии
-**чтобы** не потерять работу и не оставить занятую видеопамять.
+**As** A3
+**I want** to keep several instances running
+**so that** I can compare them, while understanding the consequences.
 
-Теги: `@FR-RUN-080` `@phase-4` `@area-run`
-Обоснование: `PLAN.md` → «Грабли»
+Tags: `@FR-RUN-030` `@FR-RUN-090` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «Грабли»
 
-**Предусловия**
-- Хотя бы один инстанс работает, пользователь закрывает приложение.
+**Preconditions**
+- One instance is already running.
 
-**Критерии приёмки**
-- **AC-1.** Пользователь предупреждён, что есть работающие серверы, и они перечислены.
-- **AC-2.** Предложено остановить всё и выйти либо свернуть приложение, оставив серверы работать.
-- **AC-3.** При выборе выхода все серверы останавливаются, а порты освобождаются.
-- **AC-4.** При сворачивании приложение остаётся доступным и серверы продолжают работать.
+**Acceptance criteria**
+- **AC-1.** When a second instance is launched the user is warned that there may not be enough VRAM.
+- **AC-2.** The warning offers to stop the running instance or to launch anyway.
+- **AC-3.** When launched anyway, the second instance receives a separate port.
+- **AC-4.** Both instances are available for switching between.
+- **AC-5.** Stopping one does not affect the other.
 
-**Негативные и краевые случаи**
-- **AC-5.** Аварийное завершение самого приложения не оставляет работающих серверов ComfyUI.
-- **AC-6.** Повторный запуск приложения не создаёт второй его экземпляр, а показывает уже открытый.
+**Negative and edge cases**
+- **AC-6.** If the second instance crashes for lack of VRAM, the state reflects the crash and the log holds the reason.
+
+---
+
+### US-RUN-06 — A server crash
+
+**As** a user
+**I want** to learn at once that the server has crashed
+**so that** I do not wait for nothing and can understand the reason.
+
+Tags: `@FR-RUN-060` `@phase-2` `@area-run`
+Rationale: `PLAN.md` → «supervise/ + process.rs»
+
+**Preconditions**
+- The instance was running and its process finished on its own.
+
+**Acceptance criteria**
+- **AC-1.** The state changes to crashed.
+- **AC-2.** This is reported regardless of which section of the app is open.
+- **AC-3.** The last lines of the log are available without further actions.
+- **AC-4.** The user can launch the instance again.
+- **AC-5.** The port is released.
+
+---
+
+### US-RUN-07 — The server restarting itself
+
+**As** a user who installed a custom node through ComfyUI-Manager
+**I want** the app to understand that the server restarted itself
+**so that** it does not look like a breakage.
+
+Tags: `@FR-RUN-100` `@phase-4` `@area-run`
+Rationale: `PLAN.md` → «Грабли»
+
+**Preconditions**
+- The instance is running, and an operation that restarts the server has been
+  performed inside it.
+
+**Acceptance criteria**
+- **AC-1.** The app recognises that the server is available again on the same port and does not count this as a crash.
+- **AC-2.** The user is told that the server restarted outside the app's control.
+- **AC-3.** Reconnecting to the restarted server is offered.
+- **AC-4.** After reconnecting, work with the instance continues as usual.
+
+**Negative and edge cases**
+- **AC-5.** If the server did not come up within a short waiting period, the case is treated as a crash per `US-RUN-06`.
+- **AC-6.** Any limitations on controlling such a server are named to the user explicitly.
+
+---
+
+### US-RUN-08 — Closing the app while servers are running
+
+**As** a user
+**I want** to control what happens to the running servers when I close the app
+**so that** I do not lose work or leave the VRAM occupied.
+
+Tags: `@FR-RUN-080` `@phase-4` `@area-run`
+Rationale: `PLAN.md` → «Грабли»
+
+**Preconditions**
+- At least one instance is running and the user is closing the app.
+
+**Acceptance criteria**
+- **AC-1.** The user is warned that there are running servers, and they are listed.
+- **AC-2.** Stopping everything and quitting, or collapsing the app and leaving the servers running, are both offered.
+- **AC-3.** When quitting is chosen, every server is stopped and the ports are released.
+- **AC-4.** When collapsing, the app stays available and the servers keep running.
+
+**Negative and edge cases**
+- **AC-5.** A crash of the app itself leaves no ComfyUI servers running.
+- **AC-6.** Launching the app again does not create a second copy of it but shows the one already open.

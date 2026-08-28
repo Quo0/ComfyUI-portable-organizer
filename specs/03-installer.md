@@ -1,223 +1,229 @@
-# EP-INST — Мастер установки
+# EP-INST — The install wizard
 
-Разворачивание нового инстанса из архива портабл-сборки, который пользователь скачал сам. Мастер доступен постоянно, а не только при первом запуске: им же раскатывают новую версию рядом со старой.
+Unpacking a new instance from a portable build archive that the user
+downloaded themselves. The wizard is permanently available, not only on the
+first launch: it is also what a new version is rolled out with, alongside the
+old one.
 
-Приложение никогда не обновляет инстанс на месте. Всё новое ставится рядом, существующее не меняется — это ключевое обещание для актора A3, который боится потерять рабочую конфигурацию.
+The app never updates an instance in place. Everything new is installed
+alongside and what exists does not change — that is the key promise for actor
+A3, who is afraid of losing a working configuration.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-INST-010` | Пользователь указывает архив портабл-сборки; приложение показывает его состав и требуемое место до начала работы | «Мастер установки» |
-| `FR-INST-020` | Приложение помнит историю использованных архивов между сессиями и проверяет их наличие | «Мастер установки» |
-| `FR-INST-030` | За один прогон архив разворачивается в одну или несколько папок назначения | «Мастер установки» |
-| `FR-INST-040` | Каждому назначению задаются имя, описание и акцентный цвет | «Мастер установки» |
-| `FR-INST-050` | Приложение отказывает в установке до её начала, если места на диске не хватает | «Мастер установки» |
-| `FR-INST-060` | Приложение предупреждает о слишком длинном пути назначения | «Грабли» |
-| `FR-INST-070` | Прерванная установка не оставляет папку, которую приложение приняло бы за рабочий инстанс | «Мастер установки» |
-| `FR-INST-080` | Ход установки виден: текущий файл, доля выполненного, текущее назначение | «Интерфейс: прогресс» |
-| `FR-INST-090` | Развёрнутые инстансы автоматически регистрируются и запоминают архив-источник | «Мастер установки» |
-| `FR-INST-100` | Установка не изменяет ранее созданные инстансы | «Мастер установки» |
-| `FR-INST-110` | Лишний уровень вложенности из архива не переносится в папку назначения | «Мастер установки» |
+| `FR-INST-010` | The user points at a portable build archive; the app shows its contents and the space required before the work begins | «Мастер установки» |
+| `FR-INST-020` | The app remembers a history of the archives used, across sessions, and checks that they are present | «Мастер установки» |
+| `FR-INST-030` | In a single run the archive is unpacked into one or several destination folders | «Мастер установки» |
+| `FR-INST-040` | Each destination is given a name, a description and an accent colour | «Мастер установки» |
+| `FR-INST-050` | The app refuses the installation before it begins if there is not enough space on the disk | «Мастер установки» |
+| `FR-INST-060` | The app warns about a destination path that is too long | «Грабли» |
+| `FR-INST-070` | An interrupted installation leaves behind no folder that the app would take for a working instance | «Мастер установки» |
+| `FR-INST-080` | The progress of the installation is visible: the current file, the fraction done, the current destination | «Интерфейс: прогресс» |
+| `FR-INST-090` | Unpacked instances are registered automatically and remember the source archive | «Мастер установки» |
+| `FR-INST-100` | The installation does not change previously created instances | «Мастер установки» |
+| `FR-INST-110` | The extra nesting level from the archive is not carried into the destination folder | «Мастер установки» |
 
 ---
 
-### US-INST-01 — Выбор архива-источника
+### US-INST-01 — Choosing the source archive
 
-**Как** пользователь, устанавливающий ComfyUI
-**я хочу** указать скачанный архив и увидеть, что в нём
-**чтобы** убедиться, что взял нужный файл.
+**As** a user installing ComfyUI
+**I want** to point at the downloaded archive and see what is in it
+**so that** I can be sure I took the right file.
 
-Теги: `@FR-INST-010` `@FR-INST-020` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
+Tags: `@FR-INST-010` `@FR-INST-020` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
 
-**Предусловия**
-- Пользователь открыл мастер установки.
+**Preconditions**
+- The user has opened the install wizard.
 
-**Критерии приёмки**
-- **AC-1.** Архив выбирается через системный диалог выбора файла.
-- **AC-2.** Ранее использованные архивы предложены списком, чтобы не искать файл заново.
-- **AC-3.** Для выбранного архива показаны его размер и дата.
-- **AC-4.** Показан объём, который займёт распакованная сборка.
-- **AC-5.** Пользователь может заменить выбранный архив другим, не выходя из мастера.
-- **AC-6.** Выбранный архив запоминается и предлагается при следующем открытии мастера.
+**Acceptance criteria**
+- **AC-1.** The archive is chosen through the system file picker.
+- **AC-2.** Previously used archives are offered as a list, so the file does not have to be hunted for again.
+- **AC-3.** For the chosen archive its size and date are shown.
+- **AC-4.** The size the unpacked build will take up is shown.
+- **AC-5.** The user can replace the chosen archive with another without leaving the wizard.
+- **AC-6.** The chosen archive is remembered and offered the next time the wizard is opened.
 
-**Негативные и краевые случаи**
-- **AC-7.** Если запомненный архив исчез с диска, это сказано при входе в мастер, и предложено выбрать другой файл.
-- **AC-8.** Если запомненный архив изменился в размере или дате, пользователь предупреждён — файл мог быть заменён.
-- **AC-9.** Файл, не являющийся архивом портабл-сборки, отклоняется с объяснением, какой файл ожидается.
-- **AC-10.** Повреждённый архив отклоняется до начала распаковки.
-
----
-
-### US-INST-02 — Задание папки назначения и метаданных
-
-**Как** пользователь, устанавливающий ComfyUI
-**я хочу** выбрать, куда распаковать, и сразу назвать инстанс
-**чтобы** не возвращаться к настройке потом.
-
-Теги: `@FR-INST-030` `@FR-INST-040` `@FR-INST-060` `@FR-INST-110` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
-
-**Предусловия**
-- Архив выбран и разобран.
-
-**Критерии приёмки**
-- **AC-1.** Пользователь выбирает папку назначения через системный диалог.
-- **AC-2.** Для назначения задаются имя, описание и акцентный цвет инстанса.
-- **AC-3.** Показан итоговый путь, по которому окажется сборка.
-- **AC-4.** Содержимое сборки размещается непосредственно в выбранной папке, без лишнего вложенного уровня из архива.
-- **AC-5.** Пользователю предложено осмысленное имя по умолчанию, которое он может изменить.
-
-**Негативные и краевые случаи**
-- **AC-6.** Непустая папка назначения отклоняется с объяснением; предложено выбрать другую.
-- **AC-7.** Слишком длинный путь назначения вызывает предупреждение с рекомендацией выбрать более короткий, потому что часть файлов сборки имеет очень глубокую вложенность.
-- **AC-8.** Путь, недоступный для записи, отклоняется до начала установки.
-- **AC-9.** Две папки назначения в одном прогоне не могут совпадать.
+**Negative and edge cases**
+- **AC-7.** If a remembered archive has disappeared from the disk, this is stated on entering the wizard, and choosing another file is offered.
+- **AC-8.** If a remembered archive has changed in size or date, the user is warned — the file may have been replaced.
+- **AC-9.** A file that is not a portable build archive is rejected with an explanation of which file is expected.
+- **AC-10.** A corrupt archive is rejected before the extraction begins.
 
 ---
 
-### US-INST-03 — Проверка свободного места
+### US-INST-02 — Setting the destination folder and the metadata
 
-**Как** пользователь, устанавливающий ComfyUI
-**я хочу** узнать о нехватке места заранее
-**чтобы** не потерять полчаса на распаковку, которая всё равно оборвётся.
+**As** a user installing ComfyUI
+**I want** to choose where to unpack it and name the instance right away
+**so that** I do not have to come back to the setup later.
 
-Теги: `@FR-INST-050` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
+Tags: `@FR-INST-030` `@FR-INST-040` `@FR-INST-060` `@FR-INST-110` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
 
-**Предусловия**
-- Архив выбран, назначения заданы.
+**Preconditions**
+- The archive has been chosen and parsed.
 
-**Критерии приёмки**
-- **AC-1.** Требуемый объём определяется из самого архива, а не оценивается приблизительно.
-- **AC-2.** Свободное место проверяется до начала распаковки.
-- **AC-3.** При нескольких назначениях на одном диске требуемый объём считается суммарно.
-- **AC-4.** Если места не хватает, установка не начинается, и сказано, сколько нужно и сколько доступно.
+**Acceptance criteria**
+- **AC-1.** The user picks the destination folder through the system dialog.
+- **AC-2.** The instance's name, description and accent colour are set for the destination.
+- **AC-3.** The final path where the build will end up is shown.
+- **AC-4.** The build's contents are placed directly into the chosen folder, without the extra nesting level from the archive.
+- **AC-5.** The user is offered a sensible default name, which they can change.
 
-**Негативные и краевые случаи**
-- **AC-5.** Учтён запас сверх минимально необходимого объёма — диск, заполненный под завязку, не считается пригодным.
-
----
-
-### US-INST-04 — Подключение к общим ресурсам при установке
-
-**Как** пользователь, у которого уже настроены общие модели
-**я хочу** подключить новый инстанс к ним сразу
-**чтобы** не делать это отдельным шагом после установки.
-
-Теги: `@FR-INST-090` `@phase-2.5` `@phase-2.6` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
-
-**Предусловия**
-- Назначения заданы.
-
-**Критерии приёмки**
-- **AC-1.** Если общий корень моделей настроен, предложено подключить к нему новые инстансы, и по умолчанию подключение включено.
-- **AC-2.** Если библиотека воркфлоу настроена, предложено подключить к ней новые инстансы.
-- **AC-3.** Настройка общих ресурсов доступна прямо здесь, если они ещё не заданы, — уходить в раздел настроек не требуется.
-- **AC-4.** Подключение применяется ко всем назначениям текущего прогона.
-- **AC-5.** Пользователь может отказаться от подключения и настроить его позже.
-
-**Негативные и краевые случаи**
-- **AC-6.** Если общие ресурсы не настроены и пользователь их не задал, установка продолжается без них.
+**Negative and edge cases**
+- **AC-6.** A non-empty destination folder is rejected with an explanation; choosing another is offered.
+- **AC-7.** A destination path that is too long raises a warning recommending a shorter one, because some of the build's files are nested very deeply.
+- **AC-8.** A path that cannot be written to is rejected before the installation begins.
+- **AC-9.** Two destination folders in one run cannot be the same.
 
 ---
 
-### US-INST-05 — Ход установки
+### US-INST-03 — Checking the free space
 
-**Как** пользователь, запустивший распаковку
-**я хочу** видеть, что происходит и сколько осталось
-**чтобы** понимать, зависло приложение или работает.
+**As** a user installing ComfyUI
+**I want** to learn about a shortage of space in advance
+**so that** I do not lose half an hour on an extraction that will break off
+anyway.
 
-Теги: `@FR-INST-080` `@FR-INST-070` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки», «Интерфейс: прогресс»
+Tags: `@FR-INST-050` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
 
-**Предусловия**
-- Все проверки пройдены, установка запущена.
+**Preconditions**
+- The archive has been chosen, the destinations have been set.
 
-**Критерии приёмки**
-- **AC-1.** Виден прогресс в долях выполненного, а не только факт работы.
-- **AC-2.** Виден текущий обрабатываемый файл.
-- **AC-3.** При нескольких назначениях видно, какое обрабатывается сейчас и сколько всего.
-- **AC-4.** Интерфейс остаётся отзывчивым: пользователь может уйти в другой раздел и вернуться, не прерывая установку.
-- **AC-5.** Установку можно отменить в любой момент.
+**Acceptance criteria**
+- **AC-1.** The required size is determined from the archive itself rather than estimated approximately.
+- **AC-2.** The free space is checked before the extraction begins.
+- **AC-3.** With several destinations on one disk the required size is counted as a total.
+- **AC-4.** If there is not enough space, the installation does not begin, and how much is needed and how much is available are both stated.
 
-**Негативные и краевые случаи**
-- **AC-6.** После отмены в папке назначения не остаётся ничего, что приложение приняло бы за рабочий инстанс.
-- **AC-7.** После отмены не остаётся временных файлов установки.
-- **AC-8.** Если приложение завершилось аварийно во время установки, при следующем запуске незавершённая папка не считается инстансом.
-- **AC-9.** Ошибка распаковки прерывает установку, сообщает причину и оставляет систему в состоянии до начала.
+**Negative and edge cases**
+- **AC-5.** A margin above the bare minimum is taken into account — a disk filled to the brim does not count as suitable.
 
 ---
 
-### US-INST-06 — Завершение установки
+### US-INST-04 — Connecting to shared resources during installation
 
-**Как** пользователь, дождавшийся конца распаковки
-**я хочу** сразу перейти к работе
-**чтобы** не искать, что делать дальше.
+**As** a user who already has shared models set up
+**I want** to connect the new instance to them right away
+**so that** I do not have to do it as a separate step after the installation.
 
-Теги: `@FR-INST-090` `@FR-INST-100` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
+Tags: `@FR-INST-090` `@phase-2.5` `@phase-2.6` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
 
-**Предусловия**
-- Установка завершилась успешно.
+**Preconditions**
+- The destinations have been set.
 
-**Критерии приёмки**
-- **AC-1.** Все созданные инстансы перечислены с их именами и путями.
-- **AC-2.** Инстансы уже зарегистрированы — отдельного шага регистрации не требуется.
-- **AC-3.** Профили запуска для них распознаны.
-- **AC-4.** У каждого сохранён архив-источник и дата установки.
-- **AC-5.** Предложено сразу запустить один из созданных инстансов.
-- **AC-6.** Ранее существовавшие инстансы не изменились.
+**Acceptance criteria**
+- **AC-1.** If a shared models root is set up, connecting the new instances to it is offered, and the connection is on by default.
+- **AC-2.** If a workflow library is set up, connecting the new instances to it is offered.
+- **AC-3.** Setting up the shared resources is available right here if they are not set yet — there is no need to leave for the settings section.
+- **AC-4.** The connection applies to every destination in the current run.
+- **AC-5.** The user can decline the connection and set it up later.
 
----
-
-### US-INST-07 — Установка новой версии рядом со старой
-
-**Как** A3, желающий попробовать свежую версию
-**я хочу** развернуть её отдельно
-**чтобы** рабочая сборка осталась нетронутой.
-
-Теги: `@FR-INST-020` `@FR-INST-100` `@FR-INST-090` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
-
-**Предусловия**
-- В реестре есть инстанс, развёрнутый из предыдущего архива.
-- Скачан архив новой версии.
-
-**Критерии приёмки**
-- **AC-1.** Пользователь выбирает новый архив вместо запомненного, не теряя запись о старом.
-- **AC-2.** История архивов содержит оба, и по каждому видно, когда он использовался.
-- **AC-3.** Новый инстанс разворачивается в отдельную папку и регистрируется дополнительно к существующим.
-- **AC-4.** Существующий инстанс не изменяется ни на диске, ни в реестре.
-- **AC-5.** В реестре у каждого инстанса видно, из какого архива он развёрнут, — версии различимы без открытия папок.
-
-**Негативные и краевые случаи**
-- **AC-6.** Попытка выбрать папкой назначения папку существующего инстанса отклоняется как непустая.
-- **AC-7.** Архив, удалённый пользователем с диска, можно убрать из истории.
+**Negative and edge cases**
+- **AC-6.** If the shared resources are not set up and the user did not set them, the installation continues without them.
 
 ---
 
-### US-INST-08 — Несколько назначений за один прогон
+### US-INST-05 — The progress of the installation
 
-**Как** A3, которому нужны две одинаковые сборки под разные эксперименты
-**я хочу** развернуть их за одну операцию
-**чтобы** не ждать распаковку дважды.
+**As** a user who started the extraction
+**I want** to see what is happening and how much is left
+**so that** I can tell whether the app has frozen or is working.
 
-Теги: `@FR-INST-030` `@FR-INST-040` `@phase-1.5` `@area-inst`
-Обоснование: `PLAN.md` → «Мастер установки»
+Tags: `@FR-INST-080` `@FR-INST-070` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки», «Интерфейс: прогресс»
 
-**Предусловия**
-- Архив выбран.
+**Preconditions**
+- Every check has passed, the installation is running.
 
-**Критерии приёмки**
-- **AC-1.** Пользователь может добавить несколько папок назначения в одном прогоне.
-- **AC-2.** Каждому назначению задаются собственные имя, описание и цвет.
-- **AC-3.** Назначение можно убрать из списка до начала установки.
-- **AC-4.** По завершении зарегистрированы все инстансы, и каждый работоспособен независимо.
-- **AC-5.** Общее время установки в несколько папок заметно меньше, чем время такого же числа отдельных установок.
+**Acceptance criteria**
+- **AC-1.** Progress is visible as a fraction done, not merely as the fact that work is happening.
+- **AC-2.** The file currently being processed is visible.
+- **AC-3.** With several destinations it is visible which one is being processed now and how many there are in total.
+- **AC-4.** The interface stays responsive: the user can leave for another section and come back without interrupting the installation.
+- **AC-5.** The installation can be cancelled at any moment.
 
-**Негативные и краевые случаи**
-- **AC-6.** Ошибка на одном из назначений не отменяет уже успешно созданные; пользователю сказано, что удалось, а что нет.
-- **AC-7.** Отмена в середине оставляет успешно завершённые назначения и убирает незавершённое.
+**Negative and edge cases**
+- **AC-6.** After a cancellation nothing is left in the destination folder that the app would take for a working instance.
+- **AC-7.** After a cancellation no temporary installation files are left.
+- **AC-8.** If the app crashed during the installation, the unfinished folder is not counted as an instance on the next launch.
+- **AC-9.** An extraction error interrupts the installation, reports the reason and leaves the system in the state it was in before the start.
+
+---
+
+### US-INST-06 — Finishing the installation
+
+**As** a user who waited out the extraction
+**I want** to move on to work straight away
+**so that** I do not have to hunt for what to do next.
+
+Tags: `@FR-INST-090` `@FR-INST-100` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
+
+**Preconditions**
+- The installation finished successfully.
+
+**Acceptance criteria**
+- **AC-1.** Every instance created is listed with its name and path.
+- **AC-2.** The instances are already registered — no separate registration step is required.
+- **AC-3.** Their launch profiles have been recognised.
+- **AC-4.** Each of them has the source archive and the installation date saved.
+- **AC-5.** Launching one of the created instances right away is offered.
+- **AC-6.** The instances that existed before have not changed.
+
+---
+
+### US-INST-07 — Installing a new version alongside the old one
+
+**As** A3, who wants to try a fresh version
+**I want** to unpack it separately
+**so that** my working build stays untouched.
+
+Tags: `@FR-INST-020` `@FR-INST-100` `@FR-INST-090` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
+
+**Preconditions**
+- There is an instance in the registry unpacked from a previous archive.
+- The archive of the new version has been downloaded.
+
+**Acceptance criteria**
+- **AC-1.** The user picks the new archive instead of the remembered one without losing the record of the old one.
+- **AC-2.** The archive history holds both, and for each of them it is visible when it was used.
+- **AC-3.** The new instance is unpacked into a separate folder and registered in addition to the existing ones.
+- **AC-4.** The existing instance changes neither on disk nor in the registry.
+- **AC-5.** In the registry it is visible for every instance which archive it was unpacked from — the versions can be told apart without opening the folders.
+
+**Negative and edge cases**
+- **AC-6.** An attempt to pick an existing instance's folder as the destination is rejected as non-empty.
+- **AC-7.** An archive the user deleted from the disk can be taken out of the history.
+
+---
+
+### US-INST-08 — Several destinations in a single run
+
+**As** A3, who needs two identical builds for different experiments
+**I want** to unpack them in a single operation
+**so that** I do not have to wait out the extraction twice.
+
+Tags: `@FR-INST-030` `@FR-INST-040` `@phase-1.5` `@area-inst`
+Rationale: `PLAN.md` → «Мастер установки»
+
+**Preconditions**
+- The archive has been chosen.
+
+**Acceptance criteria**
+- **AC-1.** The user can add several destination folders in one run.
+- **AC-2.** Each destination is given its own name, description and colour.
+- **AC-3.** A destination can be taken out of the list before the installation begins.
+- **AC-4.** On completion every instance is registered, and each of them works independently.
+- **AC-5.** The total time of installing into several folders is noticeably less than the time of the same number of separate installations.
+
+**Negative and edge cases**
+- **AC-6.** An error on one of the destinations does not cancel the ones already created successfully; the user is told what succeeded and what did not.
+- **AC-7.** A cancellation in the middle leaves the successfully finished destinations and removes the unfinished one.
