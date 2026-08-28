@@ -6,29 +6,31 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 /** Commands */
 export const commands = {
 	/**
-	 *  Настройки, прочитанные при старте: тема, язык, состояние рейла,
-	 *  плюс системная локаль и пути для раздела «О приложении».
+	 *  The settings read at startup: theme, language, rail state, plus the system
+	 *  locale and the paths for the "About" section.
 	 */
 	loadBootstrap: () => typedError<Bootstrap, AppError>(__TAURI_INVOKE("load_bootstrap")),
 	saveSettings: (settings: UiSettings) => typedError<null, AppError>(__TAURI_INVOKE("save_settings", { settings })),
 	listInstances: () => typedError<Instance[], AppError>(__TAURI_INVOKE("list_instances")),
 	/**
-	 *  Проверяет выбранную папку и заодно предлагает имя, порт и цвет.
+	 *  Checks the chosen folder and suggests a name, a port and a colour along the
+	 *  way.
 	 * 
-	 *  Проверка и предложения приходят одним ответом: экран добавления
-	 *  показывает их вместе, и разбивать это на три вызова незачем.
+	 *  The check and the suggestions arrive in one response: the add screen shows
+	 *  them together, and there is no point splitting that into three calls.
 	 */
 	probeFolder: (path: string) => typedError<ProbeResult, AppError>(__TAURI_INVOKE("probe_folder", { path })),
 	suggestAccent: () => typedError<Accent, AppError>(__TAURI_INVOKE("suggest_accent")),
 	addInstance: (path: string, edit: InstanceEdit) => typedError<Instance, AppError>(__TAURI_INVOKE("add_instance", { path, edit })),
 	updateInstance: (id: string, edit: InstanceEdit) => typedError<Instance, AppError>(__TAURI_INVOKE("update_instance", { id, edit })),
-	/**  Убирает инстанс из реестра. Папка на диске остаётся нетронутой. */
+	/**  Removes an instance from the registry. The folder on disk stays untouched. */
 	removeInstance: (id: string) => typedError<null, AppError>(__TAURI_INVOKE("remove_instance", { id })),
 	/**
-	 *  Считает размер инстанса на диске.
+	 *  Measures an instance's size on disk.
 	 * 
-	 *  Команда `async`, поэтому выполняется не в главном потоке и интерфейс
-	 *  не замирает на все минуты обхода. `None` означает, что подсчёт уже идёт.
+	 *  The command is `async`, so it runs off the main thread and the interface
+	 *  does not freeze for all the minutes of the walk. `None` means a measurement
+	 *  is already running.
 	 */
 	measureInstanceSize: (id: string) => typedError<{
 	id: string,
@@ -40,280 +42,298 @@ export const commands = {
 	archiveHistory: () => typedError<ArchiveRecord[], AppError>(__TAURI_INVOKE("archive_history")),
 	forgetArchive: (path: string) => typedError<null, AppError>(__TAURI_INVOKE("forget_archive", { path })),
 	/**
-	 *  Разворачивает архив в цели и регистрирует их.
+	 *  Unpacks the archive into the targets and registers them.
 	 * 
-	 *  Команда `async`, поэтому минуты распаковки не блокируют главный поток.
-	 *  Прогресс идёт событиями: возвращать его в ответе нечем, ответ один.
+	 *  The command is `async`, so the minutes of extraction do not block the main
+	 *  thread. Progress goes as events: there is nothing to return it in, a
+	 *  command answers once.
 	 */
 	runInstall: (info: ArchiveInfo, targets: InstallTarget[]) => typedError<Instance[], AppError>(__TAURI_INVOKE("run_install", { info, targets })),
 	/**
-	 *  Просит мастер остановиться. Проверяется между файлами, поэтому
-	 *  отменённая установка не оставляет полураспакованного дерева.
+	 *  Asks the wizard to stop. It is checked between files, so a cancelled
+	 *  install leaves no half-unpacked tree behind.
 	 */
 	cancelInstall: () => typedError<null, AppError>(__TAURI_INVOKE("cancel_install")),
-	/**  Профили запуска инстанса, разобранные из его `.bat` прямо сейчас. */
+	/**  An instance's launch profiles, parsed from its `.bat` right now. */
 	instanceProfiles: (id: string) => typedError<LaunchProfile[], AppError>(__TAURI_INVOKE("instance_profiles", { id })),
 	/**
-	 *  Итоговая команда запуска — та, что реально уйдёт системе.
+	 *  The final launch command — the one that will actually go to the system.
 	 * 
-	 *  Показывается в редакторе аргументов: `--port` и `--disable-auto-launch`
-	 *  дописываются нами, и без предпросмотра пользователь спорил бы
-	 *  с невидимым.
+	 *  Shown in the argument editor: `--port` and `--disable-auto-launch` are
+	 *  added by us, and without a preview the user would be arguing with the
+	 *  invisible.
 	 */
 	previewCommand: (id: string, profileId: string) => typedError<string[], AppError>(__TAURI_INVOKE("preview_command", { id, profileId })),
-	/**  Сохраняет свой профиль запуска. */
+	/**  Saves a custom launch profile. */
 	saveCustomProfile: (id: string, profile: CustomProfile) => typedError<Instance, AppError>(__TAURI_INVOKE("save_custom_profile", { id, profile })),
 	removeCustomProfile: (id: string, profileId: string) => typedError<Instance, AppError>(__TAURI_INVOKE("remove_custom_profile", { id, profileId })),
-	/**  Модели этой сборки и что из них уже есть в общей папке. */
+	/**  This build's models and which of them are already in the shared folder. */
 	scanInstanceModels: (id: string) => typedError<ModelsScan, AppError>(__TAURI_INVOKE("scan_instance_models", { id })),
 	/**
-	 *  Переносит выбранные модели в общую папку.
+	 *  Moves the selected models into the shared folder.
 	 * 
-	 *  Выбор приходит парами «категория и модель», как и у уборки: тумблер
-	 *  на экране стоит у каждой модели, а не у категории целиком.
+	 *  The selection arrives as "category and model" pairs, the same as for the
+	 *  cleanup: on screen the toggle sits next to every model, not next to a whole
+	 *  category.
 	 * 
-	 *  Отказывает у работающей сборки: забирать файлы из-под работающего
-	 *  ComfyUI нельзя — он держит их открытыми и уже разобрал пути при старте.
+	 *  Refuses for a running build: files must not be taken out from under a
+	 *  running ComfyUI — it holds them open and already resolved the paths at
+	 *  startup.
 	 */
 	migrateModels: (id: string, items: ([string, string])[]) => typedError<MigrateOutcome, AppError>(__TAURI_INVOKE("migrate_models", { id, items })),
 	cancelMigrate: () => typedError<null, AppError>(__TAURI_INVOKE("cancel_migrate")),
 	/**
-	 *  Убирает из сборки то, что уже лежит в общей папке.
+	 *  Removes from a build what already lies in the shared folder.
 	 * 
-	 *  Три условия проверяются здесь, а не только на экране: сборка
-	 *  остановлена, подключена к общим моделям, и каждый элемент заново
-	 *  признан дубликатом внутри `remove_duplicates`. Удаление — не то место,
-	 *  где можно доверять входным данным.
+	 *  Three conditions are checked here and not only on the screen: the build is
+	 *  stopped, it is connected to shared models, and every entry has been
+	 *  recognised as a duplicate afresh inside `remove_duplicates`. Deletion is
+	 *  not the place where input data can be trusted.
 	 */
 	removeDuplicateModels: (id: string, items: ([string, string])[]) => typedError<CleanupOutcome, AppError>(__TAURI_INVOKE("remove_duplicate_models", { id, items })),
 	/**
-	 *  Куда положить свежую библиотеку, если пользователь не выбрал сам.
+	 *  Where to put a fresh library if the user did not choose themselves.
 	 * 
-	 *  Рядом с корнем общих моделей — они обычно лежат на просторном диске,
-	 *  и держать воркфлоу там же логично. Жёсткой связи нет: библиотека
-	 *  работает и без общих моделей, поэтому при их отсутствии просто молчим.
+	 *  Next to the shared models root — those usually lie on a spacious drive, and
+	 *  keeping workflows in the same place is sensible. There is no hard link: the
+	 *  library works without shared models, so if there are none we simply stay
+	 *  silent.
 	 */
 	suggestLibraryPath: () => typedError<string | null, AppError>(__TAURI_INVOKE("suggest_library_path")),
 	loadLibrarySettings: () => typedError<LibrarySettings, AppError>(__TAURI_INVOKE("load_library_settings")),
 	saveLibrarySettings: (library: LibrarySettings) => typedError<null, AppError>(__TAURI_INVOKE("save_library_settings", { library })),
 	/**
-	 *  Читает библиотеку целиком.
+	 *  Reads the whole library.
 	 * 
-	 *  В блокирующем потоке: обход дерева на паре сотен воркфлоу — тысячи
-	 *  обращений к диску плюс разбор каждого JSON ради списка нод.
+	 *  In a blocking thread: walking the tree over a couple of hundred workflows
+	 *  means thousands of disk accesses plus parsing every JSON for the sake of
+	 *  the node list.
 	 */
 	scanLibrary: (path: string) => typedError<LibraryScan, AppError>(__TAURI_INVOKE("scan_library", { path })),
 	/**
-	 *  Кладёт файл с диска в библиотеку.
+	 *  Puts a file from disk into the library.
 	 * 
-	 *  Принимает и `.json`, и `.png`: картинка из папки `output` носит граф
-	 *  с собой, и «перетащить картинку» — самый частый способ вернуться
-	 *  к удачной генерации. В библиотеку в обоих случаях ложится `.json` —
-	 *  именно он потом уедет в инстанс.
+	 *  Accepts both `.json` and `.png`: an image from the `output` folder carries
+	 *  the graph with it, and "drag the picture in" is the most common way of
+	 *  getting back to a successful generation. In both cases what lands in the
+	 *  library is a `.json` — that is what will later travel to an instance.
 	 * 
-	 *  Не воркфлоу — отказ с объяснением: библиотека обязана оставаться
-	 *  библиотекой воркфлоу, а не свалкой JSON.
+	 *  Not a workflow means a refusal with an explanation: the library has to stay
+	 *  a library of workflows, not a dumping ground for JSON.
 	 */
 	addWorkflowFile: (library: string, source: string, rel: string | null, overwrite: boolean) => typedError<string, AppError>(__TAURI_INVOKE("add_workflow_file", { library, source, rel, overwrite })),
 	/**
-	 *  Кладёт в библиотеку граф, пришедший текстом.
+	 *  Puts a graph that arrived as text into the library.
 	 * 
-	 *  Тот же конец пути, что и у файла, только источник другой: воркфлоу
-	 *  чаще присылают текстом — в чате, на форуме, — чем файлом, и сохранять
-	 *  присланное в файл только ради того, чтобы тут же выбрать его в диалоге,
-	 *  — лишний круг.
+	 *  The same end of the road as for a file, only the source differs: workflows
+	 *  are sent as text — in a chat, on a forum — more often than as files, and
+	 *  saving what was sent into a file merely to pick it in a dialog right after
+	 *  is a wasted lap.
 	 * 
-	 *  Имя приходит из поля ввода, поэтому проверяется здесь, а не доверяется:
-	 *  оно попадает в путь. Перезаписи нет и тут — занятое имя это отказ,
-	 *  а не замена: заменить значило бы затереть одну работу другой.
+	 *  The name comes from an input field, so it is checked here rather than
+	 *  trusted: it lands in a path. There is no overwriting here either — a taken
+	 *  name is a refusal, not a replacement: replacing would mean erasing one
+	 *  piece of work with another.
 	 */
 	addWorkflowText: (library: string, name: string, content: string) => typedError<string, AppError>(__TAURI_INVOKE("add_workflow_text", { library, name, content })),
-	/**  Правит запись манифеста: избранное, теги, заметка. */
+	/**  Edits a manifest record: favourite, tags, note. */
 	setWorkflowMeta: (library: string, rel: string, meta: WorkflowMeta) => typedError<null, AppError>(__TAURI_INVOKE("set_workflow_meta", { library, rel, meta })),
 	/**
-	 *  Убирает потерянную запись из манифеста.
+	 *  Removes a lost record from the manifest.
 	 * 
-	 *  Только запись: файлов эта команда не касается вовсе — она и вызывается
-	 *  лишь тогда, когда файла уже нет.
+	 *  The record only: this command does not touch files at all — it is called
+	 *  precisely when the file is already gone.
 	 */
 	forgetWorkflow: (library: string, rel: string) => typedError<null, AppError>(__TAURI_INVOKE("forget_workflow", { library, rel })),
 	/**
-	 *  Воркфлоу, лежащие в сборке.
+	 *  The workflows lying inside a build.
 	 * 
-	 *  У запущенной спрашиваем по API, у остановленной читаем папку. Разница
-	 *  не косметическая: у запущенной ответ учитывает то, что она сохранила
-	 *  минуту назад, а у остановленной другого источника и нет.
+	 *  For a running one we ask over the API, for a stopped one we read the
+	 *  folder. The difference is not cosmetic: for a running one the answer
+	 *  accounts for what it saved a minute ago, and for a stopped one there is no
+	 *  other source anyway.
 	 */
 	instanceWorkflows: (id: string, library: string) => typedError<InstanceWorkflow[], AppError>(__TAURI_INVOKE("instance_workflows", { id, library })),
 	/**
-	 *  Папка воркфлоу сборки — для кнопки «показать в проводнике».
+	 *  A build's workflow folder — for the "show in Explorer" button.
 	 * 
-	 *  Существование проверяем здесь: у остановленной сборки, которая ещё
-	 *  ничего не сохраняла, папки нет вовсе, и звать проводник не с чем.
+	 *  Existence is checked here: a stopped build that has not saved anything yet
+	 *  has no such folder at all, and there is nothing to call Explorer with.
 	 */
 	instanceWorkflowsDir: (id: string) => typedError<InstanceWorkflowsDir, AppError>(__TAURI_INVOKE("instance_workflows_dir", { id })),
 	/**
-	 *  Переносит воркфлоу из сборки в библиотеку: в сборке его не остаётся.
+	 *  Moves a workflow from a build into the library: none of it stays in the
+	 *  build.
 	 * 
-	 *  Порядок здесь — единственная защита от потери чужой работы, и он тот же,
-	 *  что у переноса моделей: пишем копию, **читаем её обратно и сверяем**,
-	 *  и только потом убираем исходник. Пока копия не проверена, оригинал
-	 *  должен оставаться на руках.
+	 *  The order here is the only protection against losing someone's work, and it
+	 *  is the same as for moving models: write the copy, **read it back and
+	 *  compare**, and only then remove the source. Until the copy is verified, the
+	 *  original has to stay in hand.
 	 * 
-	 *  Перезаписи нет вовсе. Раньше на занятое имя был вопрос «заменить?»,
-	 *  и он был безобиден, пока забор был копированием: при любом ответе
-	 *  воркфлоу оставался в сборке. У переноса цена ответа другая — «заменить»
-	 *  затирало бы одну работу другой, не оставляя копии ни той, ни другой.
+	 *  There is no overwriting at all. A taken name used to raise a "replace?"
+	 *  question, and it was harmless while taking meant copying: whatever the
+	 *  answer, the workflow stayed in the build. For a move the price of the
+	 *  answer is different — "replace" would erase one piece of work with another,
+	 *  leaving a copy of neither.
 	 * 
-	 *  Вместо замены — `target`: забрать под свободным именем. Занятое имя
-	 *  перестало быть тупиком, но разошедшиеся версии остаются двумя разными
-	 *  файлами, а не одним поверх другого.
+	 *  Instead of replacing there is `target`: take it under a free name. A taken
+	 *  name stopped being a dead end, yet diverged versions stay two different
+	 *  files rather than one on top of the other.
 	 * 
-	 *  У запущенной сборки исходник убирает она сама, своим API: папка
-	 *  воркфлоу принадлежит ей, и о правках со стороны она не знает.
+	 *  For a running build the source is removed by the build itself, through its
+	 *  own API: the workflow folder belongs to it, and it knows nothing of edits
+	 *  from outside.
 	 */
 	pullWorkflow: (id: string, rel: string, library: string, target: string | null) => typedError<string, AppError>(__TAURI_INVOKE("pull_workflow", { id, rel, library, target })),
 	/**
-	 *  Кладёт воркфлоу из библиотеки в сборку.
+	 *  Puts a workflow from the library into a build.
 	 * 
-	 *  У запущенной — через API с `overwrite=false`, и **409 возвращается как
-	 *  развилка**, а не как ошибка: молча затирать чужой воркфлоу нельзя.
-	 *  У остановленной — файлом, с той же проверкой существования.
+	 *  For a running one it goes through the API with `overwrite=false`, and **a
+	 *  409 comes back as a fork in the road**, not as an error: silently erasing
+	 *  someone else's workflow is not allowed. For a stopped one it goes as a
+	 *  file, with the same existence check.
 	 */
 	pushWorkflow: (id: string, library: string, rel: string, overwrite: boolean) => typedError<PushOutcome, AppError>(__TAURI_INVOKE("push_workflow", { id, library, rel, overwrite })),
 	/**
-	 *  Совместимость воркфлоу со всеми зарегистрированными сборками.
+	 *  A workflow's compatibility with every registered build.
 	 * 
-	 *  Считается для всех разом: пользователь выбирает, куда класть, и сравнить
-	 *  он должен на одном экране, а не обходя инстансы по одному.
+	 *  Computed for all of them at once: the user is choosing where to put it, and
+	 *  the comparison has to happen on one screen rather than by visiting
+	 *  instances one at a time.
 	 */
 	workflowCompat: (rel: string, nodes: string[]) => typedError<InstanceCompat[], AppError>(__TAURI_INVOKE("workflow_compat", { rel, nodes })),
 	loadSharedSettings: () => typedError<SharedSettings, AppError>(__TAURI_INVOKE("load_shared_settings")),
 	saveSharedSettings: (shared: SharedSettings) => typedError<null, AppError>(__TAURI_INVOKE("save_shared_settings", { shared })),
 	/**
-	 *  Сканирует папку и возвращает найденные категории.
+	 *  Scans the folder and returns the categories found.
 	 * 
-	 *  Обход дерева в блокирующем потоке: на общей папке в сотни гигабайт это
-	 *  десятки тысяч обращений к метаданным, и держать на них главный поток
-	 *  нельзя — интерфейс замрёт ровно тогда, когда пользователь ждёт ответа.
+	 *  The tree walk goes in a blocking thread: on a shared folder of hundreds of
+	 *  gigabytes that is tens of thousands of metadata accesses, and holding the
+	 *  main thread on them is not allowed — the interface would freeze exactly
+	 *  when the user is waiting for an answer.
 	 */
 	scanSharedRoot: (path: string) => typedError<RootScan, AppError>(__TAURI_INVOKE("scan_shared_root", { path })),
 	/**
-	 *  YAML, который получится при текущих настройках.
+	 *  The YAML that the current settings will produce.
 	 * 
-	 *  Предпросмотр не косметика: пользователь должен видеть, что именно
-	 *  попадёт в конфиг, до того как это попадёт в его сборку.
+	 *  The preview is not cosmetic: the user has to see what exactly will land in
+	 *  the config before it lands in their build.
 	 */
 	previewSharedYaml: (shared: SharedSettings) => typedError<string, AppError>(__TAURI_INVOKE("preview_shared_yaml", { shared })),
-	/**  Создаёт недостающие стандартные подпапки в общем корне. */
+	/**  Creates the missing standard subfolders in the shared root. */
 	createSharedFolders: (path: string, names: string[]) => typedError<RootScan, AppError>(__TAURI_INVOKE("create_shared_folders", { path, names })),
-	/**  Что лежит в `extra_model_paths.yaml` инстанса. */
+	/**  What is sitting in an instance's `extra_model_paths.yaml`. */
 	inspectInstanceConfig: (id: string) => typedError<InstanceFileInfo, AppError>(__TAURI_INVOKE("inspect_instance_config", { id })),
 	/**
-	 *  Подключает инстанс к общим моделям.
+	 *  Connects an instance to shared models.
 	 * 
-	 *  `confirm_overwrite` относится только к режиму «файл в инстансе» и только
-	 *  к случаю, когда там уже лежит чужой файл. Без согласия команда отказывает
-	 *  кодом `shared.foreignConfig`, и фронт показывает экран сравнения.
+	 *  `confirm_overwrite` applies only to the "file inside the instance" mode and
+	 *  only to the case where someone else's file already lies there. Without
+	 *  consent the command refuses with the code `shared.foreignConfig`, and the
+	 *  frontend shows the comparison screen.
 	 */
 	connectShared: (id: string, applyMode: ApplyMode, confirmOverwrite: boolean) => typedError<string | null, AppError>(__TAURI_INVOKE("connect_shared", { id, applyMode, confirmOverwrite })),
 	/**
-	 *  Отключает инстанс от общих моделей.
+	 *  Disconnects an instance from shared models.
 	 * 
-	 *  В режиме «файл в инстансе» убирает наш файл и возвращает на место
-	 *  сохранённую копию чужого. Модели в общей папке не трогаются никогда.
+	 *  In the "file inside the instance" mode it removes our file and puts the
+	 *  saved copy of someone else's back. The models in the shared folder are
+	 *  never touched.
 	 */
 	disconnectShared: (id: string) => typedError<null, AppError>(__TAURI_INVOKE("disconnect_shared", { id })),
 	runStatuses: () => typedError<RunStatus[], AppError>(__TAURI_INVOKE("run_statuses")),
 	/**
-	 *  Весь накопленный лог инстанса.
+	 *  The whole accumulated log of an instance.
 	 * 
-	 *  Нужен, чтобы вернувшись на экран инстанса увидеть старт целиком:
-	 *  события догоняют только то, что происходит при открытом экране.
+	 *  Needed so that coming back to the instance screen shows the startup in
+	 *  full: the events only catch what happens while the screen is open.
 	 */
 	runLog: (id: string) => typedError<LogLine[], AppError>(__TAURI_INVOKE("run_log", { id })),
 	/**
-	 *  Запускает инстанс.
+	 *  Launches an instance.
 	 * 
-	 *  Недоступный общий корень не может просто игнорироваться: пользователь,
-	 *  державший модели на внешнем диске, получил бы «model not found» посреди
-	 *  работы и решил бы, что сломалось приложение.
+	 *  An unavailable shared root cannot simply be ignored: a user who kept their
+	 *  models on an external drive would get a "model not found" in the middle of
+	 *  their work and conclude the app is broken.
 	 * 
-	 *  Вторая сборка на той же видеокарте — это отказ по нехватке видеопамяти
-	 *  уже в очереди генерации, и понять его со стороны ComfyUI невозможно.
+	 *  A second build on the same graphics card means an out-of-VRAM failure once
+	 *  the generation is already queued, and understanding it from ComfyUI's side
+	 *  is impossible.
 	 */
 	startInstance: (id: string, profileId: string | null, options: StartOptions) => typedError<RunStatus, AppError>(__TAURI_INVOKE("start_instance", { id, profileId, options })),
 	stopInstance: (id: string) => typedError<null, AppError>(__TAURI_INVOKE("stop_instance", { id })),
 	/**
-	 *  Останавливает и поднимает инстанс заново тем же профилем.
+	 *  Stops an instance and brings it back up with the same profile.
 	 * 
-	 *  Делается в Rust, а не двумя вызовами с фронта: `stop` возвращается,
-	 *  как только освободился порт, а состояние в `Stopped` переводит поток
-	 *  ожидания процесса — и старт, посланный сразу следом, наткнулся бы
-	 *  на `run.alreadyRunning`. Здесь мы просто дожидаемся конца перехода.
+	 *  Done in Rust rather than as two calls from the frontend: `stop` returns as
+	 *  soon as the port is released, while the state is moved to `Stopped` by the
+	 *  process-waiting thread — and a start sent immediately after would run into
+	 *  `run.alreadyRunning`. Here we simply wait for the transition to finish.
 	 */
 	restartInstance: (id: string) => typedError<RunStatus, AppError>(__TAURI_INVOKE("restart_instance", { id })),
 	/**
-	 *  Забирает под своё управление сервер, перезапустившийся сам.
+	 *  Takes control of a server that restarted itself.
 	 * 
-	 *  ComfyUI-Manager после установки нод гасит сервер и поднимает новый
-	 *  процесс. Наш хэндл теряется, состояние становится `Detached`, и дальше
-	 *  приложение умеет только смотреть: PID нового процесса ему неизвестен.
+	 *  After installing nodes, ComfyUI-Manager shuts the server down and brings a
+	 *  new process up. Our handle is lost, the state becomes `Detached`, and from
+	 *  then on the app can only watch: it does not know the new process's PID.
 	 * 
-	 *  Находим владельца порта по таблице соединений и записываем его PID.
-	 *  После этого работает всё обычное — и остановка, и вкладка.
+	 *  We find the port's owner through the connection table and record its PID.
+	 *  After that everything ordinary works again — stopping and the tab alike.
 	 */
 	adoptInstance: (id: string) => typedError<RunStatus, AppError>(__TAURI_INVOKE("adopt_instance", { id })),
 	/**
-	 *  Показывает вкладку инстанса, создавая её при первом вызове.
+	 *  Shows an instance's tab, creating it on the first call.
 	 * 
-	 *  Команды встраивания обязаны быть `async`. Синхронная команда Tauri
-	 *  выполняется в главном потоке, а `add_child` изнутри ставит задачу
-	 *  в тот же поток и ждёт её результата — получается взаимная блокировка
-	 *  без единой ошибки в логе.
+	 *  The embedding commands have to be `async`. A synchronous Tauri command runs
+	 *  on the main thread, and `add_child` from inside it queues work onto that
+	 *  same thread and waits for its result — which is a deadlock without a single
+	 *  error in the log.
 	 */
 	showComfy: (id: string, rect: Rect) => typedError<null, AppError>(__TAURI_INVOKE("show_comfy", { id, rect })),
-	/**  Переставляет вкладку вслед за областью контента. */
+	/**  Moves the tab along with the content area. */
 	placeComfy: (id: string, rect: Rect) => typedError<null, AppError>(__TAURI_INVOKE("place_comfy", { id, rect })),
-	/**  Прячет все вкладки: уход в другой раздел, открытие консоли логов. */
+	/**  Hides every tab: leaving for another section, opening the log console. */
 	hideComfy: () => typedError<null, AppError>(__TAURI_INVOKE("hide_comfy")),
 	reloadComfy: (id: string) => typedError<null, AppError>(__TAURI_INVOKE("reload_comfy", { id })),
 	/**
-	 *  Папка результатов генерации у инстанса.
+	 *  An instance's generation output folder.
 	 * 
-	 *  `None` означает «папки ещё нет»: до первой генерации ComfyUI её
-	 *  не создаёт, и открывать нечего. Создавать её за пользователя мы
-	 *  не будем — внутри чужой установки не появляется ничего по нашей воле.
+	 *  `None` means "the folder is not there yet": ComfyUI does not create it
+	 *  before the first generation, and there is nothing to open. We will not
+	 *  create it on the user's behalf — nothing appears inside someone else's
+	 *  installation by our will.
 	 */
 	instanceOutputDir: (id: string, profileId: string | null) => typedError<string | null, AppError>(__TAURI_INVOKE("instance_output_dir", { id, profileId })),
 	/**
-	 *  Строит отчёт о дублирующихся моделях по всем сборкам сразу.
+	 *  Builds a report on duplicated models across every build at once.
 	 * 
-	 *  Команда **ничего не делает с файлами** и делать не будет: уборка
-	 *  дублей живёт отдельной командой, на своём экране и со своим перечнем.
+	 *  The command **does nothing to files** and never will: cleaning duplicates
+	 *  up lives in a command of its own, on its own screen and with its own list.
 	 */
 	scanDuplicates: () => typedError<DuplicatesReport, AppError>(__TAURI_INVOKE("scan_duplicates")),
 	cancelDuplicatesScan: () => typedError<null, AppError>(__TAURI_INVOKE("cancel_duplicates_scan")),
 	/**
-	 *  Подписи меню трея под текущий язык.
+	 *  The tray menu labels for the current language.
 	 * 
-	 *  Меню трея нативное, до `t()` ему не дотянуться, а переводить строки
-	 *  в Rust правилами проекта запрещено. Поэтому текст приходит с фронта —
-	 *  и приходит заново при каждой смене языка.
+	 *  The tray menu is native, `t()` cannot reach it, and translating strings in
+	 *  Rust is forbidden by the project's rules. So the text comes from the
+	 *  frontend — and comes again on every change of language.
 	 */
 	setTrayLabels: (labels: TrayLabels) => typedError<null, AppError>(__TAURI_INVOKE("set_tray_labels", { labels })),
-	/**  Инстансы, которые закрытие приложения унесёт с собой. */
+	/**  The instances that closing the app would take down with it. */
 	busyInstances: () => typedError<string[], AppError>(__TAURI_INVOKE("busy_instances")),
-	/**  Остановить всё и выйти. */
+	/**  Stop everything and quit. */
 	stopAllAndQuit: () => typedError<null, AppError>(__TAURI_INVOKE("stop_all_and_quit")),
-	/**  Свернуть в трей, оставив серверы работать. */
+	/**  Collapse into the tray, leaving the servers running. */
 	hideToTray: () => typedError<null, AppError>(__TAURI_INVOKE("hide_to_tray")),
 	/**
-	 *  Спрашивает, вышла ли новая версия. `None` — установлена последняя.
+	 *  Asks whether a new version is out. `None` means the latest is installed.
 	 * 
-	 *  Ошибку возвращает как есть, а глушит её вызывающий: автоматическая
-	 *  проверка при старте молчит о сетевых сбоях, ручная — показывает.
-	 *  Различить это в Rust нечем, зато на фронте видно, кто нажал кнопку.
+	 *  Returns the error as it is and leaves the muting to the caller: the
+	 *  automatic check at startup stays silent about network failures, a manual
+	 *  one shows them. There is nothing in Rust to tell those apart, whereas the
+	 *  frontend can see who pressed the button.
 	 */
 	checkUpdate: () => typedError<{
 	version: string,
@@ -334,13 +354,14 @@ export const commands = {
 	date: number | null,
 } | null, AppError>(__TAURI_INVOKE("check_update")),
 	/**
-	 *  Ставит обновление и перезапускает приложение.
+	 *  Installs the update and restarts the app.
 	 * 
-	 *  Развилка «работают сборки» устроена так же, как гард мульти-запуска:
-	 *  первый вызов приходит с `stop_running: false` и получает отказ с кодом,
-	 *  фронт раскрывает выбор на месте, повторный вызов приходит уже с ответом.
-	 *  Молча гасить чужую очередь генерации нельзя — инсталлятор Windows
-	 *  закроет нас принудительно, а Job Object унесёт с собой все сборки.
+	 *  The "builds are running" fork works the same way as the multi-launch guard:
+	 *  the first call arrives with `stop_running: false` and gets a refusal with a
+	 *  code, the frontend unfolds the choice in place, and the repeat call arrives
+	 *  with the answer. Silently shutting down someone's generation queue is not
+	 *  allowed — the Windows installer will close us by force, and the Job Object
+	 *  will take every build down with it.
 	 */
 	installUpdate: (stopRunning: boolean) => typedError<null, AppError>(__TAURI_INVOKE("install_update", { stopRunning })),
 };
@@ -476,13 +497,13 @@ export type CleanupOutcome = {
 	refused: number,
 };
 
-/**  Откуда взяты сведения о нодах сборки. */
+/**  Where the knowledge about a build's nodes came from. */
 export type CompatSource = 
-/**  Спросили у работающей сборки прямо сейчас. */
+/**  Asked of a running build right now. */
 "live" | 
-/**  По снимку с последнего запуска. */
+/**  From the snapshot of the last launch. */
 "cached" | 
-/**  Сборка не запущена и ни разу не запускалась при нас. */
+/**  The build is not running and has never been launched under us. */
 "unknown";
 
 /**  One copy of a model. */
@@ -715,16 +736,16 @@ export type InstanceCompat = {
 	instanceId: string,
 	source: CompatSource,
 	/**
-	 *  Пусто при `Unknown` — и это не «всё на месте», а «неизвестно».
-	 *  Различать обязан интерфейс, а не читатель.
+	 *  Empty under `Unknown` — and that means "unknown", not "everything is
+	 *  there". Telling them apart is the interface's job, not the reader's.
 	 */
 	missing: string[],
 	/**
-	 *  Этот воркфлоу уже лежит в сборке.
+	 *  This workflow already lies in the build.
 	 * 
-	 *  Считается, а не запоминается. Прежде интерфейс знал только о наших
-	 *  собственных нажатиях в текущем сеансе и после перезахода показывал
-	 *  «добавить» у сборки, где файл уже был.
+	 *  Computed, not remembered. The interface used to know only about our own
+	 *  clicks within the current session, and after a re-entry it showed "add"
+	 *  for a build where the file was already present.
 	 */
 	present: boolean,
 };
@@ -970,7 +991,7 @@ export type ProbeResult = {
 };
 
 export type PushOutcome = "written" | 
-/**  Имя занято. Развилка, а не ошибка: спрашиваем пользователя. */
+/**  The name is taken. A fork in the road, not an error: we ask the user. */
 "conflict";
 
 /**
@@ -1010,17 +1031,17 @@ export type RootScan = {
 };
 
 /**
- *  Событие смены состояния. Приходит и тогда, когда пользователь ничего
- *  не делал: падение и самоперезапуск обязаны быть видны сразу.
+ *  The state-change event. It also arrives when the user did nothing: a crash
+ *  and a self-restart have to be visible immediately.
  */
 export type RunChanged = RunStatus;
 
 /**
- *  Событие с очередной строкой лога запущенного инстанса.
+ *  The event carrying the next log line of a running instance.
  * 
- *  Имя с префиксом `Run`, чтобы не столкнуться с `SpikeLog` спайка:
- *  tauri-specta выводит имя события из имени структуры, и одинаковые
- *  имена разъехались бы молча.
+ *  Named with a `Run` prefix so as not to collide with the spike's
+ *  `SpikeLog`: tauri-specta derives the event name from the struct name, and
+ *  identical names would have drifted apart silently.
  */
 export type RunLog = {
 	instanceId: string,
@@ -1125,17 +1146,17 @@ export type Skipped = {
 };
 
 /**
- *  Согласия пользователя, без которых запуск отказывается идти.
+ *  The user's consents, without which the launch refuses to proceed.
  * 
- *  Обе развилки устроены одинаково: первый вызов приходит с пустыми
- *  согласиями и получает отказ с кодом, фронт раскрывает выбор на месте,
- *  повторный вызов приходит уже с ответом. Модалку сюда положить нельзя
- *  (дисциплина z-order), а у тоста не бывает кнопок.
+ *  Both forks work the same way: the first call arrives with empty consents
+ *  and gets a refusal with a code, the frontend unfolds the choice in place,
+ *  and the repeat call arrives with the answer. A modal cannot be put here
+ *  (the z-order discipline), and a toast has no buttons.
  */
 export type StartOptions = {
-	/**  Запускаться, даже если общий корень моделей недоступен. */
+	/**  Launch even if the shared models root is unavailable. */
 	withoutShared?: boolean,
-	/**  Запускаться, даже если другая сборка уже работает. */
+	/**  Launch even if another build is already running. */
 	allowMultiple?: boolean,
 };
 

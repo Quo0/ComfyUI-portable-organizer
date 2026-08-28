@@ -1,13 +1,14 @@
 // Copyright (C) 2026 Andrew Blokhin
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Точка сборки приложения: команды Tauri тонкими обёртками над модулями.
+//! The assembly point of the app: Tauri commands as thin wrappers over the
+//! modules.
 //!
-//! Здесь же — список команд и событий для `tauri-specta`, из которого
-//! генерируется `src/bindings.ts`.
+//! The list of commands and events for `tauri-specta`, from which
+//! `src/bindings.ts` is generated, lives here too.
 
-// Модули публичные: по ним ходят примеры в examples/, которыми
-// проверяется распаковка на реальном архиве.
+// The modules are public: the examples in examples/ walk through them, and
+// that is how extraction is verified against a real archive.
 pub mod comfy_api;
 pub mod discovery;
 pub mod duplicates;
@@ -49,8 +50,8 @@ use crate::shared_models::{
     ApplyMode, InstanceFileInfo, InstanceFileState, InstanceShared, RootScan, SharedSettings,
 };
 
-/// Настройки, прочитанные при старте: тема, язык, состояние рейла,
-/// плюс системная локаль и пути для раздела «О приложении».
+/// The settings read at startup: theme, language, rail state, plus the system
+/// locale and the paths for the "About" section.
 #[tauri::command]
 #[specta::specta]
 async fn load_bootstrap(app: tauri::AppHandle) -> Result<Bootstrap, AppError> {
@@ -63,7 +64,7 @@ async fn save_settings(app: tauri::AppHandle, settings: UiSettings) -> Result<()
     settings::save(&app, &settings)
 }
 
-// ------------------------------------------------------------ реестр
+// ---------------------------------------------------------- the registry
 
 #[tauri::command]
 #[specta::specta]
@@ -71,10 +72,11 @@ async fn list_instances(app: tauri::AppHandle) -> Result<Vec<Instance>, AppError
     instances::list(&app)
 }
 
-/// Проверяет выбранную папку и заодно предлагает имя, порт и цвет.
+/// Checks the chosen folder and suggests a name, a port and a colour along the
+/// way.
 ///
-/// Проверка и предложения приходят одним ответом: экран добавления
-/// показывает их вместе, и разбивать это на три вызова незачем.
+/// The check and the suggestions arrive in one response: the add screen shows
+/// them together, and there is no point splitting that into three calls.
 #[tauri::command]
 #[specta::specta]
 async fn probe_folder(app: tauri::AppHandle, path: String) -> Result<ProbeResult, AppError> {
@@ -94,8 +96,9 @@ async fn add_instance(
     path: String,
     edit: InstanceEdit,
 ) -> Result<Instance, AppError> {
-    // Папка проверяется заново, а не берётся из ответа probe_folder:
-    // между экраном выбора и сохранением её могли переименовать.
+    // The folder is checked afresh rather than taken from the probe_folder
+    // response: it could have been renamed between the picker screen and the
+    // save.
     let probe = <WindowsPortable as crate::discovery::InstanceDiscovery>::probe(
         &WindowsPortable,
         std::path::Path::new(&path),
@@ -113,14 +116,14 @@ async fn update_instance(
     instances::update(&app, &id, edit)
 }
 
-/// Убирает инстанс из реестра. Папка на диске остаётся нетронутой.
+/// Removes an instance from the registry. The folder on disk stays untouched.
 #[tauri::command]
 #[specta::specta]
 async fn remove_instance(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
     instances::remove(&app, &id)
 }
 
-// ---------------------------------------------------- мастер установки
+// ------------------------------------------------------ the install wizard
 
 #[tauri::command]
 #[specta::specta]
@@ -149,10 +152,11 @@ async fn forget_archive(app: tauri::AppHandle, path: String) -> Result<(), AppEr
     installer::history::forget(&app, &path)
 }
 
-/// Разворачивает архив в цели и регистрирует их.
+/// Unpacks the archive into the targets and registers them.
 ///
-/// Команда `async`, поэтому минуты распаковки не блокируют главный поток.
-/// Прогресс идёт событиями: возвращать его в ответе нечем, ответ один.
+/// The command is `async`, so the minutes of extraction do not block the main
+/// thread. Progress goes as events: there is nothing to return it in, a
+/// command answers once.
 #[tauri::command]
 #[specta::specta]
 async fn run_install(
@@ -165,10 +169,10 @@ async fn run_install(
     let _guard = lock.acquire()?;
     cancel.reset();
 
-    // Первым делом, до любой работы: от клика до этого события проходит
-    // только время IPC, и экран перестаёт молчать сразу. Без него первые
-    // секунды выглядели зависанием — проверки, открытие архива и разворот
-    // словаря LZMA2 идут молча.
+    // First of all, before any work: only the IPC time passes between the
+    // click and this event, and the screen stops being silent immediately.
+    // Without it the first seconds looked like a freeze — the checks, opening
+    // the archive and unfolding the LZMA2 dictionary all happen quietly.
     let first_name = targets.first().map(|t| t.name.clone()).unwrap_or_default();
     let _ = installer::InstallProgress::stage(
         installer::InstallPhase::Preparing,
@@ -178,8 +182,9 @@ async fn run_install(
     )
     .emit(&app);
 
-    // Проверки повторяются перед самой работой: между экраном целей
-    // и запуском место на диске могло кончиться, а папка — появиться.
+    // The checks are repeated right before the work: between the targets
+    // screen and the start, the disk could have run out of space and the
+    // folder could have appeared.
     let blocking: Vec<AppError> = installer::check_targets(&info, &targets)
         .into_iter()
         .flat_map(|c| c.errors)
@@ -188,9 +193,9 @@ async fn run_install(
         return Err(first);
     }
 
-    // Минуты распаковки уходят в отдельный поток, а не на воркер асинхронного
-    // рантайма: иначе `cancel_install` и остальные команды соревнуются
-    // за тот же воркер всё это время.
+    // The minutes of extraction go to a thread of their own rather than to an
+    // async runtime worker: otherwise `cancel_install` and the other commands
+    // compete for that same worker the whole time.
     let emitter = app.clone();
     let work_info = info.clone();
     let work_targets = targets.clone();
@@ -204,9 +209,10 @@ async fn run_install(
     .map_err(|e| AppError::because("installer.extractFailed", e))?;
     outcome?;
 
-    // Регистрация перепроверяет каждую цель и запускает `python --version`
-    // на каждую — это ещё пара секунд после того, как файлы кончились.
-    // Прежде экран стоял на сотне процентов с подписью от последнего файла.
+    // Registration re-checks every target and runs `python --version` for each
+    // — that is another couple of seconds after the files have run out.
+    // Previously the screen sat at a hundred per cent with the caption of the
+    // last file.
     let _ = installer::InstallProgress::stage(
         installer::InstallPhase::Registering,
         targets.len() as u32,
@@ -219,7 +225,7 @@ async fn run_install(
     register_targets(&app, &info, &targets)
 }
 
-/// Регистрирует распакованные цели, проставляя источник.
+/// Registers the unpacked targets, filling in the source.
 fn register_targets(
     app: &tauri::AppHandle,
     info: &ArchiveInfo,
@@ -251,8 +257,8 @@ fn register_targets(
     Ok(created)
 }
 
-/// Просит мастер остановиться. Проверяется между файлами, поэтому
-/// отменённая установка не оставляет полураспакованного дерева.
+/// Asks the wizard to stop. It is checked between files, so a cancelled
+/// install leaves no half-unpacked tree behind.
 #[tauri::command]
 #[specta::specta]
 async fn cancel_install(cancel: tauri::State<'_, InstallCancel>) -> Result<(), AppError> {
@@ -261,13 +267,13 @@ async fn cancel_install(cancel: tauri::State<'_, InstallCancel>) -> Result<(), A
 }
 
 
-// ------------------------------------------------------ запуск сборки
+// ------------------------------------------------------ launching a build
 
-/// Событие с очередной строкой лога запущенного инстанса.
+/// The event carrying the next log line of a running instance.
 ///
-/// Имя с префиксом `Run`, чтобы не столкнуться с `SpikeLog` спайка:
-/// tauri-specta выводит имя события из имени структуры, и одинаковые
-/// имена разъехались бы молча.
+/// Named with a `Run` prefix so as not to collide with the spike's
+/// `SpikeLog`: tauri-specta derives the event name from the struct name, and
+/// identical names would have drifted apart silently.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
 #[serde(rename_all = "camelCase")]
 pub struct RunLog {
@@ -275,12 +281,12 @@ pub struct RunLog {
     pub line: crate::process::LogLine,
 }
 
-/// Событие смены состояния. Приходит и тогда, когда пользователь ничего
-/// не делал: падение и самоперезапуск обязаны быть видны сразу.
+/// The state-change event. It also arrives when the user did nothing: a crash
+/// and a self-restart have to be visible immediately.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
 pub struct RunChanged(pub RunStatus);
 
-/// Профили запуска инстанса, разобранные из его `.bat` прямо сейчас.
+/// An instance's launch profiles, parsed from its `.bat` right now.
 #[tauri::command]
 #[specta::specta]
 async fn instance_profiles(
@@ -294,11 +300,11 @@ async fn instance_profiles(
     Ok(run::profiles_of(&instance))
 }
 
-/// Итоговая команда запуска — та, что реально уйдёт системе.
+/// The final launch command — the one that will actually go to the system.
 ///
-/// Показывается в редакторе аргументов: `--port` и `--disable-auto-launch`
-/// дописываются нами, и без предпросмотра пользователь спорил бы
-/// с невидимым.
+/// Shown in the argument editor: `--port` and `--disable-auto-launch` are
+/// added by us, and without a preview the user would be arguing with the
+/// invisible.
 #[tauri::command]
 #[specta::specta]
 async fn preview_command(
@@ -317,8 +323,8 @@ async fn preview_command(
         .find(|p| p.id == profile_id)
         .ok_or_else(|| AppError::new("run.noProfiles"))?;
 
-    // Порт показываем предпочитаемый: настоящий выдаётся при старте,
-    // и обещать конкретное число заранее нельзя.
+    // The port shown is the preferred one: the real one is handed out at
+    // launch, and a specific number must not be promised in advance.
     let mut line = vec![profile.python_path.clone()];
     line.extend(profiles::apply_runtime_args(
         &profile.args,
@@ -328,7 +334,7 @@ async fn preview_command(
     Ok(line)
 }
 
-/// Сохраняет свой профиль запуска.
+/// Saves a custom launch profile.
 #[tauri::command]
 #[specta::specta]
 async fn save_custom_profile(
@@ -355,10 +361,10 @@ async fn run_statuses(runtime: tauri::State<'_, Runtime>) -> Result<Vec<RunStatu
     Ok(runtime.statuses())
 }
 
-/// Весь накопленный лог инстанса.
+/// The whole accumulated log of an instance.
 ///
-/// Нужен, чтобы вернувшись на экран инстанса увидеть старт целиком:
-/// события догоняют только то, что происходит при открытом экране.
+/// Needed so that coming back to the instance screen shows the startup in
+/// full: the events only catch what happens while the screen is open.
 #[tauri::command]
 #[specta::specta]
 async fn run_log(
@@ -371,9 +377,9 @@ async fn run_log(
         .unwrap_or_default())
 }
 
-// -------------------------------------------- перенос моделей в общую
+// ------------------------------------- moving models into the shared folder
 
-/// Модели этой сборки и что из них уже есть в общей папке.
+/// This build's models and which of them are already in the shared folder.
 #[tauri::command]
 #[specta::specta]
 async fn scan_instance_models(
@@ -386,13 +392,15 @@ async fn scan_instance_models(
         .map_err(|e| AppError::because("migrate.readFailed", e))
 }
 
-/// Переносит выбранные модели в общую папку.
+/// Moves the selected models into the shared folder.
 ///
-/// Выбор приходит парами «категория и модель», как и у уборки: тумблер
-/// на экране стоит у каждой модели, а не у категории целиком.
+/// The selection arrives as "category and model" pairs, the same as for the
+/// cleanup: on screen the toggle sits next to every model, not next to a whole
+/// category.
 ///
-/// Отказывает у работающей сборки: забирать файлы из-под работающего
-/// ComfyUI нельзя — он держит их открытыми и уже разобрал пути при старте.
+/// Refuses for a running build: files must not be taken out from under a
+/// running ComfyUI — it holds them open and already resolved the paths at
+/// startup.
 #[tauri::command]
 #[specta::specta]
 async fn migrate_models(
@@ -408,8 +416,9 @@ async fn migrate_models(
     let (models, shared) = migrate_paths(&app, &id)?;
     cancel.reset();
 
-    // Место проверяется до начала, а не на середине: узнать о нехватке
-    // на девятнадцатом гигабайте из двадцати — худшее из возможного.
+    // Space is checked before the start, not halfway through: learning about a
+    // shortage on the nineteenth gigabyte out of twenty is the worst possible
+    // outcome.
     let scan = migrate::scan(&models, &shared);
     let need: f64 = scan
         .categories
@@ -426,8 +435,9 @@ async fn migrate_models(
         return Err(AppError::with("migrate.noSpace", "path", shared.display()));
     }
 
-    // Перенос десятков гигабайт уходит в отдельный поток, а не на воркер
-    // асинхронного рантайма: иначе отмена соревнуется за тот же воркер.
+    // Moving tens of gigabytes goes to a thread of its own rather than to an
+    // async runtime worker: otherwise the cancellation competes for that same
+    // worker.
     let emitter = app.clone();
     let flag = cancel.share();
     tauri::async_runtime::spawn_blocking(move || {
@@ -446,12 +456,12 @@ async fn cancel_migrate(cancel: tauri::State<'_, migrate::MigrateCancel>) -> Res
     Ok(())
 }
 
-/// Убирает из сборки то, что уже лежит в общей папке.
+/// Removes from a build what already lies in the shared folder.
 ///
-/// Три условия проверяются здесь, а не только на экране: сборка
-/// остановлена, подключена к общим моделям, и каждый элемент заново
-/// признан дубликатом внутри `remove_duplicates`. Удаление — не то место,
-/// где можно доверять входным данным.
+/// Three conditions are checked here and not only on the screen: the build is
+/// stopped, it is connected to shared models, and every entry has been
+/// recognised as a duplicate afresh inside `remove_duplicates`. Deletion is
+/// not the place where input data can be trusted.
 #[tauri::command]
 #[specta::specta]
 async fn remove_duplicate_models(
@@ -465,8 +475,8 @@ async fn remove_duplicate_models(
     }
     let instance = find_instance(&app, &id)?;
     if !instance.shared.enabled {
-        // Не подключена — удаление лишило бы её моделей вовсе.
-        // Это не уборка, а поломка.
+        // Not connected — the deletion would leave it with no models at all.
+        // That is not a cleanup, that is breakage.
         return Err(AppError::new("migrate.notConnected"));
     }
 
@@ -478,7 +488,7 @@ async fn remove_duplicate_models(
     .map_err(|e| AppError::because("migrate.removeFailed", e))
 }
 
-/// Папка моделей сборки и общий корень.
+/// A build's models folder and the shared root.
 fn migrate_paths(
     app: &tauri::AppHandle,
     id: &str,
@@ -499,13 +509,14 @@ fn migrate_paths(
     Ok((models, shared))
 }
 
-// ------------------------------------------------- библиотека воркфлоу
+// --------------------------------------------------- the workflow library
 
-/// Куда положить свежую библиотеку, если пользователь не выбрал сам.
+/// Where to put a fresh library if the user did not choose themselves.
 ///
-/// Рядом с корнем общих моделей — они обычно лежат на просторном диске,
-/// и держать воркфлоу там же логично. Жёсткой связи нет: библиотека
-/// работает и без общих моделей, поэтому при их отсутствии просто молчим.
+/// Next to the shared models root — those usually lie on a spacious drive, and
+/// keeping workflows in the same place is sensible. There is no hard link: the
+/// library works without shared models, so if there are none we simply stay
+/// silent.
 #[tauri::command]
 #[specta::specta]
 async fn suggest_library_path(app: tauri::AppHandle) -> Result<Option<String>, AppError> {
@@ -532,10 +543,11 @@ async fn save_library_settings(
     settings::save_library(&app, &library)
 }
 
-/// Читает библиотеку целиком.
+/// Reads the whole library.
 ///
-/// В блокирующем потоке: обход дерева на паре сотен воркфлоу — тысячи
-/// обращений к диску плюс разбор каждого JSON ради списка нод.
+/// In a blocking thread: walking the tree over a couple of hundred workflows
+/// means thousands of disk accesses plus parsing every JSON for the sake of
+/// the node list.
 #[tauri::command]
 #[specta::specta]
 async fn scan_library(path: String) -> Result<LibraryScan, AppError> {
@@ -546,15 +558,15 @@ async fn scan_library(path: String) -> Result<LibraryScan, AppError> {
     .map_err(|e| AppError::because("workflows.scanFailed", e))
 }
 
-/// Кладёт файл с диска в библиотеку.
+/// Puts a file from disk into the library.
 ///
-/// Принимает и `.json`, и `.png`: картинка из папки `output` носит граф
-/// с собой, и «перетащить картинку» — самый частый способ вернуться
-/// к удачной генерации. В библиотеку в обоих случаях ложится `.json` —
-/// именно он потом уедет в инстанс.
+/// Accepts both `.json` and `.png`: an image from the `output` folder carries
+/// the graph with it, and "drag the picture in" is the most common way of
+/// getting back to a successful generation. In both cases what lands in the
+/// library is a `.json` — that is what will later travel to an instance.
 ///
-/// Не воркфлоу — отказ с объяснением: библиотека обязана оставаться
-/// библиотекой воркфлоу, а не свалкой JSON.
+/// Not a workflow means a refusal with an explanation: the library has to stay
+/// a library of workflows, not a dumping ground for JSON.
 #[tauri::command]
 #[specta::specta]
 async fn add_workflow_file(
@@ -609,16 +621,17 @@ async fn add_workflow_file(
     Ok(name)
 }
 
-/// Кладёт в библиотеку граф, пришедший текстом.
+/// Puts a graph that arrived as text into the library.
 ///
-/// Тот же конец пути, что и у файла, только источник другой: воркфлоу
-/// чаще присылают текстом — в чате, на форуме, — чем файлом, и сохранять
-/// присланное в файл только ради того, чтобы тут же выбрать его в диалоге,
-/// — лишний круг.
+/// The same end of the road as for a file, only the source differs: workflows
+/// are sent as text — in a chat, on a forum — more often than as files, and
+/// saving what was sent into a file merely to pick it in a dialog right after
+/// is a wasted lap.
 ///
-/// Имя приходит из поля ввода, поэтому проверяется здесь, а не доверяется:
-/// оно попадает в путь. Перезаписи нет и тут — занятое имя это отказ,
-/// а не замена: заменить значило бы затереть одну работу другой.
+/// The name comes from an input field, so it is checked here rather than
+/// trusted: it lands in a path. There is no overwriting here either — a taken
+/// name is a refusal, not a replacement: replacing would mean erasing one
+/// piece of work with another.
 #[tauri::command]
 #[specta::specta]
 async fn add_workflow_text(
@@ -642,7 +655,7 @@ async fn add_workflow_text(
     Ok(rel)
 }
 
-/// Правит запись манифеста: избранное, теги, заметка.
+/// Edits a manifest record: favourite, tags, note.
 #[tauri::command]
 #[specta::specta]
 async fn set_workflow_meta(
@@ -656,10 +669,10 @@ async fn set_workflow_meta(
     workflows::write_manifest(root, &manifest)
 }
 
-/// Убирает потерянную запись из манифеста.
+/// Removes a lost record from the manifest.
 ///
-/// Только запись: файлов эта команда не касается вовсе — она и вызывается
-/// лишь тогда, когда файла уже нет.
+/// The record only: this command does not touch files at all — it is called
+/// precisely when the file is already gone.
 #[tauri::command]
 #[specta::specta]
 async fn forget_workflow(library: String, rel: String) -> Result<(), AppError> {
@@ -669,11 +682,12 @@ async fn forget_workflow(library: String, rel: String) -> Result<(), AppError> {
     workflows::write_manifest(root, &manifest)
 }
 
-/// Воркфлоу, лежащие в сборке.
+/// The workflows lying inside a build.
 ///
-/// У запущенной спрашиваем по API, у остановленной читаем папку. Разница
-/// не косметическая: у запущенной ответ учитывает то, что она сохранила
-/// минуту назад, а у остановленной другого источника и нет.
+/// For a running one we ask over the API, for a stopped one we read the
+/// folder. The difference is not cosmetic: for a running one the answer
+/// accounts for what it saved a minute ago, and for a stopped one there is no
+/// other source anyway.
 #[tauri::command]
 #[specta::specta]
 async fn instance_workflows(
@@ -697,9 +711,10 @@ async fn instance_workflows(
 
         let mut out = Vec::with_capacity(names.len());
         for path in names {
-            // Читаем только то, чьё имя в библиотеке занято. У остальных
-            // сверять не с чем, а список бывает в сотни файлов — и у
-            // запущенной сборки каждое чтение это запрос по HTTP.
+            // Only those whose name is taken in the library get read. For the
+            // rest there is nothing to compare against, and the list runs into
+            // hundreds of files — and for a running build every read is an
+            // HTTP request.
             let twin = root.join(&path);
             let verdict = if library.is_empty() || !twin.is_file() {
                 None
@@ -712,9 +727,9 @@ async fn instance_workflows(
                     (Some(a), Some(b)) if workflows::same_workflow(&a, &b) => {
                         Some(workflows::LibraryMatch::Same)
                     }
-                    // Не прочиталось — считаем разошедшимися. Так кнопка
-                    // остаётся рабочей: «не смогли сверить» не повод
-                    // объявлять чужую работу уже сохранённой.
+                    // If it did not read, we treat them as diverged. That keeps
+                    // the button working: "we could not compare" is no reason
+                    // to declare someone's work already saved.
                     _ => Some(workflows::LibraryMatch::Diverged),
                 }
             };
@@ -727,10 +742,10 @@ async fn instance_workflows(
     .map_err(|e| AppError::because("workflows.scanFailed", e))?
 }
 
-/// Папка воркфлоу сборки — для кнопки «показать в проводнике».
+/// A build's workflow folder — for the "show in Explorer" button.
 ///
-/// Существование проверяем здесь: у остановленной сборки, которая ещё
-/// ничего не сохраняла, папки нет вовсе, и звать проводник не с чем.
+/// Existence is checked here: a stopped build that has not saved anything yet
+/// has no such folder at all, and there is nothing to call Explorer with.
 #[tauri::command]
 #[specta::specta]
 async fn instance_workflows_dir(
@@ -745,24 +760,27 @@ async fn instance_workflows_dir(
     })
 }
 
-/// Переносит воркфлоу из сборки в библиотеку: в сборке его не остаётся.
+/// Moves a workflow from a build into the library: none of it stays in the
+/// build.
 ///
-/// Порядок здесь — единственная защита от потери чужой работы, и он тот же,
-/// что у переноса моделей: пишем копию, **читаем её обратно и сверяем**,
-/// и только потом убираем исходник. Пока копия не проверена, оригинал
-/// должен оставаться на руках.
+/// The order here is the only protection against losing someone's work, and it
+/// is the same as for moving models: write the copy, **read it back and
+/// compare**, and only then remove the source. Until the copy is verified, the
+/// original has to stay in hand.
 ///
-/// Перезаписи нет вовсе. Раньше на занятое имя был вопрос «заменить?»,
-/// и он был безобиден, пока забор был копированием: при любом ответе
-/// воркфлоу оставался в сборке. У переноса цена ответа другая — «заменить»
-/// затирало бы одну работу другой, не оставляя копии ни той, ни другой.
+/// There is no overwriting at all. A taken name used to raise a "replace?"
+/// question, and it was harmless while taking meant copying: whatever the
+/// answer, the workflow stayed in the build. For a move the price of the
+/// answer is different — "replace" would erase one piece of work with another,
+/// leaving a copy of neither.
 ///
-/// Вместо замены — `target`: забрать под свободным именем. Занятое имя
-/// перестало быть тупиком, но разошедшиеся версии остаются двумя разными
-/// файлами, а не одним поверх другого.
+/// Instead of replacing there is `target`: take it under a free name. A taken
+/// name stopped being a dead end, yet diverged versions stay two different
+/// files rather than one on top of the other.
 ///
-/// У запущенной сборки исходник убирает она сама, своим API: папка
-/// воркфлоу принадлежит ей, и о правках со стороны она не знает.
+/// For a running build the source is removed by the build itself, through its
+/// own API: the workflow folder belongs to it, and it knows nothing of edits
+/// from outside.
 #[tauri::command]
 #[specta::specta]
 async fn pull_workflow(
@@ -777,8 +795,9 @@ async fn pull_workflow(
     let port = running_port(&runtime, &id);
 
     tauri::async_runtime::spawn_blocking(move || {
-        // `rel` — где лежит в сборке, `dest` — под каким именем ляжет
-        // в библиотеку. Совпадают всегда, кроме забора разошедшейся версии.
+        // `rel` is where it lies in the build, `dest` is the name it will lie
+        // under in the library. They always match except when taking a
+        // diverged version.
         let dest = target.unwrap_or_else(|| rel.clone());
 
         let local = local_workflows_dir(&instance).join(&rel);
@@ -803,9 +822,9 @@ async fn pull_workflow(
         std::fs::write(&target, &content)
             .map_err(|e| AppError::because("workflows.writeFailed", e))?;
 
-        // Сверка, а не доверие к успешному `write`: дальше идёт удаление,
-        // и оно должно опираться на прочитанное с диска, а не на то,
-        // что запись не вернула ошибку.
+        // A comparison, not trust in a successful `write`: a deletion comes
+        // next, and it has to rest on what was read back from disk, not on the
+        // write having returned no error.
         let written = std::fs::read_to_string(&target)
             .map_err(|e| AppError::because("workflows.verifyFailed", e))?;
         if written != content {
@@ -813,8 +832,9 @@ async fn pull_workflow(
             return Err(AppError::new("workflows.verifyFailed"));
         }
 
-        // Помним, откуда взяли: через полгода это единственный способ
-        // понять, почему воркфлоу требует именно этих нод.
+        // We remember where it was taken from: half a year later that is the
+        // only way to understand why this workflow demands exactly these
+        // nodes.
         let root = std::path::Path::new(&library);
         let (mut manifest, _) = workflows::read_manifest(root);
         let entry = manifest.items.entry(dest.clone()).or_default();
@@ -824,10 +844,10 @@ async fn pull_workflow(
         }
         workflows::write_manifest(root, &manifest)?;
 
-        // Копия на месте и проверена — теперь можно убирать исходник.
-        // Сбой на этом шаге не теряет ничего: воркфлоу окажется и в сборке,
-        // и в библиотеке, а сверка при следующем чтении списка признает их
-        // одним и тем же и погасит кнопку.
+        // The copy is in place and verified — now the source can be removed.
+        // A failure at this step loses nothing: the workflow ends up both in
+        // the build and in the library, and the comparison on the next read of
+        // the list will recognise them as the same and grey the button out.
         match port {
             Some(port) => comfy_api::Client::new(port).delete_workflow(&rel)?,
             None => std::fs::remove_file(&local)
@@ -840,11 +860,12 @@ async fn pull_workflow(
     .map_err(|e| AppError::because("workflows.writeFailed", e))?
 }
 
-/// Кладёт воркфлоу из библиотеки в сборку.
+/// Puts a workflow from the library into a build.
 ///
-/// У запущенной — через API с `overwrite=false`, и **409 возвращается как
-/// развилка**, а не как ошибка: молча затирать чужой воркфлоу нельзя.
-/// У остановленной — файлом, с той же проверкой существования.
+/// For a running one it goes through the API with `overwrite=false`, and **a
+/// 409 comes back as a fork in the road**, not as an error: silently erasing
+/// someone else's workflow is not allowed. For a stopped one it goes as a
+/// file, with the same existence check.
 #[tauri::command]
 #[specta::specta]
 async fn push_workflow(
@@ -878,8 +899,8 @@ async fn push_workflow(
                 if target.exists() && !overwrite {
                     return Ok(PushOutcome::Conflict);
                 }
-                // Папки может не быть вовсе: ComfyUI создаёт её лениво,
-                // при первом сохранении. Создаём сами.
+                // The folder may not exist at all: ComfyUI creates it lazily,
+                // on the first save. We create it ourselves.
                 if let Some(parent) = target.parent() {
                     std::fs::create_dir_all(parent)
                         .map_err(|e| AppError::because("workflows.writeFailed", e))?;
@@ -894,10 +915,11 @@ async fn push_workflow(
     .map_err(|e| AppError::because("workflows.writeFailed", e))?
 }
 
-/// Совместимость воркфлоу со всеми зарегистрированными сборками.
+/// A workflow's compatibility with every registered build.
 ///
-/// Считается для всех разом: пользователь выбирает, куда класть, и сравнить
-/// он должен на одном экране, а не обходя инстансы по одному.
+/// Computed for all of them at once: the user is choosing where to put it, and
+/// the comparison has to happen on one screen rather than by visiting
+/// instances one at a time.
 #[tauri::command]
 #[specta::specta]
 async fn workflow_compat(
@@ -918,9 +940,9 @@ async fn workflow_compat(
     tauri::async_runtime::spawn_blocking(move || {
         let mut out = Vec::new();
         for (instance, (_, port)) in instances.iter().zip(ports) {
-            // Три состояния, и третье нельзя выдавать за первое: сборка,
-            // о которой мы ничего не знаем, — это «неизвестно», а не
-            // «всё хорошо». Зелёная галочка без оснований хуже её отсутствия.
+            // Three states, and the third must not be passed off as the first:
+            // a build we know nothing about is "unknown", not "all good". A
+            // green tick without grounds is worse than no tick at all.
             let (available, source) = match port {
                 Some(port) => match comfy_api::Client::new(port).object_info_keys() {
                     Ok(keys) => {
@@ -942,9 +964,9 @@ async fn workflow_compat(
                     .as_ref()
                     .map(|keys| workflows::missing_nodes(&nodes, keys))
                     .unwrap_or_default(),
-                // Спрашивать по HTTP незачем даже у запущенной сборки:
-                // ComfyUI хранит воркфлоу файлами, и ответ одинаково даёт
-                // файловая система в обоих состояниях.
+                // There is no point asking over HTTP even for a running build:
+                // ComfyUI keeps workflows as files, and the file system gives
+                // the same answer in both states.
                 present: local_workflows_dir(instance).join(&rel).is_file(),
             });
         }
@@ -954,15 +976,15 @@ async fn workflow_compat(
     .map_err(|e| AppError::because("workflows.scanFailed", e))?
 }
 
-/// Откуда взяты сведения о нодах сборки.
+/// Where the knowledge about a build's nodes came from.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum CompatSource {
-    /// Спросили у работающей сборки прямо сейчас.
+    /// Asked of a running build right now.
     Live,
-    /// По снимку с последнего запуска.
+    /// From the snapshot of the last launch.
     Cached,
-    /// Сборка не запущена и ни разу не запускалась при нас.
+    /// The build is not running and has never been launched under us.
     Unknown,
 }
 
@@ -971,14 +993,14 @@ pub enum CompatSource {
 pub struct InstanceCompat {
     pub instance_id: String,
     pub source: CompatSource,
-    /// Пусто при `Unknown` — и это не «всё на месте», а «неизвестно».
-    /// Различать обязан интерфейс, а не читатель.
+    /// Empty under `Unknown` — and that means "unknown", not "everything is
+    /// there". Telling them apart is the interface's job, not the reader's.
     pub missing: Vec<String>,
-    /// Этот воркфлоу уже лежит в сборке.
+    /// This workflow already lies in the build.
     ///
-    /// Считается, а не запоминается. Прежде интерфейс знал только о наших
-    /// собственных нажатиях в текущем сеансе и после перезахода показывал
-    /// «добавить» у сборки, где файл уже был.
+    /// Computed, not remembered. The interface used to know only about our own
+    /// clicks within the current session, and after a re-entry it showed "add"
+    /// for a build where the file was already present.
     pub present: bool,
 }
 
@@ -986,11 +1008,11 @@ pub struct InstanceCompat {
 #[serde(rename_all = "camelCase")]
 pub enum PushOutcome {
     Written,
-    /// Имя занято. Развилка, а не ошибка: спрашиваем пользователя.
+    /// The name is taken. A fork in the road, not an error: we ask the user.
     Conflict,
 }
 
-/// Порт работающей сборки, если она работает.
+/// The port of a running build, if it is running.
 fn running_port(runtime: &Runtime, id: &str) -> Option<u16> {
     runtime
         .get(id)
@@ -1001,18 +1023,18 @@ fn running_port(runtime: &Runtime, id: &str) -> Option<u16> {
         .flatten()
 }
 
-/// Папка воркфлоу остановленной сборки, по её первому профилю.
+/// The workflow folder of a stopped build, by its first profile.
 fn local_workflows_dir(instance: &Instance) -> std::path::PathBuf {
     let root = std::path::Path::new(&instance.path);
     match run::profiles_of(instance).first() {
         Some(profile) => profiles::workflows_dir(profile, root),
-        // Профилей нет вовсе — берём умолчание ComfyUI.
+        // There are no profiles at all — we take ComfyUI's default.
         None => root.join("ComfyUI").join("user").join("default").join("workflows"),
     }
 }
 
-/// Имена воркфлоу остановленной сборки. Папки может не быть — это пусто,
-/// а не ошибка.
+/// The workflow names of a stopped build. The folder may not exist — that is
+/// emptiness, not an error.
 fn local_workflow_names(instance: &Instance) -> Vec<String> {
     let dir = local_workflows_dir(instance);
     let scan = workflows::scan_library(&dir);
@@ -1026,7 +1048,7 @@ fn now_ms() -> f64 {
         .unwrap_or(0.0)
 }
 
-// ------------------------------------------------------- общие модели
+// --------------------------------------------------------- shared models
 
 #[tauri::command]
 #[specta::specta]
@@ -1043,11 +1065,12 @@ async fn save_shared_settings(
     settings::save_shared(&app, &shared)
 }
 
-/// Сканирует папку и возвращает найденные категории.
+/// Scans the folder and returns the categories found.
 ///
-/// Обход дерева в блокирующем потоке: на общей папке в сотни гигабайт это
-/// десятки тысяч обращений к метаданным, и держать на них главный поток
-/// нельзя — интерфейс замрёт ровно тогда, когда пользователь ждёт ответа.
+/// The tree walk goes in a blocking thread: on a shared folder of hundreds of
+/// gigabytes that is tens of thousands of metadata accesses, and holding the
+/// main thread on them is not allowed — the interface would freeze exactly
+/// when the user is waiting for an answer.
 #[tauri::command]
 #[specta::specta]
 async fn scan_shared_root(path: String) -> Result<RootScan, AppError> {
@@ -1058,10 +1081,10 @@ async fn scan_shared_root(path: String) -> Result<RootScan, AppError> {
     .map_err(|e| AppError::because("shared.scanFailed", e))
 }
 
-/// YAML, который получится при текущих настройках.
+/// The YAML that the current settings will produce.
 ///
-/// Предпросмотр не косметика: пользователь должен видеть, что именно
-/// попадёт в конфиг, до того как это попадёт в его сборку.
+/// The preview is not cosmetic: the user has to see what exactly will land in
+/// the config before it lands in their build.
 #[tauri::command]
 #[specta::specta]
 async fn preview_shared_yaml(shared: SharedSettings) -> Result<String, AppError> {
@@ -1070,15 +1093,15 @@ async fn preview_shared_yaml(shared: SharedSettings) -> Result<String, AppError>
         .map_err(|e| AppError::because("shared.scanFailed", e))
 }
 
-/// Создаёт недостающие стандартные подпапки в общем корне.
+/// Creates the missing standard subfolders in the shared root.
 #[tauri::command]
 #[specta::specta]
 async fn create_shared_folders(path: String, names: Vec<String>) -> Result<RootScan, AppError> {
     tauri::async_runtime::spawn_blocking(move || {
         let root = std::path::Path::new(&path);
         for name in &names {
-            // Имя приходит из нашего же списка предложений, но проверить
-            // дешевле, чем однажды создать папку на уровень выше корня.
+            // The name comes from our own list of suggestions, but checking is
+            // cheaper than one day creating a folder a level above the root.
             if name.contains(['/', '\\', ':']) || name.starts_with('.') {
                 continue;
             }
@@ -1090,7 +1113,7 @@ async fn create_shared_folders(path: String, names: Vec<String>) -> Result<RootS
     .map_err(|e| AppError::because("shared.scanFailed", e))
 }
 
-/// Что лежит в `extra_model_paths.yaml` инстанса.
+/// What is sitting in an instance's `extra_model_paths.yaml`.
 #[tauri::command]
 #[specta::specta]
 async fn inspect_instance_config(
@@ -1101,11 +1124,12 @@ async fn inspect_instance_config(
     Ok(shared_models::inspect_instance_file(std::path::Path::new(&instance.path)))
 }
 
-/// Подключает инстанс к общим моделям.
+/// Connects an instance to shared models.
 ///
-/// `confirm_overwrite` относится только к режиму «файл в инстансе» и только
-/// к случаю, когда там уже лежит чужой файл. Без согласия команда отказывает
-/// кодом `shared.foreignConfig`, и фронт показывает экран сравнения.
+/// `confirm_overwrite` applies only to the "file inside the instance" mode and
+/// only to the case where someone else's file already lies there. Without
+/// consent the command refuses with the code `shared.foreignConfig`, and the
+/// frontend shows the comparison screen.
 #[tauri::command]
 #[specta::specta]
 async fn connect_shared(
@@ -1136,10 +1160,11 @@ async fn connect_shared(
     Ok(backup)
 }
 
-/// Отключает инстанс от общих моделей.
+/// Disconnects an instance from shared models.
 ///
-/// В режиме «файл в инстансе» убирает наш файл и возвращает на место
-/// сохранённую копию чужого. Модели в общей папке не трогаются никогда.
+/// In the "file inside the instance" mode it removes our file and puts the
+/// saved copy of someone else's back. The models in the shared folder are
+/// never touched.
 #[tauri::command]
 #[specta::specta]
 async fn disconnect_shared(app: tauri::AppHandle, id: String) -> Result<(), AppError> {
@@ -1163,7 +1188,7 @@ fn find_instance(app: &tauri::AppHandle, id: &str) -> Result<Instance, AppError>
         .ok_or_else(|| AppError::with("instances.notFound", "id", id))
 }
 
-/// Секунды эпохи — метка в имени резервной копии.
+/// Epoch seconds — the stamp in a backup's name.
 fn now_secs() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -1171,11 +1196,12 @@ fn now_secs() -> u64 {
         .unwrap_or(0)
 }
 
-/// Готовит общие модели к запуску инстанса.
+/// Prepares shared models for an instance launch.
 ///
-/// Возвращает путь конфига для `--extra-model-paths-config`, если инстанс
-/// подключён в режиме флага. В режиме «файл в инстансе» флаг не нужен:
-/// файл уже лежит в папке сборки и подхватывается ComfyUI сам.
+/// Returns the config path for `--extra-model-paths-config` if the instance is
+/// connected in flag mode. In the "file inside the instance" mode no flag is
+/// needed: the file already lies in the build folder and ComfyUI picks it up
+/// by itself.
 fn prepare_shared(
     app: &tauri::AppHandle,
     instance: &Instance,
@@ -1188,8 +1214,9 @@ fn prepare_shared(
     let settings = settings::load_shared(app)?;
     let rendered = shared_models::render_settings(&settings);
 
-    // Проверка до запуска, а не после: внешний диск отключают, и узнавать
-    // об этом из «model not found» посреди работы пользователь не должен.
+    // The check happens before the launch, not after: external drives do get
+    // unplugged, and the user should not learn about it from a "model not
+    // found" in the middle of their work.
     if let Some(path) = rendered.unavailable.first() {
         return Err(AppError::with("shared.rootUnavailable", "path", path));
     }
@@ -1198,10 +1225,10 @@ fn prepare_shared(
     }
 
     if instance.shared.apply_mode == ApplyMode::InstanceFile {
-        // Файл мог устареть: пользователь завёл в общей папке новую
-        // категорию, а конфиг остался прежним. Обновляем — но только свой.
-        // Чужой на этом месте означает, что его положили после нас,
-        // и трогать его при обычном запуске мы права не имеем.
+        // The file may have gone stale: the user created a new category in the
+        // shared folder while the config stayed as it was. We update it — but
+        // only our own. Someone else's in this place means it was put there
+        // after us, and we have no right to touch it on an ordinary launch.
         let root = std::path::Path::new(&instance.path);
         if shared_models::inspect_instance_file(root).state == InstanceFileState::Ours {
             shared_models::write_config(
@@ -1221,29 +1248,30 @@ fn prepare_shared(
     Ok(Some(path.display().to_string()))
 }
 
-/// Согласия пользователя, без которых запуск отказывается идти.
+/// The user's consents, without which the launch refuses to proceed.
 ///
-/// Обе развилки устроены одинаково: первый вызов приходит с пустыми
-/// согласиями и получает отказ с кодом, фронт раскрывает выбор на месте,
-/// повторный вызов приходит уже с ответом. Модалку сюда положить нельзя
-/// (дисциплина z-order), а у тоста не бывает кнопок.
+/// Both forks work the same way: the first call arrives with empty consents
+/// and gets a refusal with a code, the frontend unfolds the choice in place,
+/// and the repeat call arrives with the answer. A modal cannot be put here
+/// (the z-order discipline), and a toast has no buttons.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct StartOptions {
-    /// Запускаться, даже если общий корень моделей недоступен.
+    /// Launch even if the shared models root is unavailable.
     pub without_shared: bool,
-    /// Запускаться, даже если другая сборка уже работает.
+    /// Launch even if another build is already running.
     pub allow_multiple: bool,
 }
 
-/// Запускает инстанс.
+/// Launches an instance.
 ///
-/// Недоступный общий корень не может просто игнорироваться: пользователь,
-/// державший модели на внешнем диске, получил бы «model not found» посреди
-/// работы и решил бы, что сломалось приложение.
+/// An unavailable shared root cannot simply be ignored: a user who kept their
+/// models on an external drive would get a "model not found" in the middle of
+/// their work and conclude the app is broken.
 ///
-/// Вторая сборка на той же видеокарте — это отказ по нехватке видеопамяти
-/// уже в очереди генерации, и понять его со стороны ComfyUI невозможно.
+/// A second build on the same graphics card means an out-of-VRAM failure once
+/// the generation is already queued, and understanding it from ComfyUI's side
+/// is impossible.
 #[tauri::command]
 #[specta::specta]
 async fn start_instance(
@@ -1306,13 +1334,13 @@ fn start_inner(
     })?;
 
     runtime.insert(&id, outcome.cell.clone());
-    // Дата последнего запуска — справочная, и провал её записи запуску
-    // не помеха: сборка уже стартовала.
+    // The last-launch date is informational, and a failure to write it is no
+    // obstacle to the launch: the build has already started.
     let _ = instances::mark_started(app, &id);
     let _ = RunChanged(outcome.status.clone()).emit(app);
 
-    // Готовность ждём в фоне: команда обязана вернуться сразу, иначе
-    // интерфейс не покажет ни строчки до конца холодного старта.
+    // Readiness is awaited in the background: the command has to return at
+    // once, or the interface shows not one line until the cold start is over.
     let ready_app = app.clone();
     let ready_cell = outcome.cell.clone();
     let port = outcome.status.port.unwrap_or_default();
@@ -1345,11 +1373,12 @@ fn start_inner(
     Ok(outcome.status)
 }
 
-/// Имя другой работающей сборки, если такая есть.
+/// The name of another running build, if there is one.
 ///
-/// Имя, а не идентификатор: сообщение показывается пользователю, и «i17550…»
-/// ему ничего не скажет. Инстанс мог исчезнуть из реестра — тогда
-/// довольствуемся идентификатором, лишь бы не промолчать.
+/// The name, not the identifier: the message is shown to the user, and
+/// "i17550…" tells them nothing. The instance may have disappeared from the
+/// registry — then we make do with the identifier, as long as we do not stay
+/// silent.
 fn other_running(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Option<String> {
     let busy = tray::busy(runtime);
     let other = busy.into_iter().find(|other| other != id)?;
@@ -1359,7 +1388,7 @@ fn other_running(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Option<
     Some(name.unwrap_or(other))
 }
 
-/// Разбирает, чем кончился процесс, и сообщает наверх.
+/// Works out how the process ended and reports it upwards.
 fn finish(app: &tauri::AppHandle, id: &str, exit: run::Exit) {
     let runtime = app.state::<Runtime>();
     let Some(cell) = runtime.get(id) else { return };
@@ -1377,18 +1406,18 @@ fn finish(app: &tauri::AppHandle, id: &str, exit: run::Exit) {
             running.status.pid = None;
         }
         run::Exit::Detached => {
-            // Сервер жив, но не наш. Управлять им мы больше не можем,
-            // и делать вид, что можем, нельзя.
+            // The server is alive but not ours. We can no longer control it,
+            // and pretending we can is not allowed.
             running.status.state = RunState::Detached;
             running.status.pid = None;
         }
     }
 
-    // Вкладку закрывает тот, кто знает про конец процесса. Порт умер
-    // вместе с ним, и оставленная вкладка показала бы страницу ошибки
-    // WebView2 вместо интерфейса. Исключение — `Detached`: там сервер
-    // на порту жив, просто управляет им уже не наш хэндл, и отбирать
-    // у пользователя работающий интерфейс не за что.
+    // The tab is closed by whoever knows the process is over. The port died
+    // with it, and a tab left behind would show a WebView2 error page instead
+    // of the interface. The exception is `Detached`: there the server on the
+    // port is alive, it is simply no longer our handle controlling it, and
+    // there is no reason to take a working interface away from the user.
     if !detached {
         webview::close(app, id);
     }
@@ -1418,14 +1447,14 @@ fn stop_inner(app: &tauri::AppHandle, runtime: &Runtime, id: &str) -> Result<(),
     run::stop(&cell)
 }
 
-/// Забирает под своё управление сервер, перезапустившийся сам.
+/// Takes control of a server that restarted itself.
 ///
-/// ComfyUI-Manager после установки нод гасит сервер и поднимает новый
-/// процесс. Наш хэндл теряется, состояние становится `Detached`, и дальше
-/// приложение умеет только смотреть: PID нового процесса ему неизвестен.
+/// After installing nodes, ComfyUI-Manager shuts the server down and brings a
+/// new process up. Our handle is lost, the state becomes `Detached`, and from
+/// then on the app can only watch: it does not know the new process's PID.
 ///
-/// Находим владельца порта по таблице соединений и записываем его PID.
-/// После этого работает всё обычное — и остановка, и вкладка.
+/// We find the port's owner through the connection table and record its PID.
+/// After that everything ordinary works again — stopping and the tab alike.
 #[tauri::command]
 #[specta::specta]
 async fn adopt_instance(
@@ -1445,7 +1474,8 @@ async fn adopt_instance(
         running.status.port.ok_or_else(|| AppError::new("run.notRunning"))?
     };
 
-    // Порт мог освободиться, пока пользователь читал сообщение.
+    // The port could have been released while the user was reading the
+    // message.
     if !crate::process::probe(port) {
         return Err(AppError::new("run.notRunning"));
     }
@@ -1464,12 +1494,12 @@ async fn adopt_instance(
     Ok(status)
 }
 
-/// Останавливает и поднимает инстанс заново тем же профилем.
+/// Stops an instance and brings it back up with the same profile.
 ///
-/// Делается в Rust, а не двумя вызовами с фронта: `stop` возвращается,
-/// как только освободился порт, а состояние в `Stopped` переводит поток
-/// ожидания процесса — и старт, посланный сразу следом, наткнулся бы
-/// на `run.alreadyRunning`. Здесь мы просто дожидаемся конца перехода.
+/// Done in Rust rather than as two calls from the frontend: `stop` returns as
+/// soon as the port is released, while the state is moved to `Stopped` by the
+/// process-waiting thread — and a start sent immediately after would run into
+/// `run.alreadyRunning`. Here we simply wait for the transition to finish.
 #[tauri::command]
 #[specta::specta]
 async fn restart_instance(
@@ -1483,16 +1513,16 @@ async fn restart_instance(
 
     stop_inner(&app, &runtime, &id)?;
 
-    // Ждём, пока поток ожидания процесса разберётся, чем тот кончился.
-    // Порт к этому моменту уже отпущен: за этим следит `run::stop`.
+    // We wait for the process-waiting thread to work out how it ended. By this
+    // point the port has already been released: `run::stop` sees to that.
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
     while runtime.is_busy(&id) && std::time::Instant::now() < deadline {
         std::thread::sleep(std::time::Duration::from_millis(50));
     }
 
-    // Перезапуск — продолжение того, что уже шло: спрашивать заново про
-    // общие модели и про соседнюю сборку не за что, эти согласия
-    // пользователь уже дал, когда запускал.
+    // A restart is a continuation of what was already running: there is no
+    // reason to ask again about shared models or about the neighbouring build,
+    // the user already gave those consents when they launched it.
     start_inner(
         &app,
         &runtime,
@@ -1502,10 +1532,11 @@ async fn restart_instance(
     )
 }
 
-/// Считает размер инстанса на диске.
+/// Measures an instance's size on disk.
 ///
-/// Команда `async`, поэтому выполняется не в главном потоке и интерфейс
-/// не замирает на все минуты обхода. `None` означает, что подсчёт уже идёт.
+/// The command is `async`, so it runs off the main thread and the interface
+/// does not freeze for all the minutes of the walk. `None` means a measurement
+/// is already running.
 #[tauri::command]
 #[specta::specta]
 async fn measure_instance_size(
@@ -1516,14 +1547,14 @@ async fn measure_instance_size(
     instances::measure_size(&app, &jobs, &id)
 }
 
-// -------------------------------------------------- встроенная вкладка
+// ------------------------------------------------------- the embedded tab
 
-/// Показывает вкладку инстанса, создавая её при первом вызове.
+/// Shows an instance's tab, creating it on the first call.
 ///
-/// Команды встраивания обязаны быть `async`. Синхронная команда Tauri
-/// выполняется в главном потоке, а `add_child` изнутри ставит задачу
-/// в тот же поток и ждёт её результата — получается взаимная блокировка
-/// без единой ошибки в логе.
+/// The embedding commands have to be `async`. A synchronous Tauri command runs
+/// on the main thread, and `add_child` from inside it queues work onto that
+/// same thread and waits for its result — which is a deadlock without a single
+/// error in the log.
 #[tauri::command]
 #[specta::specta]
 async fn show_comfy(
@@ -1532,8 +1563,8 @@ async fn show_comfy(
     id: String,
     rect: webview::Rect,
 ) -> Result<(), AppError> {
-    // Порт берём из состояния запуска, а не с фронта: он выдан нами
-    // и меняется при каждом старте.
+    // The port is taken from the run state, not from the frontend: it was
+    // handed out by us and changes on every launch.
     let port = runtime
         .get(&id)
         .and_then(|cell| cell.lock().unwrap().status.port)
@@ -1541,7 +1572,7 @@ async fn show_comfy(
     webview::show(&app, &id, port, rect)
 }
 
-/// Переставляет вкладку вслед за областью контента.
+/// Moves the tab along with the content area.
 #[tauri::command]
 #[specta::specta]
 async fn place_comfy(
@@ -1552,7 +1583,7 @@ async fn place_comfy(
     webview::place(&app, &id, rect)
 }
 
-/// Прячет все вкладки: уход в другой раздел, открытие консоли логов.
+/// Hides every tab: leaving for another section, opening the log console.
 #[tauri::command]
 #[specta::specta]
 async fn hide_comfy(app: tauri::AppHandle) -> Result<(), AppError> {
@@ -1566,12 +1597,12 @@ async fn reload_comfy(app: tauri::AppHandle, id: String) -> Result<(), AppError>
     webview::reload(&app, &id)
 }
 
-// -------------------------------------------------- отчёт о дубликатах
+// --------------------------------------------------- the duplicate report
 
-/// Строит отчёт о дублирующихся моделях по всем сборкам сразу.
+/// Builds a report on duplicated models across every build at once.
 ///
-/// Команда **ничего не делает с файлами** и делать не будет: уборка
-/// дублей живёт отдельной командой, на своём экране и со своим перечнем.
+/// The command **does nothing to files** and never will: cleaning duplicates
+/// up lives in a command of its own, on its own screen and with its own list.
 #[tauri::command]
 #[specta::specta]
 async fn scan_duplicates(
@@ -1583,9 +1614,9 @@ async fn scan_duplicates(
     let mut places = Vec::new();
     for instance in instances::list(&app)? {
         if !instance.available {
-            // Недоступную папку молча пропустить нельзя: отчёт выглядел бы
-            // полным. Кладём её как место с несуществующим путём — сканер
-            // сам отнесёт её в пропущенные.
+            // An unavailable folder must not be skipped silently: the report
+            // would look complete. We put it in as a place with a
+            // non-existent path — the scanner files it under skipped itself.
             places.push(duplicates::Place {
                 name: instance.name.clone(),
                 models_dir: std::path::PathBuf::from(&instance.path),
@@ -1600,8 +1631,8 @@ async fn scan_duplicates(
         });
     }
 
-    // Общая папка — такое же место: модель, лежащая и там, и в сборке,
-    // это дубль ровно в том же смысле.
+    // The shared folder is a place just the same: a model lying both there and
+    // in a build is a duplicate in exactly the same sense.
     let shared = settings::load_shared(&app)?;
     if let Some(root) = migrate::first_root(&shared) {
         places.push(duplicates::Place {
@@ -1625,13 +1656,13 @@ async fn cancel_duplicates_scan(
     Ok(())
 }
 
-// ------------------------------------------------------ трей и выход
+// ------------------------------------------------------ the tray and exit
 
-/// Подписи меню трея под текущий язык.
+/// The tray menu labels for the current language.
 ///
-/// Меню трея нативное, до `t()` ему не дотянуться, а переводить строки
-/// в Rust правилами проекта запрещено. Поэтому текст приходит с фронта —
-/// и приходит заново при каждой смене языка.
+/// The tray menu is native, `t()` cannot reach it, and translating strings in
+/// Rust is forbidden by the project's rules. So the text comes from the
+/// frontend — and comes again on every change of language.
 #[tauri::command]
 #[specta::specta]
 async fn set_tray_labels(app: tauri::AppHandle, labels: tray::TrayLabels) -> Result<(), AppError> {
@@ -1639,14 +1670,14 @@ async fn set_tray_labels(app: tauri::AppHandle, labels: tray::TrayLabels) -> Res
     Ok(())
 }
 
-/// Инстансы, которые закрытие приложения унесёт с собой.
+/// The instances that closing the app would take down with it.
 #[tauri::command]
 #[specta::specta]
 async fn busy_instances(runtime: tauri::State<'_, Runtime>) -> Result<Vec<String>, AppError> {
     Ok(tray::busy(&runtime))
 }
 
-/// Остановить всё и выйти.
+/// Stop everything and quit.
 #[tauri::command]
 #[specta::specta]
 async fn stop_all_and_quit(app: tauri::AppHandle) -> Result<(), AppError> {
@@ -1655,7 +1686,7 @@ async fn stop_all_and_quit(app: tauri::AppHandle) -> Result<(), AppError> {
     Ok(())
 }
 
-/// Свернуть в трей, оставив серверы работать.
+/// Collapse into the tray, leaving the servers running.
 #[tauri::command]
 #[specta::specta]
 async fn hide_to_tray(app: tauri::AppHandle) -> Result<(), AppError> {
@@ -1668,26 +1699,28 @@ async fn hide_to_tray(app: tauri::AppHandle) -> Result<(), AppError> {
     Ok(())
 }
 
-// ------------------------------------------------------- обновление
+// ------------------------------------------------------------- updating
 
-/// Спрашивает, вышла ли новая версия. `None` — установлена последняя.
+/// Asks whether a new version is out. `None` means the latest is installed.
 ///
-/// Ошибку возвращает как есть, а глушит её вызывающий: автоматическая
-/// проверка при старте молчит о сетевых сбоях, ручная — показывает.
-/// Различить это в Rust нечем, зато на фронте видно, кто нажал кнопку.
+/// Returns the error as it is and leaves the muting to the caller: the
+/// automatic check at startup stays silent about network failures, a manual
+/// one shows them. There is nothing in Rust to tell those apart, whereas the
+/// frontend can see who pressed the button.
 #[tauri::command]
 #[specta::specta]
 async fn check_update(app: tauri::AppHandle) -> Result<Option<update::UpdateInfo>, AppError> {
     update::check(&app).await
 }
 
-/// Ставит обновление и перезапускает приложение.
+/// Installs the update and restarts the app.
 ///
-/// Развилка «работают сборки» устроена так же, как гард мульти-запуска:
-/// первый вызов приходит с `stop_running: false` и получает отказ с кодом,
-/// фронт раскрывает выбор на месте, повторный вызов приходит уже с ответом.
-/// Молча гасить чужую очередь генерации нельзя — инсталлятор Windows
-/// закроет нас принудительно, а Job Object унесёт с собой все сборки.
+/// The "builds are running" fork works the same way as the multi-launch guard:
+/// the first call arrives with `stop_running: false` and gets a refusal with a
+/// code, the frontend unfolds the choice in place, and the repeat call arrives
+/// with the answer. Silently shutting down someone's generation queue is not
+/// allowed — the Windows installer will close us by force, and the Job Object
+/// will take every build down with it.
 #[tauri::command]
 #[specta::specta]
 async fn install_update(
@@ -1706,10 +1739,12 @@ async fn install_update(
     update::install(&app).await
 }
 
-/// Имена работающих сборок через запятую — для сообщения пользователю.
+/// The names of the running builds, comma-separated — for the message to the
+/// user.
 ///
-/// Имена, а не идентификаторы: «i17550…» не скажет ему ничего. Пропавшая
-/// из реестра сборка довольствуется идентификатором, лишь бы не промолчать.
+/// Names, not identifiers: "i17550…" would tell them nothing. A build that
+/// vanished from the registry makes do with its identifier, as long as we do
+/// not stay silent.
 fn busy_names(app: &tauri::AppHandle, ids: &[String]) -> String {
     let all = instances::list(app).unwrap_or_default();
     ids.iter()
@@ -1723,11 +1758,12 @@ fn busy_names(app: &tauri::AppHandle, ids: &[String]) -> String {
         .join(", ")
 }
 
-/// Папка результатов генерации у инстанса.
+/// An instance's generation output folder.
 ///
-/// `None` означает «папки ещё нет»: до первой генерации ComfyUI её
-/// не создаёт, и открывать нечего. Создавать её за пользователя мы
-/// не будем — внутри чужой установки не появляется ничего по нашей воле.
+/// `None` means "the folder is not there yet": ComfyUI does not create it
+/// before the first generation, and there is nothing to open. We will not
+/// create it on the user's behalf — nothing appears inside someone else's
+/// installation by our will.
 #[tauri::command]
 #[specta::specta]
 async fn instance_output_dir(
@@ -1751,8 +1787,8 @@ async fn instance_output_dir(
     Ok(dir.is_dir().then(|| dir.display().to_string()))
 }
 
-/// Единый список команд и событий: и обработчик вызовов, и генератор типов
-/// берутся отсюда, поэтому разойтись они не могут.
+/// A single list of commands and events: both the invoke handler and the type
+/// generator are taken from here, so the two cannot drift apart.
 fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
         .commands(tauri_specta::collect_commands![
@@ -1831,11 +1867,11 @@ fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         ])
 }
 
-/// Выгружает типы в `src/bindings.ts`.
+/// Exports the types into `src/bindings.ts`.
 ///
-/// Вызывается и из дев-сборки, и из теста. Тест важнее: он генерирует
-/// типы без запуска окна, поэтому работает в CI и не требует ни дисплея,
-/// ни дев-сервера Vite.
+/// Called both from the dev build and from the test. The test matters more: it
+/// generates the types without opening a window, so it works in CI and needs
+/// neither a display nor the Vite dev server.
 #[cfg(debug_assertions)]
 fn export_bindings(builder: &tauri_specta::Builder<tauri::Wry>) {
     builder
@@ -1843,13 +1879,13 @@ fn export_bindings(builder: &tauri_specta::Builder<tauri::Wry>) {
             specta_typescript::Typescript::default(),
             "../src/bindings.ts",
         )
-        .expect("не удалось выгрузить типы в bindings.ts");
+        .expect("failed to export the types into bindings.ts");
 }
 
 #[cfg(test)]
 mod tests {
-    /// Держит `src/bindings.ts` в согласии с сигнатурами команд.
-    /// Ломается ровно тогда, когда изменился контракт, — и это хорошо.
+    /// Keeps `src/bindings.ts` in agreement with the command signatures.
+    /// It breaks exactly when the contract has changed — and that is good.
     #[test]
     fn bindings_up_to_date() {
         super::export_bindings(&super::specta_builder());
@@ -1864,9 +1900,10 @@ pub fn run() {
     export_bindings(&builder);
 
     tauri::Builder::default()
-        // Первым по требованию плагина: второй экземпляр обязан узнать
-        // о первом раньше, чем успеет что-нибудь создать. Второе окно
-        // означало бы второй Job Object и вторую запись в тот же реестр.
+        // First, as the plugin requires: a second instance has to learn about
+        // the first before it manages to create anything. A second window
+        // would mean a second Job Object and a second writer to the same
+        // registry.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             tray::reveal(app);
         }))
@@ -1874,9 +1911,10 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        // Апдейтер спрашивает манифест только по нашей команде: прав
-        // на прямой вызов плагина у вебвью нет, и гард «работают сборки»
-        // обойти со стороны фронта нечем.
+        // The updater asks for the manifest only on our command: the webview
+        // has no permission to call the plugin directly, and there is nothing
+        // on the frontend side to get around the "builds are running" guard
+        // with.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(SizeJobs::default())
         .manage(InstallLock::default())
@@ -1888,24 +1926,24 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .on_window_event(tray::on_window_event)
         .setup(move |app| {
-            // Обязательно: без mount_events типизированные события
-            // не доедут до фронта.
+            // Mandatory: without mount_events the typed events never reach the
+            // frontend.
             builder.mount_events(app);
 
-            // Job Object до всего остального: сборки, запущенные до его
-            // установки, переживут падение приложения и оставят занятой
-            // видеопамять.
+            // The Job Object before anything else: builds launched before it
+            // is installed will outlive a crash of the app and leave the VRAM
+            // occupied.
             if let Err(e) = supervise::windows::install_job_object() {
-                eprintln!("[CPO] job object не создан: {e}. Дочерние процессы могут пережить приложение.");
+                eprintln!("[CPO] job object was not created: {e}. Child processes may outlive the app.");
             }
 
             if let Err(e) = tray::install(app.handle()) {
-                // Без трея приложение работает, просто «свернуть» станет
-                // некуда. Ронять запуск из-за этого незачем.
-                eprintln!("[CPO] трей не создан: {e}");
+                // The app works without a tray, there is simply nowhere left
+                // to "collapse" into. No reason to fail the launch over it.
+                eprintln!("[CPO] tray was not created: {e}");
             }
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("не удалось запустить приложение");
+        .expect("failed to start the application");
 }
