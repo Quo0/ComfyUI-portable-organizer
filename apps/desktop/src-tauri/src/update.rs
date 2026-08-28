@@ -1,20 +1,20 @@
-//! Обновление приложения: проверка, загрузка, установка.
+//! App updates: checking, downloading, installing.
 //!
-//! Единственное, что приложение отправляет наружу, — запрос манифеста
-//! `latest.json` с текущим номером версии в адресе. Поэтому проверка
-//! отключается настройкой, а автоматическая проверка при старте молчит
-//! о сетевых сбоях: без сети приложение обязано работать обычным образом,
-//! а не встречать пользователя ошибкой, к которой он не имеет отношения.
+//! The only thing the app sends outwards is a request for the `latest.json`
+//! manifest with the current version number in the address. That is why the
+//! check is switchable, and why the automatic check at startup stays silent
+//! about network failures: with no network the app has to work as usual rather
+//! than greet the user with an error they had nothing to do with.
 //!
-//! **Установка никогда не идёт молча.** На Windows инсталлятор закрывает
-//! приложение принудительно, а дочерние процессы живут в Job Object
-//! с `KILL_ON_JOB_CLOSE` и уходят вместе с нами. Обновление посреди
-//! генерации стоило бы пользователю очереди и минут холодного старта,
-//! поэтому решение о судьбе работающих сборок принимает он, а не мы.
+//! **Installation never happens silently.** On Windows the installer closes
+//! the app by force, and the child processes live in a Job Object with
+//! `KILL_ON_JOB_CLOSE` and go down with us. An update in the middle of a
+//! generation would cost the user their queue and minutes of cold start, so
+//! the fate of running builds is decided by them, not by us.
 //!
-//! Подпись обновления проверяет сам плагин по `pubkey` из конфигурации:
-//! не сошлась — установка не начинается. Это не подпись кода и на
-//! SmartScreen не влияет, механизмы разные.
+//! The update signature is verified by the plugin itself against the `pubkey`
+//! from the configuration: a mismatch means the install never starts. This is
+//! not code signing and has no effect on SmartScreen — different mechanisms.
 
 use serde::{Deserialize, Serialize};
 use tauri_plugin_updater::UpdaterExt;
@@ -22,33 +22,33 @@ use tauri_specta::Event;
 
 use crate::error::AppError;
 
-/// Найденная новая версия.
+/// A newer version that was found.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateInfo {
     pub version: String,
-    /// Установленная сейчас. Рядом с новой, чтобы экран не собирал
-    /// пару из двух источников.
+    /// The one installed right now. Next to the new one so the screen does not
+    /// have to assemble the pair from two sources.
     pub current_version: String,
-    /// Тело релиза: секция `CHANGELOG.md` этой версии. Не переводится —
-    /// это текст выпуска, а не строка интерфейса.
+    /// The release body: this version's section of `CHANGELOG.md`. Not
+    /// translated — it is release text, not an interface string.
     pub notes: Option<String>,
-    /// Миллисекунды эпохи, как и остальные даты в реестре: форматирует их
-    /// фронт по правилам локали, а не Rust.
+    /// Epoch milliseconds, like the rest of the dates in the registry: the
+    /// frontend formats them by locale rules, not Rust.
     pub date: Option<f64>,
 }
 
-/// Ход загрузки. Событием, а не ответом команды: ответ у команды один,
-/// а установка идёт десятки секунд.
+/// Download progress. An event rather than a command response: a command
+/// answers once, while the install runs for tens of seconds.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateProgress {
     pub downloaded: f64,
-    /// `None` — сервер не прислал длину. Тогда полоса индетерминантная.
+    /// `None` means the server sent no length. The bar is indeterminate then.
     pub total: Option<f64>,
 }
 
-/// Спрашивает манифест. `None` — установлена последняя версия.
+/// Asks for the manifest. `None` means the latest version is installed.
 pub async fn check(app: &tauri::AppHandle) -> Result<Option<UpdateInfo>, AppError> {
     let current = app.package_info().version.to_string();
 
@@ -71,11 +71,11 @@ pub async fn check(app: &tauri::AppHandle) -> Result<Option<UpdateInfo>, AppErro
     }))
 }
 
-/// Скачивает и ставит обновление, после чего перезапускает приложение.
+/// Downloads and installs the update, then restarts the app.
 ///
-/// Проверка повторяется здесь, а не берётся из ответа `check`: объект
-/// обновления живёт внутри плагина и через границу IPC не проходит,
-/// а между экраном и нажатием проходит время.
+/// The check is repeated here instead of being taken from the `check`
+/// response: the update object lives inside the plugin and does not cross the
+/// IPC boundary, and time passes between the screen and the press.
 pub async fn install(app: &tauri::AppHandle) -> Result<(), AppError> {
     let updater = app
         .updater()
@@ -104,7 +104,7 @@ pub async fn install(app: &tauri::AppHandle) -> Result<(), AppError> {
         .await
         .map_err(|e| AppError::because("update.installFailed", e))?;
 
-    // Сюда доходим только на тех платформах, где инсталлятор не забрал
-    // управление себе. Перезапуск не возвращается.
+    // We only get here on platforms where the installer did not take control
+    // for itself. The restart does not return.
     app.restart()
 }

@@ -1,15 +1,15 @@
-//! Трей и закрытие окна при работающих серверах.
+//! The tray, and closing the window while servers are running.
 //!
-//! Крестик у этого приложения означает не то же, что у обычного: за ним
-//! может стоять сборка с загруженной в видеопамять моделью и очередью
-//! генераций. Закрыть окно молча — значит убить и её, потому что дочерние
-//! процессы живут в Job Object и уходят вместе с нами.
+//! The close button means something different in this app than in an ordinary
+//! one: behind it there may be a build with a model loaded into VRAM and a
+//! queue of generations. Closing the window silently means killing that too,
+//! because the child processes live in a Job Object and go down with us.
 //!
-//! Поэтому окно закрывается либо когда работать нечему, либо после
-//! явного выбора пользователя. Выбор показывается **экраном**, а не
-//! диалогом: у работающей сборки поверх нашего HTML лежит нативное окно
-//! вкладки, и перекрыть его нечем — сначала прячем вкладки, потом просим
-//! фронт увести на экран выхода.
+//! So the window closes either when there is nothing running or after an
+//! explicit choice by the user. The choice is shown as a **screen**, not a
+//! dialog: with a build running, the tab's native window sits on top of our
+//! HTML and nothing can cover it — first we hide the tabs, then ask the
+//! frontend to navigate to the exit screen.
 
 use std::sync::Mutex;
 
@@ -20,7 +20,8 @@ use tauri_specta::Event;
 
 use crate::process::{RunState, Runtime};
 
-/// Пункты меню трея, чтобы переписывать их текст при смене языка.
+/// Tray menu items, kept around so their text can be rewritten when the
+/// language changes.
 #[derive(Default)]
 pub struct TrayItems(Mutex<Option<Items>>);
 
@@ -30,8 +31,8 @@ struct Items {
     quit: MenuItem<Wry>,
 }
 
-/// Подписи меню трея. Приходят с фронта: перевод живёт в локалях, а не
-/// в Rust, и меняться обязан вместе с языком.
+/// Tray menu labels. They come from the frontend: the translation lives in
+/// the locales, not in Rust, and has to change along with the language.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TrayLabels {
@@ -40,10 +41,10 @@ pub struct TrayLabels {
     pub quit: String,
 }
 
-/// Есть ли сборки, которые закрытие приложения унесёт с собой.
+/// Which builds closing the app would take down with it.
 ///
-/// `Detached` сюда не входит: тем сервером мы не управляем, и наш выход
-/// его не заденет.
+/// `Detached` is not included: we do not control that server, and our exit
+/// will not touch it.
 pub fn busy(runtime: &Runtime) -> Vec<String> {
     runtime
         .statuses()
@@ -58,18 +59,19 @@ pub fn busy(runtime: &Runtime) -> Vec<String> {
         .collect()
 }
 
-/// Событие «пользователь закрывает окно, а серверы работают».
+/// The "user is closing the window while servers are running" event.
 ///
-/// Роутом владеет фронт: вести навигацию из Rust значило бы завести
-/// второй источник правды о том, где какой экран.
+/// The route is owned by the frontend: driving navigation from Rust would
+/// create a second source of truth about which screen is where.
 #[derive(Clone, serde::Serialize, serde::Deserialize, specta::Type, Event)]
 pub struct QuitRequested;
 
-/// Строит трей.
+/// Builds the tray.
 ///
-/// Подписи ставятся английские — те же, что в `en.json`, источнике правды.
-/// Фронт присылает перевод сразу после запуска, и увидеть английский
-/// в меню можно только успев открыть его в первые миллисекунды.
+/// The labels are set in English — the same ones as in `en.json`, the source
+/// of truth. The frontend sends the translation right after startup, so the
+/// English ones are only visible to someone who opens the menu within the
+/// first few milliseconds.
 pub fn install(app: &tauri::AppHandle) -> tauri::Result<()> {
     let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
     let stop = MenuItem::with_id(app, "stop", "Stop all", true, None::<&str>)?;
@@ -77,11 +79,11 @@ pub fn install(app: &tauri::AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&show, &stop, &quit])?;
 
     TrayIconBuilder::with_id("main")
-        .icon(app.default_window_icon().cloned().expect("иконка окна"))
+        .icon(app.default_window_icon().cloned().expect("window icon"))
         .tooltip("ComfyUI Portable Organizer")
         .menu(&menu)
-        // Меню только по правой кнопке: левая показывает окно, это
-        // ожидаемое поведение трея на Windows.
+        // Menu on right click only: the left one shows the window, which is
+        // the expected tray behaviour on Windows.
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {
             "show" => reveal(app),
@@ -108,7 +110,7 @@ pub fn install(app: &tauri::AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-/// Переписывает подписи меню под текущий язык интерфейса.
+/// Rewrites the menu labels for the current interface language.
 pub fn set_labels(app: &tauri::AppHandle, labels: &TrayLabels) {
     let state = app.state::<TrayItems>();
     let guard = state.0.lock().unwrap();
@@ -118,11 +120,11 @@ pub fn set_labels(app: &tauri::AppHandle, labels: &TrayLabels) {
     let _ = items.quit.set_text(&labels.quit);
 }
 
-/// Показывает окно и поднимает его наверх.
+/// Shows the window and brings it to the front.
 ///
-/// Три действия, а не одно: свёрнутое в трей окно спрятано, свёрнутое
-/// в панель задач — минимизировано, и без обоих вызовов «показать»
-/// сработает только в одном из случаев.
+/// Three actions rather than one: a window collapsed into the tray is hidden,
+/// one collapsed into the taskbar is minimized, and without both calls "show"
+/// only works in one of the two cases.
 pub fn reveal(app: &tauri::AppHandle) {
     if let Some(window) = app.get_window("main") {
         let _ = window.show();
@@ -131,8 +133,8 @@ pub fn reveal(app: &tauri::AppHandle) {
     }
 }
 
-/// Останавливает всё, что работает. Ошибки глотаем: это последний рубеж
-/// перед выходом, и показывать их уже некому.
+/// Stops everything that is running. Errors are swallowed: this is the last
+/// line before exit, and there is no one left to show them to.
 pub fn stop_all(app: &tauri::AppHandle) {
     let runtime = app.state::<Runtime>();
     for id in busy(&runtime) {
@@ -142,7 +144,7 @@ pub fn stop_all(app: &tauri::AppHandle) {
     }
 }
 
-/// Вешается на окно в `setup`.
+/// Attached to the window in `setup`.
 pub fn on_window_event(window: &tauri::Window, event: &WindowEvent) {
     let WindowEvent::CloseRequested { api, .. } = event else {
         return;
@@ -154,8 +156,8 @@ pub fn on_window_event(window: &tauri::Window, event: &WindowEvent) {
     }
 
     api.prevent_close();
-    // Сначала убрать вкладки: пока нативное окно на экране, показать
-    // пользователю хоть что-нибудь физически невозможно.
+    // Remove the tabs first: while the native window is on screen, showing
+    // the user anything at all is physically impossible.
     crate::webview::hide_all(app);
     reveal(app);
     let _ = QuitRequested.emit(app);

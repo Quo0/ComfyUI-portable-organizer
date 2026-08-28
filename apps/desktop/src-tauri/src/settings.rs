@@ -1,12 +1,12 @@
-//! Настройки оболочки и всё, что фронту нужно знать при старте.
+//! Shell settings and everything the frontend needs to know at startup.
 //!
-//! Хранилище — `tauri-plugin-store`, файл `settings.json` в `app_data_dir()`.
-//! Тот же механизм в Фазе 1 возьмёт на себя реестр инстансов, поэтому
-//! заводить ради двух полей собственный формат смысла нет.
+//! Storage is `tauri-plugin-store`, file `settings.json` in `app_data_dir()`.
+//! Phase 1 puts the instance registry on the same mechanism, so inventing our
+//! own format for the sake of two fields makes no sense.
 //!
-//! Дев-сборка и установленная делят папку данных: у них один
-//! bundle identifier. Разведение по разным папкам — задача Фазы 1,
-//! там появится `tauri.dev.conf.json` со своим идентификатором.
+//! The dev build and the installed one share the data folder: they have the
+//! same bundle identifier. Splitting them into separate folders is a Phase 1
+//! task — that is where `tauri.dev.conf.json` with its own identifier appears.
 
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
@@ -15,16 +15,16 @@ use tauri_plugin_store::StoreExt;
 use crate::error::AppError;
 use crate::shared_models::SharedSettings;
 
-/// Имя файла в `app_data_dir()`.
+/// File name inside `app_data_dir()`.
 const STORE_FILE: &str = "settings.json";
-/// Ключ верхнего уровня. Дальше рядом лягут другие разделы настроек.
+/// Top-level key. Other settings sections will sit next to it later.
 const KEY_UI: &str = "ui";
-/// Общее хранилище моделей. Отдельным ключом, а не полем внутри `ui`:
-/// это настройка данных, а не оформления, и переживать сброс оформления
-/// она обязана.
+/// Shared model storage. A key of its own rather than a field inside `ui`:
+/// this is a data setting, not an appearance one, and it is required to
+/// survive a reset of the appearance.
 const KEY_SHARED: &str = "sharedModels";
-/// Библиотека воркфлоу. Отдельно от общих моделей: она работает и без них,
-/// и связывать их одним ключом значило бы связать и судьбы настроек.
+/// The workflow library. Separate from shared models: it works without them,
+/// and tying them to one key would tie the fates of the settings together too.
 const KEY_LIBRARY: &str = "workflowLibrary";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
@@ -32,32 +32,34 @@ const KEY_LIBRARY: &str = "workflowLibrary";
 pub enum ThemeChoice {
     Light,
     Dark,
-    /// Следовать системе.
+    /// Follow the system.
     System,
 }
 
-/// `default` на контейнере обязателен, а не украшение: файл настроек
-/// пишется прошлой версией приложения и новых полей не содержит. Без него
-/// разбор всей структуры проваливается на первом же незнакомом поле,
-/// а вызывающий код трактует провал как «настроек нет» — и молча сбрасывает
-/// тему с языком заодно с тем полем, которое всего лишь добавили.
+/// `default` on the container is mandatory, not decoration: the settings file
+/// was written by a previous version of the app and has none of the new
+/// fields. Without it, parsing the whole struct fails on the first unfamiliar
+/// field, and the calling code reads that failure as "there are no settings" —
+/// silently resetting theme and language along with the field that was merely
+/// added.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct UiSettings {
     pub theme: ThemeChoice,
-    /// `None`, пока пользователь не выбрал язык явно: тогда работает
-    /// определение по системе. Отличать «не выбирал» от «выбрал английский»
-    /// обязательно, иначе смена языка Windows перестанет учитываться.
+    /// `None` until the user picks a language explicitly: detection by system
+    /// applies while it is unset. Telling "never picked" apart from "picked
+    /// English" is mandatory, otherwise a change of the Windows language stops
+    /// being taken into account.
     pub locale: Option<String>,
     pub rail_collapsed: bool,
-    /// Проверять ли обновления при запуске. Единственное исходящее
-    /// обращение приложения, поэтому выключаемое — `NFR-355`.
+    /// Whether to check for updates at startup. The app's only outgoing
+    /// request, hence switchable — `NFR-355`.
     pub check_updates: bool,
 }
 
 impl Default for UiSettings {
     fn default() -> Self {
-        // Тёмная — оформление по умолчанию для первого запуска.
+        // Dark is the default appearance for the first launch.
         Self {
             theme: ThemeChoice::Dark,
             locale: None,
@@ -67,23 +69,24 @@ impl Default for UiSettings {
     }
 }
 
-/// Всё, что фронт спрашивает один раз при запуске.
+/// Everything the frontend asks for once at startup.
 ///
-/// Одним вызовом, а не тремя: старт не должен ждать три круга IPC,
-/// иначе интерфейс успевает моргнуть чужой темой.
+/// One call rather than three: startup must not wait for three IPC round
+/// trips, or the interface has time to blink in the wrong theme.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Bootstrap {
     pub settings: UiSettings,
     pub shared_models: SharedSettings,
-    /// Язык системы, например `ru-RU`. Первый шаг определения языка;
-    /// дальше фронт смотрит на `navigator.language` и падает в английский.
+    /// The system language, `ru-RU` for example. The first step of language
+    /// detection; after it the frontend looks at `navigator.language` and
+    /// falls back to English.
     pub system_locale: Option<String>,
-    /// Показывается в разделе «О приложении» вместе с кнопкой «открыть папку».
+    /// Shown in the "About" section together with the "open folder" button.
     pub app_data_dir: String,
-    /// Производное: кэш снимков нод и данные WebView2. Отдельной строкой,
-    /// потому что папки две, и удаляются они тоже обе — пользователь
-    /// не должен догадываться о существовании второй.
+    /// Derived data: the node snapshot cache and WebView2 data. A line of its
+    /// own because there are two folders, and both of them get deleted — the
+    /// user should not have to guess that the second one exists.
     pub app_local_data_dir: String,
     pub version: String,
 }
@@ -93,8 +96,8 @@ pub fn load(app: &tauri::AppHandle) -> Result<Bootstrap, AppError> {
         .store(STORE_FILE)
         .map_err(|e| AppError::because("settings.loadFailed", e))?;
 
-    // Битый или устаревший файл не должен мешать запуску: настройки —
-    // не данные пользователя, их не жалко пересоздать значениями по умолчанию.
+    // A corrupt or outdated file must not get in the way of startup: settings
+    // are not user data, recreating them from defaults costs nothing.
     let settings = store
         .get(KEY_UI)
         .and_then(|v| serde_json::from_value(v).ok())
@@ -127,8 +130,9 @@ pub fn load(app: &tauri::AppHandle) -> Result<Bootstrap, AppError> {
     })
 }
 
-/// Общие модели читаются отдельно: их спрашивают и после старта —
-/// при каждом заходе на экран настроек и перед каждым запуском инстанса.
+/// Shared models are read separately: they are asked for after startup as
+/// well — on every visit to the settings screen and before every instance
+/// launch.
 pub fn load_shared(app: &tauri::AppHandle) -> Result<SharedSettings, AppError> {
     let store = app
         .store(STORE_FILE)
@@ -154,13 +158,14 @@ pub fn save_shared(app: &tauri::AppHandle, shared: &SharedSettings) -> Result<()
         .map_err(|e| AppError::because("settings.saveFailed", e))
 }
 
-/// Настройки библиотеки воркфлоу.
+/// Workflow library settings.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LibrarySettings {
-    /// Пусто — библиотека не задана. Дефолт не подставляем в модель:
-    /// «не выбирал» и «выбрал вот это» обязаны различаться, иначе смена
-    /// корня общих моделей молча уводила бы библиотеку следом.
+    /// Empty means the library is not set. We do not substitute a default
+    /// into the model: "never picked" and "picked exactly this" have to stay
+    /// distinguishable, otherwise moving the shared models root would silently
+    /// drag the library along with it.
     pub path: String,
 }
 

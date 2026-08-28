@@ -1,35 +1,36 @@
-//! Встроенная вкладка: дочерний вебвью с интерфейсом ComfyUI.
+//! The embedded tab: a child webview with the ComfyUI interface.
 //!
-//! Дочерний вебвью — нативное окно **поверх** нашего HTML. Отсюда всё
-//! остальное: автолейаута у него нет, прямоугольник считает фронт,
-//! перекрыть его нашей разметкой физически невозможно, а две видимые
-//! вкладки лягут одна на другую.
+//! The child webview is a native window **on top of** our HTML. Everything
+//! else follows from that: it has no auto-layout, the frontend computes the
+//! rectangle, covering it with our markup is physically impossible, and two
+//! visible tabs would lie one on top of the other.
 //!
-//! `<iframe>` здесь получил бы 403: `origin_only_middleware` ComfyUI
-//! режет всё с `Sec-Fetch-Site: cross-site`. Дочерний вебвью грузит
-//! страницу как навигацию верхнего уровня — middleware пропускает
-//! без единого послабления в настройках сервера.
+//! An `<iframe>` would get a 403 here: ComfyUI's `origin_only_middleware` cuts
+//! off everything with `Sec-Fetch-Site: cross-site`. A child webview loads the
+//! page as a top-level navigation — the middleware lets it through without a
+//! single concession in the server settings.
 
 use tauri::{LogicalPosition, LogicalSize, Manager, Url, WebviewUrl};
 
 use crate::error::AppError;
 
-/// Префикс метки. По нему находятся все наши вкладки среди вебвью окна.
+/// The label prefix. It is how all our tabs are found among the window's
+/// webviews.
 const PREFIX: &str = "comfy-";
 
-/// Метка вебвью инстанса.
+/// The webview label of an instance.
 ///
-/// Идентификатор инстанса — `i<миллисекунды>[-N]` (`instances::new_id`),
-/// то есть латиница, цифры и дефис. Экранировать нечего.
+/// An instance identifier is `i<milliseconds>[-N]` (`instances::new_id`) —
+/// Latin letters, digits and a hyphen. There is nothing to escape.
 pub fn label(id: &str) -> String {
     format!("{PREFIX}{id}")
 }
 
-/// Прямоугольник области контента в логических пикселях.
+/// The rectangle of the content area in logical pixels.
 ///
-/// Приходит из `getBoundingClientRect()` слота на фронте: CSS-пиксели
-/// и логические — одно и то же, поэтому масштабирование экрана
-/// пересчитывать не надо.
+/// Comes from `getBoundingClientRect()` of the slot on the frontend: CSS
+/// pixels and logical ones are the same thing, so display scaling needs no
+/// recalculation.
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Rect {
     pub x: f64,
@@ -42,12 +43,13 @@ fn failed(e: impl ToString) -> AppError {
     AppError::because("webview.embedFailed", e)
 }
 
-/// Показывает вкладку инстанса, создавая её при первом вызове.
+/// Shows an instance's tab, creating it on the first call.
 ///
-/// Прочие вкладки прячутся **в этом же вызове**. Переключение между двумя
-/// работающими сборками идёт через один и тот же компонент Vue — меняется
-/// только параметр роута, — и порядок «покажи новую, спрячь старую»,
-/// отданный фронту, дал бы кадр с двумя вебвью поверх друг друга.
+/// The other tabs are hidden **within this same call**. Switching between two
+/// running builds goes through one and the same Vue component — only the route
+/// parameter changes — and leaving the order "show the new one, hide the old
+/// one" to the frontend would produce a frame with two webviews on top of each
+/// other.
 pub fn show(app: &tauri::AppHandle, id: &str, port: u16, rect: Rect) -> Result<(), AppError> {
     let want = label(id);
     hide_others(app, Some(&want));
@@ -59,8 +61,8 @@ pub fn show(app: &tauri::AppHandle, id: &str, port: u16, rect: Rect) -> Result<(
         existing
             .set_size(LogicalSize::new(rect.w, rect.h))
             .map_err(failed)?;
-        // Показ и постановка на место одним действием: иначе вкладка
-        // мигнёт на прямоугольнике, где её оставили в прошлый раз.
+        // Showing and placing in one action: otherwise the tab flashes at the
+        // rectangle where it was left last time.
         existing.show().map_err(failed)?;
         let _ = existing.set_focus();
         return Ok(());
@@ -68,32 +70,32 @@ pub fn show(app: &tauri::AppHandle, id: &str, port: u16, rect: Rect) -> Result<(
 
     let window = app
         .get_window("main")
-        .ok_or_else(|| failed("нет окна main"))?;
+        .ok_or_else(|| failed("no main window"))?;
 
     let url = format!("http://127.0.0.1:{port}")
         .parse()
-        .map_err(|_| failed("плохой URL"))?;
+        .map_err(|_| failed("bad URL"))?;
 
     let nav_app = app.clone();
     let new_window_app = app.clone();
 
     let builder = tauri::webview::WebviewBuilder::new(want.clone(), WebviewUrl::External(url))
-        // Иначе Tauri перехватит системный дроп, и перетаскивание картинок
-        // и воркфлоу на холст ComfyUI перестанет работать.
+        // Otherwise Tauri intercepts the system drop, and dragging images and
+        // workflows onto the ComfyUI canvas stops working.
         .disable_drag_drop_handler()
         .on_navigation(move |url| {
             if internal(url, port) {
                 return true;
             }
-            // Окна без адресной строки и кнопки «назад» пользователь
-            // не ждёт: ссылка на документацию уходит в его браузер.
+            // The user does not expect a window with no address bar and no
+            // back button: a documentation link goes to their browser.
             open_external(&nav_app, url.as_str());
             false
         })
-        // Отдельный механизм: `target="_blank"` и `window.open`
-        // приходят сюда, а не в `on_navigation`. Отказываем всегда,
-        // включая свой origin, — отдельного окна под попап у нас нет,
-        // а положить его поверх встроенной области невозможно.
+        // A separate mechanism: `target="_blank"` and `window.open` arrive
+        // here, not in `on_navigation`. We always refuse, our own origin
+        // included — we have no separate window for a popup, and placing one
+        // over the embedded area is impossible.
         .on_new_window(move |url, _features| {
             open_external(&new_window_app, url.as_str());
             tauri::webview::NewWindowResponse::Deny
@@ -113,15 +115,16 @@ pub fn show(app: &tauri::AppHandle, id: &str, port: u16, rect: Rect) -> Result<(
     Ok(())
 }
 
-/// Своя ли это навигация.
+/// Whether this navigation is our own.
 ///
-/// Кроме собственного адреса пропускаем `about:`, `blob:` и `data:`:
-/// на них держатся скачивания и «Сохранить изображение» в WebView2,
-/// и запрет превратил бы экспорт из ComfyUI в тишину.
+/// Besides our own address we let `about:`, `blob:` and `data:` through:
+/// downloads and "Save image" in WebView2 rest on them, and a ban would turn
+/// exporting from ComfyUI into silence.
 ///
-/// Сравниваются разобранные части, а не начало строки. Префикс обманывается
-/// парой способов сразу: `http://127.0.0.1:8188@example.com/` начинается
-/// ровно с нашего адреса, а хост у него чужой — там это имя пользователя.
+/// Parsed parts are compared, not the start of the string. A prefix can be
+/// fooled in a couple of ways at once: `http://127.0.0.1:8188@example.com/`
+/// starts with exactly our address, yet its host belongs to someone else —
+/// that part is a username there.
 pub fn internal(url: &Url, port: u16) -> bool {
     if matches!(url.scheme(), "about" | "blob" | "data") {
         return true;
@@ -135,12 +138,12 @@ pub fn internal(url: &Url, port: u16) -> bool {
 fn open_external(app: &tauri::AppHandle, url: &str) {
     use tauri_plugin_opener::OpenerExt;
     if let Err(e) = app.opener().open_url(url, None::<&str>) {
-        eprintln!("[CPO] не удалось открыть ссылку во внешнем браузере: {e}");
+        eprintln!("[CPO] failed to open the link in an external browser: {e}");
     }
 }
 
-/// Переставляет уже созданную вкладку. Нет вкладки — тихо ничего:
-/// `ResizeObserver` срабатывает и до её создания.
+/// Moves an already created tab. No tab means quietly nothing:
+/// `ResizeObserver` fires before it is created as well.
 pub fn place(app: &tauri::AppHandle, id: &str, rect: Rect) -> Result<(), AppError> {
     let Some(view) = app.get_webview(&label(id)) else {
         return Ok(());
@@ -152,10 +155,10 @@ pub fn place(app: &tauri::AppHandle, id: &str, rect: Rect) -> Result<(), AppErro
     Ok(())
 }
 
-/// Прячет все вкладки: уход в другой раздел или открытие консоли логов.
+/// Hides every tab: leaving for another section or opening the log console.
 ///
-/// Процессы при этом продолжают работать, а несохранённый граф остаётся
-/// в живой странице — останавливает сборку только явная команда.
+/// The processes keep running meanwhile, and an unsaved graph stays in the
+/// live page — only an explicit command stops a build.
 pub fn hide_all(app: &tauri::AppHandle) {
     hide_others(app, None);
 }
@@ -168,22 +171,22 @@ fn hide_others(app: &tauri::AppHandle, keep: Option<&str>) {
     }
 }
 
-/// Закрывает вкладку инстанса.
+/// Closes an instance's tab.
 ///
-/// Зовётся, когда процесс кончился: порт умирает вместе с ним, и живая
-/// вкладка показала бы страницу ошибки WebView2 вместо интерфейса.
-/// При рестарте порт вдобавок может смениться — вкладку обязательно
-/// создавать заново, а не переиспользовать.
+/// Called when the process is gone: the port dies with it, and a live tab
+/// would show a WebView2 error page instead of the interface. On a restart the
+/// port may change as well — the tab must be created anew rather than reused.
 pub fn close(app: &tauri::AppHandle, id: &str) {
     if let Some(view) = app.get_webview(&label(id)) {
         let _ = view.close();
     }
 }
 
-/// Перезагружает страницу вкладки.
+/// Reloads the tab's page.
 ///
-/// Дешёвый ответ на «интерфейс не догрузился» и на «воркфлоу добавлен,
-/// но в списке его нет»: запущенный ComfyUI сам список не перечитывает.
+/// A cheap answer to "the interface did not finish loading" and to "the
+/// workflow was added but is not in the list": a running ComfyUI does not
+/// re-read the list by itself.
 pub fn reload(app: &tauri::AppHandle, id: &str) -> Result<(), AppError> {
     let view = app
         .get_webview(&label(id))

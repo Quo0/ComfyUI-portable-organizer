@@ -1,20 +1,20 @@
-//! Профили запуска: разбор `.bat` и подготовка команды.
+//! Launch profiles: parsing `.bat` and preparing the command.
 //!
-//! Портабл-сборка запускается однострочником вида
+//! A portable build is started by a one-liner of the form
 //! `.\python_embeded\python.exe -s ComfyUI\main.py --windows-standalone-build`,
-//! обвешанным `echo` и `pause`. Мы вытаскиваем из него интерпретатор
-//! и аргументы, чтобы запускать python напрямую: через `cmd /c` мы теряем
-//! настоящий PID и вместе с ним возможность остановить сервер.
+//! dressed up with `echo` and `pause`. We pull the interpreter and the
+//! arguments out of it in order to launch python directly: going through
+//! `cmd /c` loses the real PID and with it the ability to stop the server.
 //!
-//! Если разобрать не удалось — не выдумываем, а честно откатываемся
-//! на `cmd /c <файл>`. Сборка запустится, просто управлять ею будет хуже.
+//! If the parse fails we do not invent anything, but honestly fall back to
+//! `cmd /c <file>`. The build still starts, it is just less manageable.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-/// Строки, которые в однострочнике запуска не значат ничего.
+/// Words that mean nothing in a launch one-liner.
 const NOISE: [&str; 10] = [
     "echo", "pause", "rem", "cls", "title", "color", "chcp", "setlocal", "endlocal", "exit",
 ];
@@ -22,26 +22,27 @@ const NOISE: [&str; 10] = [
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct LaunchProfile {
-    /// Путь `.bat` относительно корня инстанса. Он же идентификатор.
+    /// The `.bat` path relative to the instance root. Also the identifier.
     pub id: String,
-    /// Имя файла без расширения. Не переводится.
+    /// The file name without extension. Not translated.
     pub name: String,
     pub advanced: bool,
-    /// Абсолютный путь к интерпретатору.
+    /// Absolute path to the interpreter.
     pub python_path: String,
     pub args: Vec<String>,
-    /// Рабочая папка — директория самого `.bat`. Именно она подставляется,
-    /// когда файл запускают двойным кликом, и от неё считаются `..\` внутри.
+    /// The working folder is the `.bat`'s own directory. That is exactly what
+    /// gets substituted when the file is launched by double click, and what
+    /// the `..\` inside it are counted from.
     pub cwd: String,
     pub env: HashMap<String, String>,
-    /// Разобрать не удалось, запуск пойдёт через `cmd /c`. В интерфейсе
-    /// это повод предупредить: остановка такого процесса менее надёжна.
+    /// The parse failed and the launch goes through `cmd /c`. In the interface
+    /// that is a reason to warn: stopping such a process is less reliable.
     pub fallback: bool,
 }
 
-/// Разбирает `.bat` в профиль запуска.
+/// Parses a `.bat` into a launch profile.
 ///
-/// `root` — корень инстанса, `rel` — путь файла относительно него.
+/// `root` is the instance root, `rel` the file's path relative to it.
 pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
     let file = root.join(rel);
     let dir = file.parent().unwrap_or(root).to_path_buf();
@@ -62,8 +63,9 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
         fallback: true,
     };
 
-    // Кодировка `.bat` не определена: файлы бывают в cp866 из-за русских
-    // комментариев. Читаем лениво — интересующие нас строки всё равно ASCII.
+    // The encoding of a `.bat` is undefined: files come in cp866 because of
+    // non-Latin comments. We read loosely — the lines we care about are ASCII
+    // anyway.
     let Ok(bytes) = std::fs::read(&file) else {
         return fallback(HashMap::new());
     };
@@ -87,9 +89,9 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
             }
             continue;
         }
-        // Строка запуска опознаётся по имени интерпретатора. Запуск через
-        // переменную (`%PY% -s ...`) сюда не попадёт — и это правильно:
-        // раскрывать произвольный batch мы не беремся.
+        // The launch line is recognised by the interpreter's name. A launch
+        // through a variable (`%PY% -s ...`) will not land here — and rightly
+        // so: we do not take on expanding arbitrary batch.
         if line.to_lowercase().contains("python.exe") {
             command = Some(line.to_string());
             break;
@@ -115,8 +117,9 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
         name,
         advanced,
         python_path: python.display().to_string(),
-        // Аргументы оставляем как есть: относительные пути внутри них
-        // считаются от рабочей папки, а она у нас — директория `.bat`.
+        // The arguments are left as they are: relative paths inside them are
+        // counted from the working folder, which for us is the `.bat`'s
+        // directory.
         args: tokens.map(|t| expand(&t, &env)).collect(),
         cwd: dir.display().to_string(),
         env,
@@ -124,9 +127,9 @@ pub fn parse_bat(root: &Path, rel: &str, advanced: bool) -> LaunchProfile {
     }
 }
 
-/// Значение флага в аргументах профиля, в обеих формах записи.
+/// A flag's value in the profile arguments, in both spellings.
 ///
-/// Последнее вхождение побеждает — так же ведёт себя argparse.
+/// The last occurrence wins — argparse behaves the same way.
 fn flag_value(profile: &LaunchProfile, name: &str) -> Option<String> {
     let joined = format!("{name}=");
     let mut found = None;
@@ -142,11 +145,11 @@ fn flag_value(profile: &LaunchProfile, name: &str) -> Option<String> {
     found
 }
 
-/// Корень, от которого ComfyUI считает свои папки.
+/// The root ComfyUI counts its folders from.
 ///
-/// `--base-directory` (`comfy/cli_args.py:70`) переносит разом модели,
-/// `custom_nodes`, `input`, `output`, `temp` и `user`; без него корнем
-/// служит папка самого ComfyUI (`folder_paths.py:16-18`).
+/// `--base-directory` (`comfy/cli_args.py:70`) moves models, `custom_nodes`,
+/// `input`, `output`, `temp` and `user` all at once; without it the root is
+/// ComfyUI's own folder (`folder_paths.py:16-18`).
 fn base_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     match flag_value(profile, "--base-directory") {
         Some(value) => resolve(Path::new(&profile.cwd), &value),
@@ -154,39 +157,40 @@ fn base_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     }
 }
 
-/// Где эта сборка хранит свои воркфлоу.
+/// Where this build keeps its workflows.
 ///
-/// **Предполагать путь нельзя,** и флагов тут два, выстроенных цепочкой:
-/// `--user-directory` (`cli_args.py:254`) бьёт `--base-directory`, а тот
-/// задаёт корень, от которого считается `user/` (`folder_paths.py:72`).
+/// **The path must not be assumed,** and there are two flags here, arranged in
+/// a chain: `--user-directory` (`cli_args.py:254`) beats `--base-directory`,
+/// and that one sets the root `user/` is counted from
+/// (`folder_paths.py:72`).
 ///
-/// Второе звено этой цепочки я в Фазе 2.6 пропустил: разбирался только
-/// `--user-directory`, и сборка, запущенная с одним `--base-directory`,
-/// хранила воркфлоу не там, где мы их искали.
+/// The second link of this chain was missed back in Phase 2.6: only
+/// `--user-directory` was handled, and a build launched with just
+/// `--base-directory` kept its workflows somewhere other than where we looked.
 ///
-/// Относительный путь во флаге считается от рабочей папки, а она у нас —
-/// директория `.bat`, ровно как при запуске двойным кликом.
+/// A relative path in the flag is counted from the working folder, which for
+/// us is the `.bat`'s directory — exactly as on a double-click launch.
 ///
-/// Папки может не существовать: ComfyUI создаёт её лениво, при первом
-/// сохранении. Проверять существование здесь не наша забота — вызывающий
-/// либо создаёт дерево, либо считает пустым.
+/// The folder may not exist: ComfyUI creates it lazily, on the first save.
+/// Checking for existence is not our concern here — the caller either creates
+/// the tree or treats it as empty.
 pub fn workflows_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     let user = match flag_value(profile, "--user-directory") {
         Some(value) => resolve(Path::new(&profile.cwd), &value),
         None => base_dir(profile, instance_root).join("user"),
     };
 
-    // `default` — публичная папка пользователя по умолчанию
-    // (`app/user_manager.py:79`). Многопользовательский режим ComfyUI
-    // мы не поддерживаем и не притворяемся, что поддерживаем.
+    // `default` is the public default user folder
+    // (`app/user_manager.py:79`). We do not support ComfyUI's multi-user mode
+    // and do not pretend to.
     user.join("default").join("workflows")
 }
 
-/// Где эта сборка хранит свои модели.
+/// Where this build keeps its models.
 ///
-/// Та же цепочка, что у воркфлоу, и в том же порядке
-/// (`folder_paths.py:20-23`): `--models-directory` бьёт
-/// `--base-directory`, тот задаёт корень, иначе `<instance>\ComfyUI\models`.
+/// The same chain as for workflows, in the same order
+/// (`folder_paths.py:20-23`): `--models-directory` beats `--base-directory`,
+/// that one sets the root, otherwise `<instance>\ComfyUI\models`.
 pub fn models_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     match flag_value(profile, "--models-directory") {
         Some(value) => resolve(Path::new(&profile.cwd), &value),
@@ -194,15 +198,15 @@ pub fn models_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     }
 }
 
-/// Куда эта сборка складывает результаты генерации.
+/// Where this build puts generation results.
 ///
-/// Та же цепочка: `--output-directory` бьёт `--base-directory`
-/// (`cli_args.py:72`, `main.py:147`), иначе `<base>\output`
+/// The same chain: `--output-directory` beats `--base-directory`
+/// (`cli_args.py:72`, `main.py:147`), otherwise `<base>\output`
 /// (`folder_paths.py:69`).
 ///
-/// Папки может не существовать: до первой генерации ComfyUI её
-/// не создаёт. Создавать её за пользователя мы не будем — внутри чужой
-/// установки ничего не появляется по нашей воле.
+/// The folder may not exist: ComfyUI does not create it before the first
+/// generation. We will not create it on the user's behalf — nothing appears
+/// inside someone else's installation by our will.
 pub fn output_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     match flag_value(profile, "--output-directory") {
         Some(value) => resolve(Path::new(&profile.cwd), &value),
@@ -210,10 +214,10 @@ pub fn output_dir(profile: &LaunchProfile, instance_root: &Path) -> PathBuf {
     }
 }
 
-/// Разбивает строку на токены, уважая кавычки.
+/// Splits a line into tokens, respecting quotes.
 ///
-/// Кавычки нужны не для красоты: путь вида `"C:\Program Files\..."`
-/// без них распадётся на два аргумента, и запуск провалится.
+/// The quotes are not decoration: a path like `"C:\Program Files\..."` would
+/// fall apart into two arguments without them, and the launch would fail.
 fn tokenize(line: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut current = String::new();
@@ -236,7 +240,8 @@ fn tokenize(line: &str) -> Vec<String> {
     tokens
 }
 
-/// Раскрывает `%VAR%` из собранных `set` и `%~dp0` — директорию `.bat`.
+/// Expands `%VAR%` from the collected `set`s and `%~dp0` — the `.bat`'s
+/// directory.
 fn expand(token: &str, env: &HashMap<String, String>) -> String {
     let mut result = token.to_string();
     for (key, value) in env {
@@ -245,10 +250,11 @@ fn expand(token: &str, env: &HashMap<String, String>) -> String {
     result
 }
 
-/// Относительный путь считается от директории `.bat`.
+/// A relative path is counted from the `.bat`'s directory.
 ///
-/// Для `advanced\*.bat` это принципиально: там интерпретатор указан
-/// как `..\python_embeded\python.exe`, и от корня инстанса он не найдётся.
+/// For `advanced\*.bat` this is essential: the interpreter there is written as
+/// `..\python_embeded\python.exe`, and it will not be found from the instance
+/// root.
 fn resolve(dir: &Path, token: &str) -> PathBuf {
     let path = Path::new(token);
     if path.is_absolute() {
@@ -257,10 +263,11 @@ fn resolve(dir: &Path, token: &str) -> PathBuf {
     normalize(&dir.join(path))
 }
 
-/// Убирает `.` и `..` из середины пути.
+/// Removes `.` and `..` from the middle of a path.
 ///
-/// `std::fs::canonicalize` вернул бы verbatim-путь с `\\?\`, который
-/// показывать пользователю нельзя, а `Path::join` сам `..` не схлопывает.
+/// `std::fs::canonicalize` would return a verbatim path with `\\?\`, which
+/// must not be shown to the user, and `Path::join` does not collapse `..` by
+/// itself.
 fn normalize(path: &Path) -> PathBuf {
     let mut parts: Vec<std::ffi::OsString> = Vec::new();
     for part in path.components() {
@@ -276,26 +283,27 @@ fn normalize(path: &Path) -> PathBuf {
     parts.iter().fold(PathBuf::new(), |acc, p| acc.join(p))
 }
 
-/// Готовит аргументы к запуску: свой порт, запрет на браузер и, если инстанс
-/// подключён к общим моделям в режиме флага, путь к нашему конфигу.
+/// Prepares the arguments for launch: our own port, a ban on the browser and,
+/// if the instance is connected to shared models in flag mode, the path to our
+/// config.
 ///
-/// Существующий `--port` вырезается вместе со значением — иначе сборка
-/// займёт порт из `.bat`, а не выданный нами, и два инстанса подерутся.
-/// `--disable-auto-launch` в cli_args.py применяется после
-/// `--windows-standalone-build` и всегда побеждает.
+/// An existing `--port` is cut out together with its value — otherwise the
+/// build takes the port from the `.bat` rather than the one we handed out, and
+/// two instances end up fighting. `--disable-auto-launch` is applied after
+/// `--windows-standalone-build` in cli_args.py and always wins.
 ///
-/// А вот `--extra-model-paths-config` из `.bat` мы **не трогаем**: у флага
-/// `action='append'`, файлы применяются подряд, и своё мы просто дописываем
-/// рядом. Вырезать чужое значило бы молча отобрать настройку, которую
-/// пользователь завёл руками.
+/// The `--extra-model-paths-config` from the `.bat`, on the other hand, we
+/// **do not touch**: the flag has `action='append'`, the files are applied one
+/// after another, and we simply add ours alongside. Cutting out someone else's
+/// would mean silently taking away a setting the user made by hand.
 ///
-/// Своё значение идёт отдельным вхождением флага, а не голым путём в конец.
-/// Проверено на argparse из реальной сборки: приписанный путь тоже
-/// загрузился бы — `main.py:134` разворачивает вхождения через
-/// `itertools.chain`, и порядок сохраняется в обоих случаях. Ломается другое:
-/// если в `.bat` этого флага нет вовсе, голый путь становится позиционным
-/// аргументом, и argparse отвергает всю командную строку. Отдельное
-/// вхождение не зависит от того, что написано в `.bat`.
+/// Our value goes as a separate occurrence of the flag, not as a bare path
+/// appended at the end. Verified against argparse from a real build: an
+/// appended path would load too — `main.py:134` unfolds the occurrences via
+/// `itertools.chain`, and the order is preserved either way. Something else
+/// breaks: if the `.bat` has no such flag at all, a bare path becomes a
+/// positional argument and argparse rejects the whole command line. A separate
+/// occurrence does not depend on what is written in the `.bat`.
 pub fn apply_runtime_args(args: &[String], port: u16, shared_config: Option<&str>) -> Vec<String> {
     let mut result = Vec::with_capacity(args.len() + 5);
     let mut skip_value = false;

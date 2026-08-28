@@ -1,8 +1,9 @@
-//! Сборка запуска воедино: профиль → порт → процесс → готовность.
+//! Assembling a launch: profile → port → process → readiness.
 //!
-//! Здесь же живёт стейт-машина: `Stopped → Starting → Running → Stopping →
-//! Stopped`, плюс два боковых исхода — `Crashed`, когда процесс ушёл сам,
-//! и `Detached`, когда сервер на порту жив, а управляет им уже не он.
+//! The state machine lives here too: `Stopped → Starting → Running → Stopping
+//! → Stopped`, plus two side outcomes — `Crashed`, when the process left on
+//! its own, and `Detached`, when the server on the port is alive but no longer
+//! the one we started.
 
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -17,13 +18,15 @@ use crate::process::{
 use crate::profiles::{self, LaunchProfile};
 use crate::supervise::{windows::WindowsSupervisor, ProcessSupervisor, SpawnRequest};
 
-/// Профили инстанса: разобранные из `.bat` плюс собранные пользователем.
+/// An instance's profiles: those parsed from `.bat` plus those assembled by
+/// the user.
 ///
-/// Разбор читается каждый раз заново, а не берётся из реестра: пользователь
-/// мог поправить `.bat` руками, и показывать ему устаревший разбор — врать.
+/// The parse is redone every time rather than taken from the registry: the
+/// user may have edited the `.bat` by hand, and showing them a stale parse
+/// would be lying.
 ///
-/// Свой профиль хранит только имя и аргументы, всё остальное берёт
-/// у базового — здесь и сейчас, по той же причине.
+/// A custom profile stores only a name and arguments, taking everything else
+/// from the base one — here and now, for the same reason.
 pub fn profiles_of(instance: &Instance) -> Vec<LaunchProfile> {
     let root = Path::new(&instance.path);
     let base: Vec<LaunchProfile> = instance
@@ -34,8 +37,9 @@ pub fn profiles_of(instance: &Instance) -> Vec<LaunchProfile> {
 
     let mut all = base.clone();
     for custom in &instance.custom_profiles {
-        // Базовый `.bat` мог исчезнуть вместе с обновлением сборки.
-        // Тихо подставлять другой нельзя: запустится не то, что просили.
+        // The base `.bat` may have disappeared along with a build update.
+        // Silently substituting another one is not allowed: what launches
+        // would not be what was asked for.
         let Some(source) = base.iter().find(|p| p.id == custom.base_id) else {
             continue;
         };
@@ -49,14 +53,14 @@ pub fn profiles_of(instance: &Instance) -> Vec<LaunchProfile> {
     all
 }
 
-/// Что делать дальше после того, как процесс завершился.
+/// What to do next once the process has finished.
 pub enum Exit {
-    /// Мы сами просили остановиться.
+    /// We asked it to stop ourselves.
     Requested,
-    /// Ушёл сам, и сервер на порту не отвечает.
+    /// It left on its own, and the server on the port does not answer.
     Crashed(Option<i32>),
-    /// Ушёл сам, но кто-то держит порт: почти наверняка ComfyUI-Manager
-    /// переподнял сервер после установки нод.
+    /// It left on its own, but someone is holding the port: almost certainly
+    /// ComfyUI-Manager brought the server back up after installing nodes.
     Detached,
 }
 
@@ -65,13 +69,13 @@ pub struct StartOutcome {
     pub cell: Arc<Mutex<Running>>,
 }
 
-/// Готовит команду и запускает процесс.
+/// Prepares the command and starts the process.
 ///
-/// Возвращается сразу после спавна: ждать готовности здесь нельзя, иначе
-/// вызывающий не увидит ни строчки лога до самого конца холодного старта.
-/// `shared_config` — путь к нашему `extra_model_paths.yaml` для режима
-/// «флаг». В режиме «файл в инстансе» его нет: файл уже лежит в папке
-/// сборки и подхватывается ComfyUI сам.
+/// Returns right after the spawn: waiting for readiness here is not allowed,
+/// or the caller sees not one line of the log until the cold start is over.
+/// `shared_config` is the path to our `extra_model_paths.yaml` for the "flag"
+/// mode. In the "file inside the instance" mode there is none: the file
+/// already sits in the build folder and ComfyUI picks it up by itself.
 pub fn start(
     instance: &Instance,
     profile: &LaunchProfile,
@@ -110,9 +114,9 @@ pub fn start(
         stopping: false,
     }));
 
-    // ComfyUI пишет основную часть старта в stderr, а не в stdout,
-    // поэтому читаем оба потока — каждый в своём треде, иначе один будет
-    // ждать другого и лог поедет.
+    // ComfyUI writes the bulk of its startup to stderr rather than stdout, so
+    // we read both streams — each in its own thread, otherwise one waits for
+    // the other and the log goes out of order.
     if let Some(stream) = child.stdout.take() {
         spawn_pump("stdout", stream, cell.clone(), on_line.clone());
     }
@@ -120,8 +124,8 @@ pub fn start(
         spawn_pump("stderr", stream, cell.clone(), on_line.clone());
     }
 
-    // Ожидание завершения — в своём потоке: `wait` блокирует, а мы обязаны
-    // узнать о падении сразу, а не когда пользователь нажмёт «Остановить».
+    // Waiting for exit goes in its own thread: `wait` blocks, and we have to
+    // learn about a crash immediately, not when the user presses "Stop".
     let watch = cell.clone();
     std::thread::spawn(move || {
         let code = child.wait().ok().and_then(|s| s.code());
@@ -139,7 +143,7 @@ pub fn start(
     Ok(StartOutcome { status, cell })
 }
 
-/// Заводит тред чтения одного из потоков процесса.
+/// Starts a thread reading one of the process's streams.
 fn spawn_pump<R: std::io::Read + Send + 'static>(
     name: &'static str,
     stream: R,
@@ -154,11 +158,10 @@ fn spawn_pump<R: std::io::Read + Send + 'static>(
     });
 }
 
-/// Останавливает инстанс и дожидается освобождения порта.
+/// Stops the instance and waits for the port to be released.
 ///
-/// Ждать обязательно: процесс успевает умереть раньше, чем система
-/// отпустит его сокет, и немедленный перезапуск натыкается на собственный
-/// прошлый порт.
+/// The wait is mandatory: the process manages to die before the system lets
+/// go of its socket, and an immediate restart runs into its own previous port.
 pub fn stop(cell: &Arc<Mutex<Running>>) -> Result<(), AppError> {
     let (pid, port) = {
         let mut running = cell.lock().unwrap();

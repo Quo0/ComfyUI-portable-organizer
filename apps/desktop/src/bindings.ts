@@ -318,18 +318,18 @@ export const commands = {
 	checkUpdate: () => typedError<{
 	version: string,
 	/**
-	 *  Установленная сейчас. Рядом с новой, чтобы экран не собирал
-	 *  пару из двух источников.
+	 *  The one installed right now. Next to the new one so the screen does not
+	 *  have to assemble the pair from two sources.
 	 */
 	currentVersion: string,
 	/**
-	 *  Тело релиза: секция `CHANGELOG.md` этой версии. Не переводится —
-	 *  это текст выпуска, а не строка интерфейса.
+	 *  The release body: this version's section of `CHANGELOG.md`. Not
+	 *  translated — it is release text, not an interface string.
 	 */
 	notes: string | null,
 	/**
-	 *  Миллисекунды эпохи, как и остальные даты в реестре: форматирует их
-	 *  фронт по правилам локали, а не Rust.
+	 *  Epoch milliseconds, like the rest of the dates in the registry: the
+	 *  frontend formats them by locale rules, not Rust.
 	 */
 	date: number | null,
 } | null, AppError>(__TAURI_INVOKE("check_update")),
@@ -358,17 +358,17 @@ export const events = {
 
 /* Types */
 /**
- *  Акцентный цвет инстанса.
+ *  An instance's accent colour.
  * 
- *  Хранится либо именем токена палитры, либо значением `#rrggbb`, если
- *  пользователь выбрал свой. Имя лучше и остаётся выбором по умолчанию:
- *  у токена своё значение в каждой теме, и читаемость проверена. Свой
- *  цвет одинаков в обеих темах, и отвечает за него уже пользователь —
- *  но запрещать ему собственный цвет не за что.
+ *  Stored either as the name of a palette token or as an `#rrggbb` value if
+ *  the user picked their own. The name is better and stays the default choice:
+ *  a token has its own value in each theme, and its legibility is verified. A
+ *  custom colour is the same in both themes and the user answers for it — but
+ *  there is no reason to forbid them a colour of their own.
  * 
- *  Кортежная структура, а не перечисление: `serde` пишет её прозрачно,
- *  то есть реестр, записанный до этой правки, читается как был,
- *  а `specta` экспортирует её самим внутренним типом.
+ *  A tuple struct rather than an enum: `serde` writes it transparently, so a
+ *  registry written before this change reads exactly as it did, and `specta`
+ *  exports it as the inner type itself.
  */
 export type Accent = string;
 
@@ -428,25 +428,26 @@ export type ArchiveRecord = {
 };
 
 /**
- *  Всё, что фронт спрашивает один раз при запуске.
+ *  Everything the frontend asks for once at startup.
  * 
- *  Одним вызовом, а не тремя: старт не должен ждать три круга IPC,
- *  иначе интерфейс успевает моргнуть чужой темой.
+ *  One call rather than three: startup must not wait for three IPC round
+ *  trips, or the interface has time to blink in the wrong theme.
  */
 export type Bootstrap = {
 	settings: UiSettings,
 	sharedModels: SharedSettings,
 	/**
-	 *  Язык системы, например `ru-RU`. Первый шаг определения языка;
-	 *  дальше фронт смотрит на `navigator.language` и падает в английский.
+	 *  The system language, `ru-RU` for example. The first step of language
+	 *  detection; after it the frontend looks at `navigator.language` and
+	 *  falls back to English.
 	 */
 	systemLocale: string | null,
-	/**  Показывается в разделе «О приложении» вместе с кнопкой «открыть папку». */
+	/**  Shown in the "About" section together with the "open folder" button. */
 	appDataDir: string,
 	/**
-	 *  Производное: кэш снимков нод и данные WebView2. Отдельной строкой,
-	 *  потому что папки две, и удаляются они тоже обе — пользователь
-	 *  не должен догадываться о существовании второй.
+	 *  Derived data: the node snapshot cache and WebView2 data. A line of its
+	 *  own because there are two folders, and both of them get deleted — the
+	 *  user should not have to guess that the second one exists.
 	 */
 	appLocalDataDir: string,
 	version: string,
@@ -494,20 +495,24 @@ export type Copy_ = {
 };
 
 /**
- *  Свой профиль запуска.
+ *  A custom launch profile.
  * 
- *  Хранятся только имя и аргументы. Интерпретатор, рабочая папка и `env`
- *  берутся у базового профиля **в момент запуска**: пользователь мог
- *  поправить `.bat` руками, и запомненная копия однажды разошлась бы
- *  с тем, что лежит на диске.
+ *  Only the name and the arguments are stored. The interpreter, the working
+ *  folder and `env` are taken from the base profile **at launch time**: the
+ *  user may have edited the `.bat` by hand, and a remembered copy would one
+ *  day drift away from what is on disk.
  */
 export type CustomProfile = {
-	/**  `custom:<число>`. Префикс отличает свой профиль от имени `.bat`. */
+	/**
+	 *  `custom:<number>`. The prefix tells a custom profile apart from a
+	 *  `.bat` name.
+	 */
 	id: string,
 	name: string,
 	/**
-	 *  Профиль из `.bat`, у которого берётся всё остальное. Если он исчез —
-	 *  свой профиль показывается сломанным, а не запускается наугад.
+	 *  The `.bat` profile everything else is taken from. If it has
+	 *  disappeared, the custom profile is shown as broken rather than launched
+	 *  at random.
 	 */
 	baseId: string,
 	args: string[],
@@ -627,15 +632,15 @@ export type InstallProgress = {
 };
 
 /**
- *  Откуда взялся инстанс. Заполняет мастер установки в Фазе 1.5;
- *  у добавленных вручную папок этого нет.
+ *  Where the instance came from. Filled in by the install wizard in Phase 1.5;
+ *  folders added by hand have none of this.
  */
 export type InstallSource = {
 	archivePath: string,
 	archiveLabel: string,
 	/**
-	 *  Миллисекунды эпохи. Дату форматирует фронт: она обязана следовать
-	 *  выбранному языку, а строка из Rust этого не умеет.
+	 *  Epoch milliseconds. The frontend formats the date: it has to follow the
+	 *  chosen language, and a string from Rust cannot do that.
 	 */
 	installedAt: number | null,
 };
@@ -661,40 +666,42 @@ export type Instance = {
 	createdAt: number | null,
 	source: InstallSource | null,
 	/**
-	 *  Подключение к общему хранилищу моделей. `#[serde(default)]` не
-	 *  украшение: реестр, записанный до Фазы 2.5, поля не содержит, и без
-	 *  умолчания разбор всего файла упал бы — то есть пользователь потерял
-	 *  бы список инстансов из-за появления новой настройки.
+	 *  The connection to shared model storage. `#[serde(default)]` is not
+	 *  decoration: a registry written before Phase 2.5 has no such field, and
+	 *  without the default the parse of the whole file would fail — that is,
+	 *  the user would lose their list of instances because a new setting
+	 *  appeared.
 	 */
 	shared?: InstanceShared,
 	/**
-	 *  Профили, собранные пользователем поверх разобранных из `.bat`.
+	 *  Profiles assembled by the user on top of those parsed from `.bat`.
 	 * 
-	 *  Свои, а не правка чужих: `.bat` мы не трогаем никогда, а разбор
-	 *  перечитывается при каждом запуске — правку в него было бы негде
-	 *  удержать. `#[serde(default)]` по той же причине, что у `shared`:
-	 *  реестр, записанный до этой фазы, поля не содержит.
+	 *  Ours, not an edit of someone else's: we never touch a `.bat`, and the
+	 *  parse is re-read on every launch — there would be nowhere to hold an
+	 *  edit to it. `#[serde(default)]` for the same reason as on `shared`: a
+	 *  registry written before this phase has no such field.
 	 */
 	customProfiles?: CustomProfile[],
 	/**
-	 *  Когда сборку запускали в последний раз, в миллисекундах эпохи.
+	 *  When the build was last launched, in epoch milliseconds.
 	 * 
-	 *  `None` — ни разу с тех пор, как приложение это записывает. Дату
-	 *  форматирует фронт: она обязана следовать выбранному языку.
+	 *  `None` means not once since the app started recording this. The
+	 *  frontend formats the date: it has to follow the chosen language.
 	 */
 	lastStartedAt?: number | null,
 	/**
-	 *  Размер на диске. `f64`, а не `u64`: specta запрещает экспорт целых,
-	 *  не помещающихся в число JavaScript без потери точности. Байты
-	 *  до 9 петабайт в f64 представимы точно, этого хватит с запасом.
+	 *  Size on disk. `f64` rather than `u64`: specta forbids exporting
+	 *  integers that do not fit into a JavaScript number without losing
+	 *  precision. Bytes up to 9 petabytes are exactly representable in f64,
+	 *  which is more than enough.
 	 */
 	sizeBytes: number | null,
 	sizeMeasuredAt: number | null,
 	/**
-	 *  Папка на месте. Не хранится по-настоящему: пересчитывается при
-	 *  каждом чтении реестра. Инстанс с исчезнувшей папкой помечается
-	 *  недоступным, но из списка не пропадает — иначе пользователь решит,
-	 *  что приложение потеряло его сборку.
+	 *  The folder is in place. Not really stored: recomputed on every read of
+	 *  the registry. An instance whose folder has disappeared is marked
+	 *  unavailable but does not vanish from the list — otherwise the user
+	 *  concludes the app lost their build.
 	 */
 	available: boolean,
 };
@@ -718,8 +725,8 @@ export type InstanceCompat = {
 };
 
 /**
- *  Метаданные, которые правит пользователь. Отдельным типом, чтобы
- *  «переименовать» не могло случайно переписать путь или версию.
+ *  The metadata the user edits. A type of its own so that "rename" cannot
+ *  accidentally rewrite the path or the version.
  */
 export type InstanceEdit = {
 	name: string,
@@ -781,23 +788,24 @@ export type InstanceWorkflowsDir = {
 };
 
 export type LaunchProfile = {
-	/**  Путь `.bat` относительно корня инстанса. Он же идентификатор. */
+	/**  The `.bat` path relative to the instance root. Also the identifier. */
 	id: string,
-	/**  Имя файла без расширения. Не переводится. */
+	/**  The file name without extension. Not translated. */
 	name: string,
 	advanced: boolean,
-	/**  Абсолютный путь к интерпретатору. */
+	/**  Absolute path to the interpreter. */
 	pythonPath: string,
 	args: string[],
 	/**
-	 *  Рабочая папка — директория самого `.bat`. Именно она подставляется,
-	 *  когда файл запускают двойным кликом, и от неё считаются `..\` внутри.
+	 *  The working folder is the `.bat`'s own directory. That is exactly what
+	 *  gets substituted when the file is launched by double click, and what
+	 *  the `..\` inside it are counted from.
 	 */
 	cwd: string,
 	env: { [key in string]: string },
 	/**
-	 *  Разобрать не удалось, запуск пойдёт через `cmd /c`. В интерфейсе
-	 *  это повод предупредить: остановка такого процесса менее надёжна.
+	 *  The parse failed and the launch goes through `cmd /c`. In the interface
+	 *  that is a reason to warn: stopping such a process is less reliable.
 	 */
 	fallback: boolean,
 };
@@ -854,12 +862,13 @@ export type LibraryScan = {
 	manifestBroken: boolean,
 };
 
-/**  Настройки библиотеки воркфлоу. */
+/**  Workflow library settings. */
 export type LibrarySettings = {
 	/**
-	 *  Пусто — библиотека не задана. Дефолт не подставляем в модель:
-	 *  «не выбирал» и «выбрал вот это» обязаны различаться, иначе смена
-	 *  корня общих моделей молча уводила бы библиотеку следом.
+	 *  Empty means the library is not set. We do not substitute a default
+	 *  into the model: "never picked" and "picked exactly this" have to stay
+	 *  distinguishable, otherwise moving the shared models root would silently
+	 *  drag the library along with it.
 	 */
 	path?: string,
 };
@@ -940,8 +949,8 @@ export type Probe = {
 export type ProbeResult = {
 	probe: Probe,
 	/**
-	 *  Папка уже в реестре. Второй инстанс на неё не заводим — показываем
-	 *  существующий.
+	 *  The folder is already in the registry. We do not create a second
+	 *  instance for it — we show the existing one.
 	 */
 	existingId: string | null,
 	suggestedName: string,
@@ -953,19 +962,19 @@ export type PushOutcome = "written" |
 "conflict";
 
 /**
- *  Событие «пользователь закрывает окно, а серверы работают».
+ *  The "user is closing the window while servers are running" event.
  * 
- *  Роутом владеет фронт: вести навигацию из Rust значило бы завести
- *  второй источник правды о том, где какой экран.
+ *  The route is owned by the frontend: driving navigation from Rust would
+ *  create a second source of truth about which screen is where.
  */
 export type QuitRequested = null;
 
 /**
- *  Прямоугольник области контента в логических пикселях.
+ *  The rectangle of the content area in logical pixels.
  * 
- *  Приходит из `getBoundingClientRect()` слота на фронте: CSS-пиксели
- *  и логические — одно и то же, поэтому масштабирование экрана
- *  пересчитывать не надо.
+ *  Comes from `getBoundingClientRect()` of the slot on the frontend: CSS
+ *  pixels and logical ones are the same thing, so display scaling needs no
+ *  recalculation.
  */
 export type Rect = {
 	x: number | null,
@@ -1083,7 +1092,10 @@ export type SharedSettings = {
 	makeDefaultTarget: boolean,
 };
 
-/**  Результат подсчёта. Имя с подчёркиванием — `Sized` занято в прелюдии Rust. */
+/**
+ *  The measurement result. The trailing underscore is there because `Sized` is
+ *  taken by the Rust prelude.
+ */
 export type Sized_ = {
 	id: string,
 	bytes: number | null,
@@ -1123,12 +1135,12 @@ export type TargetCheck = {
 };
 
 export type ThemeChoice = "light" | "dark" | 
-/**  Следовать системе. */
+/**  Follow the system. */
 "system";
 
 /**
- *  Подписи меню трея. Приходят с фронта: перевод живёт в локалях, а не
- *  в Rust, и меняться обязан вместе с языком.
+ *  Tray menu labels. They come from the frontend: the translation lives in
+ *  the locales, not in Rust, and has to change along with the language.
  */
 export type TrayLabels = {
 	show: string,
@@ -1137,55 +1149,57 @@ export type TrayLabels = {
 };
 
 /**
- *  `default` на контейнере обязателен, а не украшение: файл настроек
- *  пишется прошлой версией приложения и новых полей не содержит. Без него
- *  разбор всей структуры проваливается на первом же незнакомом поле,
- *  а вызывающий код трактует провал как «настроек нет» — и молча сбрасывает
- *  тему с языком заодно с тем полем, которое всего лишь добавили.
+ *  `default` on the container is mandatory, not decoration: the settings file
+ *  was written by a previous version of the app and has none of the new
+ *  fields. Without it, parsing the whole struct fails on the first unfamiliar
+ *  field, and the calling code reads that failure as "there are no settings" —
+ *  silently resetting theme and language along with the field that was merely
+ *  added.
  */
 export type UiSettings = {
 	theme?: ThemeChoice,
 	/**
-	 *  `None`, пока пользователь не выбрал язык явно: тогда работает
-	 *  определение по системе. Отличать «не выбирал» от «выбрал английский»
-	 *  обязательно, иначе смена языка Windows перестанет учитываться.
+	 *  `None` until the user picks a language explicitly: detection by system
+	 *  applies while it is unset. Telling "never picked" apart from "picked
+	 *  English" is mandatory, otherwise a change of the Windows language stops
+	 *  being taken into account.
 	 */
 	locale?: string | null,
 	railCollapsed?: boolean,
 	/**
-	 *  Проверять ли обновления при запуске. Единственное исходящее
-	 *  обращение приложения, поэтому выключаемое — `NFR-355`.
+	 *  Whether to check for updates at startup. The app's only outgoing
+	 *  request, hence switchable — `NFR-355`.
 	 */
 	checkUpdates?: boolean,
 };
 
-/**  Найденная новая версия. */
+/**  A newer version that was found. */
 export type UpdateInfo = {
 	version: string,
 	/**
-	 *  Установленная сейчас. Рядом с новой, чтобы экран не собирал
-	 *  пару из двух источников.
+	 *  The one installed right now. Next to the new one so the screen does not
+	 *  have to assemble the pair from two sources.
 	 */
 	currentVersion: string,
 	/**
-	 *  Тело релиза: секция `CHANGELOG.md` этой версии. Не переводится —
-	 *  это текст выпуска, а не строка интерфейса.
+	 *  The release body: this version's section of `CHANGELOG.md`. Not
+	 *  translated — it is release text, not an interface string.
 	 */
 	notes: string | null,
 	/**
-	 *  Миллисекунды эпохи, как и остальные даты в реестре: форматирует их
-	 *  фронт по правилам локали, а не Rust.
+	 *  Epoch milliseconds, like the rest of the dates in the registry: the
+	 *  frontend formats them by locale rules, not Rust.
 	 */
 	date: number | null,
 };
 
 /**
- *  Ход загрузки. Событием, а не ответом команды: ответ у команды один,
- *  а установка идёт десятки секунд.
+ *  Download progress. An event rather than a command response: a command
+ *  answers once, while the install runs for tens of seconds.
  */
 export type UpdateProgress = {
 	downloaded: number | null,
-	/**  `None` — сервер не прислал длину. Тогда полоса индетерминантная. */
+	/**  `None` means the server sent no length. The bar is indeterminate then. */
 	total: number | null,
 };
 
