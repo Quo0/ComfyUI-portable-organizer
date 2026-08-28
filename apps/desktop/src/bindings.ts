@@ -419,20 +419,24 @@ export type ApplyMode =
 
 export type ArchiveInfo = {
 	path: string,
-	/**  Имя файла. Показывается в карточке инстанса как источник. */
+	/**  The file name. Shown on the instance card as the source. */
 	label: string,
 	sizeBytes: number | null,
-	/**  Миллисекунды эпохи. Вместе с размером опознаёт подмену файла. */
+	/**
+	 *  Epoch milliseconds. Together with the size it recognises a swapped
+	 *  file.
+	 */
 	mtime: number | null,
 	files: number,
 	folders: number,
 	totalUncompressed: number | null,
 	/**
-	 *  Единственная корневая папка архива. Её имя задаёт пользователь,
-	 *  поэтому из путей она срезается — заодно минус 25 символов к длине.
+	 *  The archive's single root folder. Its name is set by the user, so it is
+	 *  stripped from the paths — which also takes 25 characters off the
+	 *  length.
 	 */
 	singleRoot: string | null,
-	/**  Самый длинный путь внутри архива после среза корня. */
+	/**  The longest path inside the archive after the root is stripped. */
 	longestEntry: number,
 };
 
@@ -443,8 +447,8 @@ export type ArchiveRecord = {
 	mtime: number | null,
 	lastUsedAt: number | null,
 	/**
-	 *  Файл на месте и не изменился с прошлого раза. Пересчитывается
-	 *  при каждом чтении: архив могли удалить или подменить.
+	 *  The file is in place and unchanged since last time. Recomputed on
+	 *  every read: the archive could have been deleted or swapped.
 	 */
 	available: boolean,
 };
@@ -612,47 +616,49 @@ export type FoundProfile = {
 
 export type InstallPhase = 
 /**
- *  Проверки, открытие архива, разворот словаря LZMA2 на 768 МБ.
- *  Занимает секунды, а выглядела бы тишиной, если о ней не сказать.
+ *  The checks, opening the archive, unfolding the 768 MB LZMA2 dictionary.
+ *  It takes seconds, and would look like silence if left unannounced.
  */
 "preparing" | 
 /**
- *  Уборка следов прерванной попытки. Отдельно от `Preparing`, потому что
- *  это единственная подготовка, способная затянуться надолго: там
- *  десятки тысяч файлов и повторы вокруг занятых антивирусом.
+ *  Cleaning up after an interrupted attempt. Separate from `Preparing`
+ *  because it is the only preparation that can drag on: tens of thousands
+ *  of files, plus retries around the ones the antivirus is holding.
  */
 "cleaning" | 
-/**  Распаковка архива в первую цель. */
+/**  Extracting the archive into the first target. */
 "extracting" | 
-/**  Копирование готового дерева в остальные цели. */
+/**  Copying the finished tree into the remaining targets. */
 "copying" | 
 /**
- *  Регистрация в реестре: перепроверка каждой цели с запуском
- *  `python --version`. Тоже секунды, тоже не бесплатно.
+ *  Registration in the registry: re-checking every target and running
+ *  `python --version`. Seconds again, and not free again.
  */
 "registering";
 
 export type InstallProgress = {
 	phase: InstallPhase,
-	/**  Номер цели, начиная с единицы, и сколько их всего. */
+	/**  The target's number, starting from one, and how many there are. */
 	target: number,
 	targets: number,
 	targetName: string,
-	/**  Путь текущего файла внутри инстанса. Не переводится. */
+	/**  The current file's path inside the instance. Not translated. */
 	current: string,
 	/**
-	 *  Файлы, а не байты, — вот честная мера прогресса на этом архиве.
+	 *  Files, not bytes — that is the honest measure of progress on this
+	 *  archive.
 	 * 
-	 *  Хвост сборки это `site-packages` с десятками тысяч файлов по паре
-	 *  килобайт. На отметке 98% байт сделано меньше половины файлов, и полоса
-	 *  стоит ровно там, где идёт самая долгая часть работы: время уходит
-	 *  не на байты, а на создание файлов и проверку каждого антивирусом.
-	 *  Замерено на прерванном прогоне: 27 906 файлов из 61 895 при 4.0 ГБ
-	 *  из 4.1 ГБ.
+	 *  The tail of the build is `site-packages` with tens of thousands of
+	 *  files a couple of kilobytes each. At the 98% mark of the bytes, less
+	 *  than half the files are done, and the bar stands exactly where the
+	 *  longest part of the work is happening: the time goes not into bytes but
+	 *  into creating files and having each one checked by the antivirus.
+	 *  Measured on an interrupted run: 27,906 files out of 61,895 at 4.0 GB
+	 *  out of 4.1 GB.
 	 */
 	doneFiles: number,
 	totalFiles: number,
-	/**  Байты остаются, но уже как подпись рядом, а не как полоса. */
+	/**  The bytes remain, but as a caption alongside now, not as the bar. */
 	doneBytes: number | null,
 	totalBytes: number | null,
 };
@@ -1161,8 +1167,8 @@ export type StartOptions = {
 };
 
 /**
- *  Что не так с целью. Разделены осознанно: с предупреждением установку
- *  начать можно, с ошибкой — нет.
+ *  What is wrong with a target. The two are separated deliberately: with a
+ *  warning the install can start, with an error it cannot.
  */
 export type TargetCheck = {
 	path: string,

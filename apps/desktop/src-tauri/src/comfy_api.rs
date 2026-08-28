@@ -1,18 +1,18 @@
-//! Обращения к HTTP-API работающего инстанса ComfyUI.
+//! Calls to the HTTP API of a running ComfyUI instance.
 //!
-//! **Ходить сюда обязан Rust, а не наш фронт.** `fetch` из нашего вебвью
-//! на `127.0.0.1:<port>` — cross-site, и `origin_only_middleware`
-//! (`server.py:159-197`) такие запросы режет. Это тот же барьер, из-за
-//! которого в Фазе 0 отвергли `<iframe>`; обойти его можно только
-//! `--enable-cors-header`, который выключает защиту целиком — отвергнуто
-//! там же.
+//! **It has to be Rust going here, not our frontend.** A `fetch` from our
+//! webview to `127.0.0.1:<port>` is cross-site, and `origin_only_middleware`
+//! (`server.py:159-197`) cuts such requests off. This is the same barrier that
+//! got `<iframe>` rejected back in Phase 0; the only way around it is
+//! `--enable-cors-header`, which switches the protection off entirely —
+//! rejected in the same place.
 //!
-//! Клиент — `ureq` без TLS: ходим исключительно на петлю, шифровать нечего,
-//! а синхронный вызов ложится на правило «логика в обычных функциях,
-//! команды — тонкие async-обёртки».
+//! The client is `ureq` without TLS: we go strictly to the loopback, there is
+//! nothing to encrypt, and a synchronous call fits the rule "logic in plain
+//! functions, commands are thin async wrappers".
 //!
-//! `process::wait_ready` намеренно оставлен на голом `TcpStream`: один
-//! крошечный опрос раз в полсекунды, переписывать работающее незачем.
+//! `process::wait_ready` was deliberately left on a bare `TcpStream`: one tiny
+//! poll every half a second, no reason to rewrite what works.
 
 use std::collections::BTreeSet;
 use std::time::Duration;
@@ -21,25 +21,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
 
-/// Ответ ComfyUI на запрос листинга при `full_info=true`.
+/// ComfyUI's answer to a listing request with `full_info=true`.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoteFile {
-    /// Путь относительно запрошенной папки, прямыми слэшами —
-    /// так его отдаёт `get_file_info` (`app/user_manager.py:29`).
+    /// The path relative to the requested folder, with forward slashes —
+    /// that is how `get_file_info` hands it over (`app/user_manager.py:29`).
     pub path: String,
     pub size: f64,
-    /// Миллисекунды эпохи.
+    /// Epoch milliseconds.
     pub modified: f64,
 }
 
-/// Чем кончилась заливка.
+/// How the upload ended.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum UploadOutcome {
     Written,
-    /// Файл с таким именем уже есть, а перезаписывать не разрешали.
-    /// Не ошибка, а развилка: спрашиваем пользователя.
+    /// A file with this name already exists and overwriting was not allowed.
+    /// Not an error but a fork in the road: we ask the user.
     Conflict,
 }
 
@@ -50,9 +50,9 @@ pub struct Client {
 
 impl Client {
     pub fn new(port: u16) -> Self {
-        // Таймаут скромный, но не нулевой: сервер на петле отвечает
-        // мгновенно, а вот повисший в старте — не отвечает вовсе,
-        // и ждать его вечно нельзя.
+        // The timeout is modest but not zero: a server on the loopback answers
+        // instantly, whereas one stuck in startup does not answer at all, and
+        // waiting for it forever is not an option.
         let agent: ureq::Agent = ureq::Agent::config_builder()
             .timeout_global(Some(Duration::from_secs(30)))
             .build()
@@ -60,15 +60,16 @@ impl Client {
         Self { base: format!("http://127.0.0.1:{port}"), agent }
     }
 
-    /// Список воркфлоу сборки.
+    /// The list of a build's workflows.
     ///
-    /// Рекурсивный вариант v1, а не `/v2/userdata`: пользователи раскладывают
-    /// воркфлоу по подпапкам, и один рекурсивный вызов честнее обхода
-    /// по уровням. `full_info` даёт размер и время правки.
+    /// The recursive v1 variant rather than `/v2/userdata`: users lay their
+    /// workflows out in subfolders, and one recursive call is more honest than
+    /// a level-by-level walk. `full_info` gives the size and modification
+    /// time.
     ///
-    /// **404 означает «папки ещё нет», а не ошибку.** ComfyUI создаёт
-    /// `user/default/workflows` лениво, при первом сохранении, и в свежей
-    /// сборке её попросту не существует.
+    /// **A 404 means "the folder is not there yet", not an error.** ComfyUI
+    /// creates `user/default/workflows` lazily, on the first save, and in a
+    /// fresh build it simply does not exist.
     pub fn list_workflows(&self) -> Result<Vec<RemoteFile>, AppError> {
         let url = format!("{}/userdata?dir=workflows&recurse=true&full_info=true", self.base);
         let body = match self.get(&url) {
@@ -80,8 +81,8 @@ impl Client {
         let files: Vec<RemoteFile> = serde_json::from_str(&body)
             .map_err(|e| AppError::because("comfy.badResponse", e))?;
 
-        // Посторонние файлы в папке воркфлоу встречаются: ComfyUI кладёт
-        // туда и служебное. В список воркфлоу они не идут.
+        // Unrelated files do turn up in the workflow folder: ComfyUI puts
+        // housekeeping files there too. They do not go into the workflow list.
         Ok(files.into_iter().filter(|f| f.path.ends_with(".json")).collect())
     }
 
@@ -89,11 +90,11 @@ impl Client {
         self.get(&format!("{}/userdata/{}", self.base, encode(&format!("workflows/{rel}"))))
     }
 
-    /// Заливает воркфлоу в сборку.
+    /// Uploads a workflow into the build.
     ///
-    /// `overwrite = false` даёт **409** при совпадении имени
-    /// (`app/user_manager.py:397`). Это и есть механизм, которым мы
-    /// не даём молча затереть чужой воркфлоу.
+    /// `overwrite = false` yields a **409** on a name collision
+    /// (`app/user_manager.py:397`). That is precisely the mechanism by which
+    /// we prevent silently erasing someone else's workflow.
     pub fn upload_workflow(
         &self,
         rel: &str,
@@ -113,13 +114,15 @@ impl Client {
         }
     }
 
-    /// Убирает воркфлоу из сборки (`app/user_manager.py:427`).
+    /// Removes a workflow from the build (`app/user_manager.py:427`).
     ///
-    /// У запущенной сборки файл убирается её же руками, а не из-под неё:
-    /// ComfyUI держит папку воркфлоу своей и о правках со стороны не знает.
+    /// For a running build the file is removed by its own hands rather than
+    /// out from under it: ComfyUI holds the workflow folder as its own and
+    /// knows nothing of edits from outside.
     ///
-    /// Отсутствие файла — не ошибка. Забрать его могли уже после того, как
-    /// мы прочитали список, и жаловаться на достигнутый результат незачем.
+    /// A missing file is not an error. It could have been taken away after we
+    /// read the list, and there is no point complaining about the outcome we
+    /// wanted.
     pub fn delete_workflow(&self, rel: &str) -> Result<(), AppError> {
         let url = format!("{}/userdata/{}", self.base, encode(&format!("workflows/{rel}")));
         match self.agent.delete(&url).call() {
@@ -129,11 +132,12 @@ impl Client {
         }
     }
 
-    /// Множество классов нод, доступных этой сборке.
+    /// The set of node classes available to this build.
     ///
-    /// Ответ — многомегабайтный JSON со схемами всех нод, а нужны из него
-    /// только ключи верхнего уровня. Разбираем целиком (иного способа нет),
-    /// но наружу отдаём один набор имён: именно он кэшируется и сравнивается.
+    /// The answer is a multi-megabyte JSON with the schemas of every node, and
+    /// all we need from it are the top-level keys. We parse it whole (there is
+    /// no other way), but hand out a single set of names: that is what gets
+    /// cached and compared.
     pub fn object_info_keys(&self) -> Result<BTreeSet<String>, AppError> {
         let body = self.get_large(&format!("{}/object_info", self.base))?;
         let value: serde_json::Value = serde_json::from_str(&body)
@@ -150,9 +154,9 @@ impl Client {
         self.read(url, 8 * 1024 * 1024)
     }
 
-    /// Отдельный предел для `/object_info`: у сборки с полусотней пакетов
-    /// нод ответ переваливает за десятки мегабайт, и умолчание ureq
-    /// обрезало бы его молча.
+    /// A separate limit for `/object_info`: on a build with fifty-odd node
+    /// packs the answer runs past tens of megabytes, and ureq's default would
+    /// truncate it silently.
     fn get_large(&self, url: &str) -> Result<String, AppError> {
         self.read(url, 256 * 1024 * 1024)
     }
@@ -171,16 +175,16 @@ impl Client {
     }
 }
 
-/// Снимок доступных нод инстанса.
+/// A snapshot of an instance's available nodes.
 ///
-/// У остановленной сборки спросить не у кого, а ответ «неизвестно» на каждый
-/// вопрос о совместимости бесполезен. Поэтому при каждом успешном старте
-/// кладём набор классов рядом, и для остановленной отвечаем по нему,
-/// честно помечая ответ как данные последнего запуска.
+/// There is no one to ask on a stopped build, and an "unknown" to every
+/// compatibility question is useless. So on every successful start we put the
+/// set of classes aside, and for a stopped build we answer from it, honestly
+/// marking the answer as data from the last launch.
 ///
-/// Кэш производный: потеря безболезненна, восстановится при первом же
-/// старте. Отсюда `app_local_data_dir`, а не папка данных — при чистом
-/// удалении приложения его не жалко.
+/// The cache is derived: losing it is painless, it comes back on the very next
+/// start. Hence `app_local_data_dir` rather than the data folder — on a clean
+/// uninstall of the app it costs nothing to lose.
 pub mod cache {
     use std::collections::BTreeSet;
     use std::path::{Path, PathBuf};
@@ -194,8 +198,9 @@ pub mod cache {
     }
 
     fn path(dir: &Path, instance_id: &str) -> PathBuf {
-        // Имя инстанса в путь не идёт: оно произвольное и меняется.
-        // Идентификатор наш, из реестра, и безопасен как имя файла.
+        // The instance's name does not go into the path: it is arbitrary and
+        // it changes. The identifier is ours, from the registry, and is safe
+        // as a file name.
         dir.join("nodes").join(format!("{instance_id}.json"))
     }
 
@@ -208,7 +213,7 @@ pub mod cache {
             nodes: nodes.clone(),
         };
         let file = path(dir, instance_id);
-        // Молча: не сумели записать кэш — потеряли удобство, а не данные.
+        // Silently: failing to write the cache loses convenience, not data.
         if let Some(parent) = file.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
@@ -223,12 +228,12 @@ pub mod cache {
     }
 }
 
-/// Процентное кодирование сегмента пути.
+/// Percent-encoding of a path segment.
 ///
-/// Слэш обязан превратиться в `%2F`: путь идёт одним сегментом URL,
-/// а ComfyUI разворачивает его обратно (`app/user_manager.py:88`).
-/// Своя реализация вместо зависимости — набор символов крошечный,
-/// а тянуть ради него ещё один крейт незачем.
+/// A slash has to turn into `%2F`: the path travels as a single URL segment,
+/// and ComfyUI unfolds it back (`app/user_manager.py:88`). Our own
+/// implementation instead of a dependency — the character set is tiny, and
+/// pulling in another crate for it is pointless.
 fn encode(path: &str) -> String {
     let mut out = String::with_capacity(path.len());
     for byte in path.as_bytes() {

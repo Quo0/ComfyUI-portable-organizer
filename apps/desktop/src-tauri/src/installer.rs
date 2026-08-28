@@ -1,12 +1,13 @@
-//! Мастер установки: разбор архива, распаковка, клонирование дерева.
+//! The install wizard: parsing the archive, extracting, cloning the tree.
 //!
-//! Приложение не скачивает архив само — источник выбирает пользователь.
-//! И не обновляет существующий инстанс на месте: мастер разворачивает новое
-//! рядом, старые сборки остаются нетронутыми.
+//! The app does not download the archive itself — the user picks the source.
+//! Nor does it update an existing instance in place: the wizard unpacks a new
+//! one alongside, and the old builds stay untouched.
 //!
-//! Решение по декодеру принято замером, а не ощущением: `sevenz-rust2`
-//! втрое медленнее 7-Zip на реальном архиве (238 с против 81), и это принято.
-//! Подробности и цифры — в `plan/installer.md`.
+//! The decoder decision was made by measurement, not by feel: `sevenz-rust2`
+//! is three times slower than 7-Zip on a real archive (238 s against 81), and
+//! that has been accepted. The details and the numbers are in
+//! `plan/installer.md`.
 
 use std::fs::{self, File};
 use std::io;
@@ -21,43 +22,47 @@ use tauri_specta::Event;
 
 use crate::error::AppError;
 
-/// Пока распаковка не закончена, папка называется так. Валидация инстанса —
-/// это наличие `python_embeded\python.exe` и `ComfyUI\main.py`, и
-/// полураспакованное дерево её пройдёт. Без временного имени прерванная
-/// установка оставила бы битый инстанс, который приложение сочтёт рабочим.
+/// Until the extraction is finished, the folder is named like this. Validating
+/// an instance means the presence of `python_embeded\python.exe` and
+/// `ComfyUI\main.py`, and a half-unpacked tree would pass it. Without the
+/// temporary name, an interrupted install would leave behind a broken instance
+/// that the app considers working.
 const PARTIAL_SUFFIX: &str = ".cpo-partial";
 
-/// Запас поверх заголовка архива: файловая система тратит место на записи
-/// каталогов, а десятки тысяч мелких файлов округляются вверх до кластера.
+/// The margin on top of the archive header: the file system spends space on
+/// directory records, and tens of thousands of small files get rounded up to
+/// the cluster size.
 const SPACE_MARGIN: f64 = 1.1;
 
-/// Порог предупреждения о длинном пути. За ним обычные программы —
-/// сам ComfyUI, pip, python — начинают спотыкаться о MAX_PATH, даже если
-/// наша распаковка справится за счёт verbatim-путей.
+/// The threshold for the long-path warning. Beyond it, ordinary programs —
+/// ComfyUI itself, pip, python — start stumbling over MAX_PATH, even if our
+/// extraction copes thanks to verbatim paths.
 const MAX_PATH: usize = 260;
 
-/// Событий больше десяти в секунду интерфейс всё равно не покажет, а IPC
-/// на 56 тысячах файлов заметно нагружает.
+/// More than ten events a second the interface will not show anyway, while on
+/// 56 thousand files they load the IPC noticeably.
 const PROGRESS_INTERVAL_MS: u128 = 100;
 
-// ------------------------------------------------------------- модель
+// ------------------------------------------------------------- the model
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ArchiveInfo {
     pub path: String,
-    /// Имя файла. Показывается в карточке инстанса как источник.
+    /// The file name. Shown on the instance card as the source.
     pub label: String,
     pub size_bytes: f64,
-    /// Миллисекунды эпохи. Вместе с размером опознаёт подмену файла.
+    /// Epoch milliseconds. Together with the size it recognises a swapped
+    /// file.
     pub mtime: f64,
     pub files: u32,
     pub folders: u32,
     pub total_uncompressed: f64,
-    /// Единственная корневая папка архива. Её имя задаёт пользователь,
-    /// поэтому из путей она срезается — заодно минус 25 символов к длине.
+    /// The archive's single root folder. Its name is set by the user, so it is
+    /// stripped from the paths — which also takes 25 characters off the
+    /// length.
     pub single_root: Option<String>,
-    /// Самый длинный путь внутри архива после среза корня.
+    /// The longest path inside the archive after the root is stripped.
     pub longest_entry: u32,
 }
 
@@ -71,8 +76,8 @@ pub struct InstallTarget {
     pub preferred_port: u16,
 }
 
-/// Что не так с целью. Разделены осознанно: с предупреждением установку
-/// начать можно, с ошибкой — нет.
+/// What is wrong with a target. The two are separated deliberately: with a
+/// warning the install can start, with an error it cannot.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct TargetCheck {
@@ -84,25 +89,25 @@ pub struct TargetCheck {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
 pub enum InstallPhase {
-    /// Проверки, открытие архива, разворот словаря LZMA2 на 768 МБ.
-    /// Занимает секунды, а выглядела бы тишиной, если о ней не сказать.
+    /// The checks, opening the archive, unfolding the 768 MB LZMA2 dictionary.
+    /// It takes seconds, and would look like silence if left unannounced.
     Preparing,
-    /// Уборка следов прерванной попытки. Отдельно от `Preparing`, потому что
-    /// это единственная подготовка, способная затянуться надолго: там
-    /// десятки тысяч файлов и повторы вокруг занятых антивирусом.
+    /// Cleaning up after an interrupted attempt. Separate from `Preparing`
+    /// because it is the only preparation that can drag on: tens of thousands
+    /// of files, plus retries around the ones the antivirus is holding.
     Cleaning,
-    /// Распаковка архива в первую цель.
+    /// Extracting the archive into the first target.
     Extracting,
-    /// Копирование готового дерева в остальные цели.
+    /// Copying the finished tree into the remaining targets.
     Copying,
-    /// Регистрация в реестре: перепроверка каждой цели с запуском
-    /// `python --version`. Тоже секунды, тоже не бесплатно.
+    /// Registration in the registry: re-checking every target and running
+    /// `python --version`. Seconds again, and not free again.
     Registering,
 }
 
 impl InstallPhase {
-    /// Фазы, у которых нет доли выполненного: показывать нечего, кроме
-    /// того, что работа идёт.
+    /// The phases with no fraction done: there is nothing to show beyond the
+    /// fact that work is happening.
     pub fn is_indeterminate(self) -> bool {
         matches!(self, Self::Preparing | Self::Cleaning | Self::Registering)
     }
@@ -112,33 +117,35 @@ impl InstallPhase {
 #[serde(rename_all = "camelCase")]
 pub struct InstallProgress {
     pub phase: InstallPhase,
-    /// Номер цели, начиная с единицы, и сколько их всего.
+    /// The target's number, starting from one, and how many there are.
     pub target: u32,
     pub targets: u32,
     pub target_name: String,
-    /// Путь текущего файла внутри инстанса. Не переводится.
+    /// The current file's path inside the instance. Not translated.
     pub current: String,
 
-    /// Файлы, а не байты, — вот честная мера прогресса на этом архиве.
+    /// Files, not bytes — that is the honest measure of progress on this
+    /// archive.
     ///
-    /// Хвост сборки это `site-packages` с десятками тысяч файлов по паре
-    /// килобайт. На отметке 98% байт сделано меньше половины файлов, и полоса
-    /// стоит ровно там, где идёт самая долгая часть работы: время уходит
-    /// не на байты, а на создание файлов и проверку каждого антивирусом.
-    /// Замерено на прерванном прогоне: 27 906 файлов из 61 895 при 4.0 ГБ
-    /// из 4.1 ГБ.
+    /// The tail of the build is `site-packages` with tens of thousands of
+    /// files a couple of kilobytes each. At the 98% mark of the bytes, less
+    /// than half the files are done, and the bar stands exactly where the
+    /// longest part of the work is happening: the time goes not into bytes but
+    /// into creating files and having each one checked by the antivirus.
+    /// Measured on an interrupted run: 27,906 files out of 61,895 at 4.0 GB
+    /// out of 4.1 GB.
     pub done_files: u32,
     pub total_files: u32,
 
-    /// Байты остаются, но уже как подпись рядом, а не как полоса.
+    /// The bytes remain, but as a caption alongside now, not as the bar.
     pub done_bytes: f64,
     pub total_bytes: f64,
 }
 
 impl InstallProgress {
-    /// Событие фазы без счётчиков. Нули здесь не «ничего не сделано»,
-    /// а «считать нечего»: фронт по `phase` понимает это и рисует
-    /// бегущую полосу вместо доли.
+    /// A phase event with no counters. The zeros here mean "there is nothing
+    /// to count", not "nothing has been done": the frontend works that out
+    /// from `phase` and draws a running bar instead of a fraction.
     pub fn stage(phase: InstallPhase, target: u32, targets: u32, name: &str) -> Self {
         Self {
             phase,
@@ -154,10 +161,11 @@ impl InstallProgress {
     }
 }
 
-/// Отмена мастера. Проверяется между файлами: прерывать распаковку одного
-/// файла посреди потока незачем, самый крупный в архиве — считанные мегабайты.
-/// Флаг за `Arc`, потому что работа уходит в отдельный поток, а команда
-/// отмены остаётся в состоянии приложения: оба должны смотреть на один бит.
+/// Cancelling the wizard. Checked between files: there is no point
+/// interrupting the extraction of a single file mid-stream, the largest one in
+/// the archive is a handful of megabytes. The flag sits behind an `Arc`
+/// because the work goes to a separate thread while the cancel command stays
+/// in the app state: both have to look at the same bit.
 #[derive(Default, Clone)]
 pub struct InstallCancel(std::sync::Arc<AtomicBool>);
 
@@ -170,7 +178,7 @@ impl InstallCancel {
         self.0.store(false, Ordering::Relaxed);
     }
 
-    /// Копия, разделяющая тот же флаг. Для передачи в рабочий поток.
+    /// A copy sharing the same flag. For handing to the worker thread.
     pub fn share(&self) -> Self {
         self.clone()
     }
@@ -180,12 +188,12 @@ impl InstallCancel {
     }
 }
 
-/// Идёт ли установка прямо сейчас. Две одновременные распакуют одно поверх
-/// другого и подерутся за диск.
+/// Whether an install is running right now. Two at once would unpack one on
+/// top of the other and fight over the disk.
 #[derive(Default)]
 pub struct InstallLock(Mutex<bool>);
 
-// ------------------------------------------------------------- разбор
+// ----------------------------------------------------------- the parsing
 
 pub fn probe_archive(path: &str) -> Result<ArchiveInfo, AppError> {
     let file = Path::new(path);
@@ -251,12 +259,13 @@ fn strip_root<'a>(name: &'a str, root: Option<&str>) -> &'a str {
         .unwrap_or(name)
 }
 
-// ------------------------------------------------------------- проверки
+// ----------------------------------------------------------- the checks
 
-/// Проверяет цели до начала работы: место, пустоту папок, длину пути.
+/// Checks the targets before the work starts: space, folder emptiness, path
+/// length.
 ///
-/// Ошибки и предупреждения разделены: длинный путь установку не ломает
-/// благодаря verbatim-путям, но ломает всё, что запустится потом.
+/// Errors and warnings are separated: a long path does not break the install
+/// thanks to verbatim paths, but it breaks everything that runs afterwards.
 pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<TargetCheck> {
     let mut checks = Vec::new();
 
@@ -271,8 +280,9 @@ pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<Targe
             errors.push(AppError::with("installer.notAbsolute", "path", &target.path));
         }
 
-        // Непустая папка — почти наверняка чужие данные. Сносить их мы
-        // не будем и распаковываться поверх тоже: получится смесь.
+        // A non-empty folder is almost certainly someone else's data. We will
+        // not wipe it, and we will not unpack over it either: the result would
+        // be a mixture.
         if path.is_dir() {
             let empty = fs::read_dir(path)
                 .map(|mut d| d.next().is_none())
@@ -284,8 +294,8 @@ pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<Targe
             errors.push(AppError::with("installer.notADirectory", "path", &target.path));
         }
 
-        // Один и тот же путь дважды — распаковка и копирование подрались бы
-        // за одни файлы.
+        // The same path twice — the extraction and the copying would fight
+        // over the same files.
         if targets
             .iter()
             .filter(|t| t.path.eq_ignore_ascii_case(&target.path))
@@ -307,8 +317,8 @@ pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<Targe
         checks.push(TargetCheck { path: target.path.clone(), errors, warnings });
     }
 
-    // Свободное место считается на том, а не на папку: две цели на одном
-    // диске требуют вдвое больше.
+    // Free space is counted per volume, not per folder: two targets on one
+    // drive need twice as much.
     let needed = info.total_uncompressed * SPACE_MARGIN;
     for check in &mut checks {
         let path = Path::new(&check.path);
@@ -320,10 +330,10 @@ pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<Targe
         let Some(free) = free_space(&root) else { continue };
 
         if free < needed * same_volume {
-            // Гигабайты, а не байты: сообщение читает человек. Разделитель
-            // дробной части здесь остаётся точкой — единственное место, где
-            // число не проходит через локаль, и ради него тащить форматирование
-            // в бэкенд не стоит.
+            // Gigabytes rather than bytes: a human reads this message. The
+            // decimal separator stays a dot here — this is the one place where
+            // a number does not go through the locale, and dragging formatting
+            // into the backend for its sake is not worth it.
             check.errors.push(AppError::with(
                 "installer.noSpace",
                 "needed",
@@ -335,8 +345,8 @@ pub fn check_targets(info: &ArchiveInfo, targets: &[InstallTarget]) -> Vec<Targe
     checks
 }
 
-/// Корень тома: `D:\`. Папки назначения может ещё не быть, поэтому берём
-/// не саму папку, а начало пути.
+/// The volume root: `D:\`. The destination folder may not exist yet, so we
+/// take the start of the path rather than the folder itself.
 fn volume_root(path: &Path) -> Option<String> {
     let text = path.display().to_string();
     let mut chars = text.chars();
@@ -358,7 +368,7 @@ pub(crate) fn free_space(root: &str) -> Option<f64> {
         .collect();
 
     let mut available: u64 = 0;
-    // SAFETY: строка завершена нулём, указатели живут дольше вызова.
+    // SAFETY: the string is nul-terminated, and the pointers outlive the call.
     let ok = unsafe {
         GetDiskFreeSpaceExW(
             wide.as_ptr(),
@@ -379,13 +389,14 @@ pub(crate) fn free_space(_root: &str) -> Option<f64> {
     None
 }
 
-// ------------------------------------------------------------- работа
+// ------------------------------------------------------------- the work
 
-/// Распаковывает архив в первую цель и копирует дерево в остальные.
+/// Extracts the archive into the first target and copies the tree into the
+/// rest.
 ///
-/// Распаковываем один раз, дальше копируем: декомпрессия упирается в CPU
-/// и стоит вчетверо дороже копирования готового дерева. При двух-трёх
-/// целях это экономит минуты.
+/// We extract once and copy afterwards: decompression is CPU-bound and costs
+/// four times as much as copying a finished tree. With two or three targets
+/// that saves minutes.
 pub fn run<F>(
     info: &ArchiveInfo,
     targets: &[InstallTarget],
@@ -430,8 +441,8 @@ where
     F: FnMut(InstallProgress),
 {
     let partial = partial_of(dest);
-    // Прошлая попытка могла оборваться — начинаем с чистого места.
-    // Уборка тут способна занять минуты, поэтому о ней говорим отдельно.
+    // A previous attempt may have been cut short — we start from a clean
+    // place. The cleanup here can take minutes, so we announce it separately.
     if partial.exists() {
         report(InstallProgress::stage(
             InstallPhase::Cleaning,
@@ -442,7 +453,8 @@ where
     }
     remove_tree(&partial)?;
 
-    // Открытие архива и разворот словаря — ещё несколько секунд тишины.
+    // Opening the archive and unfolding the dictionary — a few more seconds of
+    // silence.
     report(InstallProgress::stage(
         InstallPhase::Preparing,
         1,
@@ -452,13 +464,14 @@ where
     let outcome = extract_into(info, &partial, target, targets, cancel, report);
 
     if outcome.is_err() || cancel.requested() {
-        // Отмена и падение убирают временную папку: битому дереву,
-        // которое пройдёт валидацию инстанса, тут делать нечего.
+        // A cancellation and a crash both remove the temporary folder: a
+        // broken tree that would pass instance validation has no business
+        // being here.
         //
-        // Об уборке говорим до того, как её начать. Полсотни тысяч файлов
-        // удаляются минуту и дольше, а экран без этого события остаётся
-        // стоять на последнем кадре прогресса — то есть выглядит зависшим
-        // ровно после нажатия «Отменить», и кнопку жмут второй раз.
+        // The cleanup is announced before it starts. Fifty thousand files take
+        // a minute or longer to delete, and without this event the screen
+        // stands still on the last progress frame — that is, it looks frozen
+        // right after "Cancel" is pressed, and the button gets pressed again.
         report(InstallProgress::stage(
             InstallPhase::Cleaning,
             1,
@@ -471,9 +484,9 @@ where
 
     fs::create_dir_all(dest.parent().unwrap_or(dest))
         .map_err(|e| AppError::because("installer.writeFailed", e))?;
-    // Переименование поверх существующей пустой папки работает —
-    // проверено `examples/check_rename.rs` на нашей же связке Rust
-    // и Windows. Снимать папку заранее не нужно.
+    // Renaming over an existing empty folder works — verified by
+    // `examples/check_rename.rs` on our own Rust and Windows pairing. There is
+    // no need to remove the folder beforehand.
     fs::rename(verbatim(&partial), verbatim(dest))
         .map_err(|e| AppError::because("installer.writeFailed", e))
 }
@@ -500,9 +513,10 @@ where
     let mut done = 0f64;
     let mut files = 0u32;
     let mut last = Instant::now();
-    // Записи архива идут группами по каталогам, поэтому родитель почти всегда
-    // тот же, что у предыдущего файла. Без этой памяти create_dir_all звался бы
-    // пятьдесят шесть тысяч раз, каждый раз проходя все компоненты пути.
+    // The archive entries come grouped by directory, so the parent is almost
+    // always the same as the previous file's. Without this memory,
+    // create_dir_all would be called fifty-six thousand times, walking every
+    // component of the path each time.
     let mut last_parent: Option<PathBuf> = None;
 
     reader
@@ -588,8 +602,8 @@ where
     let outcome = copy_into(from, &partial, info, target, index, targets, cancel, report);
 
     if outcome.is_err() || cancel.requested() {
-        // Та же уборка и то же сообщение, что при распаковке: копия
-        // отменяется так же часто, а молчит так же долго.
+        // The same cleanup and the same message as during extraction: a copy
+        // gets cancelled just as often and stays silent just as long.
         report(InstallProgress::stage(
             InstallPhase::Cleaning,
             index,
@@ -624,8 +638,8 @@ where
     let mut done = 0f64;
     let mut files = 0u32;
     let mut last = Instant::now();
-    // Обход без рекурсии: глубина дерева питона непредсказуема, а переполнение
-    // стека здесь было бы падением всего приложения.
+    // Walking without recursion: the depth of a python tree is unpredictable,
+    // and a stack overflow here would be a crash of the entire app.
     let mut stack = vec![PathBuf::new()];
 
     while let Some(rel_dir) = stack.pop() {
@@ -686,12 +700,13 @@ fn partial_of(dest: &Path) -> PathBuf {
     PathBuf::from(name)
 }
 
-/// Удаляет дерево, повторяя попытки.
+/// Deletes a tree, retrying.
 ///
-/// Одиночного вызова мало: сразу после распаковки часть файлов держит
-/// антивирус, и удаление возвращает то «папка не пуста», то «доступ
-/// запрещён», причём набор запертых файлов меняется от попытки к попытке.
-/// Проверено на реальном архиве — см. `plan/installer.md`, «Что ещё вскрыл спайк».
+/// A single call is not enough: right after extraction the antivirus is
+/// holding some of the files, and the deletion returns now "directory not
+/// empty", now "access denied", with the set of locked files changing from
+/// attempt to attempt. Verified on a real archive — see `plan/installer.md`,
+/// "What else the spike uncovered".
 fn remove_tree(path: &Path) -> Result<(), AppError> {
     if !path.exists() {
         return Ok(());
@@ -711,11 +726,12 @@ fn remove_tree(path: &Path) -> Result<(), AppError> {
     ))
 }
 
-/// Verbatim-путь `\\?\`, снимающий лимит MAX_PATH.
+/// A verbatim `\\?\` path, which lifts the MAX_PATH limit.
 ///
-/// Прямые слэши обязаны стать обратными: verbatim означает «передать ядру
-/// как есть», обычная нормализация отключается вместе с лимитом, и `/`
-/// из имён записей архива даёт ошибку 123 без намёка на причину.
+/// Forward slashes have to become backslashes: verbatim means "pass to the
+/// kernel as is", the ordinary normalisation is switched off along with the
+/// limit, and a `/` from an archive entry's name yields error 123 without a
+/// hint of the reason.
 fn verbatim(path: &Path) -> PathBuf {
     #[cfg(windows)]
     {
@@ -735,10 +751,10 @@ fn verbatim(path: &Path) -> PathBuf {
     path.to_path_buf()
 }
 
-// ------------------------------------------------------- история архивов
+// -------------------------------------------------- the archive history
 
-/// Хранится именно история, а не последний путь: пользователь держит
-/// несколько версий сборки и разворачивает их рядом.
+/// It is a history that is stored, not the last path: the user keeps several
+/// versions of a build and unpacks them side by side.
 pub mod history {
     use super::*;
     use tauri_plugin_store::StoreExt;
@@ -755,8 +771,8 @@ pub mod history {
         pub size_bytes: f64,
         pub mtime: f64,
         pub last_used_at: f64,
-        /// Файл на месте и не изменился с прошлого раза. Пересчитывается
-        /// при каждом чтении: архив могли удалить или подменить.
+        /// The file is in place and unchanged since last time. Recomputed on
+        /// every read: the archive could have been deleted or swapped.
         pub available: bool,
     }
 
@@ -822,7 +838,7 @@ pub mod history {
 }
 
 impl InstallLock {
-    /// Возвращает страж, снимающий блокировку при выходе из области.
+    /// Returns a guard that releases the lock when it goes out of scope.
     pub fn acquire(&self) -> Result<InstallGuard<'_>, AppError> {
         let mut busy = self.0.lock().unwrap();
         if *busy {
