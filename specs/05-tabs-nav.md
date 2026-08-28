@@ -1,162 +1,169 @@
-# EP-TAB — Навигация и встроенные вкладки
+# EP-TAB — Navigation and embedded tabs
 
-Главная особенность приложения: ComfyUI открывается внутри окна, а не в браузере. Отсюда и структура — постоянно видимый рейл слева и сменяемая контентная область, в которой у работающего инстанса живёт сам ComfyUI.
+The app's main distinguishing feature: ComfyUI opens inside the window rather
+than in a browser. The structure follows from that — a permanently visible rail
+on the left and a changing content area, in which ComfyUI itself lives for a
+running instance.
 
-Встроенная вкладка — не картинка и не урезанная версия. Это полноценный ComfyUI со всеми его возможностями, включая перетаскивание файлов на холст и переходы по внешним ссылкам.
+The embedded tab is not a picture and not a cut-down version. It is a fully
+featured ComfyUI with all of its capabilities, including dragging files onto
+the canvas and following external links.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-TAB-010` | Навигация по разделам видна всегда, включая экран работающего инстанса | «Навигация и структура приложения» |
-| `FR-TAB-020` | Интерфейс ComfyUI показывается внутри окна приложения | «Ключевые находки», факт 3 |
-| `FR-TAB-030` | Запущенные инстансы доступны для переключения одним действием | «Навигация и структура приложения» |
-| `FR-TAB-040` | Уход в другой раздел не прерывает работу инстанса | «Навигация и структура приложения» |
-| `FR-TAB-050` | Область ComfyUI следует за изменением размеров окна и навигации | «webview.rs — встраивание» |
-| `FR-TAB-060` | Перетаскивание файлов на холст ComfyUI работает | «Грабли» |
-| `FR-TAB-070` | Внешние ссылки открываются в системном браузере | «Грабли» |
-| `FR-TAB-080` | Инструменты работы с инстансом доступны, не покидая его экран | «Экраны» |
-| `FR-TAB-090` | Инстанс можно открыть в обычном браузере | «Экраны» |
-| `FR-TAB-100` | Рейл сворачивается до иконок, состояние запоминается | «Навигация и структура приложения» |
+| `FR-TAB-010` | Navigation between the sections is always visible, including on the screen of a running instance | «Навигация и структура приложения» |
+| `FR-TAB-020` | The ComfyUI interface is shown inside the app's window | «Ключевые находки», факт 3 |
+| `FR-TAB-030` | Running instances are available for switching between in a single action | «Навигация и структура приложения» |
+| `FR-TAB-040` | Leaving for another section does not interrupt an instance's work | «Навигация и структура приложения» |
+| `FR-TAB-050` | The ComfyUI area follows changes in the window's size and in the navigation | «webview.rs — встраивание» |
+| `FR-TAB-060` | Dragging files onto the ComfyUI canvas works | «Грабли» |
+| `FR-TAB-070` | External links open in the system browser | «Грабли» |
+| `FR-TAB-080` | The tools for working with an instance are available without leaving its screen | «Экраны» |
+| `FR-TAB-090` | An instance can be opened in an ordinary browser | «Экраны» |
+| `FR-TAB-100` | The rail collapses down to icons, and the state is remembered | «Навигация и структура приложения» |
 
 ---
 
-### US-TAB-01 — Навигация по разделам
+### US-TAB-01 — Navigating between the sections
 
-**Как** пользователь
-**я хочу** быстро переходить между частями приложения
-**чтобы** не терять контекст.
+**As** a user
+**I want** to move quickly between parts of the app
+**so that** I do not lose context.
 
-Теги: `@FR-TAB-010` `@FR-TAB-100` `@phase-0.5` `@area-tab`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
+Tags: `@FR-TAB-010` `@FR-TAB-100` `@phase-0.5` `@area-tab`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
 
-**Предусловия**
-- Приложение запущено.
+**Preconditions**
+- The app is running.
 
-**Критерии приёмки**
-- **AC-1.** Разделы приложения доступны из постоянно видимого меню: инстансы, установка, настройки, сведения о приложении. Библиотека воркфлоу — раздел настроек: это папка снаружи сборок, как и общая папка моделей, и настраивается она там же, где показывается.
-- **AC-2.** Текущий раздел визуально отличается от остальных.
-- **AC-3.** Меню видно на любом экране, включая экран работающего инстанса.
-- **AC-4.** Меню можно свернуть до компактного вида и развернуть обратно.
-- **AC-5.** Свёрнутое состояние сохраняется между запусками приложения.
-- **AC-6.** В компактном виде назначение каждого пункта остаётся распознаваемым.
+**Acceptance criteria**
+- **AC-1.** The app's sections are available from a permanently visible menu: instances, installation, settings, information about the app. The workflow library is a settings section: it is a folder outside the builds, like the shared models folder, and it is configured in the same place where it is shown.
+- **AC-2.** The current section is visually distinct from the rest.
+- **AC-3.** The menu is visible on any screen, including the screen of a running instance.
+- **AC-4.** The menu can be collapsed to a compact form and expanded back.
+- **AC-5.** The collapsed state is kept between launches of the app.
+- **AC-6.** In the compact form the purpose of each item stays recognisable.
 
-**Негативные и краевые случаи**
-- **AC-7.** Подписи разделов не обрезаются и не ломают вёрстку ни на одном из поддерживаемых языков.
-
----
-
-### US-TAB-02 — ComfyUI внутри окна приложения
-
-**Как** пользователь
-**я хочу** работать с ComfyUI прямо в приложении
-**чтобы** не искать нужную вкладку среди прочих в браузере.
-
-Теги: `@FR-TAB-020` `@FR-TAB-050` `@FR-TAB-060` `@phase-3` `@area-tab`
-Обоснование: `PLAN.md` → «Ключевые находки», «webview.rs — встраивание»
-
-**Предусловия**
-- Инстанс запущен и пришёл в готовность.
-
-**Критерии приёмки**
-- **AC-1.** Интерфейс ComfyUI занимает всю контентную область окна.
-- **AC-2.** Интерфейс полнофункционален: доступны все возможности, что и в браузере.
-- **AC-3.** Перетаскивание изображения или файла воркфлоу на холст загружает его, как в браузере.
-- **AC-4.** Область ComfyUI следует за изменением размера окна без разрывов и наложений.
-- **AC-5.** Сворачивание и разворачивание меню меняет размер области ComfyUI соответственно.
-- **AC-6.** Сохранение изображений и экспорт из интерфейса ComfyUI работают.
-
-**Негативные и краевые случаи**
-- **AC-7.** Ошибка загрузки интерфейса объясняется пользователю и предлагает повторить попытку.
-- **AC-8.** Элементы нашего интерфейса не перекрывают область ComfyUI, а живут в отведённых им местах.
+**Negative and edge cases**
+- **AC-7.** The section labels are not truncated and do not break the layout in any of the supported languages.
 
 ---
 
-### US-TAB-03 — Переключение между запущенными инстансами
+### US-TAB-02 — ComfyUI inside the app's window
 
-**Как** A3, работающий с двумя сборками
-**я хочу** переключаться между ними мгновенно
-**чтобы** сравнивать результаты.
+**As** a user
+**I want** to work with ComfyUI right inside the app
+**so that** I do not have to hunt for the right tab among the others in the
+browser.
 
-Теги: `@FR-TAB-030` `@FR-TAB-040` `@phase-2` `@area-tab`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
+Tags: `@FR-TAB-020` `@FR-TAB-050` `@FR-TAB-060` `@phase-3` `@area-tab`
+Rationale: `PLAN.md` → «Ключевые находки», «webview.rs — встраивание»
 
-**Предусловия**
-- Запущено больше одного инстанса.
+**Preconditions**
+- The instance has been launched and has reached readiness.
 
-**Критерии приёмки**
-- **AC-1.** Все запущенные инстансы перечислены в постоянно видимом меню.
-- **AC-2.** Каждый различим по имени и акцентному цвету.
-- **AC-3.** Переключение выполняется одним действием.
-- **AC-4.** Состояние ComfyUI при переключении сохраняется: несохранённый граф не теряется.
-- **AC-5.** Состояние каждого инстанса отражается прямо в меню.
-- **AC-6.** Аварийно завершившийся инстанс заметен в меню независимо от открытого раздела.
+**Acceptance criteria**
+- **AC-1.** The ComfyUI interface occupies the whole content area of the window.
+- **AC-2.** The interface is fully featured: every capability available in a browser is available here.
+- **AC-3.** Dragging an image or a workflow file onto the canvas loads it, as in a browser.
+- **AC-4.** The ComfyUI area follows changes in the window's size without gaps or overlaps.
+- **AC-5.** Collapsing and expanding the menu changes the size of the ComfyUI area accordingly.
+- **AC-6.** Saving images and exporting from the ComfyUI interface work.
 
-**Негативные и краевые случаи**
-- **AC-7.** Остановленный инстанс исчезает из перечня запущенных, но остаётся в разделе инстансов.
-
----
-
-### US-TAB-04 — Уход в другой раздел и возврат
-
-**Как** пользователь
-**я хочу** сходить в настройки, не прерывая работу ComfyUI
-**чтобы** не терять несохранённый граф.
-
-Теги: `@FR-TAB-040` `@FR-TAB-050` `@phase-2` `@area-tab`
-Обоснование: `PLAN.md` → «Навигация и структура приложения»
-
-**Предусловия**
-- Инстанс работает, его интерфейс открыт.
-
-**Критерии приёмки**
-- **AC-1.** Переход в другой раздел скрывает интерфейс ComfyUI, но не прерывает сервер.
-- **AC-2.** Возврат показывает интерфейс в том же состоянии, в каком он был оставлен.
-- **AC-3.** Область ComfyUI при возврате занимает правильное место, даже если размер окна изменился, пока она была скрыта.
-- **AC-4.** Экраны других разделов при этом отображаются полностью и ничем не перекрыты.
+**Negative and edge cases**
+- **AC-7.** An error loading the interface is explained to the user and offers to retry.
+- **AC-8.** The elements of our interface do not cover the ComfyUI area but live in the places set aside for them.
 
 ---
 
-### US-TAB-05 — Внешние ссылки
+### US-TAB-03 — Switching between running instances
 
-**Как** пользователь, кликнувший ссылку внутри ComfyUI
-**я хочу** чтобы она открылась в моём браузере
-**чтобы** не оказаться в окне без адресной строки и кнопки «назад».
+**As** A3, working with two builds
+**I want** to switch between them instantly
+**so that** I can compare the results.
 
-Теги: `@FR-TAB-070` `@phase-3` `@area-tab`
-Обоснование: `PLAN.md` → «Грабли»
+Tags: `@FR-TAB-030` `@FR-TAB-040` `@phase-2` `@area-tab`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
 
-**Предусловия**
-- Открыт интерфейс работающего инстанса.
+**Preconditions**
+- More than one instance is running.
 
-**Критерии приёмки**
-- **AC-1.** Ссылка, ведущая за пределы локального сервера, открывается в браузере по умолчанию.
-- **AC-2.** Встроенная область при этом остаётся на странице ComfyUI.
-- **AC-3.** Переходы внутри самого ComfyUI остаются внутри встроенной области.
+**Acceptance criteria**
+- **AC-1.** Every running instance is listed in the permanently visible menu.
+- **AC-2.** Each of them is distinguishable by name and accent colour.
+- **AC-3.** Switching is done in a single action.
+- **AC-4.** The state of ComfyUI is preserved across a switch: an unsaved graph is not lost.
+- **AC-5.** Each instance's state is reflected right in the menu.
+- **AC-6.** An instance that has crashed is noticeable in the menu regardless of which section is open.
 
-**Негативные и краевые случаи**
-- **AC-4.** Сценарии внешней авторизации, требующие браузера, выполняются в браузере и не блокируют приложение.
+**Negative and edge cases**
+- **AC-7.** A stopped instance disappears from the list of running ones but stays in the instances section.
 
 ---
 
-### US-TAB-06 — Инструменты инстанса
+### US-TAB-04 — Leaving for another section and coming back
 
-**Как** пользователь, работающий в ComfyUI
-**я хочу** управлять инстансом, не уходя с его экрана
-**чтобы** остановить или перезапустить сервер в один шаг.
+**As** a user
+**I want** to visit the settings without interrupting ComfyUI's work
+**so that** I do not lose an unsaved graph.
 
-Теги: `@FR-TAB-080` `@FR-TAB-090` `@phase-3` `@area-tab`
-Обоснование: `PLAN.md` → «Экраны»
+Tags: `@FR-TAB-040` `@FR-TAB-050` `@phase-2` `@area-tab`
+Rationale: `PLAN.md` → «Навигация и структура приложения»
 
-**Предусловия**
-- Открыт интерфейс работающего инстанса.
+**Preconditions**
+- The instance is running and its interface is open.
 
-**Критерии приёмки**
-- **AC-1.** Доступны остановка и перезапуск инстанса.
-- **AC-2.** Доступен просмотр логов текущего запуска.
-- **AC-3.** Доступно открытие папки с результатами генерации.
-- **AC-4.** Доступно открытие этого же инстанса в обычном браузере.
-- **AC-5.** Инструменты не перекрывают рабочую область ComfyUI.
+**Acceptance criteria**
+- **AC-1.** Moving to another section hides the ComfyUI interface but does not interrupt the server.
+- **AC-2.** Coming back shows the interface in the same state it was left in.
+- **AC-3.** On the way back the ComfyUI area occupies the right place, even if the window's size changed while it was hidden.
+- **AC-4.** The screens of the other sections are meanwhile displayed in full and covered by nothing.
 
-**Негативные и краевые случаи**
-- **AC-6.** Открытие в браузере не прерывает встроенную вкладку — обе работают с одним сервером.
+---
+
+### US-TAB-05 — External links
+
+**As** a user who clicked a link inside ComfyUI
+**I want** it to open in my browser
+**so that** I do not end up in a window with no address bar and no back
+button.
+
+Tags: `@FR-TAB-070` `@phase-3` `@area-tab`
+Rationale: `PLAN.md` → «Грабли»
+
+**Preconditions**
+- The interface of a running instance is open.
+
+**Acceptance criteria**
+- **AC-1.** A link leading beyond the local server opens in the default browser.
+- **AC-2.** The embedded area meanwhile stays on the ComfyUI page.
+- **AC-3.** Navigation inside ComfyUI itself stays inside the embedded area.
+
+**Negative and edge cases**
+- **AC-4.** External authorisation flows that require a browser are carried out in the browser and do not block the app.
+
+---
+
+### US-TAB-06 — The instance tools
+
+**As** a user working in ComfyUI
+**I want** to manage the instance without leaving its screen
+**so that** I can stop or restart the server in one step.
+
+Tags: `@FR-TAB-080` `@FR-TAB-090` `@phase-3` `@area-tab`
+Rationale: `PLAN.md` → «Экраны»
+
+**Preconditions**
+- The interface of a running instance is open.
+
+**Acceptance criteria**
+- **AC-1.** Stopping and restarting the instance are available.
+- **AC-2.** Viewing the logs of the current run is available.
+- **AC-3.** Opening the folder with the generation results is available.
+- **AC-4.** Opening this same instance in an ordinary browser is available.
+- **AC-5.** The tools do not cover ComfyUI's working area.
+
+**Negative and edge cases**
+- **AC-6.** Opening it in a browser does not interrupt the embedded tab — both work with the same server.

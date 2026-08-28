@@ -1,315 +1,327 @@
-# EP-SHARED — Общее хранилище моделей
+# EP-SHARED — Shared model storage
 
-Самая ценная возможность для актора A3 и главная причина, по которой проект вообще затевался. Один чекпоинт весит от двух до двадцати гигабайт, при трёх-пяти инстансах дубли съедают сотни гигабайт.
+The most valuable capability for actor A3 and the main reason the project was
+started at all. A single checkpoint weighs from two to twenty gigabytes; across
+three to five instances the duplicates eat hundreds.
 
-Три обещания раздела, которые проверяются в критериях ниже:
+Four promises of this section, verified in the criteria below:
 
-- **Общие модели добавляются, а не заменяют локальные.** Подключение ничего не отбирает.
-- **Файлы моделей исчезают из сборки только тогда, когда об этом попросили.** Перенос в общую папку и уборка подтверждённого дубликата — единственные два случая, и оба начинает пользователь, видя перечень заранее.
-- **Приложение не меняет чужие настройки молча.** Если в инстансе уже лежит собственный файл настройки путей — пользователь узнает об этом раньше, чем что-то произойдёт.
-- **Отключение возвращает всё как было.** Передумать можно в любой момент.
+- **Shared models are added, they do not replace the local ones.** Connecting
+  takes nothing away.
+- **Model files disappear from a build only when someone asked for it.** Moving
+  into the shared folder and cleaning up a confirmed duplicate are the only two
+  cases, and both are started by the user, who sees the list in advance.
+- **The app does not change someone else's settings silently.** If the instance
+  already holds a path-configuration file of its own, the user learns about it
+  before anything happens.
+- **Disconnecting puts everything back as it was.** Changing one's mind is
+  possible at any moment.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-SHARED-010` | Пользователь задаёт папку общего корня моделей | «Общее хранилище моделей» |
-| `FR-SHARED-020` | Приложение распознаёт категории моделей по содержимому общей папки | «Генерация YAML» |
-| `FR-SHARED-030` | Инстанс подключается к общему корню и отключается от него | «Два режима применения» |
-| `FR-SHARED-040` | Общие пути добавляются к локальным, а не заменяют их | «Что выяснено из исходников» |
-| `FR-SHARED-050` | Пользователь определяет, куда попадают вновь скачиваемые модели | «Два режима применения» |
-| `FR-SHARED-060` | Поддерживаются два способа применения: без изменения папки инстанса и с записью файла в неё | «Два режима применения» |
-| `FR-SHARED-070` | Существующий файл настройки путей в инстансе не перезаписывается без явного согласия | «Два режима применения» |
-| `FR-SHARED-080` | Каталог кастомных нод никогда не входит в общие пути | «Общее хранилище моделей» |
-| `FR-SHARED-090` | Недоступность общего корня обнаруживается до запуска инстанса | «Грабли» |
-| `FR-SHARED-100` | Изменения вступают в силу с ближайшего запуска, и это сказано пользователю | «Грабли» |
-| `FR-SHARED-110` | Приложение показывает отчёт о дублирующихся моделях без каких-либо действий над файлами | «Чеклист, Фаза 4» |
-| `FR-SHARED-120` | Поддерживается несколько общих корней | «Модель данных» |
-| `FR-SHARED-130` | Модели переносятся из сборки в общую папку средствами приложения | «Общее хранилище моделей» |
-| `FR-SHARED-140` | Локальная копия удаляется только как подтверждённый дубликат того, что уже лежит в общей папке | «Общее хранилище моделей» |
+| `FR-SHARED-010` | The user sets the shared models root folder | «Общее хранилище моделей» |
+| `FR-SHARED-020` | The app recognises the model categories from the contents of the shared folder | «Генерация YAML» |
+| `FR-SHARED-030` | An instance connects to the shared root and disconnects from it | «Два режима применения» |
+| `FR-SHARED-040` | Shared paths are added to the local ones rather than replacing them | «Что выяснено из исходников» |
+| `FR-SHARED-050` | The user decides where newly downloaded models end up | «Два режима применения» |
+| `FR-SHARED-060` | Two ways of applying are supported: without changing the instance's folder, and by writing a file into it | «Два режима применения» |
+| `FR-SHARED-070` | An existing path-configuration file in an instance is not overwritten without explicit consent | «Два режима применения» |
+| `FR-SHARED-080` | The custom nodes directory never enters the shared paths | «Общее хранилище моделей» |
+| `FR-SHARED-090` | Unavailability of the shared root is detected before the instance is launched | «Грабли» |
+| `FR-SHARED-100` | Changes take effect from the next launch, and the user is told so | «Грабли» |
+| `FR-SHARED-110` | The app shows a report on duplicated models without performing any actions on files | «Чеклист, Фаза 4» |
+| `FR-SHARED-120` | Several shared roots are supported | «Модель данных» |
+| `FR-SHARED-130` | Models are moved from a build into the shared folder by the app's own means | «Общее хранилище моделей» |
+| `FR-SHARED-140` | A local copy is deleted only as a confirmed duplicate of something already lying in the shared folder | «Общее хранилище моделей» |
 
 ---
 
-### US-SHARED-01 — Задание общего корня моделей
+### US-SHARED-01 — Setting the shared models root
 
-**Как** A3
-**я хочу** указать папку, где буду хранить модели для всех сборок
-**чтобы** перестать держать копии в каждой.
+**As** A3
+**I want** to point at the folder where I will keep the models for every build
+**so that** I stop keeping copies in each of them.
 
-Теги: `@FR-SHARED-010` `@FR-SHARED-120` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Общее хранилище моделей»
+Tags: `@FR-SHARED-010` `@FR-SHARED-120` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Общее хранилище моделей»
 
-**Предусловия**
-- Приложение запущено.
+**Preconditions**
+- The app is running.
 
-**Критерии приёмки**
-- **AC-1.** Пользователь выбирает папку общего корня через системный диалог.
-- **AC-2.** Объяснено, как должна быть устроена эта папка: подпапки по категориям моделей.
-- **AC-3.** Общий корень задаётся в настройках и доступен для изменения в любой момент.
-- **AC-4.** Тот же выбор доступен прямо в мастере установки, не заставляя уходить в настройки.
-- **AC-5.** Настройка сохраняется между запусками приложения.
-- **AC-6.** Общий корень может быть задан до того, как в нём появятся модели.
+**Acceptance criteria**
+- **AC-1.** The user picks the shared root folder through the system dialog.
+- **AC-2.** It is explained how that folder should be arranged: subfolders by model category.
+- **AC-3.** The shared root is set in the settings and is available for changing at any moment.
+- **AC-4.** The same choice is available right in the install wizard, without forcing a trip to the settings.
+- **AC-5.** The setting is kept between launches of the app.
+- **AC-6.** The shared root can be set before any models appear in it.
 
-**Негативные и краевые случаи**
-- **AC-7.** Несуществующая папка не принимается.
-- **AC-8.** Папка внутри инстанса как общий корень принимается, но пользователь предупреждён о неочевидных последствиях.
-- **AC-9.** Смена общего корня применяется ко всем подключённым инстансам, и пользователь об этом предупреждён заранее.
-
----
-
-### US-SHARED-02 — Обзор содержимого общего корня
-
-**Как** пользователь, задавший общий корень
-**я хочу** увидеть, что приложение в нём нашло
-**чтобы** убедиться, что папка устроена правильно.
-
-Теги: `@FR-SHARED-020` `@FR-SHARED-080` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Генерация YAML»
-
-**Предусловия**
-- Общий корень задан.
-
-**Критерии приёмки**
-- **AC-1.** Перечислены распознанные категории моделей.
-- **AC-2.** Для каждой категории видно, есть ли в ней файлы.
-- **AC-3.** Подпапки, не соответствующие ни одной известной категории, показаны отдельно как нераспознанные.
-- **AC-4.** Каталог кастомных нод, если он есть в общей папке, никогда не попадает в общие пути, и объяснено почему: сборки разведены именно из-за конфликтов между нодами.
-- **AC-5.** Приложение предлагает создать недостающие стандартные подпапки.
-- **AC-6.** Набор распознаваемых категорий не устаревает при обновлении ComfyUI: распознавание опирается на содержимое папки, а не на зашитый список.
-
-**Негативные и краевые случаи**
-- **AC-7.** Пустой общий корень не считается ошибкой: пользователю сказано, что моделей пока нет.
-- **AC-8.** Подсчёт объёма содержимого не блокирует интерфейс.
+**Negative and edge cases**
+- **AC-7.** A folder that does not exist is not accepted.
+- **AC-8.** A folder inside an instance is accepted as a shared root, but the user is warned about the non-obvious consequences.
+- **AC-9.** Changing the shared root applies to every connected instance, and the user is warned about this in advance.
 
 ---
 
-### US-SHARED-03 — Подключение инстанса к общим моделям
+### US-SHARED-02 — An overview of the shared root's contents
 
-**Как** A3
-**я хочу** дать инстансу доступ к общим моделям
-**чтобы** не копировать их в его папку.
+**As** a user who has set the shared root
+**I want** to see what the app found in it
+**so that** I can be sure the folder is arranged correctly.
 
-Теги: `@FR-SHARED-030` `@FR-SHARED-040` `@FR-SHARED-100` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Два режима применения»
+Tags: `@FR-SHARED-020` `@FR-SHARED-080` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Генерация YAML»
 
-**Предусловия**
-- Общий корень задан.
-- Инстанс зарегистрирован.
+**Preconditions**
+- The shared root is set.
 
-**Критерии приёмки**
-- **AC-1.** Подключение выполняется одним действием на экране инстанса.
-- **AC-2.** Если общий корень не задан, вместо подключения предложено сначала его задать.
-- **AC-3.** После подключения и запуска инстанса модели из общего корня доступны в списках выбора моделей внутри ComfyUI.
-- **AC-4.** Локальные модели инстанса остаются доступны: общие пути добавляются к его собственным, а не заменяют их.
-- **AC-5.** Состояние подключения видно в списке инстансов.
-- **AC-6.** Подключение можно выполнить для нескольких инстансов независимо.
+**Acceptance criteria**
+- **AC-1.** The recognised model categories are listed.
+- **AC-2.** For each category it is visible whether it holds any files.
+- **AC-3.** Subfolders matching no known category are shown separately as unrecognised.
+- **AC-4.** The custom nodes directory, if it is in the shared folder, never enters the shared paths, and it is explained why: the builds are kept apart precisely because of conflicts between nodes.
+- **AC-5.** The app offers to create the missing standard subfolders.
+- **AC-6.** The set of recognisable categories does not go stale when ComfyUI is updated: recognition rests on the folder's contents rather than on a baked-in list.
 
-**Негативные и краевые случаи**
-- **AC-7.** Подключение или отключение у работающего инстанса не действует до его перезапуска, и это сказано явно — иначе пользователь сочтёт, что функция сломана.
-- **AC-8.** Если модель с одинаковым именем есть и локально, и в общей папке, обе видны, а какая используется по умолчанию — определяется настройкой из `US-SHARED-04`.
-
----
-
-### US-SHARED-04 — Выбор места для новых загрузок
-
-**Как** A3
-**я хочу** чтобы скачанные модели сразу попадали в общую папку
-**чтобы** они становились доступны всем сборкам без ручного перекладывания.
-
-Теги: `@FR-SHARED-050` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Два режима применения»
-
-**Предусловия**
-- Общий корень задан.
-
-**Критерии приёмки**
-- **AC-1.** Пользователь выбирает, куда попадают новые модели: в общую папку или в папку инстанса.
-- **AC-2.** По умолчанию выбрана общая папка — скачал один раз, доступно всем.
-- **AC-3.** Последствия выбора объяснены на месте, а не спрятаны в документацию.
-- **AC-4.** При выборе общей папки модели, загружаемые средствами ComfyUI, оказываются в ней.
-- **AC-5.** Настройка применяется ко всем подключённым инстансам одинаково.
-
-**Негативные и краевые случаи**
-- **AC-6.** Изменение настройки вступает в силу с ближайшего запуска инстанса, и это сказано.
+**Negative and edge cases**
+- **AC-7.** An empty shared root does not count as an error: the user is told there are no models yet.
+- **AC-8.** Counting the size of the contents does not block the interface.
 
 ---
 
-### US-SHARED-05 — Выбор способа применения
+### US-SHARED-03 — Connecting an instance to the shared models
 
-**Как** пользователь, который иногда запускает сборку мимо приложения
-**я хочу** чтобы общие модели работали и в этом случае
-**чтобы** не терять их при запуске из проводника.
+**As** A3
+**I want** to give an instance access to the shared models
+**so that** I do not have to copy them into its folder.
 
-Теги: `@FR-SHARED-060` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Два режима применения»
+Tags: `@FR-SHARED-030` `@FR-SHARED-040` `@FR-SHARED-100` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Два режима применения»
 
-**Предусловия**
-- Общий корень задан, инстанс подключён.
+**Preconditions**
+- The shared root is set.
+- The instance is registered.
 
-**Критерии приёмки**
-- **AC-1.** Доступны два способа применения: без изменения папки инстанса и с записью файла настроек внутрь неё.
-- **AC-2.** По умолчанию выбран способ, не изменяющий папку инстанса.
-- **AC-3.** Разница объяснена в понятных терминах: второй способ работает и при запуске сборки мимо приложения.
-- **AC-4.** Текущий способ виден на экране инстанса и может быть изменён.
-- **AC-5.** При способе без изменения папки в папке инстанса не появляется ни одного нового файла.
-- **AC-6.** При способе с записью файла общие модели доступны и когда сборка запущена своими средствами.
+**Acceptance criteria**
+- **AC-1.** Connecting is done in a single action on the instance's screen.
+- **AC-2.** If the shared root is not set, setting it first is offered instead of connecting.
+- **AC-3.** After connecting and launching the instance, the models from the shared root are available in the model pickers inside ComfyUI.
+- **AC-4.** The instance's local models stay available: the shared paths are added to its own rather than replacing them.
+- **AC-5.** The connection state is visible in the list of instances.
+- **AC-6.** Connecting can be done for several instances independently.
 
-**Негативные и краевые случаи**
-- **AC-7.** Смена способа применения не приводит к потере настроек общего корня.
-
----
-
-### US-SHARED-06 — Существующий файл настройки путей в инстансе
-
-**Как** A2, который уже настраивал пути к моделям вручную
-**я хочу** чтобы приложение не затёрло мою настройку
-**чтобы** не потерять работающую конфигурацию.
-
-Теги: `@FR-SHARED-070` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Два режима применения»
-
-**Предусловия**
-- Выбран способ применения с записью файла в папку инстанса.
-- В папке инстанса уже есть собственный файл настройки путей к моделям.
-
-**Критерии приёмки**
-- **AC-1.** Существующий файл не перезаписывается автоматически.
-- **AC-2.** Пользователю показано, что за файл там уже лежит.
-- **AC-3.** Предложен выбор: перезаписать с сохранением копии прежнего либо оставить файл и применить общие модели другим способом.
-- **AC-4.** При перезаписи сохраняется копия исходного файла, и сказано, где она.
-- **AC-5.** Файл, ранее созданный самим приложением, распознаётся как свой и обновляется без лишних вопросов.
-
-**Негативные и краевые случаи**
-- **AC-6.** Отказ от обоих вариантов оставляет инстанс в прежнем состоянии.
-- **AC-7.** Если файл не удаётся прочитать, приложение не трогает его и сообщает об этом.
+**Negative and edge cases**
+- **AC-7.** Connecting or disconnecting a running instance does not take effect until it is restarted, and this is said explicitly — otherwise the user will conclude the feature is broken.
+- **AC-8.** If a model with the same name exists both locally and in the shared folder, both are visible, and which one is used by default is determined by the setting from `US-SHARED-04`.
 
 ---
 
-### US-SHARED-07 — Отключение от общих моделей
+### US-SHARED-04 — Choosing where new downloads go
 
-**Как** пользователь, который передумал
-**я хочу** вернуть инстанс в исходное состояние
-**чтобы** он работал как до подключения.
+**As** A3
+**I want** downloaded models to land in the shared folder straight away
+**so that** they become available to every build without being moved by hand.
 
-Теги: `@FR-SHARED-030` `@FR-SHARED-070` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Два режима применения»
+Tags: `@FR-SHARED-050` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Два режима применения»
 
-**Предусловия**
-- Инстанс подключён к общему корню.
+**Preconditions**
+- The shared root is set.
 
-**Критерии приёмки**
-- **AC-1.** Отключение выполняется одним действием.
-- **AC-2.** После отключения и перезапуска инстанс видит только свои локальные модели.
-- **AC-3.** При способе с записью файла отключение убирает созданный приложением файл.
-- **AC-4.** Если при подключении была сохранена копия прежнего файла, она восстанавливается.
-- **AC-5.** Модели в общей папке при отключении не затрагиваются.
+**Acceptance criteria**
+- **AC-1.** The user chooses where new models go: into the shared folder or into the instance's folder.
+- **AC-2.** The shared folder is chosen by default — downloaded once, available to all.
+- **AC-3.** The consequences of the choice are explained on the spot rather than hidden in the documentation.
+- **AC-4.** When the shared folder is chosen, models downloaded by ComfyUI's own means end up in it.
+- **AC-5.** The setting applies to every connected instance alike.
 
-**Негативные и краевые случаи**
-- **AC-6.** Отключение у работающего инстанса вступает в силу после перезапуска, и это сказано.
-
----
-
-### US-SHARED-08 — Недоступный общий корень
-
-**Как** пользователь, держащий модели на внешнем диске
-**я хочу** узнать о недоступности папки заранее
-**чтобы** не выяснять это посреди работы через ошибку «модель не найдена».
-
-Теги: `@FR-SHARED-090` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Грабли»
-
-**Предусловия**
-- Инстанс подключён к общему корню, папка сейчас недоступна.
-
-**Критерии приёмки**
-- **AC-1.** Недоступность обнаруживается до запуска инстанса.
-- **AC-2.** Пользователь предупреждён и может запустить инстанс без общих моделей либо отменить запуск.
-- **AC-3.** Приложение не падает и не зависает из-за недоступной папки.
-- **AC-4.** Недоступность общего корня видна и в настройках.
-
-**Негативные и краевые случаи**
-- **AC-5.** Если папка стала недоступна уже после запуска, приложение не пытается это исправить, а пользователь может понять причину по логу инстанса.
+**Negative and edge cases**
+- **AC-6.** A change to the setting takes effect from the instance's next launch, and this is said.
 
 ---
 
-### US-SHARED-09 — Отчёт о дубликатах моделей
+### US-SHARED-05 — Choosing the way of applying
 
-**Как** A3
-**я хочу** увидеть, сколько места съедают дубли
-**чтобы** решить, что перенести в общую папку.
+**As** a user who sometimes launches a build past the app
+**I want** the shared models to work in that case too
+**so that** I do not lose them when launching from Explorer.
 
-Теги: `@FR-SHARED-110` `@phase-4` `@area-shared`
-Обоснование: `PLAN.md` → «Чеклист, Фаза 4»
+Tags: `@FR-SHARED-060` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Два режима применения»
 
-**Предусловия**
-- В реестре больше одного инстанса.
+**Preconditions**
+- The shared root is set, the instance is connected.
 
-**Критерии приёмки**
-- **AC-1.** Приложение показывает модели, встречающиеся более чем в одном месте.
-- **AC-2.** Для каждой указано, в каких инстансах она лежит и сколько места занимают копии суммарно.
-- **AC-3.** Виден общий объём, теряемый на дублях.
-- **AC-4.** Отчёт не выполняет никаких действий над файлами: не удаляет, не перемещает, не создаёт ссылки.
-- **AC-5.** Отдельно отмечены модели с одинаковым именем, но разным размером — совпадение имени не означает совпадение содержимого.
-- **AC-6.** Построение отчёта не блокирует интерфейс и может быть прервано.
+**Acceptance criteria**
+- **AC-1.** Two ways of applying are available: without changing the instance's folder, and by writing a settings file inside it.
+- **AC-2.** The way that does not change the instance's folder is chosen by default.
+- **AC-3.** The difference is explained in understandable terms: the second way works when the build is launched past the app as well.
+- **AC-4.** The current way is visible on the instance's screen and can be changed.
+- **AC-5.** With the way that does not change the folder, not a single new file appears in the instance's folder.
+- **AC-6.** With the way that writes a file, the shared models are available when the build is launched by its own means too.
 
-**Негативные и краевые случаи**
-- **AC-7.** Недоступные папки инстансов пропускаются, и об этом сказано в отчёте.
-
----
-
-### US-SHARED-10 — Перенос моделей сборки в общую папку
-
-**Как** A3, у которого модели уже разложены внутри сборки
-**я хочу** перенести их в общую папку одним действием
-**чтобы** не перекладывать десятки гигабайт через проводник.
-
-Теги: `@FR-SHARED-130` `@FR-SHARED-140` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Общее хранилище моделей»
-
-**Предусловия**
-- Общий корень задан.
-- Сборка зарегистрирована и остановлена.
-
-**Критерии приёмки**
-- **AC-1.** Перед переносом видно, что именно будет перенесено: категории, число элементов и объём.
-- **AC-2.** Переносятся все категории моделей сборки, включая заведённые кастомными нодами и незнакомые приложению.
-- **AC-3.** Модель, лежащая в сборке каталогом, а не файлом, переносится целиком.
-- **AC-4.** Файлы, поставляемые вместе со сборкой, не переносятся: пустые файлы-маркеры вида «положите сюда» и каталог с конфигурациями моделей.
-- **AC-5.** Каталог кастомных нод не переносится никогда.
-- **AC-6.** Виден ход выполнения, и операцию можно прервать.
-- **AC-7.** После переноса подключённая сборка видит эти модели — с ближайшего запуска, и это сказано.
-
-**Негативные и краевые случаи**
-- **AC-8.** Перенос недоступен у работающей сборки, и сказано почему.
-- **AC-9.** Нехватка места на целевом диске обнаруживается до начала переноса, а не посреди него.
-- **AC-10.** Элемент, имя которого уже занято в общей папке, не переносится и не перезаписывает чужой; он перечислен в отчёте.
-- **AC-11.** Прерывание не оставляет ни повреждённых файлов в общей папке, ни потерь в сборке: уже перенесённое перенесено, остальное на месте.
-- **AC-12.** Сбой на одном элементе не отменяет остальные, и в отчёте видно, что не удалось и почему.
+**Negative and edge cases**
+- **AC-7.** Changing the way of applying does not lose the shared root settings.
 
 ---
 
-### US-SHARED-11 — Уборка дубликатов после переноса
+### US-SHARED-06 — An existing path-configuration file in the instance
 
-**Как** A3
-**я хочу** убрать из сборки то, что уже лежит в общей папке
-**чтобы** освободить место, раз эти модели всё равно берутся из общей.
+**As** A2, who has already configured the model paths by hand
+**I want** the app not to wipe out my configuration
+**so that** I do not lose a working setup.
 
-Теги: `@FR-SHARED-140` `@phase-2.5` `@area-shared`
-Обоснование: `PLAN.md` → «Общее хранилище моделей»
+Tags: `@FR-SHARED-070` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Два режима применения»
 
-**Предусловия**
-- Сборка подключена к общим моделям и остановлена.
-- После переноса остались элементы, чьё имя занято в общей папке.
+**Preconditions**
+- The way of applying that writes a file into the instance's folder is chosen.
+- The instance's folder already holds a model-path configuration file of its
+  own.
 
-**Критерии приёмки**
-- **AC-1.** Перечислено, что признано дубликатом, с объёмом, который освободится.
-- **AC-2.** Дубликатом считается совпадение не только имени: сверяется и содержимое, насколько это возможно без полного прочтения файла.
-- **AC-3.** Элементы с совпавшим именем, но несовпавшим содержимым показаны **отдельной группой**, и удалять их не предлагается.
-- **AC-4.** Удаление начинается только явным подтверждением перечня; в сам перенос оно не входит ни в каком виде.
-- **AC-5.** После уборки модели остаются доступны сборке из общей папки.
+**Acceptance criteria**
+- **AC-1.** The existing file is not overwritten automatically.
+- **AC-2.** The user is shown what kind of file is already lying there.
+- **AC-3.** A choice is offered: overwrite it while keeping a copy of the previous one, or leave the file and apply the shared models the other way.
+- **AC-4.** On overwriting, a copy of the original file is kept, and where it is is stated.
+- **AC-5.** A file created earlier by the app itself is recognised as ours and updated without extra questions.
 
-**Негативные и краевые случаи**
-- **AC-6.** У сборки, не подключённой к общим моделям, уборка не предлагается: удаление лишило бы её моделей вовсе.
-- **AC-7.** У работающей сборки уборка недоступна.
-- **AC-8.** Ничего из группы «разные файлы с одним именем» не удаляется ни при каких условиях.
-- **AC-9.** Сбой удаления одного элемента не отменяет остальные и объяснён в отчёте.
+**Negative and edge cases**
+- **AC-6.** Declining both options leaves the instance in its previous state.
+- **AC-7.** If the file cannot be read, the app does not touch it and says so.
+
+---
+
+### US-SHARED-07 — Disconnecting from the shared models
+
+**As** a user who changed their mind
+**I want** to return the instance to its original state
+**so that** it works as it did before connecting.
+
+Tags: `@FR-SHARED-030` `@FR-SHARED-070` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Два режима применения»
+
+**Preconditions**
+- The instance is connected to the shared root.
+
+**Acceptance criteria**
+- **AC-1.** Disconnecting is done in a single action.
+- **AC-2.** After disconnecting and restarting, the instance sees only its local models.
+- **AC-3.** With the way that writes a file, disconnecting removes the file the app created.
+- **AC-4.** If a copy of a previous file was kept at connection time, it is restored.
+- **AC-5.** The models in the shared folder are not touched on disconnecting.
+
+**Negative and edge cases**
+- **AC-6.** Disconnecting a running instance takes effect after a restart, and this is said.
+
+---
+
+### US-SHARED-08 — An unavailable shared root
+
+**As** a user keeping models on an external drive
+**I want** to learn that the folder is unavailable in advance
+**so that** I do not find out in the middle of my work through a "model not
+found" error.
+
+Tags: `@FR-SHARED-090` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Грабли»
+
+**Preconditions**
+- The instance is connected to the shared root, and the folder is currently
+  unavailable.
+
+**Acceptance criteria**
+- **AC-1.** The unavailability is detected before the instance is launched.
+- **AC-2.** The user is warned and can launch the instance without the shared models or cancel the launch.
+- **AC-3.** The app neither crashes nor hangs because of an unavailable folder.
+- **AC-4.** The unavailability of the shared root is visible in the settings too.
+
+**Negative and edge cases**
+- **AC-5.** If the folder became unavailable after the launch, the app does not try to fix it, and the user can work out the reason from the instance's log.
+
+---
+
+### US-SHARED-09 — The duplicate models report
+
+**As** A3
+**I want** to see how much space the duplicates eat
+**so that** I can decide what to move into the shared folder.
+
+Tags: `@FR-SHARED-110` `@phase-4` `@area-shared`
+Rationale: `PLAN.md` → «Чеклист, Фаза 4»
+
+**Preconditions**
+- There is more than one instance in the registry.
+
+**Acceptance criteria**
+- **AC-1.** The app shows the models occurring in more than one place.
+- **AC-2.** For each of them it states which instances it lies in and how much space the copies take in total.
+- **AC-3.** The overall size lost to duplicates is visible.
+- **AC-4.** The report performs no actions on files: it does not delete, does not move, does not create links.
+- **AC-5.** Models with the same name but a different size are marked separately — a matching name does not mean matching contents.
+- **AC-6.** Building the report does not block the interface and can be interrupted.
+
+**Negative and edge cases**
+- **AC-7.** Unavailable instance folders are skipped, and the report says so.
+
+---
+
+### US-SHARED-10 — Moving a build's models into the shared folder
+
+**As** A3, whose models are already laid out inside a build
+**I want** to move them into the shared folder in one action
+**so that** I do not have to shift tens of gigabytes through Explorer.
+
+Tags: `@FR-SHARED-130` `@FR-SHARED-140` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Общее хранилище моделей»
+
+**Preconditions**
+- The shared root is set.
+- The build is registered and stopped.
+
+**Acceptance criteria**
+- **AC-1.** Before the move it is visible what exactly will be moved: the categories, the number of entries and the size.
+- **AC-2.** Every model category of the build is moved, including those created by custom nodes and those unfamiliar to the app.
+- **AC-3.** A model lying in the build as a directory rather than a file is moved whole.
+- **AC-4.** Files shipped together with the build are not moved: the empty "put things here" marker files and the directory of model configurations.
+- **AC-5.** The custom nodes directory is never moved.
+- **AC-6.** The progress is visible, and the operation can be interrupted.
+- **AC-7.** After the move a connected build sees these models — from its next launch, and this is said.
+
+**Negative and edge cases**
+- **AC-8.** The move is unavailable for a running build, and the reason is stated.
+- **AC-9.** A shortage of space on the target disk is detected before the move begins, not in the middle of it.
+- **AC-10.** An entry whose name is already taken in the shared folder is not moved and does not overwrite someone else's; it is listed in the report.
+- **AC-11.** An interruption leaves neither damaged files in the shared folder nor losses in the build: what has been moved is moved, the rest is in place.
+- **AC-12.** A failure on one entry does not cancel the rest, and the report shows what failed and why.
+
+---
+
+### US-SHARED-11 — Cleaning up duplicates after the move
+
+**As** A3
+**I want** to remove from the build what already lies in the shared folder
+**so that** I free up space, given that these models are taken from the shared
+one anyway.
+
+Tags: `@FR-SHARED-140` `@phase-2.5` `@area-shared`
+Rationale: `PLAN.md` → «Общее хранилище моделей»
+
+**Preconditions**
+- The build is connected to the shared models and stopped.
+- After the move, entries whose name is taken in the shared folder are left.
+
+**Acceptance criteria**
+- **AC-1.** What has been recognised as a duplicate is listed, with the size that will be freed.
+- **AC-2.** A duplicate means more than a matching name: the contents are compared too, as far as that is possible without reading the whole file.
+- **AC-3.** Entries with a matching name but non-matching contents are shown as a **separate group**, and deleting them is not offered.
+- **AC-4.** The deletion begins only with an explicit confirmation of the list; it is no part of the move itself in any form.
+- **AC-5.** After the cleanup the models stay available to the build from the shared folder.
+
+**Negative and edge cases**
+- **AC-6.** For a build not connected to the shared models the cleanup is not offered: the deletion would leave it with no models at all.
+- **AC-7.** For a running build the cleanup is unavailable.
+- **AC-8.** Nothing from the "different files with one name" group is deleted under any conditions.
+- **AC-9.** A failure deleting one entry does not cancel the rest and is explained in the report.
