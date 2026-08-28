@@ -382,16 +382,17 @@ export type AppError = {
 	params: { [key in string]: string },
 };
 
-/**  Способ доставки конфига инстансу. */
+/**  How the config is delivered to an instance. */
 export type ApplyMode = 
 /**
- *  Файл живёт у нас, инстансу передаётся аргументом. В папку
- *  пользователя не пишется ничего. По умолчанию.
+ *  The file lives with us and is passed to the instance as an argument.
+ *  Nothing is written into the user's folder. The default.
  */
 "flag" | 
 /**
- *  Файл пишется в `<instance>/ComfyUI/extra_model_paths.yaml`. Нужен тем,
- *  кто иногда стартует сборку через `.bat` мимо приложения.
+ *  The file is written to `<instance>/ComfyUI/extra_model_paths.yaml`.
+ *  Needed by those who sometimes start the build from the `.bat`, past the
+ *  app.
  */
 "instanceFile";
 
@@ -454,23 +455,24 @@ export type Bootstrap = {
 };
 
 export type CategoryStatus = 
-/**  Имя совпало с известной категорией или с её устаревшим вариантом. */
+/**  The name matched a known category or a legacy variant of one. */
 "recognized" | 
 /**
- *  Имя неизвестно. В YAML всё равно попадает: список категорий ComfyUI
- *  растёт, и отбрасывать незнакомое значило бы ломать поддержку новых
- *  версий ради аккуратности. В интерфейсе помечается, чтобы опечатка
- *  вроде `lora` вместо `loras` бросалась в глаза.
+ *  The name is unknown. It still goes into the YAML: ComfyUI's list of
+ *  categories keeps growing, and discarding the unfamiliar would mean
+ *  breaking support for new versions in the name of tidiness. It is marked
+ *  in the interface so that a typo like `lora` instead of `loras` catches
+ *  the eye.
  */
 "unknown" | 
-/**  Чёрный список. В YAML не попадает никогда. */
+/**  Blacklisted. Never goes into the YAML. */
 "blocked";
 
 export type CleanupOutcome = {
 	removed: string[],
 	freedBytes: number | null,
 	failed: Failed[],
-	/**  Сколько элементов отклонено, потому что дубликатами не являются. */
+	/**  How many entries were refused because they are not duplicates. */
 	refused: number,
 };
 
@@ -483,11 +485,11 @@ export type CompatSource =
 /**  Сборка не запущена и ни разу не запускалась при нас. */
 "unknown";
 
-/**  Одна копия модели. */
+/**  One copy of a model. */
 export type Copy_ = {
 	/**
-	 *  Имя сборки либо общей папки. Пользователь думает местами,
-	 *  а не идентификаторами.
+	 *  The name of the build or of the shared folder. The user thinks in
+	 *  places, not in identifiers.
 	 */
 	source: string,
 	path: string,
@@ -519,20 +521,21 @@ export type CustomProfile = {
 };
 
 /**
- *  Модель, встречающаяся больше чем в одном месте.
+ *  A model occurring in more than one place.
  * 
- *  Группируем по паре «категория и имя», а не по одному имени: один
- *  и тот же файл под `loras` и под `checkpoints` — это разные роли,
- *  и сводить их в одну строку значило бы предлагать выбор, которого нет.
+ *  Grouped by the pair "category and name" rather than by name alone: one and
+ *  the same file under `loras` and under `checkpoints` means two different
+ *  roles, and merging them into one row would be offering a choice that does
+ *  not exist.
  */
 export type DupGroup = {
-	/**  Имя файла или каталога модели. Не переводится. */
+	/**  The name of the model's file or directory. Not translated. */
 	name: string,
 	category: string,
 	copies: Copy_[],
 	/**
-	 *  Сколько занято сверх одной копии. У разных размеров смысла не имеет
-	 *  и потому равно нулю.
+	 *  How much is taken up beyond a single copy. Meaningless when the sizes
+	 *  differ, and therefore zero in that case.
 	 */
 	wastedBytes: number | null,
 };
@@ -540,22 +543,24 @@ export type DupGroup = {
 export type DupProgress = {
 	done: number,
 	total: number,
-	/**  Что обходим прямо сейчас. Молчаливая пауза читается как зависание. */
+	/**  What is being walked right now. A silent pause reads as a freeze. */
 	place: string,
 };
 
 export type DuplicatesReport = {
-	/**  Совпали и имя, и размер. Почти наверняка одно и то же. */
+	/**  Both the name and the size matched. Almost certainly the same thing. */
 	duplicates: DupGroup[],
 	/**
-	 *  Одно имя, разные размеры. **Это не дубликаты** — совпадение имени
-	 *  содержимого не доказывает, и в сумму потерь они не входят.
+	 *  One name, different sizes. **These are not duplicates** — a matching
+	 *  name proves nothing about the contents, and they are not counted into
+	 *  the wasted total.
 	 */
 	nameClashes: DupGroup[],
 	wastedBytes: number | null,
 	/**
-	 *  Папки, до которых не добрались: сборка недоступна, папки моделей
-	 *  нет, читать не дали. Молчать о них нельзя — отчёт выглядел бы полным.
+	 *  Folders we never reached: the build is unavailable, there is no models
+	 *  folder, reading was refused. Staying silent about them is not allowed —
+	 *  the report would look complete.
 	 */
 	skipped: string[],
 	scannedPlaces: number,
@@ -739,24 +744,25 @@ export type InstanceFileInfo = {
 	path: string,
 	state: InstanceFileState,
 	/**
-	 *  Содержимое чужого файла — чтобы показать пользователю, что именно
-	 *  он собирается заменить. У своего и отсутствующего пусто.
+	 *  The contents of someone else's file — so the user can be shown exactly
+	 *  what they are about to replace. Empty for our own and for an absent
+	 *  one.
 	 */
 	content: string | null,
 };
 
-/**  Что лежит в `extra_model_paths.yaml` инстанса. */
+/**  What is sitting in an instance's `extra_model_paths.yaml`. */
 export type InstanceFileState = 
-/**  Файла нет — пишем без вопросов. */
+/**  There is no file — we write without asking. */
 "absent" | 
-/**  Наш, узнан по маркеру, — обновляем молча. */
+/**  Ours, recognised by the marker — we update silently. */
 "ours" | 
-/**  Чужой. Не трогаем, пока пользователь не решит. */
+/**  Someone else's. Not touched until the user decides. */
 "foreign" | 
 /**
- *  Файл есть, но не читается. Не трогаем и говорим об этом:
- *  перезаписать то, что не смогли прочитать, — верный способ
- *  уничтожить работающую настройку.
+ *  The file exists but will not be read. We do not touch it and we say so:
+ *  overwriting what we failed to read is a sure way to destroy a working
+ *  setting.
  */
 "unreadable";
 
@@ -765,24 +771,24 @@ export type InstanceShared = {
 	applyMode: ApplyMode,
 };
 
-/**  Воркфлоу сборки вместе с вердиктом по библиотеке. */
+/**  A build's workflow together with the verdict against the library. */
 export type InstanceWorkflow = {
 	path: string,
 	library: LibraryMatch | null,
 };
 
 /**
- *  Где у сборки лежат её воркфлоу.
+ *  Where a build keeps its workflows.
  * 
- *  Отдельно от списка, а не полем в нём: у запущенной сборки список
- *  приходит по HTTP и папки не касается вовсе, а показать её в проводнике
- *  нужно одинаково в обоих случаях.
+ *  Separate from the list rather than a field in it: for a running build the
+ *  list arrives over HTTP and does not touch the folder at all, yet showing
+ *  that folder in Explorer has to work the same in both cases.
  */
 export type InstanceWorkflowsDir = {
 	path: string,
 	/**
-	 *  Папки может не быть: ComfyUI заводит её лениво, при первом
-	 *  сохранении. Это не ошибка — просто показывать нечего.
+	 *  The folder may not exist: ComfyUI creates it lazily, on the first save.
+	 *  That is not an error — there is simply nothing to show.
 	 */
 	available: boolean,
 };
@@ -812,52 +818,54 @@ export type LaunchProfile = {
 
 export type LibraryItem = {
 	/**
-	 *  Путь относительно корня библиотеки, прямыми слэшами. Он же ключ
-	 *  манифеста и то, что видит пользователь.
+	 *  The path relative to the library root, with forward slashes. Also the
+	 *  manifest key and what the user sees.
 	 */
 	path: string,
-	/**  Имя файла без расширения — для показа. */
+	/**  The file name without extension — for display. */
 	name: string,
 	meta: WorkflowMeta,
-	/**  Файла нет, а запись в манифесте есть. */
+	/**  There is no file, but there is a manifest record. */
 	lost: boolean,
 	/**
-	 *  Файл не разобрался как воркфлоу: битый JSON или JSON без `nodes`.
-	 *  Не ошибка библиотеки — показываем и даём убрать.
+	 *  The file did not parse as a workflow: broken JSON, or JSON with no
+	 *  `nodes`. Not a library error — we show it and let it be removed.
 	 */
 	broken: boolean,
-	/**  Классы нод из графа. У потерянных и битых пусто. */
+	/**  The graph's node classes. Empty for lost and broken ones. */
 	nodes: string[],
 	sizeBytes: number | null,
 	modifiedAt: number | null,
 };
 
 /**
- *  Что лежит в библиотеке под тем же именем.
+ *  What lies in the library under the same name.
  * 
- *  `None` снаружи означает «имени в библиотеке нет вовсе» — забирать можно
- *  без разговоров.
+ *  `None` on the outside means "the name is not in the library at all" — it
+ *  can be taken without further conversation.
  */
 export type LibraryMatch = 
-/**  Тот же воркфлоу. Забирать нечего, он уже там. */
+/**  The same workflow. There is nothing to take, it is already there. */
 "same" | 
 /**
- *  Имя занято, а содержимое разошлось. Это **разные работы**,
- *  и молча приравнивать их одну к другой нельзя.
+ *  The name is taken and the contents diverged. These are **different
+ *  pieces of work**, and equating one with the other silently is not
+ *  allowed.
  */
 "diverged";
 
 export type LibraryScan = {
 	path: string,
 	/**
-	 *  Папки нет или она не читается. Не ошибка: библиотеку можно задать
-	 *  заранее, а внешний диск — отключить.
+	 *  The folder is absent or will not be read. Not an error: the library can
+	 *  be set ahead of time, and an external drive can be unplugged.
 	 */
 	available: boolean,
 	items: LibraryItem[],
 	/**
-	 *  Манифест не разобрался. Файлы при этом на месте и показаны —
-	 *  повреждение тегов не имеет права уносить сами воркфлоу.
+	 *  The manifest did not parse. The files are in place and shown meanwhile
+	 *  — damage to the tags has no right to carry off the workflows
+	 *  themselves.
 	 */
 	manifestBroken: boolean,
 };
@@ -891,17 +899,18 @@ export type LogLine = {
 
 export type MigrateOutcome = {
 	moved: string[],
-	/**  Пропущенные из-за занятого имени, с вердиктом по каждому. */
+	/**  Skipped because the name was taken, with a verdict for each. */
 	skipped: Skipped[],
-	/**  Не удалось, с причиной. Сбой на одном не отменяет остальные. */
+	/**  Failed, with a reason. A failure on one does not cancel the rest. */
 	failed: Failed[],
 	movedBytes: number | null,
 	cancelled: boolean,
 };
 
 /**
- *  Ход переноса. Считается по элементам, а не по байтам: на одном томе
- *  перенос мгновенен, и полоса по байтам прыгала бы бессмысленно.
+ *  Progress of the move. Counted in entries rather than bytes: within one
+ *  volume a move is instantaneous, and a byte-based bar would jump about
+ *  meaninglessly.
  */
 export type MigrateProgress = {
 	done: number,
@@ -917,12 +926,15 @@ export type ModelCategory = {
 };
 
 export type ModelEntry = {
-	/**  Имя элемента внутри категории. Файл или каталог целиком. */
+	/**  The entry's name inside the category. A file or a whole directory. */
 	name: string,
 	isDir: boolean,
 	sizeBytes: number | null,
 	files: number,
-	/**  Занято ли это имя в общей папке и чем оно там оказалось. */
+	/**
+	 *  Whether this name is taken in the shared folder, and what it turned out
+	 *  to be there.
+	 */
 	sameName: SameName | null,
 };
 
@@ -930,7 +942,7 @@ export type ModelsScan = {
 	path: string,
 	available: boolean,
 	categories: ModelCategory[],
-	/**  Сколько всего перенесётся и сколько это займёт. */
+	/**  How much will move in total and how much space it takes. */
 	totalFiles: number,
 	totalBytes: number | null,
 };
@@ -986,12 +998,12 @@ export type Rect = {
 export type RootScan = {
 	path: string,
 	/**
-	 *  Папки нет или она недоступна. Не ошибка: корень можно задать заранее,
-	 *  а внешний диск — отключить.
+	 *  The folder is absent or unavailable. Not an error: the root can be set
+	 *  ahead of time, and an external drive can be unplugged.
 	 */
 	available: boolean,
 	categories: SharedCategory[],
-	/**  Стандартные категории, которых в корне нет. Предлагаются к созданию. */
+	/**  Standard categories missing from the root. Offered for creation. */
 	missing: string[],
 	totalFiles: number,
 	totalBytes: number | null,
@@ -1037,39 +1049,42 @@ export type RunStatus = {
 	profileId: string | null,
 };
 
-/**  Чем оказался элемент, чьё имя уже занято в общей папке. */
+/**
+ *  What an entry whose name is already taken in the shared folder turned out
+ *  to be.
+ */
 export type SameName = 
-/**  Совпали размер и края — почти наверняка тот же файл. */
+/**  The size and the edges matched — almost certainly the same file. */
 "duplicate" | 
 /**
- *  Каталог: совпали суммарный объём и число файлов. Основание слабее,
- *  поэтому и называется иначе.
+ *  A directory: the total size and the file count matched. The grounds are
+ *  weaker, which is why it is named differently.
  */
 "likelyDuplicate" | 
 /**
- *  Размеры или края разошлись. **Удалять нельзя ни при каких условиях:**
- *  это разные файлы, которым не повезло с именем.
+ *  The sizes or the edges diverged. **Must not be deleted under any
+ *  conditions:** these are different files that were unlucky with the name.
  */
 "different";
 
 export type SharedCategory = {
-	/**  Имя подпапки как оно есть на диске. */
+	/**  The subfolder's name exactly as it is on disk. */
 	folder: string,
 	/**
-	 *  Ключ, под которым папка уедет в YAML. У устаревших имён отличается
-	 *  от `folder`; у заблокированных — `None`.
+	 *  The key the folder will go into the YAML under. For legacy names it
+	 *  differs from `folder`; for blocked ones it is `None`.
 	 */
 	key: string | null,
 	status: CategoryStatus,
 	files: number,
 	/**
-	 *  `f64`, а не `u64`: specta запрещает экспорт целых, не помещающихся
-	 *  в число JavaScript без потери точности.
+	 *  `f64` rather than `u64`: specta forbids exporting integers that do not
+	 *  fit into a JavaScript number without losing precision.
 	 */
 	sizeBytes: number | null,
 };
 
-/**  Один общий корень в настройках. */
+/**  A single shared root in the settings. */
 export type SharedRoot = {
 	id: string,
 	path: string,
@@ -1079,15 +1094,15 @@ export type SharedRoot = {
 
 export type SharedSettings = {
 	/**
-	 *  В интерфейсе пока заводится один, но формат заложен массивом:
-	 *  сценарий «быстрый SSD под checkpoints, HDD под архив» ляжет
-	 *  без миграции — YAML это умеет, одна секция на корень, а порядок
-	 *  корней определяет приоритет поиска.
+	 *  Only one can be created in the interface so far, but the format is laid
+	 *  down as an array: the "fast SSD for checkpoints, HDD for the archive"
+	 *  scenario will fit without a migration — YAML can do it, one section per
+	 *  root, and the order of roots sets the search priority.
 	 */
 	roots: SharedRoot[],
 	/**
-	 *  Уезжает в `is_default`. Управляет только тем, куда ComfyUI кладёт
-	 *  вновь скачанное: пути в любом случае аддитивны.
+	 *  Goes into `is_default`. It only governs where ComfyUI puts newly
+	 *  downloaded files: the paths are additive either way.
 	 */
 	makeDefaultTarget: boolean,
 };
@@ -1204,16 +1219,16 @@ export type UpdateProgress = {
 };
 
 /**
- *  Запись манифеста. Всё в ней необязательное: манифест дополняет файл,
- *  а не описывает его.
+ *  A manifest record. Everything in it is optional: the manifest supplements a
+ *  file rather than describing it.
  */
 export type WorkflowMeta = {
 	favorite?: boolean,
 	tags?: string[],
 	note?: string,
-	/**  Миллисекунды эпохи. Дату форматирует фронт по правилам локали. */
+	/**  Epoch milliseconds. The frontend formats the date by locale rules. */
 	addedAt?: number | null,
-	/**  Из какого инстанса забран, если забирали через нас. */
+	/**  Which instance it was taken from, if it was taken through us. */
 	sourceInstanceId?: string | null,
 };
 

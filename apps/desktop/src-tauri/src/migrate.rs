@@ -1,13 +1,15 @@
-//! Перенос моделей из сборки в общую папку и уборка дубликатов.
+//! Moving models from a build into the shared folder, and cleaning up
+//! duplicates.
 //!
-//! Отдельным модулем от `shared_models.rs` намеренно: там сканирование
-//! и генерация YAML, здесь — единственное место во всём приложении, где мы
-//! удаляем файлы моделей. Граница из `CLAUDE.md` допускает ровно два таких
-//! случая, оба по явной просьбе пользователя и с перечнем заранее:
-//! перенос, где исходник исчезает **после** проверки, что копия на месте,
-//! и уборка дубликата, который уже лежит в общей папке.
+//! A module separate from `shared_models.rs` deliberately: scanning and YAML
+//! generation live there, while this is the only place in the entire app where
+//! we delete model files. The boundary in `CLAUDE.md` allows exactly two such
+//! cases, both on the user's explicit request and with the list shown in
+//! advance: the move, where the source disappears **after** verifying the copy
+//! is in place, and cleaning up a duplicate that already lies in the shared
+//! folder.
 //!
-//! Молча не удаляется ничего и никогда.
+//! Nothing is ever deleted silently.
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -17,44 +19,47 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
 
-/// Сколько байт с каждого края сверяем, решая, что файлы одинаковы.
+/// How many bytes from each edge are compared when deciding that two files are
+/// the same.
 ///
-/// Полный хэш на моделях по 20 ГБ неприемлем — это записано в плане про
-/// анализатор дублей. Два мегабайта чтения стоят миллисекунд и превращают
-/// «одно имя и один размер» в почти достоверное совпадение.
+/// A full hash on 20 GB models is unacceptable — that is written down in the
+/// plan for the duplicate analyser. Two megabytes of reading cost milliseconds
+/// and turn "one name and one size" into a near-certain match.
 const EDGE: u64 = 1024 * 1024;
 
-/// Категории, содержимое которых принадлежит сборке, а не пользователю.
+/// Categories whose contents belong to the build, not to the user.
 ///
-/// `configs` ComfyUI поставляет вместе с собой — там `v1-inference.yaml`
-/// и подобные. Унести их значит обокрасть установку. `custom_nodes`
-/// не шарится вовсе и в общую папку попасть не должен ни при каких
-/// обстоятельствах.
+/// ComfyUI ships `configs` with itself — `v1-inference.yaml` and the like live
+/// there. Taking them away means robbing the installation. `custom_nodes` is
+/// not shared at all and must never end up in the shared folder under any
+/// circumstances.
 const NEVER_MOVE: [&str; 2] = ["configs", "custom_nodes"];
 
-/// Чем оказался элемент, чьё имя уже занято в общей папке.
+/// What an entry whose name is already taken in the shared folder turned out
+/// to be.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum SameName {
-    /// Совпали размер и края — почти наверняка тот же файл.
+    /// The size and the edges matched — almost certainly the same file.
     Duplicate,
-    /// Каталог: совпали суммарный объём и число файлов. Основание слабее,
-    /// поэтому и называется иначе.
+    /// A directory: the total size and the file count matched. The grounds are
+    /// weaker, which is why it is named differently.
     LikelyDuplicate,
-    /// Размеры или края разошлись. **Удалять нельзя ни при каких условиях:**
-    /// это разные файлы, которым не повезло с именем.
+    /// The sizes or the edges diverged. **Must not be deleted under any
+    /// conditions:** these are different files that were unlucky with the name.
     Different,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelEntry {
-    /// Имя элемента внутри категории. Файл или каталог целиком.
+    /// The entry's name inside the category. A file or a whole directory.
     pub name: String,
     pub is_dir: bool,
     pub size_bytes: f64,
     pub files: u32,
-    /// Занято ли это имя в общей папке и чем оно там оказалось.
+    /// Whether this name is taken in the shared folder, and what it turned out
+    /// to be there.
     pub same_name: Option<SameName>,
 }
 
@@ -72,13 +77,13 @@ pub struct ModelsScan {
     pub path: String,
     pub available: bool,
     pub categories: Vec<ModelCategory>,
-    /// Сколько всего перенесётся и сколько это займёт.
+    /// How much will move in total and how much space it takes.
     pub total_files: u32,
     pub total_bytes: f64,
 }
 
-/// Флаг отмены, общий с командой прерывания. Тот же приём, что
-/// у `InstallCancel` в инсталляторе.
+/// The cancellation flag, shared with the abort command. The same trick as in
+/// the installer's `InstallCancel`.
 #[derive(Default, Clone)]
 pub struct MigrateCancel(Arc<AtomicBool>);
 
@@ -101,9 +106,9 @@ impl MigrateCancel {
 #[serde(rename_all = "camelCase")]
 pub struct MigrateOutcome {
     pub moved: Vec<String>,
-    /// Пропущенные из-за занятого имени, с вердиктом по каждому.
+    /// Skipped because the name was taken, with a verdict for each.
     pub skipped: Vec<Skipped>,
-    /// Не удалось, с причиной. Сбой на одном не отменяет остальные.
+    /// Failed, with a reason. A failure on one does not cancel the rest.
     pub failed: Vec<Failed>,
     pub moved_bytes: f64,
     pub cancelled: bool,
@@ -126,10 +131,10 @@ pub struct Failed {
     pub reason: String,
 }
 
-/// Файл-маркер, который ComfyUI кладёт в пустую категорию.
+/// The marker file ComfyUI puts into an empty category.
 ///
-/// Отличаем по имени и нулевому размеру сразу: пользовательский файл
-/// с таким именем возможен, но не нулевой.
+/// Recognised by name and zero size at once: a user file with such a name is
+/// possible, but not a zero-length one.
 pub(crate) fn is_placeholder(path: &Path, size: u64) -> bool {
     size == 0
         && path
@@ -139,7 +144,7 @@ pub(crate) fn is_placeholder(path: &Path, size: u64) -> bool {
             .unwrap_or(false)
 }
 
-/// Размер и число файлов в дереве. Каталог считается целиком.
+/// The size and file count of a tree. A directory is counted whole.
 pub(crate) fn measure(path: &Path) -> (u64, u32) {
     let Ok(meta) = std::fs::metadata(path) else {
         return (0, 0);
@@ -166,10 +171,10 @@ pub(crate) fn measure(path: &Path) -> (u64, u32) {
     (bytes, files)
 }
 
-/// Одинаковы ли края файлов.
+/// Whether the files' edges are identical.
 ///
-/// Читаем по мегабайту с начала и с конца. Файлы короче двух мегабайт
-/// сверяем целиком — это дешевле, чем считать смещения.
+/// A megabyte is read from the start and from the end. Files shorter than two
+/// megabytes are compared whole — that is cheaper than working out offsets.
 fn same_edges(a: &Path, b: &Path, size: u64) -> bool {
     use std::io::{Read, Seek, SeekFrom};
 
@@ -199,7 +204,7 @@ fn same_edges(a: &Path, b: &Path, size: u64) -> bool {
     ta == tb
 }
 
-/// Что за элемент лежит в общей папке под тем же именем.
+/// What kind of entry lies in the shared folder under the same name.
 pub fn compare(local: &Path, shared: &Path) -> SameName {
     let (Ok(a), Ok(b)) = (std::fs::metadata(local), std::fs::metadata(shared)) else {
         return SameName::Different;
@@ -216,8 +221,8 @@ pub fn compare(local: &Path, shared: &Path) -> SameName {
         return if same_edges(local, shared, a.len()) {
             SameName::Duplicate
         } else {
-            // Размер тот же, содержимое иное. Ровно ради этого случая
-            // края и читаются.
+            // Same size, different contents. This is exactly the case the
+            // edges are read for.
             SameName::Different
         };
     }
@@ -231,7 +236,7 @@ pub fn compare(local: &Path, shared: &Path) -> SameName {
     }
 }
 
-/// Читает модели сборки и сверяет их с общей папкой.
+/// Reads a build's models and compares them against the shared folder.
 pub fn scan(models_dir: &Path, shared_root: &Path) -> ModelsScan {
     let display = models_dir.display().to_string();
     if !models_dir.is_dir() {
@@ -299,8 +304,8 @@ pub fn scan(models_dir: &Path, shared_root: &Path) -> ModelsScan {
 
     categories.sort_by(|a, b| a.folder.cmp(&b.folder));
 
-    // В счёт идёт только то, что действительно поедет: занятые имена
-    // остаются на месте.
+    // Only what will actually move is counted: taken names stay where they
+    // are.
     let movable = |e: &&ModelEntry| e.same_name.is_none();
     let total_files = categories
         .iter()
@@ -316,8 +321,9 @@ pub fn scan(models_dir: &Path, shared_root: &Path) -> ModelsScan {
     ModelsScan { path: display, available: true, categories, total_files, total_bytes }
 }
 
-/// Ход переноса. Считается по элементам, а не по байтам: на одном томе
-/// перенос мгновенен, и полоса по байтам прыгала бы бессмысленно.
+/// Progress of the move. Counted in entries rather than bytes: within one
+/// volume a move is instantaneous, and a byte-based bar would jump about
+/// meaninglessly.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 #[serde(rename_all = "camelCase")]
 pub struct MigrateProgress {
@@ -327,14 +333,16 @@ pub struct MigrateProgress {
     pub name: String,
 }
 
-/// Переносит выбранные модели в общую папку.
+/// Moves the selected models into the shared folder.
 ///
-/// Выбор приходит парами «категория и модель», а не именами категорий:
-/// на экране тумблер стоит у каждой модели, и одна лора из двадцати может
-/// быть нужна сборке локально. Перечень сверяется со свежим сканом — то,
-/// чего в папке уже нет, просто не найдётся и в перенос не пойдёт.
+/// The selection arrives as "category and model" pairs rather than as category
+/// names: on screen there is a toggle next to every model, and one lora out of
+/// twenty may be needed by the build locally. The list is checked against a
+/// fresh scan — whatever is no longer in the folder simply will not be found
+/// and will not go into the move.
 ///
-/// Занятые имена не трогаются вовсе: чужая модель на 20 ГБ дороже дубля.
+/// Taken names are not touched at all: someone else's 20 GB model is worth
+/// more than a duplicate.
 pub fn move_all(
     models_dir: &Path,
     shared_root: &Path,
@@ -403,8 +411,9 @@ pub fn move_all(
                     out.moved.push(format!("{}/{}", category.folder, entry.name));
                     out.moved_bytes += entry.size_bytes;
                 }
-                // Сбой на одном элементе не отменяет остальные: категорий
-                // десятки, и бросать всё из-за одного занятого файла глупо.
+                // A failure on one entry does not cancel the rest: there are
+                // dozens of categories, and abandoning everything because of
+                // one locked file would be silly.
                 Err(e) => out.failed.push(Failed {
                     category: category.folder.clone(),
                     name: entry.name.clone(),
@@ -417,12 +426,12 @@ pub fn move_all(
     out
 }
 
-/// Переносит один элемент.
+/// Moves a single entry.
 ///
-/// На одном томе — переименование, мгновенно и без риска. Между томами
-/// сначала копия во временное имя, потом сверка, потом постановка на место
-/// и **только потом** удаление исходника: пока копия не проверена, у нас
-/// на руках должен оставаться оригинал.
+/// Within one volume it is a rename: instant and without risk. Across volumes
+/// it is first a copy under a temporary name, then verification, then putting
+/// it in place, and **only then** deleting the source: until the copy has been
+/// verified, the original has to stay in our hands.
 fn move_entry(from: &Path, to: &Path) -> Result<(), AppError> {
     if let Some(parent) = to.parent() {
         std::fs::create_dir_all(parent)
@@ -433,8 +442,8 @@ fn move_entry(from: &Path, to: &Path) -> Result<(), AppError> {
         return Ok(());
     }
 
-    // Тот же приём, что у инсталлятора: недоделанное всегда носит имя,
-    // по которому его видно и не жалко убрать.
+    // The same trick as in the installer: anything unfinished always carries a
+    // name that makes it visible and safe to remove.
     let staging = to.with_extension("cpo-partial");
     let _ = remove_any(&staging);
 
@@ -490,17 +499,17 @@ pub struct CleanupOutcome {
     pub removed: Vec<String>,
     pub freed_bytes: f64,
     pub failed: Vec<Failed>,
-    /// Сколько элементов отклонено, потому что дубликатами не являются.
+    /// How many entries were refused because they are not duplicates.
     pub refused: u32,
 }
 
-/// Убирает из сборки то, что уже лежит в общей папке.
+/// Removes from a build what already lies in the shared folder.
 ///
-/// **Вердикт пересчитывается здесь заново**, а не берётся из списка,
-/// пришедшего с фронта. Это единственная защита от того, чтобы удалить
-/// файл, который дубликатом не является: между показом перечня и нажатием
-/// кнопки содержимое могло смениться, да и доверять входным данным
-/// в операции удаления нельзя вовсе.
+/// **The verdict is recomputed here from scratch** rather than taken from the
+/// list that arrived from the frontend. This is the only protection against
+/// deleting a file that is not a duplicate: the contents could have changed
+/// between showing the list and pressing the button, and input data must not
+/// be trusted in a delete operation at all.
 pub fn remove_duplicates(
     models_dir: &Path,
     shared_root: &Path,
@@ -543,12 +552,12 @@ pub fn remove_duplicates(
     out
 }
 
-/// Свободно ли на целевом томе столько, сколько собираемся перенести.
+/// Whether the target volume has as much free space as we are about to move.
 ///
-/// На одном томе перенос — переименование, и место не нужно вовсе;
-/// проверка нужна только для переезда между дисками.
-/// Не сумели узнать свободное место — не мешаем: отказ на основании
-/// незнания хуже, чем попытка, которая честно провалится на записи.
+/// Within one volume a move is a rename and no space is needed at all; the
+/// check only matters for a move between drives. If the free space could not
+/// be determined, we do not stand in the way: refusing on the grounds of not
+/// knowing is worse than an attempt that fails honestly on the write.
 pub fn enough_space(shared_root: &Path, need_bytes: f64) -> bool {
     match crate::installer::free_space(&shared_root.display().to_string()) {
         Some(free) => free >= need_bytes,
@@ -556,7 +565,7 @@ pub fn enough_space(shared_root: &Path, need_bytes: f64) -> bool {
     }
 }
 
-/// Общая папка: первый включённый корень.
+/// The shared folder: the first enabled root.
 pub fn first_root(settings: &crate::shared_models::SharedSettings) -> Option<PathBuf> {
     settings
         .roots

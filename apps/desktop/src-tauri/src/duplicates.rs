@@ -1,16 +1,18 @@
-//! Отчёт о дубликатах моделей по всем сборкам сразу.
+//! A report on duplicate models across every build at once.
 //!
-//! **Только отчёт.** Ни одного действия над файлами: не удаляет,
-//! не переносит, не делает ссылок. Это записано в плане отдельной строкой
-//! и нарушать нельзя — уборка дублей уже существует своей командой,
-//! начинается пользователем на своём экране и видит перечень заранее.
+//! **A report and nothing else.** Not one action on files: it does not delete,
+//! does not move, does not make links. This is written into the plan as a line
+//! of its own and may not be broken — cleaning up duplicates already exists as
+//! a command of its own, is started by the user on their own screen, and shows
+//! the list in advance.
 //!
-//! Смысл отчёта — показать цену зоопарка: один чекпоинт весит от двух
-//! до двадцати гигабайт, и при пяти установках счёт идёт на сотни.
+//! The point of the report is to show the price of the zoo: a single
+//! checkpoint weighs from two to twenty gigabytes, and with five installations
+//! the count runs into the hundreds.
 //!
-//! Полный хэш не считаем, как и везде в проекте: на файлах такого размера
-//! он неприемлем. Совпадение имени и размера — основание для разговора,
-//! а не приговор, и об этом сказано прямо в интерфейсе.
+//! No full hash is computed, as everywhere in this project: on files of this
+//! size it is unacceptable. Matching name and size is grounds for a
+//! conversation, not a verdict, and the interface says so outright.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -18,51 +20,55 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-/// Одна копия модели.
+/// One copy of a model.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Copy_ {
-    /// Имя сборки либо общей папки. Пользователь думает местами,
-    /// а не идентификаторами.
+    /// The name of the build or of the shared folder. The user thinks in
+    /// places, not in identifiers.
     pub source: String,
     pub path: String,
     pub size_bytes: f64,
 }
 
-/// Модель, встречающаяся больше чем в одном месте.
+/// A model occurring in more than one place.
 ///
-/// Группируем по паре «категория и имя», а не по одному имени: один
-/// и тот же файл под `loras` и под `checkpoints` — это разные роли,
-/// и сводить их в одну строку значило бы предлагать выбор, которого нет.
+/// Grouped by the pair "category and name" rather than by name alone: one and
+/// the same file under `loras` and under `checkpoints` means two different
+/// roles, and merging them into one row would be offering a choice that does
+/// not exist.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DupGroup {
-    /// Имя файла или каталога модели. Не переводится.
+    /// The name of the model's file or directory. Not translated.
     pub name: String,
     pub category: String,
     pub copies: Vec<Copy_>,
-    /// Сколько занято сверх одной копии. У разных размеров смысла не имеет
-    /// и потому равно нулю.
+    /// How much is taken up beyond a single copy. Meaningless when the sizes
+    /// differ, and therefore zero in that case.
     pub wasted_bytes: f64,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct DuplicatesReport {
-    /// Совпали и имя, и размер. Почти наверняка одно и то же.
+    /// Both the name and the size matched. Almost certainly the same thing.
     pub duplicates: Vec<DupGroup>,
-    /// Одно имя, разные размеры. **Это не дубликаты** — совпадение имени
-    /// содержимого не доказывает, и в сумму потерь они не входят.
+    /// One name, different sizes. **These are not duplicates** — a matching
+    /// name proves nothing about the contents, and they are not counted into
+    /// the wasted total.
     pub name_clashes: Vec<DupGroup>,
     pub wasted_bytes: f64,
-    /// Папки, до которых не добрались: сборка недоступна, папки моделей
-    /// нет, читать не дали. Молчать о них нельзя — отчёт выглядел бы полным.
+    /// Folders we never reached: the build is unavailable, there is no models
+    /// folder, reading was refused. Staying silent about them is not allowed —
+    /// the report would look complete.
     pub skipped: Vec<String>,
     pub scanned_places: u32,
     pub cancelled: bool,
 }
 
-/// Флаг отмены. Тот же приём, что у `MigrateCancel` и `InstallCancel`.
+/// The cancellation flag. The same trick as in `MigrateCancel` and
+/// `InstallCancel`.
 #[derive(Default, Clone)]
 pub struct ScanCancel(Arc<AtomicBool>);
 
@@ -78,7 +84,7 @@ impl ScanCancel {
     }
 }
 
-/// Где искать. Имя — то, что увидит пользователь.
+/// Where to look. The name is what the user will see.
 pub struct Place {
     pub name: String,
     pub models_dir: std::path::PathBuf,
@@ -89,23 +95,25 @@ pub struct Place {
 pub struct DupProgress {
     pub done: u32,
     pub total: u32,
-    /// Что обходим прямо сейчас. Молчаливая пауза читается как зависание.
+    /// What is being walked right now. A silent pause reads as a freeze.
     pub place: String,
 }
 
-/// Строит отчёт.
+/// Builds the report.
 ///
-/// Единица обхода — запись верхнего уровня категории, ровно как у переноса:
-/// `RMBG-2.0` хранится каталогом со снимком HuggingFace, и разбирать такое
-/// по файлам значит сравнивать `config.json` с `config.json`.
+/// The unit of the walk is a top-level entry of a category, exactly as in the
+/// move: `RMBG-2.0` is stored as a directory holding a HuggingFace snapshot,
+/// and taking such a thing apart file by file means comparing `config.json`
+/// with `config.json`.
 pub fn scan(
     places: &[Place],
     cancel: &ScanCancel,
     on_progress: impl Fn(DupProgress),
 ) -> DuplicatesReport {
     let mut report = DuplicatesReport::default();
-    // Ключ — категория и имя в нижнем регистре: Windows не различает
-    // регистр, и две копии одного файла легко пишутся по-разному.
+    // The key is the category and the name in lower case: Windows does not
+    // distinguish case, and two copies of one file are easily spelled
+    // differently.
     let mut found: HashMap<String, Bucket> = HashMap::new();
     let total = places.len() as u32;
 
@@ -147,9 +155,9 @@ pub fn scan(
                 wasted_bytes: wasted,
             });
         } else {
-            // Разные размеры при одном имени — предупреждение, а не находка.
-            // В сумму потерь такое не входит: неизвестно, что удалять,
-            // да и удалять здесь нечего вовсе.
+            // Different sizes under one name are a warning, not a find. Such a
+            // thing is not counted into the wasted total: it is unknown what
+            // to delete, and there is nothing to delete here at all.
             report.name_clashes.push(DupGroup {
                 name: bucket.name,
                 category: bucket.category,
@@ -159,7 +167,7 @@ pub fn scan(
         }
     }
 
-    // Самое дорогое сверху: с него пользователь и начнёт.
+    // The most expensive on top: that is where the user will start.
     report
         .duplicates
         .sort_by(|a, b| b.wasted_bytes.total_cmp(&a.wasted_bytes));
@@ -167,14 +175,14 @@ pub fn scan(
     report
 }
 
-/// Накопитель по одной паре «категория и имя».
+/// The accumulator for one "category and name" pair.
 struct Bucket {
     name: String,
     category: String,
     copies: Vec<Copy_>,
 }
 
-/// Обходит одну папку моделей: категории верхнего уровня и записи в них.
+/// Walks one models folder: the top-level categories and the entries in them.
 fn collect(place: &Place, found: &mut HashMap<String, Bucket>, skipped: &mut Vec<String>) {
     let Ok(categories) = std::fs::read_dir(&place.models_dir) else {
         skipped.push(place.name.clone());
@@ -187,9 +195,9 @@ fn collect(place: &Place, found: &mut HashMap<String, Bucket>, skipped: &mut Vec
             continue;
         }
         let folder = category.file_name().to_string_lossy().to_string();
-        // `custom_nodes` не шарится и моделью не является; `configs`
-        // поставляется вместе со сборкой и совпадает у всех по определению —
-        // показывать его в отчёте о дублях значит забить отчёт шумом.
+        // `custom_nodes` is not shared and is not a model; `configs` ships
+        // with the build and matches everywhere by definition — showing it in
+        // a duplicates report means burying the report in noise.
         if folder == "custom_nodes" || folder == "configs" {
             continue;
         }
@@ -198,8 +206,9 @@ fn collect(place: &Place, found: &mut HashMap<String, Bucket>, skipped: &mut Vec
         for entry in entries.flatten() {
             let path = entry.path();
             let (size, _) = crate::migrate::measure(&path);
-            // Маркеры `put_..._here` лежат в каждой пустой категории каждой
-            // сборки. Формально они дубликаты, по сути — шум нулевого размера.
+            // The `put_..._here` markers lie in every empty category of every
+            // build. Formally they are duplicates; in substance they are noise
+            // of zero size.
             if crate::migrate::is_placeholder(&path, size) {
                 continue;
             }
