@@ -1,146 +1,182 @@
-# Сквозные сценарии
+# End-to-end journeys
 
-Путь пользователя целиком, от запуска приложения до достигнутой цели. В отличие от историй, которые описывают одно действие, сценарий показывает **порядок** и **переходы** — то, из чего выводится структура экранов и оглавление руководства.
+The user's path in full, from launching the app to the goal being reached.
+Unlike the stories, which describe a single action, a journey shows the
+**order** and the **transitions** — the thing the structure of the screens and
+the table of contents of the manual are derived from.
 
-Каждый шаг ссылается на историю, где он расписан подробно. Здесь — только последовательность и решения, которые пользователь принимает по дороге.
+Every step refers to the story where it is written out in detail. Here there is
+only the sequence and the decisions the user makes along the way.
 
 ---
 
-## J-01 — Чистая машина: ничего нет
+## J-01 — A clean machine: there is nothing
 
-**Актор:** A1, новичок без ComfyUI.
-**Предусловие:** приложение установлено и запущено впервые. Реестр пуст. Архив портабл-сборки пользователь скачал заранее.
-**Цель:** увидеть работающий ComfyUI.
+**Actor:** A1, a newcomer without ComfyUI.
+**Precondition:** the app is installed and launched for the first time. The
+registry is empty. The user downloaded a portable build archive in advance.
+**Goal:** to see a working ComfyUI.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Приложение открывается на пустом реестре и объясняет две возможности: указать уже имеющуюся папку либо установить ComfyUI | `US-ONB-01` |
-| 2 | Пользователь выбирает установку | `US-ONB-02` |
-| 3 | Указывает скачанный архив; приложение показывает, что внутри и сколько места потребуется | `US-INST-01` |
-| 4 | Указывает одну папку назначения, даёт инстансу имя | `US-INST-02` |
-| 5 | Пропускает настройку общих ресурсов — у него ещё нечего разделять | `US-INST-04` |
-| 6 | Наблюдает распаковку с прогрессом | `US-INST-05` |
-| 7 | Инстанс появляется в реестре | `US-INST-06` |
-| 8 | Запускает его; видит логи старта и ждёт готовности | `US-RUN-02`, `US-RUN-03` |
-| 9 | ComfyUI открывается внутри окна приложения | `US-TAB-02` |
+| 1 | The app opens on an empty registry and explains the two possibilities: point at a folder they already have, or install ComfyUI | `US-ONB-01` |
+| 2 | The user chooses the installation | `US-ONB-02` |
+| 3 | Points at the downloaded archive; the app shows what is inside and how much space will be needed | `US-INST-01` |
+| 4 | Points at one destination folder and gives the instance a name | `US-INST-02` |
+| 5 | Skips setting up shared resources — they have nothing to share yet | `US-INST-04` |
+| 6 | Watches the extraction with its progress | `US-INST-05` |
+| 7 | The instance appears in the registry | `US-INST-06` |
+| 8 | Launches it; sees the startup logs and waits for readiness | `US-RUN-02`, `US-RUN-03` |
+| 9 | ComfyUI opens inside the app's window | `US-TAB-02` |
 
-**Развилки:** архива нет вовсе — приложение объясняет, где его взять, и сценарий приостанавливается. Места на диске не хватает — отказ до начала распаковки, `US-INST-03`.
+**Forks:** there is no archive at all — the app explains where to get one and
+the journey pauses. There is not enough space on the disk — a refusal before
+the extraction begins, `US-INST-03`.
 
-**Для дизайна:** это единственный сценарий, где пользователь ни разу не видел приложение. Каждый экран должен объяснять себя без опоры на предыдущий опыт.
+**For design:** this is the only journey where the user has never seen the app
+before. Every screen has to explain itself without leaning on previous
+experience.
 
 ---
 
-## J-02 — Уже есть одна папка ComfyUI
+## J-02 — There is already one ComfyUI folder
 
-**Актор:** A2, владелец одной сборки.
-**Предусловие:** на диске распакованная и рабочая папка ComfyUI, приложение запущено впервые.
-**Цель:** запускать существующую сборку из приложения, ничего в ней не сломав.
+**Actor:** A2, the owner of one build.
+**Precondition:** an unpacked and working ComfyUI folder is on the disk, the
+app is launched for the first time.
+**Goal:** to launch the existing build from the app without breaking anything
+in it.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Приложение открывается на пустом реестре и предлагает развилку | `US-ONB-01` |
-| 2 | Пользователь выбирает «уже есть» | `US-ONB-03` |
-| 3 | Указывает папку; приложение проверяет её и показывает, что нашло: версию ComfyUI, версию Python, профили запуска | `US-REG-01` |
-| 4 | Даёт инстансу имя и цвет, подтверждает регистрацию | `US-REG-02` |
-| 5 | Запускает привычный профиль | `US-RUN-01`, `US-RUN-02` |
-| 6 | ComfyUI открывается внутри окна | `US-TAB-02` |
+| 1 | The app opens on an empty registry and offers the fork | `US-ONB-01` |
+| 2 | The user chooses "I already have one" | `US-ONB-03` |
+| 3 | Points at the folder; the app checks it and shows what it found: the ComfyUI version, the Python version, the launch profiles | `US-REG-01` |
+| 4 | Gives the instance a name and a colour, confirms the registration | `US-REG-02` |
+| 5 | Launches the familiar profile | `US-RUN-01`, `US-RUN-02` |
+| 6 | ComfyUI opens inside the window | `US-TAB-02` |
 
-**Ключевое обещание сценария:** после регистрации содержимое папки не изменилось. Пользователь по-прежнему может запустить её двойным кликом по `.bat` мимо приложения, и всё будет работать как раньше. Это прямо проверяется в `US-REG-01/AC-7`.
+**The journey's key promise:** after the registration the folder's contents
+have not changed. The user can still launch it by double-clicking the `.bat`
+past the app, and everything will work as before. This is checked directly in
+`US-REG-01/AC-7`.
 
-**Развилки:** папка не проходит проверку — приложение говорит, какого именно файла не хватает, `US-REG-01`. Порт из привычного профиля занят — приложение выдаёт другой и сообщает об этом, `US-RUN-04`.
+**Forks:** the folder does not pass the check — the app says exactly which file
+is missing, `US-REG-01`. The port from the familiar profile is taken — the app
+hands out another and says so, `US-RUN-04`.
 
 ---
 
-## J-03 — Перестать дублировать модели
+## J-03 — Stop duplicating models
 
-**Актор:** A3, владелец зоопарка.
-**Предусловие:** в реестре три инстанса, у каждого свои модели, часть продублирована.
-**Цель:** держать модели в одном месте и раздать их всем инстансам.
+**Actor:** A3, the owner of the zoo.
+**Precondition:** there are three instances in the registry, each with its own
+models, some of them duplicated.
+**Goal:** to keep the models in one place and hand them out to every instance.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Пользователь заводит общий корень моделей, указывая папку | `US-SHARED-01` |
-| 2 | Приложение показывает, какие категории в ней распознало и сколько там файлов | `US-SHARED-02` |
-| 3 | Решает, должны ли новые загрузки уходить в общую папку | `US-SHARED-04` |
-| 4 | Подключает первый инстанс | `US-SHARED-03` |
-| 5 | Запускает его и убеждается, что общие модели видны, а локальные не пропали | `US-SHARED-03` |
-| 6 | Подключает остальные инстансы | `US-SHARED-03` |
-| 7 | Позже смотрит отчёт о дубликатах и вручную разбирает лишнее | `US-SHARED-09` |
+| 1 | The user creates a shared models root by pointing at a folder | `US-SHARED-01` |
+| 2 | The app shows which categories it recognised in it and how many files are there | `US-SHARED-02` |
+| 3 | Decides whether new downloads should go into the shared folder | `US-SHARED-04` |
+| 4 | Connects the first instance | `US-SHARED-03` |
+| 5 | Launches it and makes sure the shared models are visible and the local ones have not disappeared | `US-SHARED-03` |
+| 6 | Connects the remaining instances | `US-SHARED-03` |
+| 7 | Later looks at the duplicate report and sorts out the excess by hand | `US-SHARED-09` |
 
-**Развилки:** в инстансе уже лежит собственный файл настройки путей — приложение не трогает его молча, а показывает выбор, `US-SHARED-06`. Общий корень на съёмном диске и недоступен при старте — предупреждение до запуска, `US-SHARED-08`. Пользователь передумал — отключение возвращает инстанс в исходное состояние, `US-SHARED-07`.
+**Forks:** the instance already holds a path-configuration file of its own —
+the app does not touch it silently but shows a choice, `US-SHARED-06`. The
+shared root is on a removable drive and is unavailable at launch — a warning
+before the launch, `US-SHARED-08`. The user changed their mind —
+disconnecting returns the instance to its original state, `US-SHARED-07`.
 
-**Для документации:** это самый ценный сценарий для A3 и самый вероятный источник вопросов. Заслуживает отдельной страницы руководства.
+**For documentation:** this is the most valuable journey for A3 and the most
+likely source of questions. It deserves a manual page of its own.
 
 ---
 
-## J-04 — Новая версия рядом со старой
+## J-04 — A new version alongside the old one
 
-**Актор:** A3.
-**Предусловие:** есть рабочий инстанс, вышла новая версия ComfyUI, архив скачан.
-**Цель:** попробовать новую версию, ничего не потеряв.
+**Actor:** A3.
+**Precondition:** there is a working instance, a new version of ComfyUI is out,
+the archive is downloaded.
+**Goal:** to try the new version without losing anything.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Пользователь открывает установку и выбирает новый архив вместо запомненного | `US-INST-07` |
-| 2 | Указывает новую папку назначения и имя, отражающее версию | `US-INST-02` |
-| 3 | Сразу подключает новый инстанс к общим моделям и библиотеке | `US-INST-04` |
-| 4 | Дожидается распаковки | `US-INST-05` |
-| 5 | Видит в реестре оба инстанса и у каждого — из какого архива он развёрнут | `US-REG-05` |
-| 6 | Запускает новый, старый остаётся нетронутым | `US-RUN-02` |
+| 1 | The user opens the installation and picks the new archive instead of the remembered one | `US-INST-07` |
+| 2 | Points at a new destination folder and a name that reflects the version | `US-INST-02` |
+| 3 | Connects the new instance to the shared models and the library right away | `US-INST-04` |
+| 4 | Waits out the extraction | `US-INST-05` |
+| 5 | Sees both instances in the registry, and for each of them which archive it was unpacked from | `US-REG-05` |
+| 6 | Launches the new one; the old one stays untouched | `US-RUN-02` |
 
-**Ключевое обещание:** приложение никогда не обновляет инстанс на месте. Новое разворачивается рядом, старое не меняется.
+**The key promise:** the app never updates an instance in place. The new one is
+unpacked alongside, the old one does not change.
 
-**Развилки:** пользователь хочет развернуть сразу в две папки за один прогон — `US-INST-08`. Ранее использованный архив удалён с диска — приложение сообщает об этом при входе в установку, `US-INST-07`.
+**Forks:** the user wants to unpack into two folders in a single run —
+`US-INST-08`. A previously used archive has been deleted from the disk — the
+app says so on entering the installation, `US-INST-07`.
 
 ---
 
-## J-05 — Перенос воркфлоу между инстансами
+## J-05 — Carrying a workflow between instances
 
-**Актор:** A3.
-**Предусловие:** в одном инстансе есть отлаженный воркфлоу, нужен в другом.
-**Цель:** перенести, понимая, заработает ли он на новом месте.
+**Actor:** A3.
+**Precondition:** one instance has a debugged workflow, it is needed in
+another.
+**Goal:** to carry it over while understanding whether it will work in the new
+place.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Пользователь заводит библиотеку, указывая папку | `US-WF-01` |
-| 2 | Забирает воркфлоу из инстанса в библиотеку | `US-WF-03` |
-| 3 | Отмечает избранным, ставит теги и заметку | `US-WF-02` |
-| 4 | Выбирает целевой инстанс и видит, все ли нужные ноды в нём есть | `US-WF-05` |
-| 5 | Добавляет воркфлоу в целевой инстанс | `US-WF-04` |
-| 6 | Открывает инстанс и работает с воркфлоу | `US-TAB-02` |
+| 1 | The user creates the library by pointing at a folder | `US-WF-01` |
+| 2 | Takes the workflow from the instance into the library | `US-WF-03` |
+| 3 | Marks it a favourite, adds tags and a note | `US-WF-02` |
+| 4 | Picks the target instance and sees whether all the required nodes are in it | `US-WF-05` |
+| 5 | Adds the workflow to the target instance | `US-WF-04` |
+| 6 | Opens the instance and works with the workflow | `US-TAB-02` |
 
-**Развилки:** в целевом инстансе не хватает нод — предупреждение со списком, но добавить всё равно можно, `US-WF-05`. В инстансе уже есть воркфлоу с таким именем — выбор между перезаписью и другим именем, `US-WF-04`. Папка библиотеки недоступна — приложение об этом сообщает и продолжает работать, `US-WF-06`.
+**Forks:** the target instance is missing nodes — a warning with the list, but
+it can still be added, `US-WF-05`. The instance already has a workflow with
+that name — a choice between overwriting and another name, `US-WF-04`. The
+library folder is unavailable — the app says so and keeps working, `US-WF-06`.
 
 ---
 
-## J-06 — Удаление приложения
+## J-06 — Uninstalling the app
 
-**Актор:** любой.
-**Предусловие:** приложение использовалось, есть инстансы, общие модели и библиотека.
-**Цель:** убрать приложение, не потеряв модели и воркфлоу.
+**Actor:** any.
+**Precondition:** the app has been used, there are instances, shared models and
+a library.
+**Goal:** to remove the app without losing the models and the workflows.
 
-| Шаг | Что происходит | История |
+| Step | What happens | Story |
 |---|---|---|
-| 1 | Пользователь заранее смотрит, где что хранится и что исчезнет при удалении | `US-DATA-01` |
-| 2 | Удаляет приложение штатным средством Windows | `US-DATA-02` |
-| 3 | Подтверждает удаление данных приложения | `US-DATA-02` |
-| 4 | Убеждается, что модели, библиотека и сами папки инстансов на месте | `US-DATA-03` |
+| 1 | The user looks in advance at where everything is stored and what will disappear on removal | `US-DATA-01` |
+| 2 | Uninstalls the app through the standard Windows facility | `US-DATA-02` |
+| 3 | Confirms the deletion of the app's data | `US-DATA-02` |
+| 4 | Makes sure the models, the library and the instance folders themselves are in place | `US-DATA-03` |
 
-**Ключевое обещание:** контент пользователя не удаляется никогда. Отдельно оговорено, что файлы, которые приложение по просьбе пользователя записало внутрь папок инстансов, тоже остаются — они лежат в чужой установке, и убирать их приложение не вправе, `US-DATA-03`.
+**The key promise:** user content is never deleted. It is separately stipulated
+that the files the app wrote inside the instance folders at the user's request
+also stay — they lie in someone else's installation, and the app has no right
+to take them away, `US-DATA-03`.
 
-**Развилки:** пользователь снимает галку удаления данных — настройки и реестр сохраняются, повторная установка их подхватывает, `US-DATA-02`.
+**Forks:** the user clears the "delete data" checkbox — the settings and the
+registry are kept, and a reinstall picks them up, `US-DATA-02`.
 
 ---
 
-## Покрытие акторов
+## Actor coverage
 
-| Сценарий | A1 | A2 | A3 |
+| Journey | A1 | A2 | A3 |
 |---|:---:|:---:|:---:|
-| `J-01` Чистая машина | ● | | |
-| `J-02` Уже есть папка | | ● | ● |
-| `J-03` Общие модели | | ○ | ● |
-| `J-04` Новая версия рядом | | | ● |
-| `J-05` Перенос воркфлоу | | ○ | ● |
-| `J-06` Удаление | ● | ● | ● |
+| `J-01` A clean machine | ● | | |
+| `J-02` There is already a folder | | ● | ● |
+| `J-03` Shared models | | ○ | ● |
+| `J-04` A new version alongside | | | ● |
+| `J-05` Carrying a workflow over | | ○ | ● |
+| `J-06` Uninstalling | ● | ● | ● |
 
-● основной, ○ возможный.
+● primary, ○ possible.

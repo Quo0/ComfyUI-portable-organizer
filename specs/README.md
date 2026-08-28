@@ -1,116 +1,144 @@
-# Спецификации ComfyUI Portable Organizer
+# ComfyUI Portable Organizer specifications
 
-Этот каталог отвечает на вопрос **что** приложение делает с точки зрения пользователя. На вопрос **как** это построить отвечает план: оглавление в `PLAN.md` в корне репозитория, разделы в `plan/`.
+This directory answers the question of **what** the app does from the user's
+point of view. The question of **how** to build it is answered by the plan: the
+table of contents in `PLAN.md` at the repository root, the sections in `plan/`.
 
-Разделение намеренное. План полон технических находок — какие флаги дописать к команде запуска, почему child webview не получает 403, где Windows ломается на длинных путях. Читать его дизайнеру, тестировщику или техписателю бессмысленно: там нет пользовательского поведения, только его причины.
+The split is deliberate. The plan is full of technical findings — which flags
+to append to the launch command, why a child webview does not get a 403, where
+Windows breaks on long paths. Reading it is pointless for a designer, a tester
+or a technical writer: there is no user behaviour there, only its causes.
 
-Ссылки отсюда адресуют раздел плана **по названию**, а не по файлу: `PLAN.md` → «Мастер установки». Название найдётся в таблице разделов в `PLAN.md`, оттуда — переход в нужный файл `plan/`.
+Links from here address a section of the plan **by title**, not by file:
+`PLAN.md` → «Мастер установки». The title is in the section table in `PLAN.md`,
+and from there the link leads to the right file in `plan/`. The titles are
+quoted in Russian because `plan/` is still in Russian; they are pointers, and
+they have to match the document they point at.
 
-## Кому и зачем
+## For whom and what for
 
-| Роль | Что берёт отсюда |
+| Role | What they take from here |
 |---|---|
-| Дизайнер | `journeys.md` — какие экраны вообще нужны и в каком порядке пользователь по ним идёт. Истории — что должно быть на каждом экране |
-| Тестировщик | Критерии приёмки. Каждый критерий — один шаг проверки, домысливать не требуется |
-| Техписатель | `journeys.md` даёт структуру руководства, истории — содержание страниц |
-| Разработчик | Ссылку из `traceability.md` на раздел плана, где лежит техническое обоснование |
+| Designer | `journeys.md` — which screens are needed at all and in what order the user walks through them. The stories — what has to be on each screen |
+| Tester | The acceptance criteria. Each criterion is one verification step, nothing needs to be inferred |
+| Technical writer | `journeys.md` gives the structure of the manual, the stories give the content of the pages |
+| Developer | The link from `traceability.md` to the section of the plan that holds the technical reasoning |
 
-## Файлы
+## The files
 
-| Файл | Содержимое |
+| File | Contents |
 |---|---|
-| `glossary.md` | Язык предметной области. Один термин — одно определение |
-| `actors.md` | Кто пользуется приложением, что знает, чего боится |
-| `journeys.md` | Сквозные сценарии `J-01…J-06` — путь пользователя целиком |
-| `01-onboarding.md` | Первый запуск, пустое состояние, развилка |
-| `02-registry.md` | Реестр: добавление существующей папки, метаданные, удаление |
-| `03-installer.md` | Мастер установки из архива |
-| `04-run.md` | Запуск, логи, готовность, остановка, сбои |
-| `05-tabs-nav.md` | Навигация и встроенная вкладка ComfyUI |
-| `06-shared-models.md` | Общее хранилище моделей |
-| `07-workflows.md` | Библиотека воркфлоу |
-| `08-appearance.md` | Тема, язык, уведомления |
-| `09-data-uninstall.md` | Хранение данных и удаление приложения |
-| `nfr.md` | Нефункциональные требования |
-| `traceability.md` | Сводная таблица связей |
+| `glossary.md` | The language of the domain. One term, one definition |
+| `actors.md` | Who uses the app, what they know, what they are afraid of |
+| `journeys.md` | The end-to-end journeys `J-01…J-06` — the user's path in full |
+| `01-onboarding.md` | The first launch, the empty state, the fork in the road |
+| `02-registry.md` | The registry: adding an existing folder, metadata, removal |
+| `03-installer.md` | The install wizard, from an archive |
+| `04-run.md` | Launching, logs, readiness, stopping, failures |
+| `05-tabs-nav.md` | Navigation and the embedded ComfyUI tab |
+| `06-shared-models.md` | Shared model storage |
+| `07-workflows.md` | The workflow library |
+| `08-appearance.md` | Theme, language, notifications |
+| `09-data-uninstall.md` | Data storage and uninstalling the app |
+| `nfr.md` | Non-functional requirements |
+| `traceability.md` | The summary table of links |
 
-## Схема идентификаторов
+## The identifier scheme
 
-Стабильные ID — то, ради чего всё затевается. Они связывают требование с макетом, тест-кейсом, страницей документации и e2e-тестом.
+Stable IDs are the whole point of the exercise. They tie a requirement to a
+mockup, a test case, a documentation page and an e2e test.
 
-| Сущность | Формат | Пример |
+| Entity | Format | Example |
 |---|---|---|
-| Эпик | `EP-<AREA>` | `EP-SHARED` |
-| Функциональное требование | `FR-<AREA>-<NNN>` | `FR-SHARED-020` |
-| Пользовательская история | `US-<AREA>-<NN>` | `US-SHARED-03` |
-| Критерий приёмки | `AC-<N>` внутри истории | `US-SHARED-03/AC-4` |
-| Нефункциональное требование | `NFR-<NNN>` | `NFR-050` |
-| Сквозной сценарий | `J-<NN>` | `J-02` |
+| Epic | `EP-<AREA>` | `EP-SHARED` |
+| Functional requirement | `FR-<AREA>-<NNN>` | `FR-SHARED-020` |
+| User story | `US-<AREA>-<NN>` | `US-SHARED-03` |
+| Acceptance criterion | `AC-<N>` inside a story | `US-SHARED-03/AC-4` |
+| Non-functional requirement | `NFR-<NNN>` | `NFR-050` |
+| End-to-end journey | `J-<NN>` | `J-02` |
 
-Области:
+The areas:
 
-| Код | Область |
+| Code | Area |
 |---|---|
-| `ONB` | Онбординг, первый запуск |
-| `REG` | Реестр инстансов |
-| `INST` | Установка из архива |
-| `RUN` | Запуск и жизненный цикл |
-| `TAB` | Навигация и встроенные вкладки |
-| `SHARED` | Общее хранилище моделей |
-| `WF` | Библиотека воркфлоу |
-| `UI` | Тема, язык, уведомления |
-| `DATA` | Хранение данных и удаление |
+| `ONB` | Onboarding, the first launch |
+| `REG` | The instance registry |
+| `INST` | Installing from an archive |
+| `RUN` | Launching and the lifecycle |
+| `TAB` | Navigation and embedded tabs |
+| `SHARED` | Shared model storage |
+| `WF` | The workflow library |
+| `UI` | Theme, language, notifications |
+| `DATA` | Data storage and removal |
 
-**Нумерация с шагом 10** — чтобы вставлять новое между существующим, не перенумеровывая. Удалённое требование помечается устаревшим, его номер повторно не занимается: иначе ссылки в старых тест-кейсах начнут указывать не туда.
+**Numbering goes in steps of 10** — so that something new can be inserted
+between what exists without renumbering. A deleted requirement is marked
+obsolete and its number is never taken again: otherwise the links in old test
+cases start pointing at the wrong thing.
 
-## Теги
+## Tags
 
-У каждой истории строка тегов:
+Every story has a line of tags:
 
 ```
-Теги: `@FR-SHARED-020` `@FR-SHARED-030` `@phase-2.5` `@area-shared`
+Tags: `@FR-SHARED-020` `@FR-SHARED-030` `@phase-2.5` `@area-shared`
 ```
 
-- `@FR-…` — какие требования история реализует;
-- `@phase-N` — фаза из чеклиста `plan/phases.md`, чтобы понимать, когда это появится;
-- `@area-…` — область, для фильтрации.
+- `@FR-…` — which requirements the story implements;
+- `@phase-N` — the phase from the `plan/phases.md` checklist, so it is clear
+  when this will appear;
+- `@area-…` — the area, for filtering.
 
-## Как писать критерии приёмки
+## How to write acceptance criteria
 
-Пять правил. Первое важнее остальных четырёх вместе взятых.
+Five rules. The first matters more than the other four put together.
 
-**1. Уровень намерения, а не механики интерфейса.** Пишем «пользователь подключает инстанс к общей папке моделей», а не «пользователь нажимает кнопку в правом верхнем углу». Причина практическая: эти спеки — вход для UI-дизайна, и они не могут предполагать UI, которого ещё нет. Плюс критерий, описывающий расположение кнопки, устареет при первой же правке макета и утащит за собой тест-кейс и страницу документации.
+**1. The level of intent, not of interface mechanics.** We write "the user
+connects the instance to the shared models folder", not "the user presses the
+button in the top right corner". The reason is practical: these specs are the
+input for the UI design, and they cannot presuppose a UI that does not exist
+yet. On top of that, a criterion describing where a button sits will go stale
+with the first edit to the mockup and drag the test case and the documentation
+page down with it.
 
-**2. Одно проверяемое утверждение на критерий.** Если в критерии есть «и», проверьте, не два ли это критерия.
+**2. One verifiable statement per criterion.** If a criterion contains an
+"and", check whether it is not two criteria.
 
-**3. Наблюдаемый результат вместо внутренней механики.** «Модели из общей папки видны в списках нод» — да. «Приложение дописывает `--extra-model-paths-config` к аргументам» — нет, это `PLAN.md`.
+**3. An observable result instead of internal mechanics.** "Models from the
+shared folder are visible in the node lists" — yes. "The app appends
+`--extra-model-paths-config` to the arguments" — no, that belongs to `PLAN.md`.
 
-**4. Никаких «корректно», «удобно», «быстро».** Если быстро — насколько, и в `nfr.md`.
+**4. No "correctly", "conveniently", "quickly".** If quickly — then how
+quickly, and in `nfr.md`.
 
-**5. Негативные случаи обязательны и вынесены отдельным блоком.** Именно они теряются при переходе в тест-кейсы, потому что при чтении «счастливого пути» о них не вспоминаешь.
+**5. Negative cases are mandatory and go in a block of their own.** They are
+exactly what gets lost in the move to test cases, because reading the happy
+path does not bring them to mind.
 
-## Шаблон истории
+## The story template
 
 ```markdown
-### US-AREA-NN — Короткое название
+### US-AREA-NN — A short title
 
-**Как** <актор>
-**я хочу** <что сделать>
-**чтобы** <какая польза>.
+**As** <actor>
+**I want** <to do what>
+**so that** <what benefit>.
 
-Теги: `@FR-…` `@phase-N` `@area-…`
-Обоснование: `PLAN.md` → «Раздел»
+Tags: `@FR-…` `@phase-N` `@area-…`
+Rationale: `PLAN.md` → «Раздел»
 
-**Предусловия**
+**Preconditions**
 - …
 
-**Критерии приёмки**
+**Acceptance criteria**
 - **AC-1.** …
 
-**Негативные и краевые случаи**
+**Negative and edge cases**
 - **AC-N.** …
 ```
 
-## Что делать при расхождении
+## What to do when things disagree
 
-Если критерий приёмки противоречит плану — это не опечатка, а незамеченное проектное решение. Правится сначала здесь, потом в соответствующем файле `plan/`, и оба изменения идут одним коммитом.
+If an acceptance criterion contradicts the plan, that is not a typo but a
+design decision nobody noticed. It is fixed here first, then in the
+corresponding file in `plan/`, and both changes go in one commit.

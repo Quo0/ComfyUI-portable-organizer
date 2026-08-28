@@ -1,63 +1,106 @@
-# Глоссарий
+# Glossary
 
-Язык предметной области. Термины отсюда используются в историях, интерфейсе и документации без синонимов: если здесь написано «инстанс», то в интерфейсе не может быть «сборка», «установка» или «копия».
+The language of the domain. The terms from here are used in the stories, in
+the interface and in the documentation without synonyms: if it says "instance"
+here, then the interface cannot say "build", "installation" or "copy".
 
-## Про ComfyUI
+## About ComfyUI
 
-**ComfyUI** — приложение для генерации изображений с интерфейсом в виде графа нод. Запускается как локальный веб-сервер и открывается в браузере.
+**ComfyUI** — an application for generating images with an interface in the
+form of a graph of nodes. It runs as a local web server and opens in a browser.
 
-**Портабл-сборка** — способ распространения ComfyUI под Windows: архив, внутри которого лежит и сам ComfyUI, и встроенный Python со всеми зависимостями. Ничего не устанавливается в систему, всё живёт в одной папке.
+**Portable build** — the way ComfyUI is distributed on Windows: an archive
+holding both ComfyUI itself and an embedded Python with all its dependencies.
+Nothing is installed into the system, everything lives in one folder.
 
-**Инстанс** — одна портабл-папка ComfyUI, зарегистрированная в приложении. Пользователи держат несколько инстансов, потому что кастомные ноды конфликтуют между собой, и обновление одной сборки ломает другую.
+**Instance** — one portable ComfyUI folder registered in the app. Users keep
+several instances because custom nodes conflict with each other, and updating
+one build breaks another.
 
-**Кастомная нода** — расширение ComfyUI, добавляющее новые типы узлов в граф. Основная причина, по которой инстансы приходится разводить: две ноды могут требовать несовместимые версии одной библиотеки.
+**Custom node** — an extension of ComfyUI that adds new node types to the
+graph. The main reason instances have to be kept apart: two nodes may require
+incompatible versions of the same library.
 
-**ComfyUI-Manager** — популярная кастомная нода для установки других нод. Важна тем, что умеет перезапускать сервер сама, без ведома нашего приложения.
+**ComfyUI-Manager** — a popular custom node for installing other nodes. It
+matters because it can restart the server by itself, without our app knowing.
 
-**Профиль запуска** — именованный набор «интерпретатор плюс аргументы командной строки», которым стартует инстанс. В портабл-сборке профили соответствуют файлам `.bat` в её корне: обычный запуск на видеокарте, запуск с ускорением, запуск на процессоре и варианты из подпапки `advanced`.
+**Launch profile** — a named set of "interpreter plus command-line arguments"
+that an instance starts with. In a portable build the profiles correspond to
+the `.bat` files in its root: an ordinary launch on the graphics card, a launch
+with acceleration, a launch on the CPU, and the variants from the `advanced`
+subfolder.
 
-**Воркфлоу** — граф нод, сохранённый в файл JSON. Единица работы пользователя: «тот самый рабочий воркфлоу» переносят между инстансами и хранят годами.
+**Workflow** — a graph of nodes saved into a JSON file. The unit of the user's
+work: "that one workflow that works" gets carried between instances and kept
+for years.
 
-**Модель** — файл весов нейросети: чекпоинт, LoRA, VAE, ControlNet и прочее. Весит от сотен мегабайт до двадцати гигабайт.
+**Model** — a file of neural network weights: a checkpoint, a LoRA, a VAE, a
+ControlNet and so on. It weighs from hundreds of megabytes to twenty gigabytes.
 
-**Категория моделей** — тип модели, определяющий, в какой подпапке ComfyUI её ищет: `checkpoints`, `loras`, `vae`, `controlnet` и так далее. Набор категорий меняется от версии к версии ComfyUI.
+**Model category** — the type of a model, which determines the subfolder
+ComfyUI looks for it in: `checkpoints`, `loras`, `vae`, `controlnet` and so
+forth. The set of categories changes from one ComfyUI version to the next.
 
-## Про наше приложение
+## About our app
 
-**Реестр** — список инстансов, известных приложению. Регистрация не копирует и не перемещает папку: приложение только запоминает путь и метаданные.
+**Registry** — the list of instances known to the app. Registering neither
+copies nor moves the folder: the app only remembers the path and the metadata.
 
-**Мастер установки** — сценарий разворачивания нового инстанса из архива портабл-сборки, сразу в одну или несколько папок.
+**Install wizard** — the scenario for unpacking a new instance from a portable
+build archive, into one or several folders at once.
 
-**Архив-источник** — файл `.7z` с портабл-сборкой, который пользователь скачал сам. Приложение помнит историю таких архивов, чтобы можно было раскатывать разные версии в разное время.
+**Source archive** — the `.7z` file with a portable build that the user
+downloaded themselves. The app remembers a history of such archives so that
+different versions can be rolled out at different times.
 
-**Общий корень моделей** — папка вне инстансов, где лежат модели, доступные сразу всем подключённым инстансам. Внутри — подпапки по категориям.
+**Shared models root** — a folder outside the instances holding models that
+are available to every connected instance at once. Inside it are subfolders by
+category.
 
-**Подключение к общим моделям** — действие, после которого инстанс видит модели из общего корня в дополнение к своим собственным. Локальные модели при этом не пропадают.
+**Connecting to shared models** — the action after which an instance sees the
+models from the shared root in addition to its own. The local models do not
+disappear in the process.
 
-**Библиотека воркфлоу** — папка вне инстансов, где пользователь хранит избранные воркфлоу, чтобы добавлять их в любой инстанс.
+**Workflow library** — a folder outside the instances where the user keeps
+their favourite workflows, so as to add them to any instance.
 
-**Манифест библиотеки** — файл внутри библиотеки, хранящий теги, заметки и отметки «избранное». Лежит рядом с воркфлоу, а не в данных приложения, чтобы библиотека оставалась самодостаточной при переустановке приложения и переносе на другую машину.
+**Library manifest** — a file inside the library holding tags, notes and
+"favourite" marks. It lies next to the workflows rather than in the app's data,
+so that the library stays self-sufficient across a reinstall of the app and a
+move to another machine.
 
-**Потерянная запись** — запись в манифесте, для которой больше нет файла воркфлоу. Не ошибка: пользователь мог удалить файл через проводник.
+**Lost record** — a record in the manifest that no longer has a workflow file.
+Not an error: the user may have deleted the file through Explorer.
 
-**Совместимость воркфлоу** — соответствие между типами нод, которые требует воркфлоу, и типами нод, доступными в конкретном инстансе. Несовпадение — повод предупредить, но не повод запретить добавление.
+**Workflow compatibility** — the correspondence between the node types a
+workflow requires and the node types available in a particular instance. A
+mismatch is grounds for a warning, but not grounds for forbidding the addition.
 
-## Про интерфейс
+## About the interface
 
-**Оболочка** — части интерфейса, принадлежащие нашему приложению, а не ComfyUI: рейл навигации, тулбары, экраны настроек. Всё, что не является самим ComfyUI внутри встроенной вкладки.
+**Shell** — the parts of the interface belonging to our app rather than to
+ComfyUI: the navigation rail, the toolbars, the settings screens. Everything
+that is not ComfyUI itself inside the embedded tab.
 
-**Рейл** — вертикальное меню слева, видимое всегда. Содержит разделы приложения и список запущенных инстансов.
+**Rail** — the vertical menu on the left, always visible. It holds the app's
+sections and the list of running instances.
 
-**Контентная область** — всё окно за вычетом рейла. Здесь показываются экраны приложения, а у работающего инстанса — сам ComfyUI.
+**Content area** — the whole window minus the rail. This is where the app's
+screens are shown, and for a running instance, ComfyUI itself.
 
-**Встроенная вкладка** — интерфейс ComfyUI, показанный внутри окна нашего приложения вместо браузера.
+**Embedded tab** — the ComfyUI interface shown inside our app's window instead
+of a browser.
 
-**Состояние инстанса** — одно из: остановлен, стартует, работает, останавливается, аварийно завершён.
+**Instance state** — one of: stopped, starting, running, stopping, crashed.
 
-**Готовность** — момент, когда сервер ComfyUI ответил на запрос и его интерфейс можно показывать. От запуска процесса до готовности может пройти несколько минут.
+**Readiness** — the moment when the ComfyUI server has answered a request and
+its interface can be shown. Several minutes may pass between starting the
+process and readiness.
 
-## Про данные
+## About data
 
-**Данные приложения** — настройки, реестр инстансов, пути к общим ресурсам. Принадлежат приложению и удаляются вместе с ним.
+**App data** — the settings, the instance registry, the paths to shared
+resources. They belong to the app and are deleted along with it.
 
-**Контент пользователя** — модели и библиотека воркфлоу. Лежат в папках, которые выбрал пользователь, и не удаляются никогда.
+**User content** — the models and the workflow library. They lie in folders the
+user chose, and they are never deleted.

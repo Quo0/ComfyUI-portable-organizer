@@ -1,66 +1,105 @@
-# Акторы
+# Actors
 
-Три роли, различающиеся не правами, а тем, что у пользователя уже есть на диске и чего он опасается. Приложение локальное, логина нет, разграничения доступа нет — поэтому «акторы» здесь про контекст, а не про роли в системе.
+Three roles that differ not in permissions but in what the user already has on
+disk and what they are wary of. The app is local, there is no login and no
+access control — so "actors" here is about context, not about roles in a
+system.
 
-Каждая история в спеках начинается с «Как \<актор\>» и ссылается на одного из них.
-
----
-
-## A1 — Новичок без ComfyUI
-
-**Что есть:** видеокарта, желание попробовать, скачанный откуда-то архив портабл-сборки. Возможно, даже архива нет.
-
-**Что знает:** слышал, что ComfyUI мощнее и гибче альтернатив, и что «там всё сложно». Про портабл-сборки, `.bat`-файлы, порты и кастомные ноды не знает ничего.
-
-**Чего хочет:** чтобы заработало, и чтобы не пришлось разбираться в устройстве до первого результата.
-
-**Чего боится:** сломать компьютер, засорить систему, не понять сообщение об ошибке. Отдельно — что не сможет всё это потом убрать.
-
-**Что для него значит наше приложение:** способ поставить ComfyUI, не читая инструкций и не открывая консоль.
-
-**Следствия для интерфейса:** ему нельзя показывать выбор между четырьмя профилями запуска раньше, чем он вообще что-то установил. Термин «инстанс» ему сначала ничего не говорит, объяснить придётся на месте.
+Every story in the specs begins with "As \<actor\>" and refers to one of them.
 
 ---
 
-## A2 — Владелец одной сборки
+## A1 — A newcomer without ComfyUI
 
-**Что есть:** одна распакованная папка ComfyUI, которую он запускает двойным кликом по `.bat`. Внутри уже накоплены модели и, вероятно, десяток кастомных нод.
+**What they have:** a graphics card, the wish to try, and a portable build
+archive downloaded from somewhere. Possibly not even the archive.
 
-**Что знает:** зачем нужны `run_nvidia_gpu.bat` и `run_cpu.bat`, что сервер открывается в браузере, что модели кладут в `models\checkpoints`. Про конфликты нод, возможно, уже слышал, но пока не обжигался.
+**What they know:** they have heard that ComfyUI is more powerful and flexible
+than the alternatives, and that "it is all complicated there". About portable
+builds, `.bat` files, ports and custom nodes they know nothing.
 
-**Чего хочет:** порядка. Запускать не из проводника, видеть логи старта, не искать вкладку среди двадцати других в браузере.
+**What they want:** for it to work, and not to have to understand how it is put
+together before the first result.
 
-**Чего боится:** что приложение полезет менять его рабочую папку и что-нибудь испортит. Это самый острый страх из всех трёх акторов, и он обоснован.
+**What they fear:** breaking the computer, cluttering the system, not
+understanding an error message. Separately — that they will not be able to
+clean all of it up afterwards.
 
-**Что для него значит наше приложение:** оболочка над тем, что уже работает.
+**What our app means to them:** a way to install ComfyUI without reading
+instructions and without opening a console.
 
-**Следствия для интерфейса:** любое действие, пишущее в его папку, должно быть явным и обратимым. Регистрация папки не должна ничего в ней менять. Он — первый кандидат на то, чтобы попробовать вторую сборку и стать A3.
-
----
-
-## A3 — Владелец зоопарка сборок
-
-**Что есть:** от трёх до пяти папок ComfyUI: стабильная, экспериментальная, под конкретную модель, ещё одна «не помню зачем». Сотни гигабайт моделей, частично продублированных между папками.
-
-**Что знает:** всё вышеперечисленное плюс почему сборки приходится разводить. Умеет читать трейсбек в консоли, знает про порты, возможно, вручную возился с симлинками, чтобы не дублировать модели.
-
-**Чего хочет:** перестать дублировать модели, быстро переключаться между сборками, раскатывать новую версию рядом со старой не теряя старую, переносить воркфлоу между сборками.
-
-**Чего боится:** потерять рабочую конфигурацию. Обновление, которое молча меняет поведение существующей сборки, для него хуже, чем отсутствие обновления.
-
-**Что для него значит наше приложение:** инструмент, ради которого он и пришёл. Именно его боль — исходная причина проекта.
-
-**Следствия для интерфейса:** ему нужны детали, которые A1 только напугают: точный путь, версия ComfyUI, номер порта, из какого архива развёрнут инстанс. Показывать их нужно так, чтобы они не мешали A1 — то есть в карточке инстанса, а не на первом экране.
+**Consequences for the interface:** they must not be shown a choice between
+four launch profiles before they have installed anything at all. The term
+"instance" means nothing to them at first; it will have to be explained on the
+spot.
 
 ---
 
-## Как акторы соотносятся со сценариями
+## A2 — The owner of one build
 
-| Актор | Основные сквозные сценарии |
+**What they have:** one unpacked ComfyUI folder that they launch by
+double-clicking a `.bat`. Models have already accumulated inside it, and
+probably a dozen custom nodes.
+
+**What they know:** what `run_nvidia_gpu.bat` and `run_cpu.bat` are for, that
+the server opens in a browser, that models go into `models\checkpoints`. They
+may have heard about node conflicts already, but have not been burned yet.
+
+**What they want:** order. To launch it from somewhere other than Explorer, to
+see the startup logs, not to hunt for the tab among twenty others in the
+browser.
+
+**What they fear:** that the app will go poking around in their working folder
+and spoil something. This is the sharpest fear of all three actors, and it is
+justified.
+
+**What our app means to them:** a shell over something that already works.
+
+**Consequences for the interface:** any action that writes into their folder
+has to be explicit and reversible. Registering a folder must change nothing
+inside it. They are the first candidate to try a second build and become A3.
+
+---
+
+## A3 — The owner of a zoo of builds
+
+**What they have:** three to five ComfyUI folders: a stable one, an
+experimental one, one for a particular model, and another "I do not remember
+what for". Hundreds of gigabytes of models, partly duplicated between the
+folders.
+
+**What they know:** all of the above plus why builds have to be kept apart.
+They can read a traceback in a console, they know about ports, and they may
+have fiddled with symlinks by hand to avoid duplicating models.
+
+**What they want:** to stop duplicating models, to switch between builds
+quickly, to roll out a new version next to the old one without losing the old
+one, to carry workflows between builds.
+
+**What they fear:** losing a working configuration. An update that silently
+changes the behaviour of an existing build is worse for them than no update at
+all.
+
+**What our app means to them:** the tool they came for. Their pain is exactly
+the original reason for the project.
+
+**Consequences for the interface:** they need the details that would only
+frighten A1: the exact path, the ComfyUI version, the port number, which
+archive the instance was unpacked from. Those have to be shown in a way that
+does not get in A1's way — that is, on the instance card, not on the first
+screen.
+
+---
+
+## How the actors map onto the scenarios
+
+| Actor | Main end-to-end journeys |
 |---|---|
-| A1 | `J-01` — чистая машина |
-| A2 | `J-02` — уже есть одна папка |
-| A3 | `J-03`, `J-04`, `J-05` — общие модели, новая версия рядом, перенос воркфлоу |
-| Все | `J-06` — удаление приложения |
+| A1 | `J-01` — a clean machine |
+| A2 | `J-02` — there is already one folder |
+| A3 | `J-03`, `J-04`, `J-05` — shared models, a new version alongside, carrying workflows over |
+| All | `J-06` — uninstalling the app |
 
-Приоритет при конфликте требований: **A3 определяет функциональность, A1 определяет первое впечатление.** Если возможность нужна A3, но пугает A1 — она остаётся, но убирается с пути A1.
+The priority when requirements conflict: **A3 defines the functionality, A1
+defines the first impression.** If a capability is needed by A3 but frightens
+A1, it stays, but it is moved out of A1's way.
