@@ -1,150 +1,157 @@
-# EP-UI — Внешний вид, язык и уведомления
+# EP-UI — Appearance, language and notifications
 
-Оформление приложения, поддержка четырёх языков и то, как приложение сообщает о результатах операций.
+The app's styling, support for four languages, and the way the app reports the
+results of operations.
 
-Отдельная оговорка про ComfyUI внутри встроенной вкладки: у него собственные настройки темы и языка, и приложение их **не трогает**. Расхождение между тёмной оболочкой и светлым холстом — принятое решение, а не дефект: молча переписывать чужие настройки пользователя мы не будем.
+A separate caveat about ComfyUI inside the embedded tab: it has theme and
+language settings of its own, and the app **does not touch** them. A mismatch
+between a dark shell and a light canvas is an accepted decision, not a defect:
+we are not going to silently rewrite the user's settings in someone else's
+application.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-UI-010` | Поддерживаются светлая, тёмная и системная темы | «Интерфейс: тема» |
-| `FR-UI-020` | В системном режиме приложение следует за темой Windows без перезапуска | «Интерфейс: тема» |
-| `FR-UI-030` | Интерфейс доступен на английском, русском, китайском и испанском | «Интерфейс: язык» |
-| `FR-UI-040` | Язык определяется по системному при первом запуске и переопределяется пользователем | «Интерфейс: язык» |
-| `FR-UI-050` | Смена языка применяется без перезапуска приложения | «Интерфейс: язык» |
-| `FR-UI-060` | Успешные и неуспешные операции подтверждаются уведомлением | «Интерфейс: уведомления» |
-| `FR-UI-070` | Сообщение об ошибке содержит достаточно сведений для разбора и может быть скопировано | «Интерфейс: уведомления» |
-| `FR-UI-080` | События, не вызванные действием пользователя, видны независимо от открытого раздела | «Интерфейс: уведомления» |
-| `FR-UI-090` | Длительные операции показывают ход выполнения в том разделе, которому принадлежат | «Интерфейс: прогресс» |
-| `FR-UI-100` | Настройки темы и языка ComfyUI внутри вкладки не изменяются приложением | «Интерфейс: язык» |
-| `FR-UI-110` | Тексты интерфейса полны и корректны на всех поддерживаемых языках | «Интерфейс: язык» |
+| `FR-UI-010` | Light, dark and system themes are supported | «Интерфейс: тема» |
+| `FR-UI-020` | In system mode the app follows the Windows theme without a restart | «Интерфейс: тема» |
+| `FR-UI-030` | The interface is available in English, Russian, Chinese and Spanish | «Интерфейс: язык» |
+| `FR-UI-040` | The language is determined from the system one on the first launch and can be overridden by the user | «Интерфейс: язык» |
+| `FR-UI-050` | A change of language applies without restarting the app | «Интерфейс: язык» |
+| `FR-UI-060` | Both successful and unsuccessful operations are confirmed by a notification | «Интерфейс: уведомления» |
+| `FR-UI-070` | An error message holds enough detail for diagnosis and can be copied | «Интерфейс: уведомления» |
+| `FR-UI-080` | Events not caused by a user action are visible regardless of which section is open | «Интерфейс: уведомления» |
+| `FR-UI-090` | Long operations show their progress in the section they belong to | «Интерфейс: прогресс» |
+| `FR-UI-100` | The theme and language settings of ComfyUI inside the tab are not changed by the app | «Интерфейс: язык» |
+| `FR-UI-110` | The interface texts are complete and correct in every supported language | «Интерфейс: язык» |
 
 ---
 
-### US-UI-01 — Выбор темы
+### US-UI-01 — Choosing the theme
 
-**Как** пользователь
-**я хочу** выбрать оформление приложения
-**чтобы** оно не резало глаза при работе ночью.
+**As** a user
+**I want** to choose the app's styling
+**so that** it does not hurt my eyes when I work at night.
 
-Теги: `@FR-UI-010` `@FR-UI-020` `@phase-0.5` `@area-ui`
-Обоснование: `PLAN.md` → «Интерфейс: тема»
+Tags: `@FR-UI-010` `@FR-UI-020` `@phase-0.5` `@area-ui`
+Rationale: `PLAN.md` → «Интерфейс: тема»
 
-**Предусловия**
-- Приложение запущено.
+**Preconditions**
+- The app is running.
 
-**Критерии приёмки**
-- **AC-1.** Доступны три варианта: светлая, тёмная и следовать системе.
-- **AC-2.** По умолчанию выбрано следование системе.
-- **AC-3.** Смена темы применяется сразу, без перезапуска.
-- **AC-4.** Выбор сохраняется между запусками.
-- **AC-5.** В режиме следования системе смена темы Windows меняет оформление приложения на лету.
-- **AC-6.** Заголовок окна оформлен в тон выбранной теме.
-- **AC-7.** Все экраны читаемы в обеих темах: нет элементов, теряющих контраст.
+**Acceptance criteria**
+- **AC-1.** Three options are available: light, dark and follow the system.
+- **AC-2.** Following the system is chosen by default.
+- **AC-3.** A change of theme applies at once, without a restart.
+- **AC-4.** The choice is kept between launches.
+- **AC-5.** In follow-the-system mode, a change of the Windows theme changes the app's styling on the fly.
+- **AC-6.** The window title bar is styled to match the chosen theme.
+- **AC-7.** Every screen is legible in both themes: there are no elements that lose their contrast.
 
-**Негативные и краевые случаи**
-- **AC-8.** Акцентный цвет инстанса остаётся различимым в обеих темах; при выборе цвета пользователь предупреждён, если это не так.
-- **AC-9.** Оформление ComfyUI внутри встроенной вкладки не меняется вслед за нашей темой, и это ожидаемо.
-
----
-
-### US-UI-02 — Выбор языка
-
-**Как** пользователь, чей родной язык не английский
-**я хочу** пользоваться приложением на своём языке
-**чтобы** не разбирать формулировки.
-
-Теги: `@FR-UI-030` `@FR-UI-040` `@FR-UI-050` `@FR-UI-110` `@phase-0.5` `@area-ui`
-Обоснование: `PLAN.md` → «Интерфейс: язык»
-
-**Предусловия**
-- Приложение запущено.
-
-**Критерии приёмки**
-- **AC-1.** Доступны английский, русский, китайский и испанский.
-- **AC-2.** При первом запуске выбирается язык системы, если он поддерживается; иначе английский.
-- **AC-3.** Пользователь может сменить язык в настройках.
-- **AC-4.** Смена языка применяется сразу, без перезапуска.
-- **AC-5.** Выбор сохраняется между запусками.
-- **AC-6.** Переведены все тексты интерфейса, включая сообщения об ошибках.
-- **AC-7.** Числа, даты и размеры файлов отображаются по правилам выбранного языка.
-- **AC-8.** Формы слов при счёте согласованы с числом по правилам языка.
-
-**Негативные и краевые случаи**
-- **AC-9.** Ни на одном языке подписи не обрезаются и не ломают вёрстку.
-- **AC-10.** Китайский текст отображается полноценным шрифтом, а не подстановочными глифами.
-- **AC-11.** Пути к файлам, имена инстансов и содержимое логов не переводятся.
-- **AC-12.** Настройки языка самого ComfyUI внутри встроенной вкладки не изменяются.
+**Negative and edge cases**
+- **AC-8.** An instance's accent colour stays distinguishable in both themes; when picking a colour the user is warned if it is not.
+- **AC-9.** ComfyUI's styling inside the embedded tab does not change to follow our theme, and that is expected.
 
 ---
 
-### US-UI-03 — Подтверждение результата операции
+### US-UI-02 — Choosing the language
 
-**Как** пользователь
-**я хочу** видеть, удалась операция или нет
-**чтобы** не гадать, сработало ли действие.
+**As** a user whose native language is not English
+**I want** to use the app in my own language
+**so that** I do not have to decipher the wording.
 
-Теги: `@FR-UI-060` `@FR-UI-070` `@phase-0.5` `@area-ui`
-Обоснование: `PLAN.md` → «Интерфейс: уведомления»
+Tags: `@FR-UI-030` `@FR-UI-040` `@FR-UI-050` `@FR-UI-110` `@phase-0.5` `@area-ui`
+Rationale: `PLAN.md` → «Интерфейс: язык»
 
-**Предусловия**
-- Пользователь выполняет действие: добавляет инстанс, подключает общие модели, добавляет воркфлоу.
+**Preconditions**
+- The app is running.
 
-**Критерии приёмки**
-- **AC-1.** Успешное завершение подтверждается уведомлением.
-- **AC-2.** Уведомление об успехе исчезает само через несколько секунд.
-- **AC-3.** Неуспешное завершение сообщается уведомлением, которое не исчезает само.
-- **AC-4.** Сообщение об ошибке объясняет, что произошло, на языке пользователя.
-- **AC-5.** Подробности ошибки можно раскрыть и скопировать целиком.
-- **AC-6.** Несколько уведомлений подряд не заслоняют друг друга и не заполняют экран.
-- **AC-7.** Повторяющиеся одинаковые уведомления объединяются.
+**Acceptance criteria**
+- **AC-1.** English, Russian, Chinese and Spanish are available.
+- **AC-2.** On the first launch the system language is chosen if it is supported; otherwise English.
+- **AC-3.** The user can change the language in the settings.
+- **AC-4.** A change of language applies at once, without a restart.
+- **AC-5.** The choice is kept between launches.
+- **AC-6.** Every interface text is translated, error messages included.
+- **AC-7.** Numbers, dates and file sizes are displayed by the rules of the chosen language.
+- **AC-8.** Word forms in counted phrases agree with the number by the rules of the language.
 
-**Негативные и краевые случаи**
-- **AC-8.** Уведомления не перекрывают рабочую область ComfyUI.
-- **AC-9.** Сообщение об ошибке, для которой нет перевода, всё равно информативно и содержит опознаваемый код.
-
----
-
-### US-UI-04 — События без участия пользователя
-
-**Как** пользователь, работающий в ComfyUI
-**я хочу** узнать, что сервер упал
-**чтобы** не выяснять это по зависшей генерации.
-
-Теги: `@FR-UI-080` `@phase-2` `@area-ui`
-Обоснование: `PLAN.md` → «Интерфейс: уведомления»
-
-**Предусловия**
-- Инстанс работает, произошло событие без участия пользователя.
-
-**Критерии приёмки**
-- **AC-1.** Изменение состояния инстанса заметно независимо от того, какой раздел открыт.
-- **AC-2.** Состояние видно в постоянно доступной части интерфейса.
-- **AC-3.** Аварийное завершение визуально отличается от штатной остановки.
-- **AC-4.** Отметка о происшествии сохраняется, пока пользователь его не увидел.
-- **AC-5.** Подробности доступны в логе соответствующего инстанса.
+**Negative and edge cases**
+- **AC-9.** In no language are the labels truncated or the layout broken.
+- **AC-10.** Chinese text is displayed with a proper font rather than substitute glyphs.
+- **AC-11.** File paths, instance names and log contents are not translated.
+- **AC-12.** ComfyUI's own language settings inside the embedded tab are not changed.
 
 ---
 
-### US-UI-05 — Ход длительных операций
+### US-UI-03 — Confirming the result of an operation
 
-**Как** пользователь, запустивший долгую операцию
-**я хочу** видеть, что она идёт
-**чтобы** отличить работу от зависания.
+**As** a user
+**I want** to see whether an operation succeeded
+**so that** I do not have to guess whether the action worked.
 
-Теги: `@FR-UI-090` `@phase-1.5` `@area-ui`
-Обоснование: `PLAN.md` → «Интерфейс: прогресс»
+Tags: `@FR-UI-060` `@FR-UI-070` `@phase-0.5` `@area-ui`
+Rationale: `PLAN.md` → «Интерфейс: уведомления»
 
-**Предусловия**
-- Запущена операция, занимающая заметное время.
+**Preconditions**
+- The user performs an action: adds an instance, connects the shared models,
+  adds a workflow.
 
-**Критерии приёмки**
-- **AC-1.** Ход операции показан там же, где она была запущена.
-- **AC-2.** Если общий объём работы известен, показана доля выполненного.
-- **AC-3.** Если объём неизвестен, показано, что работа идёт, без ложной шкалы.
-- **AC-4.** Интерфейс остаётся отзывчивым: пользователь может уйти в другой раздел.
-- **AC-5.** Операцию можно прервать, если это допустимо по её характеру.
+**Acceptance criteria**
+- **AC-1.** A successful completion is confirmed by a notification.
+- **AC-2.** A success notification disappears by itself after a few seconds.
+- **AC-3.** An unsuccessful completion is reported by a notification that does not disappear by itself.
+- **AC-4.** The error message explains what happened, in the user's language.
+- **AC-5.** The error details can be expanded and copied in full.
+- **AC-6.** Several notifications in a row neither obscure each other nor fill the screen.
+- **AC-7.** Repeated identical notifications are merged.
 
-**Негативные и краевые случаи**
-- **AC-6.** Постоянного индикатора на быстрые операции нет: мгновенное действие не сопровождается мельканием шкалы.
+**Negative and edge cases**
+- **AC-8.** Notifications do not cover ComfyUI's working area.
+- **AC-9.** A message for an error that has no translation is still informative and holds a recognisable code.
+
+---
+
+### US-UI-04 — Events without the user's involvement
+
+**As** a user working in ComfyUI
+**I want** to learn that the server has crashed
+**so that** I do not find out from a stalled generation.
+
+Tags: `@FR-UI-080` `@phase-2` `@area-ui`
+Rationale: `PLAN.md` → «Интерфейс: уведомления»
+
+**Preconditions**
+- The instance is running, and an event occurred without the user's
+  involvement.
+
+**Acceptance criteria**
+- **AC-1.** A change in an instance's state is noticeable regardless of which section is open.
+- **AC-2.** The state is visible in a permanently available part of the interface.
+- **AC-3.** A crash is visually distinct from an ordinary stop.
+- **AC-4.** The mark of the occurrence is kept until the user has seen it.
+- **AC-5.** The details are available in the corresponding instance's log.
+
+---
+
+### US-UI-05 — The progress of long operations
+
+**As** a user who started a long operation
+**I want** to see that it is running
+**so that** I can tell work apart from a freeze.
+
+Tags: `@FR-UI-090` `@phase-1.5` `@area-ui`
+Rationale: `PLAN.md` → «Интерфейс: прогресс»
+
+**Preconditions**
+- An operation taking a noticeable amount of time has been started.
+
+**Acceptance criteria**
+- **AC-1.** The operation's progress is shown in the same place it was started.
+- **AC-2.** If the total amount of work is known, the fraction done is shown.
+- **AC-3.** If the amount is unknown, the fact that work is happening is shown, without a false scale.
+- **AC-4.** The interface stays responsive: the user can leave for another section.
+- **AC-5.** The operation can be interrupted, if its nature permits.
+
+**Negative and edge cases**
+- **AC-6.** There is no permanent indicator for quick operations: an instantaneous action is not accompanied by a flickering bar.

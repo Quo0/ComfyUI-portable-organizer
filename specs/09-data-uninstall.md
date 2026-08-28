@@ -1,123 +1,130 @@
-# EP-DATA — Хранение данных и удаление приложения
+# EP-DATA — Data storage and uninstalling the app
 
-Требование, сформулированное пользователем прямо: поставил `.exe`, удалил штатным средством Windows — и с диска исчезло всё лишнее, но **не** модели и **не** библиотека воркфлоу.
+A requirement the user stated outright: install the `.exe`, uninstall it
+through the standard Windows facility — and everything superfluous disappears
+from the disk, but **not** the models and **not** the workflow library.
 
-Отсюда жёсткая граница между двумя классами данных. Приложение владеет своими настройками и вправе их удалить. Контент пользователя — модели, воркфлоу, сами сборки ComfyUI — приложению не принадлежит, и трогать его при удалении оно не будет.
+Hence the hard boundary between two classes of data. The app owns its own
+settings and is entitled to delete them. The user's content — the models, the
+workflows, the ComfyUI builds themselves — does not belong to the app, and it
+will not touch it on removal.
 
-## Функциональные требования
+## Functional requirements
 
-| ID | Требование | Обоснование в `PLAN.md` |
+| ID | Requirement | Rationale in `PLAN.md` |
 |---|---|---|
-| `FR-DATA-010` | Данные приложения хранятся в стандартных местах для приложений Windows | «Дисциплина хранения данных» |
-| `FR-DATA-020` | Контент пользователя хранится только в папках, которые он выбрал сам | «Дисциплина хранения данных» |
-| `FR-DATA-030` | Приложение не пишет в системные и пользовательские папки помимо своих | «Дисциплина хранения данных» |
-| `FR-DATA-040` | Установка не требует прав администратора | «Дисциплина хранения данных» |
-| `FR-DATA-050` | При удалении пользователь выбирает, удалять ли данные приложения | «Дисциплина хранения данных» |
-| `FR-DATA-060` | Удаление приложения не затрагивает контент пользователя | «Дисциплина хранения данных» |
-| `FR-DATA-070` | Приложение показывает, где что хранится и что исчезнет при удалении | «Дисциплина хранения данных» |
-| `FR-DATA-080` | Обновление приложения сохраняет данные | «Дисциплина хранения данных» |
-| `FR-DATA-090` | Единственные записи вне своих папок делаются по явной команде пользователя и названы ему | «Дисциплина хранения данных» |
-| `FR-DATA-100` | Приложение сообщает о доступной новой версии и устанавливает её только с согласия пользователя | «Выпуск» |
-| `FR-DATA-110` | Перед установкой обновления пользователь решает судьбу работающих инстансов | «Выпуск» |
-| `FR-DATA-120` | Проверку обновлений можно отключить | «Выпуск» |
+| `FR-DATA-010` | The app's data is stored in the standard places for Windows applications | «Дисциплина хранения данных» |
+| `FR-DATA-020` | The user's content is stored only in folders they chose themselves | «Дисциплина хранения данных» |
+| `FR-DATA-030` | The app does not write into system or user folders beyond its own | «Дисциплина хранения данных» |
+| `FR-DATA-040` | Installation does not require administrator rights | «Дисциплина хранения данных» |
+| `FR-DATA-050` | On removal the user chooses whether to delete the app's data | «Дисциплина хранения данных» |
+| `FR-DATA-060` | Uninstalling the app does not affect the user's content | «Дисциплина хранения данных» |
+| `FR-DATA-070` | The app shows where everything is stored and what will disappear on removal | «Дисциплина хранения данных» |
+| `FR-DATA-080` | Updating the app keeps the data | «Дисциплина хранения данных» |
+| `FR-DATA-090` | The only writes outside its own folders are made on the user's explicit command and are named to them | «Дисциплина хранения данных» |
+| `FR-DATA-100` | The app reports an available new version and installs it only with the user's consent | «Выпуск» |
+| `FR-DATA-110` | Before an update is installed the user decides the fate of the running instances | «Выпуск» |
+| `FR-DATA-120` | Checking for updates can be switched off | «Выпуск» |
 
 ---
 
-### US-DATA-01 — Прозрачность хранения
+### US-DATA-01 — Transparency of storage
 
-**Как** пользователь, следящий за чистотой системы
-**я хочу** знать, что и где приложение хранит
-**чтобы** не гадать, что останется после удаления.
+**As** a user who keeps an eye on the cleanliness of their system
+**I want** to know what the app stores and where
+**so that** I do not have to guess what will be left after removal.
 
-Теги: `@FR-DATA-010` `@FR-DATA-070` `@FR-DATA-090` `@phase-4` `@area-data`
-Обоснование: `PLAN.md` → «Дисциплина хранения данных»
+Tags: `@FR-DATA-010` `@FR-DATA-070` `@FR-DATA-090` `@phase-4` `@area-data`
+Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
-**Предусловия**
-- Приложение запущено.
+**Preconditions**
+- The app is running.
 
-**Критерии приёмки**
-- **AC-1.** Показаны расположения данных приложения с возможностью открыть их в проводнике.
-- **AC-2.** Показаны расположения контента пользователя: общий корень моделей, библиотека воркфлоу, папки инстансов.
-- **AC-3.** Явно сказано, что исчезнет при удалении приложения, а что останется.
-- **AC-4.** Названы файлы, которые приложение по команде пользователя записало внутрь папок инстансов, и сказано, что при удалении они останутся.
-- **AC-5.** Показана версия приложения.
-
----
-
-### US-DATA-02 — Удаление приложения
-
-**Как** пользователь, решивший убрать приложение
-**я хочу** удалить его штатным средством Windows
-**чтобы** не искать деинсталлятор и не чистить систему вручную.
-
-Теги: `@FR-DATA-040` `@FR-DATA-050` `@FR-DATA-080` `@phase-4` `@area-data`
-Обоснование: `PLAN.md` → «Дисциплина хранения данных»
-
-**Предусловия**
-- Приложение установлено и использовалось.
-
-**Критерии приёмки**
-- **AC-1.** Приложение удаляется через стандартный механизм удаления программ Windows.
-- **AC-2.** Установка и удаление не требуют прав администратора.
-- **AC-3.** При удалении предложено удалить и данные приложения тоже.
-- **AC-4.** При согласии данные приложения — настройки, реестр инстансов, служебные файлы — удаляются полностью.
-- **AC-5.** При отказе данные сохраняются, и повторная установка подхватывает прежний реестр и настройки.
-- **AC-6.** Обновление приложения поверх предыдущей версии данные не удаляет.
-
-**Негативные и краевые случаи**
-- **AC-7.** После удаления с согласием на очистку в стандартных местах хранения не остаётся файлов приложения.
-- **AC-8.** Удаление при работающих серверах ComfyUI не оставляет запущенных процессов.
+**Acceptance criteria**
+- **AC-1.** The locations of the app's data are shown, with the option to open them in Explorer.
+- **AC-2.** The locations of the user's content are shown: the shared models root, the workflow library, the instance folders.
+- **AC-3.** It is stated explicitly what will disappear when the app is removed and what will stay.
+- **AC-4.** The files the app wrote inside the instance folders on the user's command are named, and it is stated that they will stay on removal.
+- **AC-5.** The app's version is shown.
 
 ---
 
-### US-DATA-03 — Сохранность контента пользователя
+### US-DATA-02 — Uninstalling the app
 
-**Как** пользователь с сотнями гигабайт моделей
-**я хочу** быть уверенным, что удаление приложения их не тронет
-**чтобы** не бояться его удалять.
+**As** a user who decided to remove the app
+**I want** to uninstall it through the standard Windows facility
+**so that** I do not have to hunt for an uninstaller or clean the system by
+hand.
 
-Теги: `@FR-DATA-020` `@FR-DATA-030` `@FR-DATA-060` `@phase-4` `@area-data`
-Обоснование: `PLAN.md` → «Дисциплина хранения данных»
+Tags: `@FR-DATA-040` `@FR-DATA-050` `@FR-DATA-080` `@phase-4` `@area-data`
+Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
-**Предусловия**
-- Настроены общий корень моделей и библиотека воркфлоу, есть зарегистрированные инстансы.
-- Приложение удалено с согласием на очистку данных.
+**Preconditions**
+- The app is installed and has been used.
 
-**Критерии приёмки**
-- **AC-1.** Общий корень моделей и всё его содержимое на месте.
-- **AC-2.** Библиотека воркфлоу вместе с тегами и заметками на месте.
-- **AC-3.** Папки всех инстансов на месте и работоспособны при запуске своими средствами.
-- **AC-4.** Файлы, записанные приложением внутрь папок инстансов по команде пользователя, остаются — они лежат в чужой установке, и приложение не вправе их убирать.
-- **AC-5.** Пользователь заранее знал об этом из сведений по `US-DATA-01`.
+**Acceptance criteria**
+- **AC-1.** The app is uninstalled through the standard Windows program removal mechanism.
+- **AC-2.** Installation and removal do not require administrator rights.
+- **AC-3.** On removal, deleting the app's data as well is offered.
+- **AC-4.** On consent the app's data — the settings, the instance registry, the housekeeping files — is deleted in full.
+- **AC-5.** On refusal the data is kept, and a reinstall picks up the previous registry and settings.
+- **AC-6.** Updating the app over a previous version does not delete the data.
 
-**Негативные и краевые случаи**
-- **AC-6.** Приложение ни при каких условиях не удаляет папки, выбранные пользователем как хранилище контента.
-- **AC-7.** Приложение не создаёт файлов в личных папках пользователя вроде «Документов» и не оставляет их после себя.
+**Negative and edge cases**
+- **AC-7.** After a removal with consent to the cleanup, no files of the app are left in the standard storage places.
+- **AC-8.** Removal while ComfyUI servers are running leaves no processes running.
 
 ---
 
-### US-DATA-04 — Обновление приложения
+### US-DATA-03 — The safety of the user's content
 
-**Как** пользователь установленного приложения
-**я хочу** получать новые версии, не теряя работу и настройки
-**чтобы** обновление было выгодой, а не риском.
+**As** a user with hundreds of gigabytes of models
+**I want** to be sure that uninstalling the app will not touch them
+**so that** I am not afraid to uninstall it.
 
-Теги: `@FR-DATA-100` `@FR-DATA-110` `@FR-DATA-120` `@phase-4` `@area-data`
-Обоснование: `PLAN.md` → «Выпуск»
+Tags: `@FR-DATA-020` `@FR-DATA-030` `@FR-DATA-060` `@phase-4` `@area-data`
+Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
-**Предусловия**
-- Приложение установлено, вышла более новая версия.
+**Preconditions**
+- The shared models root and the workflow library are set up, and there are
+  registered instances.
+- The app has been uninstalled with consent to the data cleanup.
 
-**Критерии приёмки**
-- **AC-1.** Приложение сообщает о доступной новой версии и показывает её номер.
-- **AC-2.** Установка начинается только после явного согласия; молча не устанавливается никогда.
-- **AC-3.** Целостность полученного обновления проверяется до установки.
-- **AC-4.** После обновления настройки, реестр инстансов и подключения к общим ресурсам на месте.
-- **AC-5.** Пользователь может посмотреть, что изменилось в новой версии.
-- **AC-6.** Проверку обновлений можно отключить в настройках; отключённая — не выполняется вовсе.
+**Acceptance criteria**
+- **AC-1.** The shared models root and everything in it are in place.
+- **AC-2.** The workflow library, together with its tags and notes, is in place.
+- **AC-3.** Every instance's folder is in place and works when launched by its own means.
+- **AC-4.** The files written by the app inside the instance folders on the user's command stay — they lie in someone else's installation, and the app has no right to take them away.
+- **AC-5.** The user knew about this in advance from the information in `US-DATA-01`.
 
-**Негативные и краевые случаи**
-- **AC-7.** Если хотя бы один инстанс работает, установка не начинается: пользователю сказано, что приложение будет закрыто вместе с запущенными серверами, и предложен выбор — остановить их и обновиться либо отложить установку до следующего запуска.
-- **AC-8.** Без подключения к сети приложение работает обычным образом и не показывает ошибок проверки обновлений.
-- **AC-9.** Обновление, не прошедшее проверку целостности, не устанавливается, и пользователю сказано почему.
-- **AC-10.** Прерванная загрузка обновления не оставляет приложение в нерабочем состоянии.
+**Negative and edge cases**
+- **AC-6.** Under no conditions does the app delete the folders the user chose as content storage.
+- **AC-7.** The app does not create files in the user's personal folders such as Documents, and leaves none behind.
+
+---
+
+### US-DATA-04 — Updating the app
+
+**As** a user of the installed app
+**I want** to receive new versions without losing my work and settings
+**so that** an update is a benefit rather than a risk.
+
+Tags: `@FR-DATA-100` `@FR-DATA-110` `@FR-DATA-120` `@phase-4` `@area-data`
+Rationale: `PLAN.md` → «Выпуск»
+
+**Preconditions**
+- The app is installed and a newer version is out.
+
+**Acceptance criteria**
+- **AC-1.** The app reports an available new version and shows its number.
+- **AC-2.** The installation begins only after explicit consent; it never installs silently.
+- **AC-3.** The integrity of the update received is verified before the installation.
+- **AC-4.** After the update the settings, the instance registry and the connections to shared resources are in place.
+- **AC-5.** The user can see what changed in the new version.
+- **AC-6.** Checking for updates can be switched off in the settings; when off, it is not performed at all.
+
+**Negative and edge cases**
+- **AC-7.** If at least one instance is running, the installation does not begin: the user is told that the app will be closed together with the running servers, and is offered a choice — stop them and update, or postpone the installation until the next launch.
+- **AC-8.** With no network connection the app works as usual and shows no update-check errors.
+- **AC-9.** An update that failed the integrity check is not installed, and the user is told why.
+- **AC-10.** An interrupted download of an update does not leave the app in an unusable state.
