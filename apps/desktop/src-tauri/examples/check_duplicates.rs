@@ -1,11 +1,11 @@
-//! Отчёт о дубликатах на временных папках.
+//! The duplicate report over temporary folders.
 //!
-//! Главное здесь — не «нашлись ли дубли», а что **не** попало в отчёт:
-//! одноимённые файлы разного размера не должны считаться дублями и не
-//! должны входить в сумму потерь. Ошибка в эту сторону превратила бы
-//! отчёт в основание удалить не то.
+//! The main thing here is not "were duplicates found" but what did **not**
+//! make it into the report: same-named files of different sizes must not count
+//! as duplicates and must not enter the wasted total. An error in that
+//! direction would turn the report into grounds for deleting the wrong thing.
 //!
-//! Запуск: cargo run --example check_duplicates
+//! Run: cargo run --example check_duplicates
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,33 +14,37 @@ use cpo_desktop_lib::duplicates::{self, Place, ScanCancel};
 
 fn main() {
     let root = temp_dir("cpo-dups");
+    // The first build's name is deliberately non-ASCII: builds live wherever
+    // the user put them, and a path outside Latin-1 has to be walked exactly
+    // like any other. Keep it non-ASCII when editing this fixture.
     let a = root.join("сборка A");
     let b = root.join("build B");
     let c = root.join("shared");
 
-    // Один и тот же чекпоинт в трёх местах — настоящий дубль.
+    // One and the same checkpoint in three places — a real duplicate.
     put(&a.join("checkpoints/sdxl.safetensors"), 4096);
     put(&b.join("checkpoints/sdxl.safetensors"), 4096);
     put(&c.join("checkpoints/sdxl.safetensors"), 4096);
 
-    // Одно имя, разные размеры: разные модели, которым не повезло с именем.
+    // One name, different sizes: different models that were unlucky with the
+    // name.
     put(&a.join("loras/style.safetensors"), 1000);
     put(&b.join("loras/style.safetensors"), 2000);
 
-    // Одно имя в разных категориях — это разные роли, не дубль.
+    // One name in different categories means different roles, not a duplicate.
     put(&a.join("vae/thing.pt"), 500);
     put(&b.join("upscale_models/thing.pt"), 500);
 
-    // Маркеры пустых категорий есть в каждой сборке. Формально совпадают
-    // идеально, по сути — шум нулевого размера.
+    // The markers of empty categories exist in every build. Formally they
+    // match perfectly; in substance they are noise of zero size.
     put(&a.join("embeddings/put_embeddings_here"), 0);
     put(&b.join("embeddings/put_embeddings_here"), 0);
 
-    // configs поставляется вместе со сборкой и совпадает у всех.
+    // configs ships with the build and matches everywhere.
     put(&a.join("configs/v1-inference.yaml"), 300);
     put(&b.join("configs/v1-inference.yaml"), 300);
 
-    // Модель каталогом: считается целиком, как и при переносе.
+    // A model as a directory: counted whole, the same as in the move.
     put(&a.join("RMBG/RMBG-2.0/model.safetensors"), 700);
     put(&a.join("RMBG/RMBG-2.0/config.json"), 100);
     put(&b.join("RMBG/RMBG-2.0/model.safetensors"), 700);
@@ -49,12 +53,12 @@ fn main() {
     let places = vec![
         Place { name: "сборка A".into(), models_dir: a.clone() },
         Place { name: "build B".into(), models_dir: b.clone() },
-        Place { name: "общая папка".into(), models_dir: c.clone() },
-        Place { name: "пропавшая".into(), models_dir: root.join("нет-такой") },
+        Place { name: "shared folder".into(), models_dir: c.clone() },
+        Place { name: "vanished".into(), models_dir: root.join("no-such-thing") },
     ];
 
-    // Счётчик через ячейку: сканер принимает `Fn`, потому что то же
-    // замыкание в приложении шлёт событие и состояния не держит.
+    // The counter goes through a cell: the scanner takes an `Fn`, because the
+    // same closure in the app emits an event and holds no state.
     let ticks = std::cell::Cell::new(0u32);
     let report = duplicates::scan(&places, &ScanCancel::default(), |_| {
         ticks.set(ticks.get() + 1)
@@ -65,87 +69,87 @@ fn main() {
     let dup = |name: &str| report.duplicates.iter().find(|g| g.name == name);
 
     failures += check(
-        "чекпоинт в трёх местах опознан дублем",
+        "a checkpoint in three places is recognised as a duplicate",
         dup("sdxl.safetensors").map(|g| g.copies.len()) == Some(3),
         format!("{:?}", dup("sdxl.safetensors").map(|g| g.copies.len())),
     );
     failures += check(
-        "впустую посчитано за вычетом одной копии",
+        "the waste is counted minus one copy",
         dup("sdxl.safetensors").map(|g| g.wasted_bytes) == Some(8192.0),
         format!("{:?}", dup("sdxl.safetensors").map(|g| g.wasted_bytes)),
     );
     failures += check(
-        "каталог-модель посчитан целиком",
+        "a model held as a directory is counted whole",
         dup("RMBG-2.0").map(|g| g.wasted_bytes) == Some(800.0),
         format!("{:?}", dup("RMBG-2.0").map(|g| g.wasted_bytes)),
     );
 
     failures += check(
-        "разные размеры при одном имени — не дубль",
+        "different sizes under one name are not a duplicate",
         dup("style.safetensors").is_none(),
         String::new(),
     );
     failures += check(
-        "и попали в отдельный список",
+        "and they landed in the separate list",
         report.name_clashes.iter().any(|g| g.name == "style.safetensors"),
         String::new(),
     );
     failures += check(
-        "в сумму потерь они не входят",
+        "they do not enter the wasted total",
         report.wasted_bytes == 8192.0 + 800.0,
         format!("{}", report.wasted_bytes),
     );
 
     failures += check(
-        "одно имя в разных категориях дублем не считается",
+        "one name in different categories does not count as a duplicate",
         !report.duplicates.iter().any(|g| g.name == "thing.pt"),
         String::new(),
     );
     failures += check(
-        "маркеры put_..._here пропущены",
+        "the put_..._here markers are skipped",
         !report.duplicates.iter().any(|g| g.name.starts_with("put_")),
         String::new(),
     );
     failures += check(
-        "configs в отчёт не идёт",
+        "configs does not go into the report",
         !report.duplicates.iter().any(|g| g.category == "configs"),
         String::new(),
     );
 
     failures += check(
-        "недоступная папка названа в пропущенных",
-        report.skipped.contains(&"пропавшая".to_string()),
+        "the unavailable folder is named among the skipped",
+        report.skipped.contains(&"vanished".to_string()),
         format!("{:?}", report.skipped),
     );
     failures += check(
-        "остальные места обойдены",
+        "the remaining places were walked",
         report.scanned_places == 3,
         format!("{}", report.scanned_places),
     );
-    failures += check("прогресс приходил", ticks >= 4, format!("{ticks}"));
-    failures += check("отчёт не помечен прерванным", !report.cancelled, String::new());
+    failures += check("progress kept arriving", ticks >= 4, format!("{ticks}"));
+    failures += check("the report is not marked as interrupted", !report.cancelled, String::new());
 
-    // Самое дорогое сверху: с него пользователь и начнёт.
+    // The most expensive on top: that is where the user will start.
     failures += check(
-        "группы отсортированы по потерям",
+        "the groups are sorted by waste",
         report.duplicates.first().map(|g| g.name.clone()) == Some("sdxl.safetensors".into()),
         String::new(),
     );
 
-    // --- отмена -----------------------------------------------------------
+    // --- cancellation -------------------------------------------------------
     let cancel = ScanCancel::default();
     cancel.cancel();
     let stopped = duplicates::scan(&places, &cancel, |_| {});
-    failures += check("отмена помечена в отчёте", stopped.cancelled, String::new());
+    failures += check("the cancellation is marked in the report", stopped.cancelled, String::new());
     failures += check(
-        "прерванный обход ничего не насчитал",
+        "an interrupted walk counted nothing",
         stopped.duplicates.is_empty(),
         String::new(),
     );
 
-    // --- ни один файл не тронут -------------------------------------------
+    // --- not a single file was touched --------------------------------------
     failures += check(
-        "все файлы на месте: отчёт ничего не удаляет",
+        "every file is in place: the report deletes nothing",
         a.join("checkpoints/sdxl.safetensors").is_file()
             && b.join("checkpoints/sdxl.safetensors").is_file()
             && c.join("checkpoints/sdxl.safetensors").is_file()
@@ -155,7 +159,7 @@ fn main() {
 
     fs::remove_dir_all(&root).ok();
 
-    println!("\nПроверок провалено: {failures}");
+    println!("\nChecks failed: {failures}");
     if failures > 0 {
         std::process::exit(1);
     }
@@ -164,15 +168,15 @@ fn main() {
 fn check(what: &str, ok: bool, detail: String) -> u32 {
     println!(
         "{} {what}{}",
-        if ok { "  OK  " } else { "ПРОВАЛ" },
+        if ok { "  OK  " } else { " FAIL " },
         if detail.is_empty() { String::new() } else { format!(" — {detail}") }
     );
     u32::from(!ok)
 }
 
 fn put(path: &Path, size: usize) {
-    fs::create_dir_all(path.parent().expect("есть родитель")).ok();
-    fs::write(path, vec![b'x'; size]).expect("файл не записался");
+    fs::create_dir_all(path.parent().expect("there is a parent")).ok();
+    fs::write(path, vec![b'x'; size]).expect("the file was not written");
 }
 
 fn temp_dir(name: &str) -> PathBuf {

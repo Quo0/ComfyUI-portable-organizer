@@ -1,15 +1,17 @@
-//! Спайк Фазы 1.5: годится ли `sevenz-rust2` для распаковки реального архива.
+//! The Phase 1.5 spike: is `sevenz-rust2` good enough to unpack a real
+//! archive?
 //!
-//! Вопрос ровно один: LZMA2 в чистом Rust может оказаться в разы медленнее
-//! 7-Zip, и тогда придётся бандлить `7za.exe` — плюс пара мегабайт
-//! к инсталлятору и упоминание LGPL в лицензиях. Решать это надо замером,
-//! а не ощущением.
+//! There is exactly one question: LZMA2 in pure Rust may turn out to be
+//! several times slower than 7-Zip, in which case `7za.exe` would have to be
+//! bundled — plus a couple of megabytes on the installer and a mention of LGPL
+//! in the licences. That has to be decided by measurement, not by feel.
 //!
-//! Заодно прототип того, что станет `installer.rs`: срез корневой папки,
-//! verbatim-пути и стриминг прогресса — всё здесь уже есть.
+//! Along the way it is a prototype of what will become `installer.rs`:
+//! stripping the root folder, verbatim paths and streaming progress are all
+//! already here.
 //!
-//! Запуск:
-//!   cargo run --release --example spike_7z -- <архив.7z> <куда>
+//! Run:
+//!   cargo run --release --example spike_7z -- <archive.7z> <where-to>
 
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -20,31 +22,32 @@ use sevenz_rust2::{ArchiveReader, Password};
 
 fn main() {
     let mut args = std::env::args().skip(1);
-    let archive = args.next().expect("укажите путь к .7z");
-    let dest = args.next().expect("укажите папку назначения");
+    let archive = args.next().expect("give the path to the .7z");
+    let dest = args.next().expect("give the destination folder");
 
     let dest = PathBuf::from(&dest);
 
-    // Уборка — не сервисная мелочь, а часть мастера: отмена и падение обязаны
-    // убрать <dest>.cpo-partial. Проверено, что обычного пути мало: и
-    // `rmdir /s /q`, и `fs::remove_dir_all` спотыкаются о MAX_PATH на самых
-    // глубоких файлах и возвращают «папка не пуста».
+    // The cleanup is not a service detail but part of the wizard: a
+    // cancellation and a crash both have to remove <dest>.cpo-partial. It was
+    // verified that the ordinary path is not enough: both `rmdir /s /q` and
+    // `fs::remove_dir_all` stumble over MAX_PATH on the deepest files and
+    // return "directory not empty".
     if archive == "--clean" {
-        println!("[СПАЙК] убираю {}", dest.display());
+        println!("[SPIKE] removing {}", dest.display());
         let started = Instant::now();
-        fs::remove_dir_all(verbatim(&dest)).expect("не удалось убрать папку");
-        println!("[СПАЙК] убрано за {:.1} с", started.elapsed().as_secs_f32());
+        fs::remove_dir_all(verbatim(&dest)).expect("the folder could not be removed");
+        println!("[SPIKE] removed in {:.1} s", started.elapsed().as_secs_f32());
         return;
     }
 
     if dest.exists() {
-        println!("[СПАЙК] чищу прежний прогон: {}", dest.display());
-        fs::remove_dir_all(verbatim(&dest)).expect("не удалось убрать прежнюю папку");
+        println!("[SPIKE] cleaning up the previous run: {}", dest.display());
+        fs::remove_dir_all(verbatim(&dest)).expect("the previous folder could not be removed");
     }
 
-    // ---------------------------------------------------- разбор заголовка
+    // ------------------------------------------------- parsing the header
     let started = Instant::now();
-    let reader = ArchiveReader::open(&archive, Password::empty()).expect("архив не открылся");
+    let reader = ArchiveReader::open(&archive, Password::empty()).expect("the archive did not open");
     let header_secs = started.elapsed().as_secs_f32();
 
     let entries = reader.archive().files.clone();
@@ -53,12 +56,12 @@ fn main() {
     let total: u64 = entries.iter().map(|e| e.size).sum();
     let root = single_root(&entries);
 
-    println!("[СПАЙК] заголовок разобран за {header_secs:.2} с");
-    println!("[СПАЙК] записей: {files} файлов, {dirs} папок");
-    println!("[СПАЙК] несжатый объём: {:.2} ГБ", total as f64 / 1024f64.powi(3));
-    println!("[СПАЙК] корневая папка: {root:?}");
+    println!("[SPIKE] the header was parsed in {header_secs:.2} s");
+    println!("[SPIKE] entries: {files} files, {dirs} folders");
+    println!("[SPIKE] uncompressed size: {:.2} GB", total as f64 / 1024f64.powi(3));
+    println!("[SPIKE] root folder: {root:?}");
     println!(
-        "[СПАЙК] самый длинный путь после среза корня: {} символов",
+        "[SPIKE] longest path after the root is stripped: {} characters",
         entries
             .iter()
             .map(|e| strip_root(&e.name, root.as_deref()).chars().count())
@@ -66,14 +69,15 @@ fn main() {
             .unwrap_or(0)
     );
 
-    // ---------------------------------------------------- распаковка
-    let mut reader = ArchiveReader::open(&archive, Password::empty()).expect("архив не открылся");
+    // ------------------------------------------------- the extraction
+    let mut reader = ArchiveReader::open(&archive, Password::empty()).expect("the archive did not open");
 
-    // Третий аргумент — число потоков декодера. Вопрос закрывается замером:
-    // архив собран одним блоком (Solid=+, Blocks=1), и разложить единый поток
-    // LZMA2 по ядрам, скорее всего, не на чем.
+    // The third argument is the decoder's thread count. The question is
+    // settled by measurement: the archive is assembled as one block
+    // (Solid=+, Blocks=1), and there is most likely nothing there to spread a
+    // single LZMA2 stream across cores with.
     if let Some(threads) = args.next().and_then(|t| t.parse::<u32>().ok()) {
-        println!("[СПАЙК] потоков декодера: {threads}");
+        println!("[SPIKE] decoder threads: {threads}");
         reader.set_thread_count(threads);
     }
 
@@ -101,27 +105,27 @@ fn main() {
             let written = io::copy(stream, &mut file)?;
             done += written;
 
-            // Прогресс раз в секунду: 56 тысяч строк в консоли сами по себе
-            // заметно тормозят прогон и искажают замер.
+            // Progress once a second: 56 thousand lines in the console by
+            // themselves slow the run noticeably and distort the measurement.
             if last_report.elapsed().as_secs() >= 1 {
                 last_report = Instant::now();
                 let pct = done as f64 / total as f64 * 100.0;
-                print!("\r[СПАЙК] {pct:5.1}%  {}", rel);
+                print!("\r[SPIKE] {pct:5.1}%  {}", rel);
                 let _ = io::stdout().flush();
             }
             Ok(true)
         })
-        .expect("распаковка не удалась");
+        .expect("the extraction failed");
 
     let secs = started.elapsed().as_secs_f32();
     println!(
-        "\n[СПАЙК] распаковано за {secs:.1} с — {:.1} МБ/с",
+        "\n[SPIKE] extracted in {secs:.1} s — {:.1} MB/s",
         done as f64 / 1024f64.powi(2) / secs as f64
     );
 }
 
-/// Единственная корневая папка архива. Её имя задаёт пользователь,
-/// поэтому из путей она срезается — заодно минус 25 символов к длине.
+/// The archive's single root folder. Its name is set by the user, so it is
+/// stripped from the paths — which also takes 25 characters off the length.
 fn single_root(entries: &[sevenz_rust2::ArchiveEntry]) -> Option<String> {
     let mut root: Option<String> = None;
     for entry in entries {
@@ -145,16 +149,16 @@ fn strip_root<'a>(name: &'a str, root: Option<&str>) -> &'a str {
         .unwrap_or(name)
 }
 
-/// Verbatim-путь `\\?\`, снимающий лимит MAX_PATH в 260 символов.
+/// A verbatim `\\?\` path, which lifts the 260-character MAX_PATH limit.
 ///
-/// `std::fs` сам его не добавляет: самый глубокий файл архива — 206 символов
-/// относительно корня, и назначение длиннее полусотни символов ломало бы
-/// распаковку без всякого предупреждения.
+/// `std::fs` does not add it by itself: the deepest file in the archive is 206
+/// characters relative to the root, and a destination longer than fifty
+/// characters would break the extraction without any warning at all.
 ///
-/// **Прямые слэши обязаны стать обратными.** Verbatim означает «передать ядру
-/// как есть»: обычная нормализация путей отключается вместе с лимитом,
-/// и `/` из имён записей архива превращает путь в невалидный — ошибка 123
-/// без единого намёка на причину.
+/// **Forward slashes have to become backslashes.** Verbatim means "pass to the
+/// kernel as is": the ordinary path normalisation is switched off along with
+/// the limit, and a `/` from an archive entry's name makes the path invalid —
+/// error 123 without a single hint of the reason.
 fn verbatim(path: &Path) -> PathBuf {
     #[cfg(windows)]
     {
@@ -162,7 +166,7 @@ fn verbatim(path: &Path) -> PathBuf {
         if text.starts_with(r"\\?\") {
             return path.to_path_buf();
         }
-        // Префикс работает только с абсолютным путём без «.» и «..».
+        // The prefix only works with an absolute path free of "." and "..".
         let absolute = if path.is_absolute() {
             path.to_path_buf()
         } else {

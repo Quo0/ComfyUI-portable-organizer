@@ -1,10 +1,10 @@
-//! Проверка переноса моделей и уборки дубликатов.
+//! A check of the model move and the duplicate cleanup.
 //!
-//! Самая опасная часть приложения: единственное место, где мы удаляем
-//! файлы моделей. Проверяется на временных папках, ничего пользовательского
-//! не трогается.
+//! The most dangerous part of the app: the only place where we delete model
+//! files. Checked against temporary folders; nothing belonging to the user is
+//! touched.
 //!
-//! Запуск: cargo run --example check_migrate
+//! Run: cargo run --example check_migrate
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -18,7 +18,7 @@ fn main() {
 
     let mut failures = 0;
     let mut check = |name: &str, ok: bool, detail: String| {
-        println!("{} {name}{}", if ok { "  OK  " } else { "ПРОВАЛ" }, if detail.is_empty() {
+        println!("{} {name}{}", if ok { "  OK  " } else { " FAIL " }, if detail.is_empty() {
             String::new()
         } else {
             format!(" — {detail}")
@@ -28,20 +28,21 @@ fn main() {
         }
     };
 
-    // --- стенд --------------------------------------------------------------
+    // --- the test bed -------------------------------------------------------
 
     write(&models.join("checkpoints/put_checkpoints_here"), "");
     write(&models.join("checkpoints/model-a.safetensors"), &"a".repeat(4096));
     write(&models.join("loras/style.safetensors"), &"l".repeat(2048));
-    // Модель каталогом, как RMBG-2.0 со снимком HuggingFace.
+    // A model as a directory, like RMBG-2.0 with its HuggingFace snapshot.
     write(&models.join("RMBG/RMBG-2.0/model.safetensors"), &"r".repeat(1024));
     write(&models.join("RMBG/RMBG-2.0/.cache/huggingface/CACHEDIR.TAG"), "tag");
-    // Поставляется со сборкой — не наше.
+    // Ships with the build — not ours.
     write(&models.join("configs/v1-inference.yaml"), "shipped");
     write(&models.join("custom_nodes/Manager/__init__.py"), "nodes");
 
-    // В общей папке уже лежат три одноимённых: точный дубликат, файл того же
-    // размера с иным содержимым, и каталог с тем же составом.
+    // Three same-named things already lie in the shared folder: an exact
+    // duplicate, a file of the same size with different contents, and a
+    // directory with the same composition.
     write(&shared.join("checkpoints/dup.safetensors"), &"d".repeat(4096));
     write(&models.join("checkpoints/dup.safetensors"), &"d".repeat(4096));
     write(&shared.join("checkpoints/twin.safetensors"), &"x".repeat(4096));
@@ -49,7 +50,7 @@ fn main() {
     write(&shared.join("RMBG/same-dir/f.bin"), &"z".repeat(512));
     write(&models.join("RMBG/same-dir/f.bin"), &"z".repeat(512));
 
-    // --- что видно в скане --------------------------------------------------
+    // --- what the scan shows ------------------------------------------------
 
     let scan = migrate::scan(&models, &shared);
     let cat = |name: &str| scan.categories.iter().find(|c| c.folder == name);
@@ -57,63 +58,63 @@ fn main() {
         cat(c).and_then(|x| x.entries.iter().find(|e| e.name == n)).cloned()
     };
 
-    check("папка моделей прочитана", scan.available, String::new());
+    check("the models folder was read", scan.available, String::new());
     check(
-        "configs не предлагается к переносу",
+        "configs is not offered for the move",
         cat("configs").is_none(),
         String::new(),
     );
     check(
-        "custom_nodes не предлагается к переносу",
+        "custom_nodes is not offered for the move",
         cat("custom_nodes").is_none(),
         String::new(),
     );
     check(
-        "маркер put_..._here пропущен",
+        "the put_..._here marker is skipped",
         entry("checkpoints", "put_checkpoints_here").is_none(),
         String::new(),
     );
     check(
-        "обычная модель видна",
+        "an ordinary model is visible",
         entry("checkpoints", "model-a.safetensors").is_some(),
         String::new(),
     );
     check(
-        "модель-каталог видна одним элементом",
+        "a model held as a directory is visible as one entry",
         entry("RMBG", "RMBG-2.0").map(|e| e.is_dir) == Some(true),
         String::new(),
     );
     check(
-        "объём каталога посчитан вместе с .cache",
+        "the directory's size was counted together with .cache",
         entry("RMBG", "RMBG-2.0").map(|e| e.files) == Some(2),
         format!("{:?}", entry("RMBG", "RMBG-2.0").map(|e| e.files)),
     );
 
-    // --- сравнение: три случая ----------------------------------------------
+    // --- the comparison: three cases ----------------------------------------
 
     check(
-        "точная копия опознана дубликатом",
+        "an exact copy is recognised as a duplicate",
         entry("checkpoints", "dup.safetensors").and_then(|e| e.same_name)
             == Some(SameName::Duplicate),
         format!("{:?}", entry("checkpoints", "dup.safetensors").and_then(|e| e.same_name)),
     );
-    // Ровно тот случай, ради которого читаются края: размер совпал,
-    // содержимое иное.
+    // Exactly the case the edges are read for: the size matched, the contents
+    // are different.
     check(
-        "тот же размер, другое содержимое — разные",
+        "same size, different contents — different",
         entry("checkpoints", "twin.safetensors").and_then(|e| e.same_name)
             == Some(SameName::Different),
         format!("{:?}", entry("checkpoints", "twin.safetensors").and_then(|e| e.same_name)),
     );
     check(
-        "каталог того же состава — похоже на дубликат",
+        "a directory of the same composition — likely a duplicate",
         entry("RMBG", "same-dir").and_then(|e| e.same_name) == Some(SameName::LikelyDuplicate),
         format!("{:?}", entry("RMBG", "same-dir").and_then(|e| e.same_name)),
     );
     check(
-        "разный размер — разные",
+        "different size — different",
         {
-            write(&shared.join("loras/style.safetensors"), "короче");
+            write(&shared.join("loras/style.safetensors"), "shorter");
             migrate::compare(
                 &models.join("loras/style.safetensors"),
                 &shared.join("loras/style.safetensors"),
@@ -122,12 +123,12 @@ fn main() {
         String::new(),
     );
 
-    // --- перенос ------------------------------------------------------------
+    // --- the move -----------------------------------------------------------
 
     let cancel = MigrateCancel::default();
-    // Перечень строится из скана: перенос принимает пары «категория и модель».
-    // Предлагаем разом всё содержимое трёх категорий, занятые имена в том
-    // числе, — пропускать их обязан сам перенос, а не вызывающий.
+    // The list is built from the scan: the move takes "category and model"
+    // pairs. We offer the whole contents of three categories at once, taken
+    // names included — skipping those is the move's own job, not the caller's.
     let offer: Vec<(String, String)> = migrate::scan(&models, &shared)
         .categories
         .iter()
@@ -137,62 +138,63 @@ fn main() {
     let out = migrate::move_all(&models, &shared, &offer, &cancel, |_| {});
 
     check(
-        "свободное имя перенесено",
+        "a free name was moved",
         !models.join("checkpoints/model-a.safetensors").exists()
             && shared.join("checkpoints/model-a.safetensors").is_file(),
         String::new(),
     );
     check(
-        "каталог перенесён целиком, вместе с .cache",
+        "the directory was moved whole, .cache and all",
         shared.join("RMBG/RMBG-2.0/.cache/huggingface/CACHEDIR.TAG").is_file()
             && !models.join("RMBG/RMBG-2.0").exists(),
         String::new(),
     );
     check(
-        "занятые имена не тронуты в сборке",
+        "the taken names were not touched in the build",
         models.join("checkpoints/dup.safetensors").is_file()
             && models.join("checkpoints/twin.safetensors").is_file(),
         String::new(),
     );
     check(
-        "чужой файл в общей папке не перезаписан",
+        "someone else's file in the shared folder was not overwritten",
         fs::read_to_string(shared.join("checkpoints/twin.safetensors")).unwrap()
             == "x".repeat(4096),
         String::new(),
     );
     check(
-        "пропущенные перечислены с вердиктом",
+        "the skipped ones are listed with a verdict",
         out.skipped.len() == 4,
         format!("{:?}", out.skipped.iter().map(|s| &s.name).collect::<Vec<_>>()),
     );
-    check("сбоев не было", out.failed.is_empty(), format!("{:?}", out.failed));
+    check("there were no failures", out.failed.is_empty(), format!("{:?}", out.failed));
     check(
-        "маркер остался в сборке",
+        "the marker stayed in the build",
         models.join("checkpoints/put_checkpoints_here").is_file(),
         String::new(),
     );
     check(
-        "configs не тронут",
+        "configs was not touched",
         models.join("configs/v1-inference.yaml").is_file()
             && !shared.join("configs").exists(),
         String::new(),
     );
     check(
-        "custom_nodes не тронут",
+        "custom_nodes was not touched",
         models.join("custom_nodes/Manager/__init__.py").is_file()
             && !shared.join("custom_nodes").exists(),
         String::new(),
     );
     check(
-        "временных .cpo-partial не осталось",
+        "no temporary .cpo-partial is left",
         !has_partial(&shared),
         String::new(),
     );
 
-    // --- уборка дубликатов --------------------------------------------------
+    // --- the duplicate cleanup ----------------------------------------------
 
-    // Зовём со списком, где есть заведомо разный файл: команда обязана
-    // отказать по нему сама, не полагаясь на добросовестность вызывающего.
+    // We call it with a list that includes a knowingly different file: the
+    // command has to refuse that one itself, without relying on the caller's
+    // good faith.
     let cleanup = migrate::remove_duplicates(
         &models,
         &shared,
@@ -204,34 +206,34 @@ fn main() {
     );
 
     check(
-        "дубликат убран",
+        "the duplicate was removed",
         !models.join("checkpoints/dup.safetensors").exists(),
         String::new(),
     );
     check(
-        "каталог-дубликат убран",
+        "the duplicate directory was removed",
         !models.join("RMBG/same-dir").exists(),
         String::new(),
     );
     check(
-        "РАЗНЫЙ файл с тем же именем НЕ тронут",
+        "the DIFFERENT file with the same name was NOT touched",
         models.join("checkpoints/twin.safetensors").is_file(),
         String::new(),
     );
-    check("отказ учтён в отчёте", cleanup.refused == 1, format!("{}", cleanup.refused));
+    check("the refusal is accounted for in the report", cleanup.refused == 1, format!("{}", cleanup.refused));
     check(
-        "убранное осталось в общей папке",
+        "what was removed stayed in the shared folder",
         shared.join("checkpoints/dup.safetensors").is_file()
             && shared.join("RMBG/same-dir/f.bin").is_file(),
         String::new(),
     );
     check(
-        "освобождённый объём посчитан",
+        "the freed size was counted",
         cleanup.freed_bytes > 0.0,
         format!("{}", cleanup.freed_bytes),
     );
 
-    // --- отмена -------------------------------------------------------------
+    // --- cancellation -------------------------------------------------------
 
     let models2 = root.join("i2").join("models");
     let shared2 = root.join("s2");
@@ -250,9 +252,9 @@ fn main() {
         &stop,
         |_| {},
     );
-    check("отмена помечена в отчёте", cancelled.cancelled, String::new());
+    check("the cancellation is marked in the report", cancelled.cancelled, String::new());
     check(
-        "при отмене исходники на месте",
+        "on cancellation the sources are in place",
         models2.join("loras/one.safetensors").is_file()
             && models2.join("loras/two.safetensors").is_file(),
         String::new(),
@@ -260,15 +262,15 @@ fn main() {
 
     fs::remove_dir_all(&root).ok();
 
-    println!("\nПроверок провалено: {failures}");
+    println!("\nChecks failed: {failures}");
     if failures > 0 {
         std::process::exit(1);
     }
 }
 
 fn write(path: &Path, content: &str) {
-    fs::create_dir_all(path.parent().unwrap()).expect("папка");
-    fs::write(path, content).expect("файл");
+    fs::create_dir_all(path.parent().unwrap()).expect("the folder");
+    fs::write(path, content).expect("the file");
 }
 
 fn has_partial(root: &Path) -> bool {

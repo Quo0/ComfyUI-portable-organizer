@@ -1,11 +1,12 @@
-//! Проверка библиотеки воркфлоу и резолва папки инстанса.
+//! A check of the workflow library and of resolving an instance's folder.
 //!
-//! В `examples/`, а не в `#[cfg(test)]`, по известной причине: `cargo test`
-//! в этом крейте падает на загрузке образа (`plan/notes/phase-25-shared-models.md`).
+//! In `examples/` rather than in `#[cfg(test)]` for the known reason:
+//! `cargo test` in this crate fails while loading the image
+//! (`plan/notes/phase-25-shared-models.md`).
 //!
-//! Стенд: node tools/fixtures/make-workflow-library.mjs
+//! Test bed: node tools/fixtures/make-workflow-library.mjs
 //!
-//! Запуск: cargo run --example check_workflows
+//! Run: cargo run --example check_workflows
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -16,14 +17,14 @@ use cpo_desktop_lib::workflows;
 fn main() {
     let root = fixture();
     if !root.is_dir() {
-        eprintln!("Стенда нет: {}", root.display());
-        eprintln!("Соберите его: node tools/fixtures/make-workflow-library.mjs");
+        eprintln!("There is no test bed: {}", root.display());
+        eprintln!("Build it: node tools/fixtures/make-workflow-library.mjs");
         std::process::exit(1);
     }
 
     let mut failures = 0;
     let mut check = |name: &str, ok: bool, detail: String| {
-        println!("{} {name}{}", if ok { "  OK  " } else { "ПРОВАЛ" }, if detail.is_empty() {
+        println!("{} {name}{}", if ok { "  OK  " } else { " FAIL " }, if detail.is_empty() {
             String::new()
         } else {
             format!(" — {detail}")
@@ -36,96 +37,97 @@ fn main() {
     let scan = workflows::scan_library(&root);
     let find = |path: &str| scan.items.iter().find(|i| i.path == path);
 
-    check("библиотека прочитана", scan.available, String::new());
-    check("манифест разобрался", !scan.manifest_broken, String::new());
+    check("the library was read", scan.available, String::new());
+    check("the manifest parsed", !scan.manifest_broken, String::new());
 
-    // --- что попало в список, а что нет -----------------------------------
+    // --- what made it into the list and what did not ------------------------
 
     check(
-        "посторонний файл не показан воркфлоу",
+        "an unrelated file is not shown as a workflow",
         !scan.items.iter().any(|i| i.path.ends_with(".txt")),
         String::new(),
     );
     check(
-        "сам манифест в список не попал",
+        "the manifest itself did not get into the list",
         find(workflows::MANIFEST).is_none(),
         String::new(),
     );
     check(
-        "вложенная подпапка прочитана",
+        "a nested subfolder was read",
         find("flux/portrait-v3.json").is_some(),
         String::new(),
     );
     check(
-        "путь записан прямыми слэшами",
+        "the path is written with forward slashes",
         scan.items.iter().all(|i| !i.path.contains('\\')),
         String::new(),
     );
 
-    // --- слияние с манифестом ---------------------------------------------
+    // --- merging with the manifest ------------------------------------------
 
     let basic = find("basic-txt2img.json");
     check(
-        "теги из манифеста подхвачены",
+        "the tags from the manifest were picked up",
         basic.map(|i| i.meta.tags.len()) == Some(2),
         format!("{:?}", basic.map(|i| i.meta.tags.clone())),
     );
-    check("избранное подхвачено", basic.map(|i| i.meta.favorite) == Some(true), String::new());
+    check("the favourite mark was picked up", basic.map(|i| i.meta.favorite) == Some(true), String::new());
 
-    // Файл лежит в папке, записи о нём в манифесте нет. Это норма,
-    // а не ошибка: положить воркфлоу через проводник — законный сценарий.
+    // The file lies in the folder with no record of it in the manifest. That
+    // is normal, not an error: putting a workflow there through Explorer is a
+    // legitimate scenario.
     let orphan = find("sdxl/base-upscale.json");
-    check("файл без записи в манифесте показан", orphan.is_some(), String::new());
+    check("a file with no manifest record is shown", orphan.is_some(), String::new());
     check(
-        "у файла без записи пустые теги, и это не ошибка",
+        "a file with no record has empty tags, and that is not an error",
         orphan.map(|i| i.meta.tags.is_empty() && !i.meta.favorite) == Some(true),
         String::new(),
     );
 
-    // Запись есть, файла нет.
+    // There is a record, there is no file.
     let lost = find("lost/deleted.json");
-    check("запись без файла помечена потерянной", lost.map(|i| i.lost) == Some(true), String::new());
+    check("a record with no file is marked lost", lost.map(|i| i.lost) == Some(true), String::new());
     check(
-        "у потерянной записи сохранена заметка",
+        "a lost record kept its note",
         lost.map(|i| !i.meta.note.is_empty()) == Some(true),
         String::new(),
     );
     check(
-        "потерянная запись не притворяется целым файлом",
+        "a lost record does not pretend to be a whole file",
         lost.map(|i| i.size_bytes == 0.0 && i.nodes.is_empty()) == Some(true),
         String::new(),
     );
 
-    // --- разбор графа ------------------------------------------------------
+    // --- parsing the graph --------------------------------------------------
 
     check(
-        "ноды базового воркфлоу разобраны",
+        "the nodes of the basic workflow were parsed",
         basic.map(|i| i.nodes.len()) == Some(6),
         format!("{:?}", basic.map(|i| i.nodes.clone())),
     );
     check(
-        "повторы классов схлопнуты в набор",
+        "repeated classes collapse into a set",
         workflows::node_types(r#"{"nodes":[{"type":"KSampler"},{"type":"KSampler"}]}"#)
             == Some(vec!["KSampler".to_string()]),
         String::new(),
     );
     check(
-        "битый JSON помечен, но список не уронил",
+        "broken JSON is marked but did not bring the list down",
         find("broken.json").map(|i| i.broken) == Some(true),
         String::new(),
     );
     check(
-        "JSON без nodes — не воркфлоу",
+        "JSON without nodes is not a workflow",
         workflows::node_types(r#"{"hello":"world"}"#).is_none(),
         String::new(),
     );
     check(
-        "не-JSON — не воркфлоу",
-        workflows::node_types("не json вовсе").is_none(),
+        "not JSON at all is not a workflow",
+        workflows::node_types("not json in the slightest").is_none(),
         String::new(),
     );
 
-    // --- дифф нод ----------------------------------------------------------
+    // --- the node diff ------------------------------------------------------
 
     let available: BTreeSet<String> = [
         "CheckpointLoaderSimple",
@@ -140,7 +142,7 @@ fn main() {
     .collect();
 
     check(
-        "у базового воркфлоу не хватает ничего",
+        "the basic workflow is missing nothing",
         workflows::missing_nodes(&basic.map(|i| i.nodes.clone()).unwrap_or_default(), &available)
             .is_empty(),
         String::new(),
@@ -149,43 +151,43 @@ fn main() {
     let custom = find("flux/portrait-v3.json").map(|i| i.nodes.clone()).unwrap_or_default();
     let missing = workflows::missing_nodes(&custom, &available);
     check(
-        "у воркфлоу с кастомными нодами не хватает ровно двух",
+        "the workflow with custom nodes is missing exactly two",
         missing.len() == 2,
         format!("{missing:?}"),
     );
     check(
-        "список недостающих отсортирован",
+        "the list of missing ones is sorted",
         missing.windows(2).all(|w| w[0] <= w[1]),
         format!("{missing:?}"),
     );
 
-    // --- битый манифест не уносит файлы ------------------------------------
+    // --- a broken manifest does not carry the files off ---------------------
 
     let broken_root = temp_dir("cpo-wf-broken");
     std::fs::create_dir_all(&broken_root).ok();
     std::fs::write(broken_root.join("a.json"), r#"{"nodes":[{"type":"KSampler"}]}"#).ok();
-    std::fs::write(broken_root.join(workflows::MANIFEST), "{ это не json").ok();
+    std::fs::write(broken_root.join(workflows::MANIFEST), "{ this is not json").ok();
     let broken = workflows::scan_library(&broken_root);
-    check("битый манифест помечен", broken.manifest_broken, String::new());
+    check("a broken manifest is marked", broken.manifest_broken, String::new());
     check(
-        "битый манифест не унёс воркфлоу",
+        "a broken manifest did not carry the workflow off",
         broken.items.len() == 1,
         format!("{}", broken.items.len()),
     );
     std::fs::remove_dir_all(&broken_root).ok();
 
-    // --- недоступная библиотека -------------------------------------------
+    // --- an unavailable library ---------------------------------------------
 
-    let missing_root = workflows::scan_library(&root.join("нет-такой-папки"));
-    check("несуществующая библиотека помечена недоступной", !missing_root.available, String::new());
-    check("недоступная библиотека не роняет сканер", missing_root.items.is_empty(), String::new());
+    let missing_root = workflows::scan_library(&root.join("no-such-folder"));
+    check("a non-existent library is marked unavailable", !missing_root.available, String::new());
+    check("an unavailable library does not crash the scanner", missing_root.items.is_empty(), String::new());
 
-    // --- резолв папки воркфлоу инстанса ------------------------------------
+    // --- resolving an instance's workflow folder ----------------------------
 
     let instance = Path::new(r"D:\builds\comfy");
     let plain = profile(vec!["-s", "ComfyUI\\main.py"], r"D:\builds\comfy");
     check(
-        "без флага берётся ComfyUI\\user\\default\\workflows",
+        "with no flag it takes ComfyUI\\user\\default\\workflows",
         profiles::workflows_dir(&plain, instance)
             == instance.join("ComfyUI").join("user").join("default").join("workflows"),
         profiles::workflows_dir(&plain, instance).display().to_string(),
@@ -196,7 +198,7 @@ fn main() {
         r"D:\builds\comfy",
     );
     check(
-        "--user-directory уважается",
+        "--user-directory is respected",
         profiles::workflows_dir(&moved, instance)
             == PathBuf::from(r"E:\comfy-user\default\workflows"),
         profiles::workflows_dir(&moved, instance).display().to_string(),
@@ -207,48 +209,48 @@ fn main() {
         r"D:\builds\comfy",
     );
     check(
-        "форма через знак равенства тоже уважается",
+        "the equals-sign form is respected too",
         profiles::workflows_dir(&joined, instance)
             == PathBuf::from(r"E:\comfy-user\default\workflows"),
         profiles::workflows_dir(&joined, instance).display().to_string(),
     );
 
-    // Относительный путь считается от рабочей папки, а она — директория
-    // `.bat`, ровно как при запуске двойным кликом.
+    // A relative path is counted from the working folder, and that is the
+    // `.bat`'s directory — exactly as on a double-click launch.
     let relative = profile(
         vec!["-s", "ComfyUI\\main.py", "--user-directory", r"..\shared-user"],
         r"D:\builds\comfy\advanced",
     );
     check(
-        "относительный путь считается от рабочей папки профиля",
+        "a relative path is counted from the profile's working folder",
         profiles::workflows_dir(&relative, instance)
             == PathBuf::from(r"D:\builds\comfy\shared-user\default\workflows"),
         profiles::workflows_dir(&relative, instance).display().to_string(),
     );
 
-    // --- цепочка --base-directory ------------------------------------------
+    // --- the --base-directory chain -----------------------------------------
     //
-    // Это второе звено я в Фазе 2.6 пропустил: разбирался только
-    // --user-directory, и сборка с одним --base-directory хранила воркфлоу
-    // не там, где мы искали.
+    // This second link was missed back in Phase 2.6: only --user-directory was
+    // handled, and a build with just --base-directory kept its workflows
+    // somewhere other than where we looked.
 
     let based = profile(
         vec!["-s", "ComfyUI\\main.py", "--base-directory", r"E:\comfy-base"],
         r"D:\builds\comfy",
     );
     check(
-        "--base-directory уводит и папку воркфлоу",
+        "--base-directory moves the workflow folder too",
         profiles::workflows_dir(&based, instance)
             == PathBuf::from(r"E:\comfy-base\user\default\workflows"),
         profiles::workflows_dir(&based, instance).display().to_string(),
     );
     check(
-        "--base-directory уводит и папку моделей",
+        "--base-directory moves the models folder too",
         profiles::models_dir(&based, instance) == PathBuf::from(r"E:\comfy-base\models"),
         profiles::models_dir(&based, instance).display().to_string(),
     );
 
-    // `--user-directory` объявлен как «Overrides --base-directory».
+    // `--user-directory` is declared as "Overrides --base-directory".
     let both = profile(
         vec![
             "-s",
@@ -261,21 +263,21 @@ fn main() {
         r"D:\builds\comfy",
     );
     check(
-        "--user-directory бьёт --base-directory",
+        "--user-directory beats --base-directory",
         profiles::workflows_dir(&both, instance)
             == PathBuf::from(r"F:\only-user\default\workflows"),
         profiles::workflows_dir(&both, instance).display().to_string(),
     );
     check(
-        "но папку моделей он не трогает",
+        "but it does not touch the models folder",
         profiles::models_dir(&both, instance) == PathBuf::from(r"E:\comfy-base\models"),
         profiles::models_dir(&both, instance).display().to_string(),
     );
 
-    // --- папка моделей ------------------------------------------------------
+    // --- the models folder --------------------------------------------------
 
     check(
-        "без флагов модели в ComfyUI\\models",
+        "with no flags the models are in ComfyUI\\models",
         profiles::models_dir(&plain, instance)
             == instance.join("ComfyUI").join("models"),
         profiles::models_dir(&plain, instance).display().to_string(),
@@ -286,23 +288,24 @@ fn main() {
         r"D:\builds\comfy",
     );
     check(
-        "--models-directory бьёт --base-directory",
+        "--models-directory beats --base-directory",
         profiles::models_dir(&models, instance) == PathBuf::from(r"G:\models"),
         profiles::models_dir(&models, instance).display().to_string(),
     );
 
-    // --- папка результатов --------------------------------------------------
+    // --- the output folder --------------------------------------------------
     //
-    // Нужна кнопке «Папка output» в тулбаре встроенной вкладки. Цепочка
-    // та же самая, и ошибка в ней открыла бы пользователю чужую папку.
+    // Needed by the "output folder" button in the embedded tab's toolbar. The
+    // chain is the very same, and a mistake in it would open someone else's
+    // folder for the user.
 
     check(
-        "без флагов результаты в ComfyUI\\output",
+        "with no flags the results are in ComfyUI\\output",
         profiles::output_dir(&plain, instance) == instance.join("ComfyUI").join("output"),
         profiles::output_dir(&plain, instance).display().to_string(),
     );
     check(
-        "--base-directory уводит и папку результатов",
+        "--base-directory moves the output folder too",
         profiles::output_dir(&based, instance) == PathBuf::from(r"E:\comfy-base\output"),
         profiles::output_dir(&based, instance).display().to_string(),
     );
@@ -319,53 +322,56 @@ fn main() {
         r"D:\builds\comfy\advanced",
     );
     check(
-        "--output-directory бьёт --base-directory и считается от рабочей папки",
+        "--output-directory beats --base-directory and counts from the working folder",
         profiles::output_dir(&outputs, instance) == PathBuf::from(r"D:\builds\comfy\generated"),
         profiles::output_dir(&outputs, instance).display().to_string(),
     );
 
-    // Имя из поля ввода: у графа, вставленного текстом, своего имени нет,
-    // а набранное попадает в путь — значит, проверяется, а не доверяется.
+    // A name from an input field: a graph pasted as text has no name of its
+    // own, and what gets typed lands in a path — so it is checked, not trusted.
     let named = |input: &str| workflows::file_name_from_input(input);
     check(
-        "расширение дописывается само",
+        "the extension is appended by itself",
         named("portrait-v3").as_deref() == Some("portrait-v3.json"),
         format!("{:?}", named("portrait-v3")),
     );
     check(
-        "набранное .json не удваивается",
+        "a typed .json is not doubled",
         named("portrait-v3.json").as_deref() == Some("portrait-v3.json"),
         format!("{:?}", named("portrait-v3.json")),
     );
+    // The name here is deliberately non-ASCII: workflow names are typed by the
+    // user in their own language, and a name outside Latin-1 has to survive
+    // the trim and reach the path intact. Keep it non-ASCII when editing.
     check(
-        "пробелы по краям срезаются",
+        "the surrounding spaces are trimmed",
         named("  ночной город  ").as_deref() == Some("ночной город.json"),
         format!("{:?}", named("  ночной город  ")),
     );
     check(
-        "пустое имя отвергнуто",
+        "an empty name is rejected",
         named("   ").is_none() && named(".json").is_none(),
         String::new(),
     );
     check(
-        "выход за библиотеку отвергнут",
+        "escaping the library is rejected",
         named(r"..\..\evil").is_none() && named("sdxl/base").is_none(),
         String::new(),
     );
     check(
-        "запрещённые в Windows знаки отвергнуты",
+        "the characters Windows forbids are rejected",
         [r#"a:b"#, "a*b", "a?b", "a\"b", "a<b", "a>b", "a|b", "a\nb"]
             .iter()
             .all(|n| named(n).is_none()),
         String::new(),
     );
     check(
-        "точка по краям отвергнута",
-        named(".скрытый").is_none() && named("хвост.").is_none(),
+        "a dot at either edge is rejected",
+        named(".hidden").is_none() && named("tail.").is_none(),
         String::new(),
     );
 
-    println!("\nПроверок провалено: {failures}");
+    println!("\nChecks failed: {failures}");
     if failures > 0 {
         std::process::exit(1);
     }

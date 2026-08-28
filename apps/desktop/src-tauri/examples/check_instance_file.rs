@@ -1,13 +1,15 @@
-//! Режим «файл в инстансе»: распознавание, бэкап чужого, восстановление.
+//! The "file inside the instance" mode: recognition, backing up someone
+//! else's, restoring.
 //!
-//! Самая опасная часть Фазы 2.5: здесь приложение пишет в чужую установку.
-//! Обещание раздела — «не меняем чужие настройки молча» — проверяется
-//! именно тут, и проверяется на настоящей файловой системе, потому что
-//! ошибка выглядит как потерянный руками написанный конфиг.
+//! The most dangerous part of Phase 2.5: here the app writes into someone
+//! else's installation. The section's promise — "we do not change someone
+//! else's settings silently" — is checked exactly here, and checked against a
+//! real file system, because the mistake looks like a hand-written config
+//! that got lost.
 //!
-//! Работает во временной папке, ничего пользовательского не трогает.
+//! Works in a temporary folder and touches nothing belonging to the user.
 //!
-//! Запуск: cargo run --example check_instance_file
+//! Run: cargo run --example check_instance_file
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -19,11 +21,11 @@ const FOREIGN: &str = "comfyui:\n  base_path: D:/my/models\n  checkpoints: check
 fn main() {
     let root = temp_root();
     let config = shared_models::instance_config_path(&root);
-    fs::create_dir_all(config.parent().unwrap()).expect("создать папку стенда");
+    fs::create_dir_all(config.parent().unwrap()).expect("create the test-bed folder");
 
     let mut failures = 0;
     let mut check = |name: &str, ok: bool, detail: String| {
-        println!("{} {name}{}", if ok { "  OK  " } else { "ПРОВАЛ" }, if detail.is_empty() {
+        println!("{} {name}{}", if ok { "  OK  " } else { " FAIL " }, if detail.is_empty() {
             String::new()
         } else {
             format!(" — {detail}")
@@ -35,100 +37,100 @@ fn main() {
 
     let ours = format!("{}\ncpo_shared_0:\n  base_path: D:/shared\n", shared_models::MARKER);
 
-    // --- файла нет ---------------------------------------------------------
+    // --- there is no file ---------------------------------------------------
 
     check(
-        "пустая папка: файл не найден",
+        "empty folder: no file found",
         shared_models::inspect_instance_file(&root).state == InstanceFileState::Absent,
         String::new(),
     );
 
-    let backup = shared_models::write_instance_file(&root, &ours, 1).expect("запись");
-    check("пустая папка: копия не понадобилась", backup.is_none(), String::new());
-    check("пустая папка: файл записан", config.is_file(), String::new());
+    let backup = shared_models::write_instance_file(&root, &ours, 1).expect("the write");
+    check("empty folder: no copy was needed", backup.is_none(), String::new());
+    check("empty folder: the file was written", config.is_file(), String::new());
 
-    // --- файл наш ----------------------------------------------------------
+    // --- the file is ours ---------------------------------------------------
 
     check(
-        "свой файл узнан",
+        "our own file is recognised",
         shared_models::inspect_instance_file(&root).state == InstanceFileState::Ours,
         String::new(),
     );
 
     let updated = format!("{}\ncpo_shared_0:\n  base_path: D:/other\n", shared_models::MARKER);
-    let backup = shared_models::write_instance_file(&root, &updated, 2).expect("обновление");
-    check("свой файл обновлён без копии", backup.is_none(), String::new());
+    let backup = shared_models::write_instance_file(&root, &updated, 2).expect("the update");
+    check("our own file was updated without a copy", backup.is_none(), String::new());
     check(
-        "свой файл действительно перезаписан",
+        "our own file really was overwritten",
         fs::read_to_string(&config).unwrap().contains("D:/other"),
         String::new(),
     );
 
-    // --- отключение: наш файл убран ---------------------------------------
+    // --- disconnecting: our file is removed ---------------------------------
 
-    shared_models::remove_instance_file(&root).expect("удаление");
-    check("отключение убрало наш файл", !config.exists(), String::new());
+    shared_models::remove_instance_file(&root).expect("the removal");
+    check("disconnecting removed our file", !config.exists(), String::new());
 
-    // --- файл чужой --------------------------------------------------------
+    // --- the file is someone else's -----------------------------------------
 
-    fs::write(&config, FOREIGN).expect("положить чужой файл");
+    fs::write(&config, FOREIGN).expect("put someone else's file in place");
     check(
-        "чужой файл узнан чужим",
+        "someone else's file is recognised as theirs",
         shared_models::inspect_instance_file(&root).state == InstanceFileState::Foreign,
         String::new(),
     );
     check(
-        "содержимое чужого файла отдаётся для показа",
+        "the contents of someone else's file are handed over for display",
         shared_models::inspect_instance_file(&root).content.as_deref() == Some(FOREIGN),
         String::new(),
     );
 
-    let backup = shared_models::write_instance_file(&root, &ours, 100).expect("замена чужого");
-    let backup_path = backup.clone().expect("копия обязана быть");
-    check("чужой файл заменён с копией", backup.is_some(), backup_path.clone());
+    let backup = shared_models::write_instance_file(&root, &ours, 100).expect("replacing theirs");
+    let backup_path = backup.clone().expect("there has to be a copy");
+    check("someone else's file was replaced with a copy made", backup.is_some(), backup_path.clone());
     check(
-        "копия содержит именно то, что лежало",
+        "the copy holds exactly what was lying there",
         fs::read_to_string(&backup_path).unwrap() == FOREIGN,
         String::new(),
     );
 
-    // --- отключение: копия возвращается ------------------------------------
+    // --- disconnecting: the copy comes back ---------------------------------
 
-    shared_models::remove_instance_file(&root).expect("удаление с восстановлением");
+    shared_models::remove_instance_file(&root).expect("removal with restoration");
     check(
-        "прежний конфиг вернулся на место",
+        "the previous config came back into place",
         fs::read_to_string(&config).ok().as_deref() == Some(FOREIGN),
         String::new(),
     );
-    check("копия после восстановления убрана", !Path::new(&backup_path).exists(), String::new());
+    check("the copy was removed after the restoration", !Path::new(&backup_path).exists(), String::new());
 
-    // --- чужой файл не удаляется -------------------------------------------
+    // --- someone else's file is not deleted ---------------------------------
 
-    // На месте лежит чужой (только что восстановленный). Отключение обязано
-    // его не тронуть: раз он не наш, значит его положили после нас.
-    shared_models::remove_instance_file(&root).expect("отключение при чужом файле");
+    // What lies there is someone else's (just restored). Disconnecting has to
+    // leave it alone: since it is not ours, it was put there after us.
+    shared_models::remove_instance_file(&root).expect("disconnecting with a foreign file");
     check(
-        "чужой файл при отключении не удалён",
+        "someone else's file was not deleted on disconnect",
         fs::read_to_string(&config).ok().as_deref() == Some(FOREIGN),
         String::new(),
     );
 
-    // --- самая свежая копия ------------------------------------------------
+    // --- the freshest copy --------------------------------------------------
 
     fs::remove_file(&config).ok();
-    shared_models::write_instance_file(&root, &ours, 1).expect("запись");
-    fs::write(shared_models::backup_path(&config, 5), "старая\n").expect("старая копия");
-    fs::write(shared_models::backup_path(&config, 40), "свежая\n").expect("свежая копия");
-    shared_models::remove_instance_file(&root).expect("удаление");
+    shared_models::write_instance_file(&root, &ours, 1).expect("the write");
+    fs::write(shared_models::backup_path(&config, 5), "old\n").expect("the old copy");
+    fs::write(shared_models::backup_path(&config, 40), "fresh\n").expect("the fresh copy");
+    shared_models::remove_instance_file(&root).expect("the removal");
     check(
-        "восстанавливается самая свежая копия",
-        fs::read_to_string(&config).ok().as_deref() == Some("свежая\n"),
+        "the freshest copy is the one restored",
+        fs::read_to_string(&config).ok().as_deref() == Some("fresh\n"),
         fs::read_to_string(&config).unwrap_or_default().trim().to_string(),
     );
 
     fs::remove_dir_all(&root).ok();
 
-    println!("\nПроверок провалено: {failures}");
+    println!("\nChecks failed: {failures}");
     if failures > 0 {
         std::process::exit(1);
     }

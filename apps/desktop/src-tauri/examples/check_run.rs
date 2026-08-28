@@ -1,11 +1,11 @@
-//! Прогон жизненного цикла на стенде.
+//! A run of the whole lifecycle against the test bed.
 //!
-//! Проверяет то, что кликами не увидишь: что лог приходит живьём, что
-//! прогресс с `\r` не разрастается в сотни строк, что падение отличается
-//! от штатной остановки, что порт освобождается, а зависание упирается
-//! в таймаут, а не висит вечно.
+//! It checks what clicking will not show: that the log arrives live, that
+//! progress with `\r` does not swell into hundreds of lines, that a crash is
+//! told apart from an ordinary stop, that the port is released, and that a
+//! hang runs into the timeout rather than hanging forever.
 //!
-//! Запуск: cargo run --example check_run
+//! Run: cargo run --example check_run
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -20,11 +20,11 @@ use cpo_desktop_lib::{ports, run};
 
 fn main() {
     let root = fixture_root();
-    println!("[ПРОВЕРКА] стенд: {}", root.display());
+    println!("[CHECK] test bed: {}", root.display());
 
     let instance = instance_at(&root, 8231);
     let profiles = run::profiles_of(&instance);
-    println!("[ПРОВЕРКА] профилей найдено: {}", profiles.len());
+    println!("[CHECK] profiles found: {}", profiles.len());
     for p in &profiles {
         println!("    {} {}", p.id, if p.fallback { "(cmd /c)" } else { "" });
     }
@@ -40,16 +40,16 @@ fn main() {
 
     println!();
     if failures == 0 {
-        println!("[ПРОВЕРКА] всё сошлось");
+        println!("[CHECK] everything matched");
     } else {
-        println!("[ПРОВЕРКА] провалов: {failures}");
+        println!("[CHECK] failures: {failures}");
         std::process::exit(1);
     }
 }
 
-/// Обычный старт: готовность, живой лог, штатная остановка.
+/// An ordinary start: readiness, a live log, an ordinary stop.
 fn scenario_normal(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::LaunchProfile]) -> u32 {
-    println!("\n[ПРОВЕРКА] --- обычный старт");
+    println!("\n[CHECK] --- an ordinary start");
     let profile = pick(profiles, "run_fake.bat");
     let (lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
@@ -57,60 +57,60 @@ fn scenario_normal(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::L
     let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
-    .expect("не запустился");
+    .expect("it did not start");
 
-    let port = outcome.status.port.expect("порт не выдан");
+    let port = outcome.status.port.expect("no port was handed out");
     let cell = outcome.cell.clone();
     let ready = process::wait_ready(port, Duration::from_secs(60), || {
         matches!(cell.lock().unwrap().status.state, RunState::Starting)
     });
 
     let mut failures = 0;
-    failures += check("сервер пришёл в готовность", ready.is_ok());
+    failures += check("the server came to readiness", ready.is_ok());
     if let Ok(secs) = ready {
-        println!("       готов за {secs} с, порт {port}");
+        println!("       ready in {secs} s, port {port}");
     }
 
     let snapshot = lines.lock().unwrap().clone();
     failures += check(
-        "лог пришёл живьём",
+        "the log arrived live",
         snapshot.iter().any(|l| l.text.contains("To see the GUI go to")),
     );
     failures += check(
-        "старт пишется в stderr",
+        "the startup is written to stderr",
         snapshot.iter().any(|l| l.stream == "stderr"),
     );
     failures += check(
-        "stdout тоже читается",
+        "stdout is read as well",
         snapshot.iter().any(|l| l.stream == "stdout"),
     );
 
-    // Двести обновлений прогресса обязаны схлопнуться: строк с «Loading nodes»
-    // в буфере должно остаться считанные единицы, а не двести.
+    // Two hundred progress updates have to collapse: only a handful of
+    // "Loading nodes" lines should be left in the buffer, not two hundred.
     let buffered = outcome.cell.lock().unwrap().log.snapshot();
     let progress_lines = buffered.iter().filter(|l| l.text.starts_with("Loading nodes")).count();
     failures += check(
-        &format!("прогресс с \\r схлопнут (строк осталось {progress_lines})"),
+        &format!("progress with \\r collapsed ({progress_lines} lines left)"),
         progress_lines <= 2,
     );
     failures += check(
-        "последнее значение прогресса сохранилось",
+        "the last progress value was kept",
         buffered.iter().any(|l| l.text.contains("200/200")),
     );
 
-    run::stop(&outcome.cell).expect("не остановился");
+    run::stop(&outcome.cell).expect("it did not stop");
     let exit = rx.recv_timeout(Duration::from_secs(20));
     failures += check(
-        "остановка опознана как штатная",
+        "the stop was recognised as an ordinary one",
         matches!(exit, Ok(run::Exit::Requested)),
     );
-    failures += check("порт освободился", ports::is_free(port));
+    failures += check("the port was released", ports::is_free(port));
     failures
 }
 
-/// Падение: процесс уходит сам, и это не должно выглядеть как остановка.
+/// A crash: the process leaves on its own, and that must not look like a stop.
 fn scenario_crash(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::LaunchProfile]) -> u32 {
-    println!("\n[ПРОВЕРКА] --- падение");
+    println!("\n[CHECK] --- a crash");
     let profile = pick(profiles, "run_fake_crash.bat");
     let (lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
@@ -118,26 +118,27 @@ fn scenario_crash(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::La
     let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
-    .expect("не запустился");
+    .expect("it did not start");
 
-    // Ждём дольше, чем окно ожидания чужого сервера после выхода.
+    // We wait longer than the window for spotting someone else's server after
+    // the exit.
     let exit = rx.recv_timeout(Duration::from_secs(40));
     let mut failures = 0;
     failures += check(
-        "падение опознано как падение",
+        "the crash was recognised as a crash",
         matches!(exit, Ok(run::Exit::Crashed(Some(1)))),
     );
     failures += check(
-        "трейсбек попал в лог",
+        "the traceback made it into the log",
         lines.lock().unwrap().iter().any(|l| l.text.contains("RuntimeError")),
     );
-    failures += check("порт свободен", ports::is_free(outcome.status.port.unwrap()));
+    failures += check("the port is free", ports::is_free(outcome.status.port.unwrap()));
     failures
 }
 
-/// Зависание: ни готовности, ни выхода. Обязан сработать таймаут.
+/// A hang: neither readiness nor an exit. The timeout has to fire.
 fn scenario_hang(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::LaunchProfile]) -> u32 {
-    println!("\n[ПРОВЕРКА] --- зависание");
+    println!("\n[CHECK] --- a hang");
     let profile = pick(profiles, r"advanced\run_fake_hang.bat");
     let (_lines, sink) = collector();
     let (tx, _rx) = mpsc::channel();
@@ -145,31 +146,32 @@ fn scenario_hang(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::Lau
     let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
-    .expect("не запустился");
+    .expect("it did not start");
 
     let port = outcome.status.port.unwrap();
     let cell = outcome.cell.clone();
-    // Короткий таймаут вместо пятиминутного: проверяем механизм, а не терпение.
+    // A short timeout instead of the five-minute one: we are checking the
+    // mechanism, not our patience.
     let ready = process::wait_ready(port, Duration::from_secs(4), || {
         matches!(cell.lock().unwrap().status.state, RunState::Starting)
     });
 
     let mut failures = 0;
-    failures += check("зависание упёрлось в таймаут", ready.is_err());
+    failures += check("the hang ran into the timeout", ready.is_err());
     if let Err(e) = &ready {
-        failures += check("код ошибки — таймаут готовности", e.code == "run.readyTimeout");
+        failures += check("the error code is the readiness timeout", e.code == "run.readyTimeout");
     }
 
-    run::stop(&outcome.cell).expect("не остановился");
-    failures += check("зависший процесс убит", ports::is_free(port));
+    run::stop(&outcome.cell).expect("it did not stop");
+    failures += check("the hung process was killed", ports::is_free(port));
     failures
 }
 
-/// Самоперезапуск: процесс уходит, но порт остаётся занятым чужим сервером.
-/// Так ведёт себя ComfyUI-Manager после установки нод, и путать это
-/// с падением нельзя — пользователю нужны разные слова.
+/// A self-restart: the process leaves, but the port stays occupied by someone
+/// else's server. That is how ComfyUI-Manager behaves after installing nodes,
+/// and it must not be confused with a crash — the user needs different words.
 fn scenario_restart(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::LaunchProfile]) -> u32 {
-    println!("\n[ПРОВЕРКА] --- самоперезапуск");
+    println!("\n[CHECK] --- a self-restart");
     let profile = pick(profiles, r"advanced\run_fake_restart.bat");
     let (_lines, sink) = collector();
     let (tx, rx) = mpsc::channel();
@@ -177,35 +179,35 @@ fn scenario_restart(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::
     let outcome = run::start(instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
-    .expect("не запустился");
+    .expect("it did not start");
     let port = outcome.status.port.unwrap();
 
-    // Заглушка живёт восемь секунд, потом поднимает копию и уходит.
+    // The stub lives for eight seconds, then brings a copy up and leaves.
     let exit = rx.recv_timeout(Duration::from_secs(60));
     let mut failures = 0;
     failures += check(
-        "перезапуск опознан как потеря контроля, а не падение",
+        "the restart was recognised as a loss of control, not a crash",
         matches!(exit, Ok(run::Exit::Detached)),
     );
-    failures += check("чужой сервер держит порт", !ports::is_free(port));
+    failures += check("someone else's server holds the port", !ports::is_free(port));
 
-    // Прибираем за собой: нашего хэндла на этот процесс уже нет.
+    // Tidying up after ourselves: we no longer have a handle on that process.
     let _ = std::process::Command::new("cmd")
         .args(["/c", "taskkill", "/F", "/IM", "python.exe"])
         .status();
     failures
 }
 
-/// Путь с пробелом и кириллицей.
+/// A path with a space and non-ASCII characters.
 ///
-/// Грабля названа в плане отдельной строкой, а проверки на неё не было.
-/// Ломается на ней ровно то, что не ломается больше нигде: квотирование
-/// при спавне и резолв `..\` из `advanced\`.
+/// The trap is named in the plan on a line of its own, yet there was no check
+/// for it. What breaks on it is exactly what breaks nowhere else: quoting at
+/// spawn time and resolving `..\` from `advanced\`.
 fn scenario_odd_path() -> u32 {
-    println!("\n[ПРОВЕРКА] --- путь с пробелом и кириллицей");
+    println!("\n[CHECK] --- a path with a space and non-ASCII characters");
     let root = odd_fixture_root();
     let Some(root) = root else {
-        println!("ПРОВАЛ копии стенда нет — соберите её `node tools/fixtures/make-fixture.mjs`");
+        println!(" FAIL  there is no copy of the test bed — build it with `node tools/fixtures/make-fixture.mjs`");
         return 1;
     };
     println!("       {}", root.display());
@@ -214,11 +216,12 @@ fn scenario_odd_path() -> u32 {
     let profiles = run::profiles_of(&instance);
     let mut failures = 0;
 
-    // Внутри `advanced\` интерпретатор указан как `..\python_embeded\...`,
-    // и от корня инстанса он не нашёлся бы.
+    // Inside `advanced\` the interpreter is written as
+    // `..\python_embeded\...`, and it would not be found from the instance
+    // root.
     let deep = pick(&profiles, r"advanced\run_fake_hang.bat");
     failures += check(
-        "интерпретатор из advanced резолвится по пути с пробелом",
+        "the interpreter from advanced resolves on a path with a space",
         std::path::Path::new(&deep.python_path).is_file(),
     );
 
@@ -229,46 +232,47 @@ fn scenario_odd_path() -> u32 {
     let outcome = run::start(&instance, profile, None, sink, move |exit| {
         let _ = tx.send(exit);
     })
-    .expect("не запустился");
+    .expect("it did not start");
 
-    let port = outcome.status.port.expect("порт не выдан");
+    let port = outcome.status.port.expect("no port was handed out");
     let cell = outcome.cell.clone();
     let ready = process::wait_ready(port, Duration::from_secs(60), || {
         matches!(cell.lock().unwrap().status.state, RunState::Starting)
     });
 
-    failures += check("сборка по такому пути стартовала", ready.is_ok());
+    failures += check("a build on such a path started", ready.is_ok());
     failures += check(
-        "лог читается",
+        "the log is read",
         lines.lock().unwrap().iter().any(|l| l.text.contains("To see the GUI go to")),
     );
 
-    run::stop(&outcome.cell).expect("не остановился");
+    run::stop(&outcome.cell).expect("it did not stop");
     let exit = rx.recv_timeout(Duration::from_secs(20));
     failures += check(
-        "остановка опознана как штатная",
+        "the stop was recognised as an ordinary one",
         matches!(exit, Ok(run::Exit::Requested)),
     );
-    failures += check("порт освободился", ports::is_free(port));
+    failures += check("the port was released", ports::is_free(port));
     failures
 }
 
-/// Свой профиль: имя и аргументы свои, всё остальное — базового.
+/// A custom profile: the name and the arguments are its own, everything else
+/// comes from the base one.
 fn scenario_custom_profile(instance: &Instance) -> u32 {
-    println!("\n[ПРОВЕРКА] --- свой профиль поверх .bat");
+    println!("\n[CHECK] --- a custom profile on top of a .bat");
     let mut with_custom = instance.clone();
     with_custom.custom_profiles = vec![
         cpo_desktop_lib::instances::CustomProfile {
             id: "custom:1".into(),
-            name: "Свой".into(),
+            name: "Mine".into(),
             base_id: "run_fake.bat".into(),
             args: vec!["-s".into(), "ComfyUI\\main.py".into(), "--lowvram".into()],
         },
-        // Базовый исчез: такой профиль запускать наугад нельзя.
+        // The base one is gone: such a profile must not be launched at random.
         cpo_desktop_lib::instances::CustomProfile {
             id: "custom:2".into(),
-            name: "Сирота".into(),
-            base_id: "нет-такого.bat".into(),
+            name: "Orphan".into(),
+            base_id: "no-such.bat".into(),
             args: vec!["--cpu".into()],
         },
     ];
@@ -276,48 +280,49 @@ fn scenario_custom_profile(instance: &Instance) -> u32 {
     let all = run::profiles_of(&with_custom);
     let mut failures = 0;
     let mine = all.iter().find(|p| p.id == "custom:1");
-    failures += check("свой профиль появился в списке", mine.is_some());
+    failures += check("the custom profile appeared in the list", mine.is_some());
 
     if let Some(mine) = mine {
         let base = pick(&run::profiles_of(instance), "run_fake.bat").clone();
         failures += check(
-            "интерпретатор взят у базового",
+            "the interpreter was taken from the base one",
             mine.python_path == base.python_path,
         );
-        failures += check("рабочая папка взята у базового", mine.cwd == base.cwd);
+        failures += check("the working folder was taken from the base one", mine.cwd == base.cwd);
         failures += check(
-            "аргументы свои",
+            "the arguments are its own",
             mine.args.iter().any(|a| a == "--lowvram"),
         );
     }
 
     failures += check(
-        "профиль с исчезнувшим базовым не подставляет чужой",
+        "a profile whose base is gone does not substitute another",
         !all.iter().any(|p| p.id == "custom:2"),
     );
     failures
 }
 
-/// Владелец порта по таблице соединений.
+/// The port's owner through the connection table.
 ///
-/// На этом держится переподключение к серверу, который ComfyUI-Manager
-/// перезапустил сам: PID процесса мы потеряли, и взять его больше неоткуда.
-/// Проверяем на себе — слушаем порт сами и ждём собственный идентификатор.
+/// Reconnecting to a server that ComfyUI-Manager restarted by itself rests on
+/// this: we lost the process's PID, and there is nowhere else to get it from.
+/// We check it on ourselves — we listen on a port and expect our own
+/// identifier back.
 fn scenario_owner_of_port() -> u32 {
-    println!("\n[ПРОВЕРКА] --- владелец порта");
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("порт не занялся");
+    println!("\n[CHECK] --- the port's owner");
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("the port was not taken");
     let port = listener.local_addr().unwrap().port();
 
     let found = cpo_desktop_lib::supervise::windows::pid_listening_on(port);
     let mut failures = 0;
     failures += check(
-        &format!("свой слушающий порт {port} опознан как наш ({found:?})"),
+        &format!("our own listening port {port} is recognised as ours ({found:?})"),
         found == Some(std::process::id()),
     );
 
     drop(listener);
     failures += check(
-        "у освободившегося порта владельца нет",
+        "a released port has no owner",
         cpo_desktop_lib::supervise::windows::pid_listening_on(port).is_none(),
     );
     failures
@@ -341,23 +346,23 @@ fn pick<'a>(
     profiles
         .iter()
         .find(|p| p.id == id)
-        .unwrap_or_else(|| panic!("нет профиля {id}"))
+        .unwrap_or_else(|| panic!("there is no profile {id}"))
 }
 
 fn check(what: &str, ok: bool) -> u32 {
-    println!("{} {what}", if ok { "  ok " } else { "ПРОВАЛ" });
+    println!("{} {what}", if ok { "  ok  " } else { " FAIL " });
     u32::from(!ok)
 }
 
-/// Инстанс поверх любой папки стенда.
+/// An instance on top of any test-bed folder.
 fn instance_at(root: &std::path::Path, port: u16) -> Instance {
     let probe = WindowsPortable
         .probe(root)
-        .expect("стенд не прошёл валидацию — соберите его make-fixture.mjs");
+        .expect("the test bed failed validation — build it with make-fixture.mjs");
 
     Instance {
         id: "fixture".into(),
-        name: "Стенд".into(),
+        name: "Fixture".into(),
         description: String::new(),
         path: probe.path.clone(),
         accent: Accent::named("teal"),
@@ -380,11 +385,15 @@ fn fixture_root() -> PathBuf {
     let _ = HashMap::<String, String>::new();
     fixtures().join("fake-instance").canonicalize()
         .map(strip_verbatim)
-        .expect("стенд не найден")
+        .expect("the test bed was not found")
 }
 
-/// Копия стенда по пути с пробелом и кириллицей. Её может не быть, если
-/// стенд собирали до появления этой проверки.
+/// A copy of the test bed on a path with a space and non-ASCII characters. It
+/// may be absent if the test bed was built before this check appeared.
+///
+/// The folder name stays non-ASCII on purpose — that is the whole point of the
+/// scenario — and it has to match what `tools/fixtures/make-fixture.mjs`
+/// creates, so rename it in both places or in neither.
 fn odd_fixture_root() -> Option<PathBuf> {
     fixtures()
         .join("стенд с пробелом")
@@ -397,7 +406,7 @@ fn fixtures() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../tools/fixtures")
 }
 
-/// `canonicalize` отдаёт verbatim-путь `\\?\`, показывать который нельзя.
+/// `canonicalize` hands back a verbatim `\\?\` path, which must not be shown.
 fn strip_verbatim(p: PathBuf) -> PathBuf {
     PathBuf::from(p.display().to_string().trim_start_matches(r"\\?\"))
 }
