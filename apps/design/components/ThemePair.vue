@@ -3,7 +3,7 @@ withDefaults(
   defineProps<{
     light?: string;
     dark?: string;
-    /** .app.flush — без внутреннего отступа, когда содержимое само задаёт поля. */
+    /** .app.flush — no inner padding, for content that sets its own. */
     flush?: boolean;
   }>(),
   { light: 'Светлая', dark: 'Тёмная', flush: false },

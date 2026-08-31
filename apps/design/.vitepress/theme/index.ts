@@ -1,23 +1,15 @@
 import DefaultTheme from 'vitepress/theme';
 import type { Theme } from 'vitepress';
 
-// Компоненты приложения — источник правды в apps/desktop, читаются отсюда
-// напрямую, без копий: правка исходника видна сразу на дев-сервере.
-// Токены на .t-light/.t-dark — производные (см. Layout.vue и
-// tools/build-preview-tokens.mjs), пересобираются командой `design:tokens`.
-// Порядок важен только для читаемости, все три файла объявляют независимые
-// селекторы, пересечений нет.
+// The app's styles are the source of truth and are imported straight from
+// apps/desktop, with no copy here: an edit to the source shows up on the dev
+// server at once. The `.t-light`/`.t-dark` tokens are the one derived file,
+// rebuilt by `pnpm design:tokens`.
 import '../../../../apps/desktop/src/styles/components.css';
-// Точечные стили Layout/UI-компонентов приложения — переехали из
-// components.css в <style src="./Name.css"> рядом с каждым SFC.
-// Без `scoped`: витрина подключает эти файлы как обычный CSS, минуя
-// компилятор Vue SFC, а `:slotted()`/`:deep()` — конструкции именно
-// этого компилятора и молча не матчатся вне его. Часть этих компонентов
-// (ScreenHeader, StepBar, KeyValueRow) стилизует содержимое своего
-// слота — оно и есть причина не заводить `scoped` тут вовсе, а не только
-// повод для витрины.
-// Витрина по-прежнему читает исходники напрямую, просто теперь их
-// несколько, а не один общий файл. Список пополняется по мере миграции.
+// The per-component styles of the app's Layout/UI components, one file each.
+// The showcase imports them as plain CSS, bypassing the Vue SFC compiler —
+// which is why those components carry no `scoped` style; see CLAUDE.md. The
+// list grows as components are migrated.
 import '../../../../apps/desktop/src/components/ui/Group.css';
 import '../../../../apps/desktop/src/components/ui/StepBar.css';
 import '../../../../apps/desktop/src/components/ui/InstanceHeader.css';
@@ -39,8 +31,8 @@ import Swatches from '../../components/Swatches.vue';
 
 export default {
   extends: DefaultTheme,
-  // Свой каркас страницы — см. комментарий в Layout.vue. От темы по
-  // умолчанию остаются только типографика `.vp-doc` и страница 404.
+  // Our own page shell — see Layout.vue. All that is left of the default
+  // theme is the `.vp-doc` typography and the 404 page.
   Layout,
   enhanceApp({ app }) {
     app.component('ThemePair', ThemePair);

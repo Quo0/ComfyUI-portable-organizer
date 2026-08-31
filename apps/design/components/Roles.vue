@@ -1,8 +1,8 @@
 <script setup lang="ts">
-// Не через ThemePair: подпись под каждой ролью — конкретный hex,
-// а не то, что доедет через var() сама CSS-каскадом. Обеим сторонам
-// нужны РАЗНЫЕ строки текста одновременно, поэтому пара здесь своя,
-// а не общий компонент, который просто дважды рендерит один слот.
+// Not through ThemePair: the caption under each role is a concrete hex, not
+// whatever `var()` resolves to in the cascade. Both sides need different text
+// at the same time, so the pair here is its own rather than a component that
+// renders one slot twice.
 import { data } from '../theme-tokens.data.js';
 
 const rows = (theme: 'light' | 'dark') =>

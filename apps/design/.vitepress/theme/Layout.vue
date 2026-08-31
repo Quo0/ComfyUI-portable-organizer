@@ -1,13 +1,13 @@
 <script setup>
-// Свой каркас страницы вместо VPNav/VPSidebar/VPContent темы по умолчанию.
-// У формулы «после 1440px открывай поля» под колонку --vp-layout-max-width
-// нет способа отключить точечно — она держится на брейкпоинтах 960/1440,
-// продублированных в четырёх разных компонентах с разными формулами отступов.
-// Своя разметка — три класса без брейкпоинтов вовсе: тулбар фиксированной
-// высоты, сайдбар фиксированной ширины, контент занимает всё остальное.
+// Our own page shell instead of the theme's VPNav/VPSidebar/VPContent. The
+// theme's "open up the margins past 1440px" rule cannot be switched off in
+// one place: it rests on the 960/1440 breakpoints, repeated in four
+// components with four different padding formulas. This markup has no
+// breakpoints at all — a fixed-height toolbar, a fixed-width sidebar, and
+// content taking the rest.
 //
-// `.vp-doc` на <Content> — это всё, что берётся у темы по умолчанию:
-// типографика заголовков/списков/кода/таблиц, без каркаса вокруг неё.
+// `.vp-doc` on <Content> is everything we take from the default theme: the
+// typography, without the shell around it.
 import { Content, useData, useRoute } from 'vitepress';
 import { useSidebar } from 'vitepress/theme';
 
@@ -15,8 +15,8 @@ const { site, theme } = useData();
 const route = useRoute();
 const { sidebarGroups, hasSidebar } = useSidebar();
 
-// cleanUrls снимает .html, но не хвостовой слэш у индексов разделов
-// ('/styleguide/') — сравнение ссылок ведём без него.
+// cleanUrls drops the .html but not the trailing slash on section indexes
+// ('/styleguide/'), so links are compared without it.
 function normalize(path) {
   return path.replace(/\/$/, '') || '/';
 }

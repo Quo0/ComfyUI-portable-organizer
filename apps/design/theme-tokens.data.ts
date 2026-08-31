@@ -1,6 +1,6 @@
-// VitePress data loader: читает tools/lib/style-tokens.mjs на этапе
-// сборки/дев-сервера и отдаёт готовые данные компонентам раздела «Палитра».
-// Источник — apps/desktop/src/styles/tokens.css, то же приложение.
+// A VitePress data loader: it reads tools/lib/style-tokens.mjs at build and
+// dev-server time and hands the result to the palette components. The source
+// is apps/desktop/src/styles/tokens.css — the app itself.
 import { loadTokens, ACCENTS, ROLES, ratio } from '../../tools/lib/style-tokens.mjs';
 
 export interface RoleToken {
@@ -28,7 +28,7 @@ declare const data: TokensData;
 export { data };
 
 export default {
-  // Пересчитать данные, если правится источник токенов.
+  // Recompute when the token source is edited.
   watch: ['../desktop/src/styles/tokens.css'],
   load(): TokensData {
     const { light, dark } = loadTokens();

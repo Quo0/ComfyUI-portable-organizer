@@ -1,16 +1,16 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    /** Окно фиксированной высоты — только так возникает настоящая прокрутка. */
+    /** A fixed-height window — the only way real scrolling appears. */
     fixed?: boolean;
-    /** Кадр в размер настоящего монитора, уменьшенный до ширины страницы. */
+    /** A frame the size of a real monitor, scaled down to the page width. */
     hd?: boolean;
     /**
-     * Кадр специально доказывает настоящую прокрутку: данных внутри больше,
-     * чем помещается в область. Не то же самое, что `fixed` — `fixed` бывает
-     * и просто ради фиксированной высоты (например, чтобы посчитать масштаб
-     * `hd`-кадра), без утверждения «тут реально скроллится». `tools/check-styles.mjs`
-     * считает кадры с этим пропом и требует от них doказанной плотности данных.
+     * The frame deliberately proves real scrolling: there is more data inside
+     * than fits. Not the same as `fixed`, which can be there just for a fixed
+     * height (to compute the scale of an `hd` frame, say) with no claim that
+     * anything scrolls. `tools/check-styles.mjs` counts frames carrying this
+     * prop and demands proven data density from them.
      */
     scroll?: boolean;
     theme?: 'light' | 'dark';
@@ -38,10 +38,9 @@ withDefaults(
 </template>
 
 <style scoped>
-/* Порт обрамления окна из бывшего design/screens.src.html — оно никогда
-   не было частью design/styles/app.css (не компонент приложения, а сама
-   идея «вот тут нарисовано окно»), поэтому и живёт теперь при компоненте,
-   который эту идею воплощает, а не в общем стилевом файле. */
+/* The window chrome is not a component of the app — it is the idea "a window
+   is drawn here" — so it lives with the component that embodies it rather
+   than in the shared style file. */
 .frame { overflow-x: auto; padding-bottom: 4px; }
 .frame.hd {
   --hd: .55;
@@ -53,14 +52,11 @@ withDefaults(
   .frame.hd { --hd: .45; }
 }
 
-/* Верхней границы у ширины раньше не было — на узком экране это скрывала
-   собственная ошибка вёрстки страницы (шапка/сайдбар VitePress держали
-   колонку контента ýже реальной ширины окна), а с её уходом `.win` стало
-   тянуться на весь наличный экран без остатка. Окно приложения такое
-   не бывает: `min-width` — это «уже показывать нечем», а сверху нужен
-   такой же практический предел, иначе тулбар с `.spacer` посреди пустеет
-   на широком мониторе так, что выглядит поломанным. 1440px — то же число,
-   что и `.screen-pad.wide` в самом приложении: тот же язык, что и там. */
+/* The width needs a ceiling as well as a floor. `min-width` says "there is
+   nothing left to show"; without a maximum the frame stretched across the
+   whole screen, and the toolbar with a `.spacer` in the middle empties out on
+   a wide monitor until it looks broken. 1440px is the same number as
+   `.screen-pad.wide` in the app itself. */
 .win {
   min-width: 940px;
   max-width: 1440px;
@@ -74,9 +70,9 @@ withDefaults(
   line-height: var(--leading-normal);
 }
 .win.fixed { height: 560px; display: grid; grid-template-rows: auto minmax(0, 1fr); }
-/* hd — кадр в размер настоящего 1920-монитора, уменьшенный `scale()`
-   до ширины страницы: верхний предел здесь противоречил бы самой идее
-   пропа, поэтому снят обратно именно для него. */
+/* `hd` is a frame the size of a real 1920 monitor, scaled down to the page
+   width: the ceiling above would contradict the point of the prop, so it is
+   lifted here. */
 .win.fixed.hd { width: 1920px; max-width: none; height: 1080px; }
 
 .titlebar {
@@ -91,25 +87,23 @@ withDefaults(
 .win.fixed :deep(.win-body) { min-height: 0; overflow: hidden; }
 .win.fixed :deep(.content) { min-height: 0; }
 
-/* Слотовое содержимое несёт разметку родителя ( .md-страницы экрана ),
-   поэтому селекторы на неё идут через :deep — как и было задумано этим
-   приёмом Vue для содержимого слотов. */
+/* Slot content carries the parent's markup — the screen's .md page — so the
+   selectors reach it through :deep. */
 :deep(.nav.in-win) { border: 0; border-right: 1px solid var(--line); border-radius: 0; height: 100%; min-height: 0; }
 :deep(.content) { padding: var(--space-4); min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); position: relative; }
 :deep(.content.flush) { padding: 0; }
-/* Экранный каркас для кадров с настоящей прокруткой: закреплённый верх,
-   область данных, закреплённый подвал — тоже жило только в бывшем
-   screens.src.html, не в app.css, той же природы, что и .win/.frame выше. */
+/* The screen shell for frames with real scrolling: a pinned head, the data
+   area, a pinned foot. Same nature as .win/.frame above. */
 :deep(.content.framed) { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-3); container-type: inline-size; }
 :deep(.content.framed.no-foot) { grid-template-rows: auto minmax(0, 1fr); }
 :deep(.screen-foot) { display: flex; gap: var(--space-2); justify-content: flex-end; border-top: 1px solid var(--line); padding-top: var(--space-3); }
 :deep(.data) { min-height: 0; display: flex; flex-direction: column; }
 :deep(.data > .scroll) { border: 1px solid var(--line); border-radius: var(--radius-md); }
 
-/* Место стопки тостов в поддельном окне: угол контентной области, где
-   их увидит пользователь. Сам тост — компонент дизайн-системы (app.css),
-   а вот куда его класть, знает только оболочка приложения — здесь это
-   повторено ровно позиционированием, той же природы, что .frame/.comfy. */
+/* Where the toast stack sits in the mock window: the corner of the content
+   area, where the user will see it. The toast itself is a design-system
+   component; only the app shell knows where to put it, and that placement is
+   reproduced here with positioning alone. */
 :deep(.win-toasts) {
   position: absolute; z-index: 2;
   right: var(--space-4); bottom: var(--space-4); width: 320px;

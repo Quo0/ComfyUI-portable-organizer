@@ -1,8 +1,7 @@
-/* Каркас страницы — тулбар, сайдбар, область контента. Разметку строит
- * Layout.vue (см. комментарий там про то, почему не тема по умолчанию),
- * здесь только её вид. Токены — `--page-*`: они для обрамления сайта
- * и следуют теме зрителя, в отличие от `--t-light`/`--t-dark` внутри
- * панелей с макетами (те показывают конкретную тему приложения). */
+/* The page shell — toolbar, sidebar, content area. Layout.vue builds the
+ * markup, this file only gives it its look. The tokens are `--page-*`: they
+ * frame the site and follow the viewer's theme, unlike `--t-light`/`--t-dark`
+ * inside the mockup panels, which show a specific theme of the app. */
 
 .ds-shell {
   display: flex;
@@ -114,15 +113,14 @@
 }
 
 /* ================================================================
-   ДВА СЛОЯ ТОКЕНОВ.
+   TWO LAYERS OF TOKENS.
 
-   1. Обрамление этой страницы (--page-*) следует теме зрителя.
-   2. Панели с компонентами (.t-light / .t-dark, из preview-tokens.css)
-      всегда показывают конкретную тему приложения независимо от темы
-      зрителя.
+   1. The frame of this page (--page-*) follows the viewer's theme.
+   2. The component panels (.t-light / .t-dark, from preview-tokens.css)
+      always show one specific theme of the app, whatever the viewer's is.
 
-   Путать нельзя: иначе тёмная панель на тёмном фоне сольётся,
-   и оценить контраст станет невозможно.
+   Mixing them up is not allowed: a dark panel on a dark background merges
+   into it, and the contrast can no longer be judged.
    ================================================================ */
 
 :root {
@@ -135,10 +133,10 @@
   --page-line-soft: #efeee9;
   --page-code: #f0efea;
   --page-mark: #b23124;
-  /* Бейдж кадра с прокруткой. Свой цвет, а не общий `--page-code`:
-     на нём бейдж не отличался от меток сценариев рядом, а он про
-     другое — про то, как кадр читать. Розовый бледный: пометка
-     о макете, а не ошибка. */
+  /* The badge on a scrolling frame. Its own colour rather than the shared
+     `--page-code`, on which it was indistinguishable from the scenario
+     labels next to it while saying something different — how to read the
+     frame. Pale pink: a note about the mockup, not an error. */
   --page-pink: #f9e3ea;
   --page-pink-ink: #8c2f4d;
 }
@@ -184,12 +182,9 @@ body {
 }
 
 /* ------------------------------------------------------------------
-   Обвязка страниц просмотра — раньше жила в design/styles/app.css
-   вперемешку с компонентами приложения и отсеивалась при сборке
-   по списку PREVIEW_ONLY. Теперь общего файла нет: компоненты остались
-   в apps/desktop/src/styles/components.css (источник правды, читается
-   отсюда напрямую), а вот это — то, что нужно только витрине, и её
-   собственное место с самого начала.
+   The scaffolding of the preview pages. The app's components stay in
+   apps/desktop/src/styles/components.css — the source of truth, read from
+   there directly — and what only the showcase needs lives here.
    ------------------------------------------------------------------ */
 
 .wrap {
@@ -318,7 +313,7 @@ h3.sub {
 
 .aside strong { color: var(--page-fg); font-weight: 600; }
 
-/* ------------------------------------------- пара панелей тем */
+/* ------------------------------------------- theme panel pair */
 .pair {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -352,7 +347,7 @@ h3.sub {
 }
 .app.flush { padding: 0; }
 
-/* ------------------------------------------------------ палитра */
+/* ------------------------------------------------------ palette */
 .roles { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
 .role { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: var(--space-3); align-items: center; background: var(--surface); padding: var(--space-2) var(--space-3); }
 .role i { display: block; height: 22px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); }
@@ -371,8 +366,8 @@ h3.sub {
   padding: 10px;
   min-width: 0;
 }
-/* Галерея значков на странице просмотра: сам значок и его подпись —
-   @lucide/vue, тот же пакет, что и в приложении. */
+/* The icon gallery: the icon and its caption come from @lucide/vue, the same
+   package the app uses. */
 .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); }
 .icon-cell {
   display: flex; align-items: center; gap: var(--space-2);
@@ -389,7 +384,7 @@ h3.sub {
 .sw-meta { font-size: 10.5px; color: var(--page-faint); font-variant-numeric: tabular-nums; }
 .sw-meta code { font-family: var(--font-mono); font-size: 10.5px; }
 
-/* ---------------------------------------------------- типографика */
+/* ---------------------------------------------------- typography */
 .scale { display: flex; flex-direction: column; gap: var(--space-3); }
 .scale-row { display: grid; grid-template-columns: 92px minmax(0,1fr); gap: var(--space-4); align-items: baseline; }
 .scale-row > span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); font-variant-numeric: tabular-nums; }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-// Цвет образца — переменной `--accent-<имя>`, не подставленным hex:
-// сетка обязана меняться вместе с палитрой при правке токена. Подписанные
-// hex и коэффициент контраста рядом — те самые числа, что tools/check-styles.mjs
-// пересчитывает и сверяет отдельно; здесь они только показаны.
+// A swatch takes its colour from `--accent-<name>`, not from a substituted
+// hex: the grid has to move with the palette when a token is edited. The hex
+// and the contrast ratio printed beside it are the same numbers that
+// tools/check-styles.mjs recomputes and checks; here they are only shown.
 import { data } from '../theme-tokens.data.js';
 </script>
 

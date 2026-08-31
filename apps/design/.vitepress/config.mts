@@ -2,7 +2,8 @@ import { defineConfig } from 'vitepress';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
-// Корень репозитория — design/ читается отсюда напрямую, копий нет.
+// The repository root: the app's styles are read from here directly, with
+// no copy in this package.
 const repoRoot = fileURLToPath(new URL('../../..', import.meta.url));
 
 export default defineConfig({
@@ -10,7 +11,7 @@ export default defineConfig({
   description: 'Стайлгайд и макеты экранов по сценариям',
   lang: 'ru',
   cleanUrls: true,
-  appearance: false, // тема экрана здесь своя (--page-*), переключатель VitePress не нужен
+  appearance: false, // the page theme is our own (--page-*)
 
   themeConfig: {
     nav: [
@@ -88,11 +89,10 @@ export default defineConfig({
         },
       ],
     },
-    // Колонка оглавления снята целиком, не просто скрыт список: `aside:false`
-    // убирает у VPDoc класс `.has-aside`, а с ним и жёсткий предел темы
-    // `.content-container { max-width: 688px }` — он навешен только на
-    // has-aside. Экранам и стайлгайду нужна ширина под кадр `.win`
-    // (min-width 940px), а не колонка под два-три заголовка на странице.
+    // The outline column is removed rather than hidden: `aside: false` drops
+    // the `.has-aside` class from VPDoc, and with it the theme's hard
+    // `.content-container { max-width: 688px }`, which is attached to that
+    // class alone. The frames need room for `.win` (min-width 940px).
     aside: false,
     socialLinks: [],
   },
