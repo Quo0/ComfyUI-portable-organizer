@@ -1,39 +1,26 @@
-/* Заголовок главной страницы: три строки в заданном порядке — имя
-   продукта целиком, потом первая половина подзаголовка, потом вторая.
+/* Home page heading, three lines: the product name, then the two halves of
+   the tagline. The theme renders `name` and `text` through `v-html`, so the
+   break inside the tagline is a `<br>` in each locale's frontmatter.
 
-   Тема выводит `name` и `text` через `v-html`, поэтому перенос внутри
-   подзаголовка задан `<br>` прямо во frontmatter каждой локали. Здесь —
-   то, чего frontmatter не может.
+   The theme caps `.name` and `.text` at 392/576px, and the name at 56px needs
+   about 780px — it broke in two at any window width. The font size is tied to
+   the column width instead: the divider in `calc()` is the longest heading
+   line in em at Inter Bold, with margin (the Spanish tagline is about 15em,
+   the product name about 13.9em). Erring high is safe — the line just gets
+   smaller; erring low pushes it past the edge of the window.
 
-   Первое: у `.name` и `.text` в теме стоит `max-width` 392/576px. Имя
-   продукта в 56px занимает около 780px и от этого потолка рвалось надвое
-   независимо от ширины окна.
-
-   Второе: кегль связан с шириной колонки. Иначе гарантии «в одну строку»
-   нет — на любом окне уже колонки строка снова переносится. Делитель
-   в `calc()` — ширина самой длинной строки заголовка в em при Inter Bold,
-   с запасом: длиннее всех испанское «Varias instalaciones portables,»
-   (около 15em), само имя продукта — около 13.9em. Ошибка в большую
-   сторону безопасна, строка просто станет мельче; в меньшую — вылезет
-   за край окна, поэтому 15.6.
-
-   Единицы `cqi` (ширина контейнера), а не `vw`: иначе пришлось бы вычитать
-   из ширины окна отступы темы, которые меняются на каждом брейкпоинте.
-
-   Контейнером назначен `.heading`, а не колонка целиком: ниже она
-   раскладывается сеткой через `display: contents`, и бокса `.main`
-   на странице с логотипом просто нет — запрос к нему не сработал бы. */
+   `cqi` rather than `vw`, so the theme's padding — which changes at every
+   breakpoint — does not have to be subtracted. The container is `.heading`
+   and not the whole column: `.main` is laid out with `display: contents`
+   below, so its box does not exist on a page with a logo. */
 .VPHero .heading {
   container-type: inline-size;
 }
 
-/* Без картинки колонка в две трети ширины всё равно резервирует место
-   под неё — и заставляет заголовок переноситься там, где места на самом
-   деле хватает. Сейчас логотип стоит во всех четырёх локалях, и правило
-   не срабатывает нигде; оставлено на случай, если картинку где-то уберут.
-   Кегль заголовка от этого зависит: формула ниже считает от ширины
-   колонки, так что с картинкой заголовок мельче — и это верно, место
-   под неё занято по-настоящему. */
+/* Without an image the two-thirds column still reserves room for it and
+   forces the heading to wrap where there is in fact space. The logo is
+   present in all four locales, so this never fires today; it is kept in case
+   an image is dropped somewhere. */
 @media (min-width: 960px) {
   .VPHero:not(.has-image) .main {
     width: 100%;
@@ -45,37 +32,31 @@
   max-width: none;
   /* font-size: min(56px, calc(100cqi / 15.6)); */
   font-size: min(56px, calc(100cqi / 13));
-  /* Кегль теперь плавающий, а межстрочный в теме задан пикселями —
-     на узком окне строки разъезжались бы. */
+  /* The size floats now, and the theme sets line-height in pixels. */
   line-height: 1.18;
 }
 
-/* Имя продукта не переносится никогда — ради этого вся арифметика выше.
-   У подзаголовка переносы разрешены: если перевод окажется длиннее
-   расчётного, он развалится на лишнюю строку, а не за край экрана. */
+/* The product name never wraps — that is what the arithmetic above buys. The
+   tagline may: a translation longer than the estimate falls onto an extra
+   line instead of off the screen. */
 .VPHero .name {
   white-space: nowrap;
 }
 
-/* Логотип встаёт по заголовку с подзаголовком, кнопки на него не влияют.
+/* The logo lines up with the heading and the tagline; the buttons do not
+   affect it.
 
-   Тема кладёт в hero два флекс-элемента — колонку текста и картинку —
-   и центрирует картинку по высоте всей колонки. Кнопки лежат в той же
-   колонке, поэтому любой отступ перед ними тянет логотип вниз, а сам
-   он вылезает и выше заголовка, и ниже кнопок.
+   The theme puts two flex children in the hero — the text column and the
+   image — and centres the image against the height of the whole column. The
+   buttons live in that column, so any padding before them drags the logo
+   down. The grid says what is meant directly: three rows on the left, and the
+   image spans the first two.
 
-   Сетка выражает нужное прямо: слева три строки — заголовок,
-   подзаголовок, кнопки, — а картинка занимает первые две. Отступ перед
-   кнопками растит третью строку и логотипа больше не касается.
-
-   `display: contents` у `.main` обязателен. Заголовок, подзаголовок
-   и кнопки лежат в нём одним контейнером, и раскидать их по строкам
-   сетки, пока этот контейнер существует, нельзя. Плата за приём —
-   `max-width` темы у `.main` перестаёт действовать вместе с его боксом,
-   поэтому ширина колонки повторена в `grid-template-columns`.
-
-   `align-items` не трогаем: растяжение по умолчанию и даёт картинке
-   высоту двух первых строк, а от неё считается центр. */
+   `display: contents` on `.main` is required — its children cannot be placed
+   into grid rows while its box exists. The price is that the theme's
+   `max-width` on `.main` dies with the box, so the column width is repeated
+   in `grid-template-columns`. `align-items` is left alone: the default
+   stretch is what gives the image the height of the first two rows. */
 @media (min-width: 960px) {
   .VPHero.has-image .container {
     display: grid;
@@ -96,38 +77,32 @@
 
   .VPHero.has-image .actions {
     grid-area: 3 / 1;
-    /* Кнопки отделены от заголовка и тяготеют к карточкам под hero,
-       а не к тексту над ними. У темы здесь 32px. */
+    /* Pulls the buttons towards the cards below the hero. Theme value: 32px. */
     /* padding-top: 140px; */
   }
 
-  /* Первые две строки: заголовок и подзаголовок. Кнопки — третья,
-     картинке она не принадлежит. */
+  /* Rows one and two — heading and tagline. The buttons are row three and do
+     not belong to the image. */
   .VPHero.has-image .image {
     grid-area: 1 / 2 / 3 / 3;
   }
 
-  /* Тема сдвигает контейнер картинки на 32px вверх и влево. Сдвиг вверх
-     уводил бы марку выше центра текста — оставляем только боковой. */
+  /* The theme shifts the image container 32px up and left. Up would take the
+     mark above the centre of the text, so only the sideways shift is kept. */
   .VPHero.has-image .image-container {
     transform: translateX(-32px);
   }
 
-  /* Тема держит картинку не крупнее 320px по большей стороне; нашей марке
-     этого мало — на широком экране она теряется рядом с заголовком.
+  /* The theme keeps an image under 320px on its longer side, which is too
+     small for our mark next to the heading. The canvas of `logo.svg` is
+     cropped to the edges of the mark, so this number is its height on screen.
 
-     Холст `logo.svg` обрезан по краям марки, поэтому здешнее число —
-     и есть её высота на экране, без пересчёта на поля внутри файла.
-
-     Потолок задаёт шапка сайта. Марка центрируется по блоку заголовка,
-     центр которого на широком окне лежит примерно в 190px от верха
-     страницы, а шапка занимает первые 64px: всё, что выше 250px высотой,
-     уезжает под неё и обрезается размытием. Крупнее — только если
-     сдвигать марку вниз, а тогда она перестанет быть по центру текста.
-
-     Размер задан здесь, а не атрибутами во frontmatter: там `width`
-     и `height` остаются подсказкой пропорций, чтобы вёрстка не прыгала
-     при загрузке, и разъезжаться по четырём локалям им незачем. */
+     The ceiling comes from the site header: the mark is centred on the
+     heading block, whose centre sits about 190px from the top of the page,
+     and the header takes the first 64px. Anything taller than 250px slides
+     under it and is cut off by the blur. The size lives here rather than in
+     frontmatter, where `width` and `height` stay a hint about the aspect
+     ratio so the layout does not jump while loading. */
   .VPHero.has-image .image-src {
     width: 250px;
     height: 250px;
@@ -138,20 +113,19 @@
   }
 }
 
-/* Кнопка на страницах загрузки. Правило лежит здесь, а не в `<style>`
-   внутри самой страницы, по двум причинам.
+/* The button on the download pages. It lives here rather than in a `<style>`
+   block inside the page for two reasons.
 
-   Первая — специфичность. У темы `.vp-doc a` (0,2,0) задаёт цвет ссылки
-   и подчёркивание, а плоский `.download-button` (0,1,0) их не перебивает:
-   фон со скруглением применяются, а текст остаётся синей подчёркнутой
-   ссылкой поверх фирменного фона — то есть кнопка выглядит сломанной.
-   Селектор начинается с `.vp-doc` ровно за этим.
+   Specificity: the theme's `.vp-doc a` (0,2,0) sets the link colour and the
+   underline, and a flat `.download-button` (0,1,0) does not override them —
+   the background applies while the text stays a blue underlined link on top
+   of it. Hence the selector starting at `.vp-doc`.
 
-   Вторая — четыре локали. Один и тот же блок стилей лежал в каждой
-   странице загрузки, и правка требовала четырёх одинаковых правок.
+   Four locales: the same block used to sit in every download page, and one
+   change meant four identical changes.
 
-   Цвет текста повторён в `:hover`: тема меняет его при наведении на
-   ссылку, и без этого белая надпись на фирменном фоне синела бы. */
+   The text colour is repeated in `:hover` because the theme changes it there
+   and the white label would turn blue on the brand background. */
 .vp-doc a.download-button {
   display: inline-block;
   margin: 1rem 0;
@@ -168,52 +142,35 @@
   color: var(--vp-c-white);
 }
 
-/* Шапка не дёргается при переходе на страницу с боковой панелью.
+/* The header must not jump when navigating to a page that has a sidebar.
 
-   Тема раскладывает шапку двумя несовместимыми способами. Без панели
-   заголовок — обычный флекс-элемент естественной ширины в колонке
-   с максимумом `--vp-layout-max-width`, и правая часть шапки начинается
-   сразу за ним. С панелью заголовок выдёргивается из потока, занимает
-   ровно колонку панели, а правая часть отодвигается на её ширину.
-   Совпадать эти раскладки не обязаны — и не совпадали.
+   The theme lays the header out in two incompatible ways. Without a sidebar
+   the title is an ordinary flex child of its natural width; with one it is
+   pulled out of the flow and takes exactly the sidebar column. Measured at a
+   content width of 1885px, the search-and-menu group sat at [502, 1630.5]
+   without the sidebar against [502, 1623] with it; at 1285px the left edge
+   diverged the other way, 279.5 against 272.
 
-   Замеры при ширине контента 1885px: без панели блок с поиском и меню
-   занимает [502, 1630.5], с панелью — [502, 1623]. При 1285px левая
-   граница расходится в другую сторону: 279.5 против 272.
+   Three causes. The scrollbar: the sidebar variant computes its padding from
+   `100vw`, which includes the scrollbar, while the centring column does not —
+   about 7px, visible above 1440px. The left edge: the actual width of the
+   title against the width of the sidebar column, which would match only by
+   accident. And the root one — the title with the logo takes 247.5px while
+   the theme's column leaves 272 − 32 − 32 = 208px for it, so "Organizer" ran
+   past the vertical divider.
 
-   Расхождений три.
+   So the sidebar is widened to 320px: 256px for the title, 40px of clearance
+   to the divider, and the long menu items in the Russian and Spanish locales
+   stop being cramped. The padding of both layouts is then reduced to one
+   value. `--nav-inset` repeats the centring arithmetic — 32px up to 1440px,
+   then half of what is left of `--vp-layout-max-width` — and percentages
+   instead of `100vw` measure without the scrollbar, the same way the column
+   does. A percentage inside a variable resolves where it is used, not where
+   it is declared; all three consumers sit in the full-width header, so the
+   substitution is identical everywhere.
 
-   Первое — полоса прокрутки. Отступы варианта с панелью посчитаны
-   от `100vw`, центрирующая колонка — от ширины элемента. `100vw`
-   включает полосу прокрутки, ширина элемента — нет, и правая группа
-   уезжает на её половину, около 7px. Видно на окне шире 1440px.
-
-   Второе — левая граница. Без панели она равна фактической ширине
-   названия, с панелью — ширине колонки панели. Совпадали бы они только
-   случайно.
-
-   Третье, и оно корневое: название с логотипом занимает 247.5px,
-   а колонка панели у темы оставляет под него 272 − 32 − 32 = 208px.
-   «Organizer» вылезал за вертикальный разделитель. Пока название шире
-   колонки, первые два расхождения не выровнять: если задать блоку
-   заголовка ширину колонки, текст полезет на кнопку поиска.
-
-   Поэтому панель раздвинута до 320px — под название остаётся 256px,
-   запас до разделителя 40px. Заодно перестают жаться длинные пункты
-   в русской и испанской локалях.
-
-   Дальше отступы обеих раскладок сведены к одной величине. `--nav-inset`
-   повторяет арифметику центрирования колонки: до 1440px это 32px темы,
-   дальше — половина того, что осталось от `--vp-layout-max-width`.
-   Проценты вместо `100vw` берут ширину без полосы прокрутки, то есть ту
-   же, от которой считается сама колонка.
-
-   Проценты внутри переменной разрешаются на месте использования,
-   а не объявления: у всех трёх потребителей содержащий блок — шапка
-   во всю ширину окна, так что подстановка везде даёт одно и то же.
-
-   Селекторы длиннее необходимого по той же причине, что и ниже:
-   правила темы приходят со scoped-атрибутом и весят как лишний класс. */
+   The selectors are longer than strictly necessary: the theme's rules carry a
+   scoped attribute and weigh as much as an extra class. */
 :root {
   --vp-sidebar-width: 320px;
 }
@@ -223,9 +180,8 @@
     --nav-inset: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
   }
 
-  /* Дочерний комбинатор обязателен: класс `title` носит и блок в шапке,
-     и ссылка внутри него. Правила темы приходят со scoped-атрибутом
-     и потому различают их сами, плоский селектор — нет. */
+  /* The child combinator is required: the class `title` is worn both by the
+     block in the header and by the link inside it. */
   .VPNav .VPNavBar.has-sidebar .container > .title {
     padding-left: var(--nav-inset);
     width: calc(var(--nav-inset) + var(--vp-sidebar-width) - 32px);
@@ -240,39 +196,37 @@
     padding-left: calc(var(--nav-inset) + var(--vp-sidebar-width) - 32px);
   }
 
-  /* Без панели колонки нет, но её ширину блок заголовка держит всё равно —
-     иначе правая часть шапки начиналась бы там, где кончилось название. */
+  /* With no sidebar there is no column, but the title block holds its width
+     anyway — otherwise the right side of the header would start wherever the
+     name happened to end. */
   .VPNav .VPNavBar:not(.has-sidebar) .container > .title {
     width: calc(var(--vp-sidebar-width) - 32px);
   }
 }
 
-/* Шапка на планшете: текстовое меню уезжает в гамбургер до 960px.
+/* The header on a tablet: the text menu moves into the hamburger below 960px.
 
-   Тема переключает шапку на мобильный вид на 768px, но к этой ширине
-   текстовые ссылки не помещаются. Имя сайта занимает 215px, дальше поиск,
-   четыре пункта меню и значок GitHub: в русской локали одно меню — 395px,
-   и на 768px страница получает горизонтальную прокрутку в 90px, а в ru
-   она держится до 860px (в en и es — 21px на самом 768px).
+   The theme switches to the mobile header at 768px, but the text links do not
+   fit by then. The site name takes 215px, and in the Russian locale the menu
+   alone takes 395px: at 768px the page gets 90px of horizontal scrolling, and
+   in `ru` it persists up to 860px (in `en` and `es` it is 21px at 768px
+   exactly). The 960px threshold is the theme's own — the sidebar appears
+   there too, and below it all navigation already lives in overlays.
 
-   Порог 960px взят не «с запасом», а у самой темы: на нём же появляется
-   боковая панель. Ниже него вся навигация и так живёт в накладках, так
-   что шапка становится однородной, а не наполовину развёрнутой.
+   The "…" menu is hidden along with it: the hamburger opens a screen that
+   already has the language, the theme and the links, and it is another 48px
+   of width.
 
-   Заодно прячем «…»: гамбургер открывает экран, где язык, тема и ссылки
-   уже есть, и два меню рядом были бы лишними — а это ещё 48px ширины.
+   The selectors are deliberately long. The theme's rules come with a
+   `[data-v-…]` scoped attribute and weigh as two classes, and the hash in it
+   changes between versions — so the weight is made up with ancestors rather
+   than with the attribute itself.
 
-   Селекторы длиннее необходимого намеренно. У темы правила приходят
-   со scoped-атрибутом `[data-v-…]`, то есть весят как два класса,
-   и плоский `.VPNavBarMenu` их не перебил бы. Хеш в атрибуте меняется
-   от версии к версии, поэтому вес добираем предками, а не им.
-
-   Что остаётся от темы и чинится только своим компонентом: открытый
-   экран меню закрывается по `resize`, если `outerWidth >= 768`
-   (`useNav`, `closeScreenOnTabletWindow`). На планшете в 800px это
-   значит, что поворот или всплывшая клавиатура его схлопнут. Открывать
-   и пользоваться это не мешает, а ради одного сценария подменять
-   компонент темы незачем. */
+   What remains of the theme and would need our own component to fix: the open
+   menu screen closes on `resize` when `outerWidth >= 768` (`useNav`,
+   `closeScreenOnTabletWindow`). On an 800px tablet a rotation or a popped-up
+   keyboard collapses it. It does not prevent opening or using the menu, and
+   replacing a theme component for one scenario is not worth it. */
 @media (min-width: 768px) and (max-width: 959px) {
   .VPNav .VPNavBar .VPNavBarMenu,
   .VPNav .VPNavBar .VPNavBarExtra {

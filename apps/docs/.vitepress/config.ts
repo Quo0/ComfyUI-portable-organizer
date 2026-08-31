@@ -1,25 +1,12 @@
 import { defineConfig, type DefaultTheme } from 'vitepress';
 
-// Сайт пользовательской документации. Английский — язык, на котором люди
-// ищут ответы про ComfyUI, поэтому он лежит в корне; русский, испанский
-// и китайский переведены целиком и живут под `/ru/`, `/es/` и `/zh/`.
-// Заглушек больше нет ни под одним путём.
-//
-// Пакет намеренно ничего не знает про apps/desktop: сборка сайта обязана
-// оставаться зелёной, когда Rust-часть временно не компилируется.
-
 const REPO = 'https://github.com/Quo0/ComfyUI-portable-organizer';
 
-// Сайт живёт в подпапке GitHub Pages, и подвал темы выводится через
-// `v-html`. Разметку оттуда VitePress не разбирает и пути в ней не
-// переписывает — в отличие от ссылок в markdown. Значит, ссылка на
-// лицензию в подвале обязана нести префикс сама, иначе уедет в корень
-// домена. Отсюда общая константа: `base` и подвал не должны разъехаться.
+// The footer is rendered through `v-html`, and VitePress does not rewrite
+// paths inside it the way it does for markdown links. The licence link there
+// has to carry the prefix itself, so `base` and the footer share a constant.
 const BASE = '/ComfyUI-portable-organizer/';
 
-// Навигация задаётся по локали целиком, а не переводом заголовков поверх
-// общей раскладки: ссылки у переведённой локали ведут внутрь неё
-// (`/ru/guide/`), и подмешивать сюда корневые пути нечем.
 const navEn: DefaultTheme.NavItem[] = [
   { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
   { text: 'Reference', link: '/reference/', activeMatch: '/reference/' },
@@ -245,8 +232,6 @@ const sidebarZh: DefaultTheme.Sidebar = {
 };
 
 export default defineConfig({
-  // Репозиторий публикуется на GitHub Pages как проектный сайт, то есть
-  // живёт в подпапке. Без base все ссылки на ассеты уедут в корень домена.
   base: BASE,
 
   title: 'ComfyUI Portable Organizer',
@@ -281,8 +266,6 @@ export default defineConfig({
       themeConfig: {
         nav: navRu,
         sidebar: sidebarRu,
-        // Строки самой темы: без них у переведённых страниц остаются
-        // английские «On this page» и «Previous page» вперемешку с текстом.
         outline: { label: 'На этой странице' },
         docFooter: { prev: 'Предыдущая страница', next: 'Следующая страница' },
         lastUpdated: { text: 'Обновлено' },
@@ -346,9 +329,8 @@ export default defineConfig({
       },
     },
 
-    // Ключ локали — это имя папки: `zh` даёт `/zh/`, а не `/zh-Hans/`.
-    // Само письмо объявлено в `lang`, потому что традиционного у нас нет
-    // и не планируется.
+    // The locale key is the folder name: `zh` yields `/zh/`, not `/zh-Hans/`.
+    // The script itself is declared in `lang`.
     zh: {
       label: '简体中文',
       lang: 'zh-Hans',
@@ -385,11 +367,8 @@ export default defineConfig({
   },
 
   themeConfig: {
-    // Марка слева от названия во всех локалях: `logo` объявлен здесь,
-    // а не в каждой локали отдельно — по локалям разъезжается только то,
-    // что переводится. Путь без `base`: тема прогоняет его через
-    // `withBase` сама, а с префиксом получилось бы `/ComfyUI-portable-
-    // organizer/ComfyUI-portable-organizer/logo.svg`.
+    // The path carries no `base`: the theme runs it through `withBase`
+    // itself, and a prefix here would double the folder in the URL.
     logo: '/logo.svg',
 
     socialLinks: [{ icon: 'github', link: REPO }],

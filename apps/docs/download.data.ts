@@ -1,31 +1,24 @@
-// Сведения о последнем выпуске, добытые на этапе сборки сайта.
+// A VitePress data loader: it runs once at build time and the result is
+// frozen into the static output, so the download page makes no network
+// request of its own.
 //
-// Загрузчик данных VitePress: выполняется один раз при сборке, результат
-// вмерзает в статику. На странице скачивания не остаётся ни одного сетевого
-// запроса — ни к GitHub, ни к чему-либо ещё.
-//
-// **Сборка сайта не должна падать из-за GitHub.** Недоступный API,
-// исчерпанный лимит запросов, отсутствие релизов вовсе — всё это штатные
-// состояния, и на каждое загрузчик отдаёт запасной вариант: ссылку
-// на страницу релизов без подробностей. Сайт публикуется всегда.
+// The site build must never fail because of GitHub. An unreachable API, an
+// exhausted rate limit, no releases at all — every one of them is a normal
+// state, and each returns the fallback below.
 
 export interface DownloadInfo {
-  /** Есть ли настоящий релиз. `false` — показываем только ссылку на список. */
+  /** `false` — there is no real release, show only the link to the list. */
   available: boolean;
   version: string;
-  /** ISO-дата публикации, форматируется на странице. */
+  /** ISO date, formatted on the page. */
   publishedAt: string;
-  /** Прямая ссылка на инсталлятор либо на страницу релизов. */
   url: string;
-  /** Имя файла инсталлятора. */
   name: string;
-  /** Размер в байтах. */
+  /** In bytes. */
   size: number;
-  /** Ссылка на SHA256SUMS.txt, если он есть в релизе. */
+  /** Empty when the release carries no SHA256SUMS.txt. */
   checksums: string;
-  /** Страница релиза целиком — она же запасной вариант. */
   releasePage: string;
-  /** Все версии. */
   allReleases: string;
 }
 
@@ -47,8 +40,8 @@ const FALLBACK: DownloadInfo = {
 export default {
   async load(): Promise<DownloadInfo> {
     try {
-      // `releases/latest` сам пропускает предрелизы: тег с дефисом
-      // на кнопку скачивания не попадает.
+      // `releases/latest` skips prereleases on its own: a tag with a hyphen
+      // never reaches the download button.
       const response = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
         headers: { accept: 'application/vnd.github+json' },
       });
@@ -62,8 +55,8 @@ export default {
       };
 
       const assets = release.assets ?? [];
-      // Инсталлятор, а не первый попавшийся ассет: рядом лежат `.sig`,
-      // `latest.json` и файл сумм, и любой из них скачался бы вместо него.
+      // The installer, not the first asset that comes up: `.sig`,
+      // `latest.json` and the checksum file sit right next to it.
       const installer = assets.find((a) => a.name.endsWith('-setup.exe'));
       if (!installer) return FALLBACK;
 
@@ -80,7 +73,6 @@ export default {
         allReleases: RELEASES,
       };
     } catch {
-      // Сети нет вовсе — например, сборка идёт локально в самолёте.
       return FALLBACK;
     }
   },
