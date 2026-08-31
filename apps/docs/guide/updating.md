@@ -51,3 +51,18 @@ connections and the workflow library are all where you left them.
 
 Manual updates work the same way: download the new installer and run it
 over the old version.
+
+## Version 0.1.1 and older: update once by hand
+
+In those versions the button downloads the update, and then the app closes
+without installing anything. It is a bug in that build, and it cannot be
+fixed from our side after the fact: the part that is broken is the one
+launching the installer, and it is already on your computer.
+
+Update once by hand — [download the installer](https://github.com/Quo0/ComfyUI-portable-organizer/releases/latest)
+and run it over the old version. Your data survives, as above: settings, the
+build registry, shared-folder connections and the workflow library all stay
+where they are.
+
+From 0.1.2 on, **Download and install** works: the installer appears, does
+its work, and the app comes back on its own.

@@ -1,6 +1,6 @@
 [package]
 name = "cpo-desktop"
-version = "0.1.1"
+version = "0.1.2"
 description = "Managing ComfyUI portable builds"
 authors = ["Andrew Blokhin"]
 edition = "2021"
@@ -54,7 +54,7 @@ sevenz-rust2 = "0.21.4"
 ureq = { version = "3.4.0", default-features = false }
 
 [target."cfg(windows)".dependencies]
-windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security", "Win32_NetworkManagement_IpHelper", "Win32_Networking_WinSock"] }
+windows-sys = { version = "0.61.2", features = ["Win32_Storage_FileSystem", "Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Security", "Win32_NetworkManagement_IpHelper", "Win32_Networking_WinSock", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
 
 # The dependencies in a dev build are compiled as in release, while our own
 # code stays debuggable. Both lines are mandatory, and each closes a trouble of

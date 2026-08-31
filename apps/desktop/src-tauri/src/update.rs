@@ -12,6 +12,16 @@
 //! generation would cost the user their queue and minutes of cold start, so
 //! the fate of running builds is decided by them, not by us.
 //!
+//! **That same Job Object nearly killed the update itself.** The installer is
+//! launched with `ShellExecuteW` and inherits our job, and the
+//! `std::process::exit(0)` on the next line closes it — so `install` clears the
+//! job's limits from the plugin's `on_before_exit` hook, which runs in between.
+//! See `supervise::windows::release_job_object`. The hook has to call
+//! `cleanup_before_exit` by hand: `updater_builder` sets one of its own for
+//! exactly that, and `on_before_exit` replaces rather than chains, so ours
+//! would otherwise leave the tray icon behind. `check` needs none of this and
+//! keeps using the plain `app.updater()`.
+//!
 //! The update signature is verified by the plugin itself against the `pubkey`
 //! from the configuration: a mismatch means the install never starts. This is
 //! not code signing and has no effect on SmartScreen — different mechanisms.
@@ -78,7 +88,17 @@ pub async fn check(app: &tauri::AppHandle) -> Result<Option<UpdateInfo>, AppErro
 /// IPC boundary, and time passes between the screen and the press.
 pub async fn install(app: &tauri::AppHandle) -> Result<(), AppError> {
     let updater = app
-        .updater()
+        .updater_builder()
+        .on_before_exit({
+            let app = app.clone();
+            move || {
+                if let Err(e) = crate::supervise::windows::release_job_object() {
+                    eprintln!("[CPO] job object was not released: {e}");
+                }
+                app.cleanup_before_exit();
+            }
+        })
+        .build()
         .map_err(|e| AppError::because("update.installFailed", e))?;
 
     let update = updater

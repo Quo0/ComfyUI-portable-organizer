@@ -22,6 +22,18 @@ the `v<version>` tag created.
 
 ### Fixed
 
+- **The update downloaded, then the app closed and never came back.** The
+  installer was launched as a child of the app and inherited the Job Object
+  that keeps ComfyUI servers from outliving us — so the app's own exit killed
+  it a moment after it started. Nothing was installed and the old version
+  stayed on disk. The job's limits are now cleared in the instant before the
+  installer is spawned; everything else it protects is unchanged.
+
+  **Copies of 0.1.1 and older have to be updated once by hand** — download the
+  installer and run it over the old version. The broken part is the one that
+  launches the installer, and it is already installed. From this version on,
+  updating from inside the app works.
+
 - **"What changed" showed a placeholder instead of the changelog.** The
   updater's manifest takes its notes from `releaseBody` while the app is being
   built, and the release body was only filled in afterwards — so the release

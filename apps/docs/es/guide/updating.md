@@ -53,3 +53,18 @@ biblioteca de flujos siguen donde los dejaste.
 
 Las actualizaciones manuales funcionan igual: descarga el instalador nuevo
 y ejecútalo sobre la versión antigua.
+
+## Versión 0.1.1 y anteriores: actualiza una vez a mano
+
+En esas versiones el botón descarga la actualización y luego la aplicación
+se cierra sin instalar nada. Es un fallo de esa compilación y no se puede
+arreglar a posteriori desde nuestro lado: lo que está roto es justo la parte
+que lanza el instalador, y ya está en tu ordenador.
+
+Actualiza una vez a mano — [descarga el instalador](https://github.com/Quo0/ComfyUI-portable-organizer/releases/latest)
+y ejecútalo sobre la versión antigua. Tus datos sobreviven, como se dice más
+arriba: los ajustes, el registro de instalaciones, las conexiones a carpetas
+compartidas y la biblioteca de flujos siguen donde están.
+
+A partir de 0.1.2, **Descargar e instalar** funciona: el instalador aparece,
+hace su trabajo y la aplicación vuelve sola.

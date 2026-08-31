@@ -97,6 +97,15 @@ fn apply_python_env(cmd: &mut Command, existing: &HashMap<String, String>) {
     }
 }
 
+/// The job handle, kept as a `usize` because `HANDLE` is a raw pointer and
+/// therefore neither `Send` nor `Sync`.
+///
+/// The handle is still never closed — see `install_job_object`. It is stored
+/// only so `release_job_object` has something to address the job by; zero means
+/// the job was never created.
+#[cfg(windows)]
+static JOB: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
 /// Puts the current process into a job its descendants cannot escape.
 ///
 /// Called once at app startup. The job handle is deliberately "leaked": while
@@ -136,12 +145,70 @@ pub fn install_job_object() -> Result<(), String> {
         if AssignProcessToJobObject(job, GetCurrentProcess()) == 0 {
             return Err("AssignProcessToJobObject failed".into());
         }
+
+        JOB.store(job as usize, std::sync::atomic::Ordering::SeqCst);
     }
     Ok(())
 }
 
 #[cfg(not(windows))]
 pub fn install_job_object() -> Result<(), String> {
+    Ok(())
+}
+
+/// Clears the job's limits, so that leaving the job does not kill anyone.
+///
+/// **Do not remove: without it the update never installs.** The updater plugin
+/// launches the NSIS installer with `ShellExecuteW` and calls
+/// `std::process::exit(0)` on the very next line. `installMode` is
+/// `currentUser`, so the installer asks for no elevation and is created as our
+/// own child — which means it inherits our job. Our exit closes the last handle
+/// to that job, and `KILL_ON_JOB_CLOSE` kills everyone inside it, the installer
+/// among them, microseconds after it started. The window disappears, no
+/// installer UI ever appears, and the old version stays on disk.
+///
+/// Called from the plugin's `on_before_exit` hook, which runs immediately
+/// before that `ShellExecuteW` — so the protection is off only while the
+/// process is already exiting. Safe precisely there: `install_update` either
+/// refuses to install while builds are running or stops them all first, so by
+/// that moment the job holds nobody but us.
+///
+/// Limits are replaced wholesale by each `SetInformationJobObject` call, so
+/// writing `LimitFlags = 0` is what clears `KILL_ON_JOB_CLOSE`. A zero stored
+/// handle means the job was never created — nothing to release, and not an
+/// error.
+#[cfg(windows)]
+pub fn release_job_object() -> Result<(), String> {
+    use std::mem::{size_of, zeroed};
+    use windows_sys::Win32::System::JobObjects::{
+        JobObjectExtendedLimitInformation, SetInformationJobObject,
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION,
+    };
+
+    let job = JOB.load(std::sync::atomic::Ordering::SeqCst);
+    if job == 0 {
+        return Ok(());
+    }
+
+    // SAFETY: the handle came from `CreateJobObjectW` and was never closed; the
+    // struct is zero-initialised, as the documentation requires.
+    unsafe {
+        let info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = zeroed();
+        let ok = SetInformationJobObject(
+            job as _,
+            JobObjectExtendedLimitInformation,
+            std::ptr::addr_of!(info).cast(),
+            size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+        );
+        if ok == 0 {
+            return Err("SetInformationJobObject failed".into());
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+pub fn release_job_object() -> Result<(), String> {
     Ok(())
 }
 

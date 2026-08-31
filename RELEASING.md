@@ -205,5 +205,29 @@ So before installing, the app looks at whether any instances are running, and
 if there are, offers a choice: stop them and update, or postpone the
 installation until the next start.
 
+**The same job nearly ate the installer.** The second half of that story cost
+0.1.0 and 0.1.1 their ability to update at all. `installMode` is `currentUser`,
+so the installer requests no elevation and `ShellExecuteW` creates it as our
+own child — which means it inherits the job. The plugin calls
+`std::process::exit(0)` on the very next line, our exit closes the last handle
+to the job, and `KILL_ON_JOB_CLOSE` kills everyone inside it, the installer
+included, microseconds after it started. The symptom was exact and silent: the
+window disappears, no installer UI ever appears, the app never comes back, the
+old version is still on disk.
+
+The fix is `supervise::windows::release_job_object`, called from the plugin's
+`on_before_exit` hook — which runs immediately before that `ShellExecuteW`. The
+job's limits are cleared for the microseconds during which we are already
+exiting, and nothing else in the app's life is affected. The hook must call
+`cleanup_before_exit` itself: `updater_builder` installs one of its own for
+exactly that, and `on_before_exit` replaces rather than chains.
+`examples/check_job_kill.rs` reproduces both halves in seconds, without cutting
+a release.
+
+**Copies of 0.1.0 and 0.1.1 cannot be updated in place**, whatever we publish:
+the fix lives in the running app, and the running app is the one that launches
+the installer. Those users download the installer once and run it by hand; from
+0.1.2 on, updating works.
+
 **The update check can be turned off.** It is the only thing the app sends
 outwards, and it is covered by a separate exception in `NFR-350`.
