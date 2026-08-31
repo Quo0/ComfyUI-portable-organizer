@@ -11,19 +11,19 @@ application.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-UI-010` | Light, dark and system themes are supported | «Интерфейс: тема» |
-| `FR-UI-020` | In system mode the app follows the Windows theme without a restart | «Интерфейс: тема» |
-| `FR-UI-030` | The interface is available in English, Russian, Chinese and Spanish | «Интерфейс: язык» |
-| `FR-UI-040` | The language is determined from the system one on the first launch and can be overridden by the user | «Интерфейс: язык» |
-| `FR-UI-050` | A change of language applies without restarting the app | «Интерфейс: язык» |
-| `FR-UI-060` | Both successful and unsuccessful operations are confirmed by a notification | «Интерфейс: уведомления» |
-| `FR-UI-070` | An error message holds enough detail for diagnosis and can be copied | «Интерфейс: уведомления» |
-| `FR-UI-080` | Events not caused by a user action are visible regardless of which section is open | «Интерфейс: уведомления» |
-| `FR-UI-090` | Long operations show their progress in the section they belong to | «Интерфейс: прогресс» |
-| `FR-UI-100` | The theme and language settings of ComfyUI inside the tab are not changed by the app | «Интерфейс: язык» |
-| `FR-UI-110` | The interface texts are complete and correct in every supported language | «Интерфейс: язык» |
+| ID | Requirement |
+|---|---|
+| `FR-UI-010` | Light, dark and system themes are supported |
+| `FR-UI-020` | In system mode the app follows the Windows theme without a restart |
+| `FR-UI-030` | The interface is available in English, Russian, Chinese and Spanish |
+| `FR-UI-040` | The language is determined from the system one on the first launch and can be overridden by the user |
+| `FR-UI-050` | A change of language applies without restarting the app |
+| `FR-UI-060` | Both successful and unsuccessful operations are confirmed by a notification |
+| `FR-UI-070` | An error message holds enough detail for diagnosis and can be copied |
+| `FR-UI-080` | Events not caused by a user action are visible regardless of which section is open |
+| `FR-UI-090` | Long operations show their progress in the section they belong to |
+| `FR-UI-100` | The theme and language settings of ComfyUI inside the tab are not changed by the app |
+| `FR-UI-110` | The interface texts are complete and correct in every supported language |
 
 ---
 
@@ -34,7 +34,6 @@ application.
 **so that** it does not hurt my eyes when I work at night.
 
 Tags: `@FR-UI-010` `@FR-UI-020` `@phase-0.5` `@area-ui`
-Rationale: `PLAN.md` → «Интерфейс: тема»
 
 **Preconditions**
 - The app is running.
@@ -61,7 +60,6 @@ Rationale: `PLAN.md` → «Интерфейс: тема»
 **so that** I do not have to decipher the wording.
 
 Tags: `@FR-UI-030` `@FR-UI-040` `@FR-UI-050` `@FR-UI-110` `@phase-0.5` `@area-ui`
-Rationale: `PLAN.md` → «Интерфейс: язык»
 
 **Preconditions**
 - The app is running.
@@ -91,7 +89,6 @@ Rationale: `PLAN.md` → «Интерфейс: язык»
 **so that** I do not have to guess whether the action worked.
 
 Tags: `@FR-UI-060` `@FR-UI-070` `@phase-0.5` `@area-ui`
-Rationale: `PLAN.md` → «Интерфейс: уведомления»
 
 **Preconditions**
 - The user performs an action: adds an instance, connects the shared models,
@@ -119,7 +116,6 @@ Rationale: `PLAN.md` → «Интерфейс: уведомления»
 **so that** I do not find out from a stalled generation.
 
 Tags: `@FR-UI-080` `@phase-2` `@area-ui`
-Rationale: `PLAN.md` → «Интерфейс: уведомления»
 
 **Preconditions**
 - The instance is running, and an event occurred without the user's
@@ -141,7 +137,6 @@ Rationale: `PLAN.md` → «Интерфейс: уведомления»
 **so that** I can tell work apart from a freeze.
 
 Tags: `@FR-UI-090` `@phase-1.5` `@area-ui`
-Rationale: `PLAN.md` → «Интерфейс: прогресс»
 
 **Preconditions**
 - An operation taking a noticeable amount of time has been started.

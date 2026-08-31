@@ -11,19 +11,19 @@ A3, who is afraid of losing a working configuration.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-INST-010` | The user points at a portable build archive; the app shows its contents and the space required before the work begins | «Мастер установки» |
-| `FR-INST-020` | The app remembers a history of the archives used, across sessions, and checks that they are present | «Мастер установки» |
-| `FR-INST-030` | In a single run the archive is unpacked into one or several destination folders | «Мастер установки» |
-| `FR-INST-040` | Each destination is given a name, a description and an accent colour | «Мастер установки» |
-| `FR-INST-050` | The app refuses the installation before it begins if there is not enough space on the disk | «Мастер установки» |
-| `FR-INST-060` | The app warns about a destination path that is too long | «Грабли» |
-| `FR-INST-070` | An interrupted installation leaves behind no folder that the app would take for a working instance | «Мастер установки» |
-| `FR-INST-080` | The progress of the installation is visible: the current file, the fraction done, the current destination | «Интерфейс: прогресс» |
-| `FR-INST-090` | Unpacked instances are registered automatically and remember the source archive | «Мастер установки» |
-| `FR-INST-100` | The installation does not change previously created instances | «Мастер установки» |
-| `FR-INST-110` | The extra nesting level from the archive is not carried into the destination folder | «Мастер установки» |
+| ID | Requirement |
+|---|---|
+| `FR-INST-010` | The user points at a portable build archive; the app shows its contents and the space required before the work begins |
+| `FR-INST-020` | The app remembers a history of the archives used, across sessions, and checks that they are present |
+| `FR-INST-030` | In a single run the archive is unpacked into one or several destination folders |
+| `FR-INST-040` | Each destination is given a name, a description and an accent colour |
+| `FR-INST-050` | The app refuses the installation before it begins if there is not enough space on the disk |
+| `FR-INST-060` | The app warns about a destination path that is too long |
+| `FR-INST-070` | An interrupted installation leaves behind no folder that the app would take for a working instance |
+| `FR-INST-080` | The progress of the installation is visible: the current file, the fraction done, the current destination |
+| `FR-INST-090` | Unpacked instances are registered automatically and remember the source archive |
+| `FR-INST-100` | The installation does not change previously created instances |
+| `FR-INST-110` | The extra nesting level from the archive is not carried into the destination folder |
 
 ---
 
@@ -34,7 +34,6 @@ A3, who is afraid of losing a working configuration.
 **so that** I can be sure I took the right file.
 
 Tags: `@FR-INST-010` `@FR-INST-020` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The user has opened the install wizard.
@@ -62,7 +61,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** I do not have to come back to the setup later.
 
 Tags: `@FR-INST-030` `@FR-INST-040` `@FR-INST-060` `@FR-INST-110` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The archive has been chosen and parsed.
@@ -90,7 +88,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 anyway.
 
 Tags: `@FR-INST-050` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The archive has been chosen, the destinations have been set.
@@ -113,7 +110,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** I do not have to do it as a separate step after the installation.
 
 Tags: `@FR-INST-090` `@phase-2.5` `@phase-2.6` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The destinations have been set.
@@ -137,7 +133,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** I can tell whether the app has frozen or is working.
 
 Tags: `@FR-INST-080` `@FR-INST-070` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки», «Интерфейс: прогресс»
 
 **Preconditions**
 - Every check has passed, the installation is running.
@@ -164,7 +159,6 @@ Rationale: `PLAN.md` → «Мастер установки», «Интерфей
 **so that** I do not have to hunt for what to do next.
 
 Tags: `@FR-INST-090` `@FR-INST-100` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The installation finished successfully.
@@ -186,7 +180,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** my working build stays untouched.
 
 Tags: `@FR-INST-020` `@FR-INST-100` `@FR-INST-090` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - There is an instance in the registry unpacked from a previous archive.
@@ -212,7 +205,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** I do not have to wait out the extraction twice.
 
 Tags: `@FR-INST-030` `@FR-INST-040` `@phase-1.5` `@area-inst`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The archive has been chosen.

@@ -19,22 +19,22 @@ Four promises of this section, verified in the criteria below:
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-SHARED-010` | The user sets the shared models root folder | «Общее хранилище моделей» |
-| `FR-SHARED-020` | The app recognises the model categories from the contents of the shared folder | «Генерация YAML» |
-| `FR-SHARED-030` | An instance connects to the shared root and disconnects from it | «Два режима применения» |
-| `FR-SHARED-040` | Shared paths are added to the local ones rather than replacing them | «Что выяснено из исходников» |
-| `FR-SHARED-050` | The user decides where newly downloaded models end up | «Два режима применения» |
-| `FR-SHARED-060` | Two ways of applying are supported: without changing the instance's folder, and by writing a file into it | «Два режима применения» |
-| `FR-SHARED-070` | An existing path-configuration file in an instance is not overwritten without explicit consent | «Два режима применения» |
-| `FR-SHARED-080` | The custom nodes directory never enters the shared paths | «Общее хранилище моделей» |
-| `FR-SHARED-090` | Unavailability of the shared root is detected before the instance is launched | «Грабли» |
-| `FR-SHARED-100` | Changes take effect from the next launch, and the user is told so | «Грабли» |
-| `FR-SHARED-110` | The app shows a report on duplicated models without performing any actions on files | «Чеклист, Фаза 4» |
-| `FR-SHARED-120` | Several shared roots are supported | «Модель данных» |
-| `FR-SHARED-130` | Models are moved from a build into the shared folder by the app's own means | «Общее хранилище моделей» |
-| `FR-SHARED-140` | A local copy is deleted only as a confirmed duplicate of something already lying in the shared folder | «Общее хранилище моделей» |
+| ID | Requirement |
+|---|---|
+| `FR-SHARED-010` | The user sets the shared models root folder |
+| `FR-SHARED-020` | The app recognises the model categories from the contents of the shared folder |
+| `FR-SHARED-030` | An instance connects to the shared root and disconnects from it |
+| `FR-SHARED-040` | Shared paths are added to the local ones rather than replacing them |
+| `FR-SHARED-050` | The user decides where newly downloaded models end up |
+| `FR-SHARED-060` | Two ways of applying are supported: without changing the instance's folder, and by writing a file into it |
+| `FR-SHARED-070` | An existing path-configuration file in an instance is not overwritten without explicit consent |
+| `FR-SHARED-080` | The custom nodes directory never enters the shared paths |
+| `FR-SHARED-090` | Unavailability of the shared root is detected before the instance is launched |
+| `FR-SHARED-100` | Changes take effect from the next launch, and the user is told so |
+| `FR-SHARED-110` | The app shows a report on duplicated models without performing any actions on files |
+| `FR-SHARED-120` | Several shared roots are supported |
+| `FR-SHARED-130` | Models are moved from a build into the shared folder by the app's own means |
+| `FR-SHARED-140` | A local copy is deleted only as a confirmed duplicate of something already lying in the shared folder |
 
 ---
 
@@ -45,7 +45,6 @@ Four promises of this section, verified in the criteria below:
 **so that** I stop keeping copies in each of them.
 
 Tags: `@FR-SHARED-010` `@FR-SHARED-120` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Общее хранилище моделей»
 
 **Preconditions**
 - The app is running.
@@ -72,7 +71,6 @@ Rationale: `PLAN.md` → «Общее хранилище моделей»
 **so that** I can be sure the folder is arranged correctly.
 
 Tags: `@FR-SHARED-020` `@FR-SHARED-080` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Генерация YAML»
 
 **Preconditions**
 - The shared root is set.
@@ -98,7 +96,6 @@ Rationale: `PLAN.md` → «Генерация YAML»
 **so that** I do not have to copy them into its folder.
 
 Tags: `@FR-SHARED-030` `@FR-SHARED-040` `@FR-SHARED-100` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Два режима применения»
 
 **Preconditions**
 - The shared root is set.
@@ -125,7 +122,6 @@ Rationale: `PLAN.md` → «Два режима применения»
 **so that** they become available to every build without being moved by hand.
 
 Tags: `@FR-SHARED-050` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Два режима применения»
 
 **Preconditions**
 - The shared root is set.
@@ -149,7 +145,6 @@ Rationale: `PLAN.md` → «Два режима применения»
 **so that** I do not lose them when launching from Explorer.
 
 Tags: `@FR-SHARED-060` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Два режима применения»
 
 **Preconditions**
 - The shared root is set, the instance is connected.
@@ -174,7 +169,6 @@ Rationale: `PLAN.md` → «Два режима применения»
 **so that** I do not lose a working setup.
 
 Tags: `@FR-SHARED-070` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Два режима применения»
 
 **Preconditions**
 - The way of applying that writes a file into the instance's folder is chosen.
@@ -201,7 +195,6 @@ Rationale: `PLAN.md` → «Два режима применения»
 **so that** it works as it did before connecting.
 
 Tags: `@FR-SHARED-030` `@FR-SHARED-070` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Два режима применения»
 
 **Preconditions**
 - The instance is connected to the shared root.
@@ -226,7 +219,6 @@ Rationale: `PLAN.md` → «Два режима применения»
 found" error.
 
 Tags: `@FR-SHARED-090` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Грабли»
 
 **Preconditions**
 - The instance is connected to the shared root, and the folder is currently
@@ -250,7 +242,6 @@ Rationale: `PLAN.md` → «Грабли»
 **so that** I can decide what to move into the shared folder.
 
 Tags: `@FR-SHARED-110` `@phase-4` `@area-shared`
-Rationale: `PLAN.md` → «Чеклист, Фаза 4»
 
 **Preconditions**
 - There is more than one instance in the registry.
@@ -275,7 +266,6 @@ Rationale: `PLAN.md` → «Чеклист, Фаза 4»
 **so that** I do not have to shift tens of gigabytes through Explorer.
 
 Tags: `@FR-SHARED-130` `@FR-SHARED-140` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Общее хранилище моделей»
 
 **Preconditions**
 - The shared root is set.
@@ -307,7 +297,6 @@ Rationale: `PLAN.md` → «Общее хранилище моделей»
 one anyway.
 
 Tags: `@FR-SHARED-140` `@phase-2.5` `@area-shared`
-Rationale: `PLAN.md` → «Общее хранилище моделей»
 
 **Preconditions**
 - The build is connected to the shared models and stopped.

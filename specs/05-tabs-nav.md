@@ -11,18 +11,18 @@ the canvas and following external links.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-TAB-010` | Navigation between the sections is always visible, including on the screen of a running instance | «Навигация и структура приложения» |
-| `FR-TAB-020` | The ComfyUI interface is shown inside the app's window | «Ключевые находки», факт 3 |
-| `FR-TAB-030` | Running instances are available for switching between in a single action | «Навигация и структура приложения» |
-| `FR-TAB-040` | Leaving for another section does not interrupt an instance's work | «Навигация и структура приложения» |
-| `FR-TAB-050` | The ComfyUI area follows changes in the window's size and in the navigation | «webview.rs — встраивание» |
-| `FR-TAB-060` | Dragging files onto the ComfyUI canvas works | «Грабли» |
-| `FR-TAB-070` | External links open in the system browser | «Грабли» |
-| `FR-TAB-080` | The tools for working with an instance are available without leaving its screen | «Экраны» |
-| `FR-TAB-090` | An instance can be opened in an ordinary browser | «Экраны» |
-| `FR-TAB-100` | The rail collapses down to icons, and the state is remembered | «Навигация и структура приложения» |
+| ID | Requirement |
+|---|---|
+| `FR-TAB-010` | Navigation between the sections is always visible, including on the screen of a running instance |
+| `FR-TAB-020` | The ComfyUI interface is shown inside the app's window |
+| `FR-TAB-030` | Running instances are available for switching between in a single action |
+| `FR-TAB-040` | Leaving for another section does not interrupt an instance's work |
+| `FR-TAB-050` | The ComfyUI area follows changes in the window's size and in the navigation |
+| `FR-TAB-060` | Dragging files onto the ComfyUI canvas works |
+| `FR-TAB-070` | External links open in the system browser |
+| `FR-TAB-080` | The tools for working with an instance are available without leaving its screen |
+| `FR-TAB-090` | An instance can be opened in an ordinary browser |
+| `FR-TAB-100` | The rail collapses down to icons, and the state is remembered |
 
 ---
 
@@ -33,7 +33,6 @@ the canvas and following external links.
 **so that** I do not lose context.
 
 Tags: `@FR-TAB-010` `@FR-TAB-100` `@phase-0.5` `@area-tab`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - The app is running.
@@ -59,7 +58,6 @@ Rationale: `PLAN.md` → «Навигация и структура прилож
 browser.
 
 Tags: `@FR-TAB-020` `@FR-TAB-050` `@FR-TAB-060` `@phase-3` `@area-tab`
-Rationale: `PLAN.md` → «Ключевые находки», «webview.rs — встраивание»
 
 **Preconditions**
 - The instance has been launched and has reached readiness.
@@ -85,7 +83,6 @@ Rationale: `PLAN.md` → «Ключевые находки», «webview.rs — �
 **so that** I can compare the results.
 
 Tags: `@FR-TAB-030` `@FR-TAB-040` `@phase-2` `@area-tab`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - More than one instance is running.
@@ -110,7 +107,6 @@ Rationale: `PLAN.md` → «Навигация и структура прилож
 **so that** I do not lose an unsaved graph.
 
 Tags: `@FR-TAB-040` `@FR-TAB-050` `@phase-2` `@area-tab`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - The instance is running and its interface is open.
@@ -131,7 +127,6 @@ Rationale: `PLAN.md` → «Навигация и структура прилож
 button.
 
 Tags: `@FR-TAB-070` `@phase-3` `@area-tab`
-Rationale: `PLAN.md` → «Грабли»
 
 **Preconditions**
 - The interface of a running instance is open.
@@ -153,7 +148,6 @@ Rationale: `PLAN.md` → «Грабли»
 **so that** I can stop or restart the server in one step.
 
 Tags: `@FR-TAB-080` `@FR-TAB-090` `@phase-3` `@area-tab`
-Rationale: `PLAN.md` → «Экраны»
 
 **Preconditions**
 - The interface of a running instance is open.

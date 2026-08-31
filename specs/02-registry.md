@@ -6,17 +6,17 @@ section's main promise and actor A2's main fear.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-REG-010` | The app checks that the chosen folder is a portable ComfyUI build, and on refusal names the reason | «discovery/windows_portable.rs» |
-| `FR-REG-020` | Registering does not change the contents of the instance's folder | «Дисциплина хранения данных» |
-| `FR-REG-030` | The app determines the ComfyUI version, the Python version and the available launch profiles | «discovery/windows_portable.rs» |
-| `FR-REG-040` | An instance is given a name, a description, an accent colour and a preferred port | «discovery/windows_portable.rs» |
-| `FR-REG-050` | An instance's metadata can be changed after registration | «Экраны» |
-| `FR-REG-060` | Removing from the registry does not delete the folder from the disk | «Чеклист, Фаза 1» |
-| `FR-REG-070` | For instances unpacked by the wizard, the source archive is kept and shown | «Мастер установки» |
-| `FR-REG-080` | An instance's size on disk is computed without blocking the interface | «Грабли» |
-| `FR-REG-090` | Registering the same folder again does not create a duplicate | «discovery/windows_portable.rs» |
+| ID | Requirement |
+|---|---|
+| `FR-REG-010` | The app checks that the chosen folder is a portable ComfyUI build, and on refusal names the reason |
+| `FR-REG-020` | Registering does not change the contents of the instance's folder |
+| `FR-REG-030` | The app determines the ComfyUI version, the Python version and the available launch profiles |
+| `FR-REG-040` | An instance is given a name, a description, an accent colour and a preferred port |
+| `FR-REG-050` | An instance's metadata can be changed after registration |
+| `FR-REG-060` | Removing from the registry does not delete the folder from the disk |
+| `FR-REG-070` | For instances unpacked by the wizard, the source archive is kept and shown |
+| `FR-REG-080` | An instance's size on disk is computed without blocking the interface |
+| `FR-REG-090` | Registering the same folder again does not create a duplicate |
 
 ---
 
@@ -27,7 +27,6 @@ section's main promise and actor A2's main fear.
 **so that** I can manage it from here without breaking anything in it.
 
 Tags: `@FR-REG-010` `@FR-REG-020` `@FR-REG-030` `@phase-1` `@area-reg`
-Rationale: `PLAN.md` → «discovery/windows_portable.rs»
 
 **Preconditions**
 - An unpacked portable ComfyUI build is on the disk.
@@ -57,7 +56,6 @@ Rationale: `PLAN.md` → «discovery/windows_portable.rs»
 **so that** I can tell them apart at a glance.
 
 Tags: `@FR-REG-040` `@phase-1` `@area-reg`
-Rationale: `PLAN.md` → «discovery/windows_portable.rs»
 
 **Preconditions**
 - The folder has passed the check and is ready for registration.
@@ -83,7 +81,6 @@ Rationale: `PLAN.md` → «discovery/windows_portable.rs»
 **so that** I can pick the one I need.
 
 Tags: `@FR-REG-030` `@FR-REG-070` `@FR-REG-080` `@phase-1` `@area-reg`
-Rationale: `PLAN.md` → «Экраны»
 
 **Preconditions**
 - There is at least one instance in the registry.
@@ -110,7 +107,6 @@ Rationale: `PLAN.md` → «Экраны»
 **so that** the registry reflects the build's current purpose.
 
 Tags: `@FR-REG-050` `@phase-1` `@area-reg`
-Rationale: `PLAN.md` → «Чеклист, Фаза 1»
 
 **Preconditions**
 - The instance is registered.
@@ -133,7 +129,6 @@ Rationale: `PLAN.md` → «Чеклист, Фаза 1»
 **so that** the list does not get cluttered.
 
 Tags: `@FR-REG-060` `@phase-1` `@area-reg`
-Rationale: `PLAN.md` → «Чеклист, Фаза 1»
 
 **Preconditions**
 - The instance is registered.

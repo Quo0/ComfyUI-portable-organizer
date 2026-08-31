@@ -1,19 +1,15 @@
 # ComfyUI Portable Organizer specifications
 
 This directory answers the question of **what** the app does from the user's
-point of view. The question of **how** to build it is answered by the plan: the
-table of contents in `PLAN.md` at the repository root, the sections in `plan/`.
+point of view: actors, requirements with stable IDs, stories with acceptance
+criteria, end-to-end journeys.
 
-The split is deliberate. The plan is full of technical findings — which flags
-to append to the launch command, why a child webview does not get a 403, where
-Windows breaks on long paths. Reading it is pointless for a designer, a tester
-or a technical writer: there is no user behaviour there, only its causes.
-
-Links from here address a section of the plan **by title**, not by file:
-`PLAN.md` → «Мастер установки». The title is in the section table in `PLAN.md`,
-and from there the link leads to the right file in `plan/`. The titles are
-quoted in Russian because `plan/` is still in Russian; they are pointers, and
-they have to match the document they point at.
+The question of **how** it is built is deliberately not answered here. The
+technical findings — which flags to append to the launch command, why a child
+webview does not get a 403, where Windows breaks on long paths — are of no use
+to a designer, a tester or a technical writer: there is no user behaviour in
+them, only its causes. The absolute rules that came out of those findings are
+in `CLAUDE.md`; the rest lives in the code.
 
 ## For whom and what for
 
@@ -22,7 +18,7 @@ they have to match the document they point at.
 | Designer | `journeys.md` — which screens are needed at all and in what order the user walks through them. The stories — what has to be on each screen |
 | Tester | The acceptance criteria. Each criterion is one verification step, nothing needs to be inferred |
 | Technical writer | `journeys.md` gives the structure of the manual, the stories give the content of the pages |
-| Developer | The link from `traceability.md` to the section of the plan that holds the technical reasoning |
+| Developer | `traceability.md` — which requirements a phase covers and what of it is already implemented |
 
 ## The files
 
@@ -85,8 +81,7 @@ Tags: `@FR-SHARED-020` `@FR-SHARED-030` `@phase-2.5` `@area-shared`
 ```
 
 - `@FR-…` — which requirements the story implements;
-- `@phase-N` — the phase from the `plan/phases.md` checklist, so it is clear
-  when this will appear;
+- `@phase-N` — the implementation phase, so it is clear when this will appear;
 - `@area-…` — the area, for filtering.
 
 ## How to write acceptance criteria
@@ -106,7 +101,8 @@ page down with it.
 
 **3. An observable result instead of internal mechanics.** "Models from the
 shared folder are visible in the node lists" — yes. "The app appends
-`--extra-model-paths-config` to the arguments" — no, that belongs to `PLAN.md`.
+`--extra-model-paths-config` to the arguments" — no, that is the mechanics of
+the implementation and it belongs in the code.
 
 **4. No "correctly", "conveniently", "quickly".** If quickly — then how
 quickly, and in `nfr.md`.
@@ -125,7 +121,6 @@ path does not bring them to mind.
 **so that** <what benefit>.
 
 Tags: `@FR-…` `@phase-N` `@area-…`
-Rationale: `PLAN.md` → «Раздел»
 
 **Preconditions**
 - …
@@ -139,6 +134,9 @@ Rationale: `PLAN.md` → «Раздел»
 
 ## What to do when things disagree
 
-If an acceptance criterion contradicts the plan, that is not a typo but a
-design decision nobody noticed. It is fixed here first, then in the
-corresponding file in `plan/`, and both changes go in one commit.
+If an acceptance criterion contradicts what the app actually does, that is not
+a typo but a design decision nobody noticed. It is settled here first — the
+criterion is either confirmed or rewritten — and only then does the code move.
+Silently bending the criterion to fit the behaviour that has already been
+written turns the specification into a description of the code, which is
+exactly what it must not become.

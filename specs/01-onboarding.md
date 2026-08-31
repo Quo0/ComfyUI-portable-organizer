@@ -10,13 +10,13 @@ structure rather than a temporary placeholder that will later disappear.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-ONB-010` | With an empty registry the app explains what it does and offers two paths: point at an existing ComfyUI folder, or install ComfyUI from an archive | «Навигация и структура приложения» |
-| `FR-ONB-020` | Both paths are available at any moment, not only on the first launch | «Навигация и структура приложения» |
-| `FR-ONB-030` | The app requires neither an account nor a network connection in order to work | «Экраны» |
-| `FR-ONB-040` | Navigation between the sections is available from the first launch, including with an empty registry | «Навигация и структура приложения» |
-| `FR-ONB-050` | A user who has no archive is given an explanation of exactly what to download | «Мастер установки» |
+| ID | Requirement |
+|---|---|
+| `FR-ONB-010` | With an empty registry the app explains what it does and offers two paths: point at an existing ComfyUI folder, or install ComfyUI from an archive |
+| `FR-ONB-020` | Both paths are available at any moment, not only on the first launch |
+| `FR-ONB-030` | The app requires neither an account nor a network connection in order to work |
+| `FR-ONB-040` | Navigation between the sections is available from the first launch, including with an empty registry |
+| `FR-ONB-050` | A user who has no archive is given an explanation of exactly what to download |
 
 ---
 
@@ -27,7 +27,6 @@ structure rather than a temporary placeholder that will later disappear.
 **so that** I do not have to guess where to click.
 
 Tags: `@FR-ONB-010` `@FR-ONB-040` `@phase-1` `@area-onb`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - The app is running, the instance registry is empty.
@@ -52,7 +51,6 @@ Rationale: `PLAN.md` → «Навигация и структура прилож
 **so that** I do not have to work out archives and `.bat` files on my own.
 
 Tags: `@FR-ONB-010` `@FR-ONB-050` `@phase-1.5` `@area-onb`
-Rationale: `PLAN.md` → «Мастер установки»
 
 **Preconditions**
 - The user has chosen the installation path.
@@ -74,7 +72,6 @@ Rationale: `PLAN.md` → «Мастер установки»
 **so that** I can launch my familiar build from here.
 
 Tags: `@FR-ONB-010` `@phase-1` `@area-onb`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - The user has chosen the path of registering an existing folder.
@@ -96,7 +93,6 @@ Rationale: `PLAN.md` → «Навигация и структура прилож
 **so that** I do not have to hunt for a different command for the same action.
 
 Tags: `@FR-ONB-020` `@phase-1` `@area-onb`
-Rationale: `PLAN.md` → «Навигация и структура приложения»
 
 **Preconditions**
 - There is at least one instance in the registry.

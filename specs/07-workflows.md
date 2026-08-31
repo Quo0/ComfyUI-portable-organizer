@@ -15,19 +15,19 @@ breaking anything.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-WF-010` | The user sets the workflow library folder | «Библиотека воркфлоу» |
-| `FR-WF-020` | Workflows are marked with favourites, tags and notes | «Хранилище» |
-| `FR-WF-030` | The information about tags and notes is stored in the library itself and survives a reinstall of the app | «Хранилище» |
-| `FR-WF-040` | Workflows are added to the library from a file, from text in the clipboard, and from an existing instance | «Наполнение библиотеки» |
-| `FR-WF-050` | A workflow is added to an instance regardless of whether it is running | «Добавление в инстанс» |
-| `FR-WF-060` | A name conflict on adding is resolved by the user, not silently | «Добавление в инстанс» |
-| `FR-WF-070` | The app shows which nodes are missing in the target instance | «Проверка совместимости» |
-| `FR-WF-080` | Missing nodes warn but do not block the addition | «Проверка совместимости» |
-| `FR-WF-090` | The library works when the folder is changed by hand through Explorer | «Хранилище» |
-| `FR-WF-100` | Operations over several workflows and several instances at once are supported | «Добавление в инстанс» |
-| `FR-WF-110` | Unavailability of the library folder does not put the app out of action | «Грабли» |
+| ID | Requirement |
+|---|---|
+| `FR-WF-010` | The user sets the workflow library folder |
+| `FR-WF-020` | Workflows are marked with favourites, tags and notes |
+| `FR-WF-030` | The information about tags and notes is stored in the library itself and survives a reinstall of the app |
+| `FR-WF-040` | Workflows are added to the library from a file, from text in the clipboard, and from an existing instance |
+| `FR-WF-050` | A workflow is added to an instance regardless of whether it is running |
+| `FR-WF-060` | A name conflict on adding is resolved by the user, not silently |
+| `FR-WF-070` | The app shows which nodes are missing in the target instance |
+| `FR-WF-080` | Missing nodes warn but do not block the addition |
+| `FR-WF-090` | The library works when the folder is changed by hand through Explorer |
+| `FR-WF-100` | Operations over several workflows and several instances at once are supported |
+| `FR-WF-110` | Unavailability of the library folder does not put the app out of action |
 
 ---
 
@@ -38,7 +38,6 @@ breaking anything.
 **so that** they do not get lost inside individual builds.
 
 Tags: `@FR-WF-010` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Библиотека воркфлоу»
 
 **Preconditions**
 - The app is running.
@@ -63,7 +62,6 @@ Rationale: `PLAN.md` → «Библиотека воркфлоу»
 **so that** I do not have to go through the list by eye.
 
 Tags: `@FR-WF-020` `@FR-WF-030` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Хранилище»
 
 **Preconditions**
 - The library is set and holds workflows.
@@ -86,7 +84,6 @@ Rationale: `PLAN.md` → «Хранилище»
 **so that** it becomes available to every instance.
 
 Tags: `@FR-WF-040` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Наполнение библиотеки»
 
 **Preconditions**
 - The library is set.
@@ -115,7 +112,6 @@ Rationale: `PLAN.md` → «Наполнение библиотеки»
 **so that** I can open it there.
 
 Tags: `@FR-WF-050` `@FR-WF-060` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Добавление в инстанс»
 
 **Preconditions**
 - There is a workflow in the library and an instance in the registry.
@@ -143,7 +139,6 @@ build
 **so that** I do not find out through errors on the canvas.
 
 Tags: `@FR-WF-070` `@FR-WF-080` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Проверка совместимости»
 
 **Preconditions**
 - There are workflows in the library and instances in the registry.
@@ -169,7 +164,6 @@ Rationale: `PLAN.md` → «Проверка совместимости»
 **so that** I do not depend on the app.
 
 Tags: `@FR-WF-090` `@FR-WF-110` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Хранилище»
 
 **Preconditions**
 - The library is set and holds workflows.
@@ -194,7 +188,6 @@ Rationale: `PLAN.md` → «Хранилище»
 **so that** I do not repeat one action twenty times.
 
 Tags: `@FR-WF-100` `@phase-2.6` `@area-wf`
-Rationale: `PLAN.md` → «Добавление в инстанс»
 
 **Preconditions**
 - There are several workflows in the library and several instances in the

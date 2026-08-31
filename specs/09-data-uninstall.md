@@ -11,20 +11,20 @@ will not touch it on removal.
 
 ## Functional requirements
 
-| ID | Requirement | Rationale in `PLAN.md` |
-|---|---|---|
-| `FR-DATA-010` | The app's data is stored in the standard places for Windows applications | «Дисциплина хранения данных» |
-| `FR-DATA-020` | The user's content is stored only in folders they chose themselves | «Дисциплина хранения данных» |
-| `FR-DATA-030` | The app does not write into system or user folders beyond its own | «Дисциплина хранения данных» |
-| `FR-DATA-040` | Installation does not require administrator rights | «Дисциплина хранения данных» |
-| `FR-DATA-050` | On removal the user chooses whether to delete the app's data | «Дисциплина хранения данных» |
-| `FR-DATA-060` | Uninstalling the app does not affect the user's content | «Дисциплина хранения данных» |
-| `FR-DATA-070` | The app shows where everything is stored and what will disappear on removal | «Дисциплина хранения данных» |
-| `FR-DATA-080` | Updating the app keeps the data | «Дисциплина хранения данных» |
-| `FR-DATA-090` | The only writes outside its own folders are made on the user's explicit command and are named to them | «Дисциплина хранения данных» |
-| `FR-DATA-100` | The app reports an available new version and installs it only with the user's consent | «Выпуск» |
-| `FR-DATA-110` | Before an update is installed the user decides the fate of the running instances | «Выпуск» |
-| `FR-DATA-120` | Checking for updates can be switched off | «Выпуск» |
+| ID | Requirement |
+|---|---|
+| `FR-DATA-010` | The app's data is stored in the standard places for Windows applications |
+| `FR-DATA-020` | The user's content is stored only in folders they chose themselves |
+| `FR-DATA-030` | The app does not write into system or user folders beyond its own |
+| `FR-DATA-040` | Installation does not require administrator rights |
+| `FR-DATA-050` | On removal the user chooses whether to delete the app's data |
+| `FR-DATA-060` | Uninstalling the app does not affect the user's content |
+| `FR-DATA-070` | The app shows where everything is stored and what will disappear on removal |
+| `FR-DATA-080` | Updating the app keeps the data |
+| `FR-DATA-090` | The only writes outside its own folders are made on the user's explicit command and are named to them |
+| `FR-DATA-100` | The app reports an available new version and installs it only with the user's consent |
+| `FR-DATA-110` | Before an update is installed the user decides the fate of the running instances |
+| `FR-DATA-120` | Checking for updates can be switched off |
 
 ---
 
@@ -35,7 +35,6 @@ will not touch it on removal.
 **so that** I do not have to guess what will be left after removal.
 
 Tags: `@FR-DATA-010` `@FR-DATA-070` `@FR-DATA-090` `@phase-4` `@area-data`
-Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
 **Preconditions**
 - The app is running.
@@ -57,7 +56,6 @@ Rationale: `PLAN.md` → «Дисциплина хранения данных»
 hand.
 
 Tags: `@FR-DATA-040` `@FR-DATA-050` `@FR-DATA-080` `@phase-4` `@area-data`
-Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
 **Preconditions**
 - The app is installed and has been used.
@@ -83,7 +81,6 @@ Rationale: `PLAN.md` → «Дисциплина хранения данных»
 **so that** I am not afraid to uninstall it.
 
 Tags: `@FR-DATA-020` `@FR-DATA-030` `@FR-DATA-060` `@phase-4` `@area-data`
-Rationale: `PLAN.md` → «Дисциплина хранения данных»
 
 **Preconditions**
 - The shared models root and the workflow library are set up, and there are
@@ -110,7 +107,6 @@ Rationale: `PLAN.md` → «Дисциплина хранения данных»
 **so that** an update is a benefit rather than a risk.
 
 Tags: `@FR-DATA-100` `@FR-DATA-110` `@FR-DATA-120` `@phase-4` `@area-data`
-Rationale: `PLAN.md` → «Выпуск»
 
 **Preconditions**
 - The app is installed and a newer version is out.
