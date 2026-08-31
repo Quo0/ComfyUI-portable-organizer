@@ -20,7 +20,7 @@ Size and colour come from the `.ico` class (16×16, colour inherited from the
 text through `currentColor`) rather than from the icon itself — which is why
 they read the same in both themes.
 
-`pnpm design:check` verifies that every icon imported here really exists in
+`pnpm ui-design:check` verifies that every icon imported here really exists in
 `@lucide/vue` — otherwise a typo in a name would quietly produce an empty
 square instead of an icon.
 

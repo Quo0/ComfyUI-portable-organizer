@@ -1,4 +1,4 @@
-// Builds apps/design/.vitepress/theme/preview-tokens.css from
+// Builds apps/ui-design/.vitepress/theme/preview-tokens.css from
 // apps/desktop/src/styles/tokens.css — the source now lives in the app, and the
 // showcase only projects the same values onto .t-light/.t-dark.
 //
@@ -13,12 +13,12 @@
 
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { loadTokens, APPS_DESIGN } from './lib/style-tokens.mjs';
+import { loadTokens, APPS_UI_DESIGN } from './lib/style-tokens.mjs';
 
 const { lightBody, darkBody, metricsBody } = loadTokens();
 
 const out = `/* GENERATED from apps/desktop/src/styles/tokens.css — do not edit.
- * Rebuild: pnpm design:tokens
+ * Rebuild: pnpm ui-design:tokens
  * The same values as in the app, but on .t-light/.t-dark instead of :root —
  * ThemePair.vue shows both themes side by side regardless of the viewer's theme.
  */
@@ -30,6 +30,6 @@ const out = `/* GENERATED from apps/desktop/src/styles/tokens.css — do not edi
 :root {${metricsBody}}
 `;
 
-const outPath = join(APPS_DESIGN, '.vitepress', 'theme', 'preview-tokens.css');
+const outPath = join(APPS_UI_DESIGN, '.vitepress', 'theme', 'preview-tokens.css');
 writeFileSync(outPath, out, 'utf8');
-console.log('apps/design/.vitepress/theme/preview-tokens.css — updated');
+console.log('apps/ui-design/.vitepress/theme/preview-tokens.css — updated');

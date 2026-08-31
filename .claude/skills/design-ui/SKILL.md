@@ -20,11 +20,11 @@ Where to look:
 ```
 apps/desktop/src/styles/components.css   components, ~104 classes
 apps/desktop/src/styles/tokens.css       colours, metrics, shadows, radii
-apps/design/screens/                     screens by scenario, one file per screen
-apps/design/styleguide/                  component library, one file per section
+apps/ui-design/screens/                     screens by scenario, one file per screen
+apps/ui-design/styleguide/                  component library, one file per section
 ```
 
-To browse — `pnpm dev:design`, which starts `apps/design` (VitePress):
+To browse — `pnpm ui-design:dev`, which starts `apps/ui-design` (VitePress):
 "Style guide" and "Screens" are separate menu items.
 
 ## What already exists
@@ -72,19 +72,19 @@ The source of truth is the app itself; the showcase only reads it:
 ```
 apps/desktop/src/styles/tokens.css        ←  the only file to edit, colours and metrics
 apps/desktop/src/styles/components.css    ←  the only file to edit, components
-        │  pnpm design:tokens (node tools/build-preview-tokens.mjs)
+        │  pnpm ui-design:tokens (node tools/build-preview-tokens.mjs)
         ↓
-apps/design/.vitepress/theme/preview-tokens.css   ←  NEVER EDITED BY HAND
+apps/ui-design/.vitepress/theme/preview-tokens.css   ←  NEVER EDITED BY HAND
 ```
 
 The showcase reads `components.css` as is, without a copy — an edit shows up
-immediately under `pnpm dev:design`. The `.t-light`/`.t-dark` rules for the
+immediately under `pnpm ui-design:dev`. The `.t-light`/`.t-dark` rules for the
 `ThemePair.vue` panels, however, are computed in a separate step:
 `:root[data-theme="dark"]` will not fire inside a page, since `:root` matches
 only `<html>`. The build target is in `.gitignore`; an edit to the copy survives
-exactly until the next `pnpm design:tokens`.
+exactly until the next `pnpm ui-design:tokens`.
 
-Check before committing: `pnpm design:check` (it rebuilds `preview-tokens.css`
+Check before committing: `pnpm ui-design:check` (it rebuilds `preview-tokens.css`
 itself and runs the contrast and theme-parity checks).
 
 `<style scoped>` in Vue components stays only for the layout of a specific

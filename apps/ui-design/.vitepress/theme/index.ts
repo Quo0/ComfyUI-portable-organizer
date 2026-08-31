@@ -4,7 +4,7 @@ import type { Theme } from 'vitepress';
 // The app's styles are the source of truth and are imported straight from
 // apps/desktop, with no copy here: an edit to the source shows up on the dev
 // server at once. The `.t-light`/`.t-dark` tokens are the one derived file,
-// rebuilt by `pnpm design:tokens`.
+// rebuilt by `pnpm ui-design:tokens`.
 import '../../../../apps/desktop/src/styles/components.css';
 // The per-component styles of the app's Layout/UI components, one file each.
 // The showcase imports them as plain CSS, bypassing the Vue SFC compiler —

@@ -15,8 +15,9 @@ export const ROOT_DIR = dirname(dirname(dirname(fileURLToPath(import.meta.url)))
 export const APP_STYLES_DIR = join(ROOT_DIR, 'apps', 'desktop', 'src', 'styles');
 export const TOKENS_SRC = join(APP_STYLES_DIR, 'tokens.css');
 export const COMPONENTS_SRC = join(APP_STYLES_DIR, 'components.css');
-export const APPS_DESIGN = join(ROOT_DIR, 'apps', 'design');
-export const DESIGN_CHROME_SRC = join(APPS_DESIGN, '.vitepress', 'theme', 'style.css');
+export const APPS_UI_DESIGN = join(ROOT_DIR, 'apps', 'ui-design');
+export const UI_DESIGN_CHROME_SRC =
+  join(APPS_UI_DESIGN, '.vitepress', 'theme', 'style.css');
 
 /** Extracts a block body by selector name, starting the search at `from`.
  *  The selector is matched from the start of a line — otherwise a mention in

@@ -75,17 +75,17 @@ Windows.
 
 ```
 pnpm install
-pnpm dev:desktop      # dev build, hot reload
-pnpm build:desktop    # release build, NSIS installer
+pnpm desktop:dev      # dev build, hot reload
+pnpm desktop:build    # release build, NSIS installer
 ```
 
 Other useful scripts:
 
 ```
-pnpm typecheck        # vue-tsc over the frontend
-pnpm i18n:check       # locale key parity against en.json
-pnpm design:check     # design tokens, contrast and theme parity
-pnpm build:docs       # the documentation site
+pnpm typecheck          # vue-tsc over the frontend
+pnpm i18n:check         # locale key parity against en.json
+pnpm ui-design:check    # design tokens, contrast and theme parity
+pnpm docs:build         # the documentation site
 ```
 
 ## Repository layout
@@ -94,7 +94,7 @@ pnpm build:docs       # the documentation site
 |---|---|
 | `apps/desktop` | the app itself — Vue frontend, Tauri/Rust backend |
 | `apps/docs` | the user documentation site (VitePress, four locales) |
-| `apps/design` | the style guide and screen showcase |
+| `apps/ui-design` | the style guide and screen showcase |
 | `specs/` | what the app is meant to do: requirements, stories, acceptance criteria |
 
 ## License

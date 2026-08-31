@@ -26,7 +26,7 @@ source of the user-facing checks; there is no need — and no permission — to
 restate them. Negative cases are a separate block in the stories, and that is
 exactly where they get lost most often.
 
-**2. Mockups** — `apps/design/screens/*.md`, the screen for the matching
+**2. Mockups** — `apps/ui-design/screens/*.md`, the screen for the matching
 scenario. The components drawn there already exist in
 `apps/desktop/src/styles/components.css`; there is no need to build them again.
 See the `design-ui` skill for details.

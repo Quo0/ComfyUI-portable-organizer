@@ -1,16 +1,16 @@
 // Palette and mockup checks before publishing. Exits with code 1 on a violation.
-// Run: node tools/check-styles.mjs (or pnpm design:check — which first rebuilds
-// apps/design/.vitepress/theme/preview-tokens.css).
+// Run: node tools/check-styles.mjs (or pnpm ui-design:check — which first rebuilds
+// apps/ui-design/.vitepress/theme/preview-tokens.css).
 //
 // Sources: apps/desktop/src/styles/{tokens,components}.css (the app, source of
-// truth) and apps/design/{styleguide,screens,components,.vitepress} (the
+// truth) and apps/ui-design/{styleguide,screens,components,.vitepress} (the
 // VitePress showcase — the mockups and its own page chrome).
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import {
-  loadTokens, APPS_DESIGN, COMPONENTS_SRC, DESIGN_CHROME_SRC,
+  loadTokens, APPS_UI_DESIGN, COMPONENTS_SRC, UI_DESIGN_CHROME_SRC,
   ACCENTS, ratio, isHex,
 } from './lib/style-tokens.mjs';
 
@@ -33,10 +33,10 @@ function listFiles(dir, exts) {
 }
 
 const designMdFiles = [
-  ...listFiles(join(APPS_DESIGN, 'styleguide'), ['.md']),
-  ...listFiles(join(APPS_DESIGN, 'screens'), ['.md']),
+  ...listFiles(join(APPS_UI_DESIGN, 'styleguide'), ['.md']),
+  ...listFiles(join(APPS_UI_DESIGN, 'screens'), ['.md']),
 ];
-const designVueFiles = listFiles(join(APPS_DESIGN, 'components'), ['.vue']);
+const designVueFiles = listFiles(join(APPS_UI_DESIGN, 'components'), ['.vue']);
 const designSources = [...designMdFiles, ...designVueFiles];
 const designText = designSources.map((f) => readFileSync(f, 'utf8')).join('\n');
 
@@ -48,13 +48,13 @@ for (const key of dark.keys()) if (!light.has(key)) note(`missing in the light t
 
 // 2. Every used variable is defined -------------------------------------------
 // Both the app's tokens and the preview page's own tokens (--page-*) count; the
-// latter are declared in apps/design/.vitepress/theme/style.css, which is part
-// of the scanned area itself: apps/design pulls it in as an external file
+// latter are declared in apps/ui-design/.vitepress/theme/style.css, which is part
+// of the scanned area itself: apps/ui-design pulls it in as an external file
 // rather than inlining it into the markup, but the rules inside it still do
 // reach the browser, and without that text the check would not see tokens used
 // only in component CSS rules rather than inline.
 const componentsText = readFileSync(COMPONENTS_SRC, 'utf8');
-const chromeText = readFileSync(DESIGN_CHROME_SRC, 'utf8');
+const chromeText = readFileSync(UI_DESIGN_CHROME_SRC, 'utf8');
 const varScanText = designText + '\n' + componentsText + '\n' + chromeText;
 
 const definedVars = new Set([...light.keys(), ...dark.keys(), ...metrics.keys(), ...[...varScanText.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1])]);
@@ -127,7 +127,7 @@ for (const [theme, tokens] of [['light', light], ['dark', dark]]) {
 // without claiming "this actually scrolls". `scroll` claims exactly that, and
 // a frame holding less data than its area proves precisely nothing.
 const screensText = designMdFiles
-  .filter((f) => f.includes(join('apps', 'design', 'screens')))
+  .filter((f) => f.includes(join('apps', 'ui-design', 'screens')))
   .map((f) => ({ file: f, text: readFileSync(f, 'utf8') }));
 
 const EXPECTED_SCROLL = 8;
@@ -187,10 +187,10 @@ if (runningScreen && /class="scroll"/.test(runningScreen.text)) {
 }
 
 // 6. Every icon used is a real icon from @lucide/vue --------------------------
-// The icons in apps/design are the same @lucide/vue components as in the app
+// The icons in apps/ui-design are the same @lucide/vue components as in the app
 // (apps/desktop). The check is that every icon imported in the mockups really
 // exists in the package and is not a typo.
-const require_ = createRequire(join(APPS_DESIGN, 'package.json'));
+const require_ = createRequire(join(APPS_UI_DESIGN, 'package.json'));
 let lucideExports;
 try {
   lucideExports = new Set(Object.keys(require_('@lucide/vue')));
@@ -198,7 +198,7 @@ try {
   lucideExports = null;
 }
 if (!lucideExports) {
-  note('could not load @lucide/vue from apps/design/node_modules — the icon check did not run, pnpm install is needed');
+  note('could not load @lucide/vue from apps/ui-design/node_modules — the icon check did not run, pnpm install is needed');
 } else {
   const usedIcons = new Set();
   for (const m of designText.matchAll(/import\s*\{([^}]*)\}\s*from\s*'@lucide\/vue'/g)) {

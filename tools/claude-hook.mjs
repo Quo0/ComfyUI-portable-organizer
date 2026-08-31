@@ -34,18 +34,18 @@ const GENERATED = [
   {
     match: (p) => p === 'apps/desktop/src/bindings.ts',
     source: 'command and event signatures in apps/desktop/src-tauri/src/',
-    rebuild: 'pnpm dev:desktop (tauri-specta generates the file on startup)',
+    rebuild: 'pnpm desktop:dev (tauri-specta generates the file on startup)',
   },
   {
-    match: (p) => p === 'apps/design/.vitepress/theme/preview-tokens.css',
+    match: (p) => p === 'apps/ui-design/.vitepress/theme/preview-tokens.css',
     source: 'apps/desktop/src/styles/tokens.css',
-    rebuild: 'pnpm design:tokens',
+    rebuild: 'pnpm ui-design:tokens',
   },
 ];
 
 const isLocale = (p) => /^apps\/desktop\/src\/i18n\/locales\/[\w-]+\.json$/.test(p);
 // The source of truth for the showcase: an edit to the app's tokens does not
-// reach apps/design by itself — .t-light/.t-dark are computed from this file in
+// reach apps/ui-design by itself — .t-light/.t-dark are computed from this file in
 // a separate step (see GENERATED above).
 const isAppTokensSource = (p) => p === 'apps/desktop/src/styles/tokens.css';
 
@@ -119,8 +119,8 @@ function post(event) {
 
   if (paths.some(isAppTokensSource)) {
     notes.push(
-      'App tokens edited. It will not reach the showcase (apps/design) ' +
-        'until `pnpm design:tokens` is run.',
+      'App tokens edited. It will not reach the showcase (apps/ui-design) ' +
+        'until `pnpm ui-design:tokens` is run.',
     );
   }
 

@@ -8,10 +8,10 @@ install from archive, launch, embedded tabs, shared models, workflow library.
 | Document | Question it answers |
 |---|---|
 | `specs/` | **what** we build: functional requirements, user stories, NFRs |
-| `apps/design/` | **how it looks**: showcase of the style guide and screens by scenario (VitePress) |
+| `apps/ui-design/` | **how it looks**: showcase of the style guide and screens by scenario (VitePress) |
 
 The source of truth for tokens and component CSS is `apps/desktop/src/styles/`
-itself, not a separate folder: `apps/design` reads those files directly,
+itself, not a separate folder: `apps/ui-design` reads those files directly,
 without copies.
 
 **The technical plan is no longer in the repository.** `PLAN.md` and `plan/`
@@ -47,10 +47,10 @@ not a note, and translating it breaks something:
 3. **Samples and self-names.** The Russian examples in the `i18n` skill and
    `tools/i18n-add.mjs`, `[Русский]` in `README.md`, `ru: 'Русский'` in
    `i18n/index.ts`, and the `RU` rows of the language-length demos in
-   `apps/design/styleguide/**` — there the Russian string is the measured
+   `apps/ui-design/styleguide/**` — there the Russian string is the measured
    material, the point being how much longer it is than the English one.
 
-**The design showcase is English**, `apps/design/**/*.md` included. It used to
+**The design showcase is English**, `apps/ui-design/**/*.md` included. It used to
 be Russian by decision; the decision was reversed on 2026-08-31 because the
 showcase quotes UI strings and its own text sat in a different language from
 the app it depicts. The `design-ui` skill quotes the menu items "Style guide"
@@ -100,7 +100,7 @@ Each one was found the expensive way — none may be broken.
   nothing happens, the screen stays empty. Plugin calls are wrapped in
   `try/catch`, and the rejection is mapped to an error code and shown as
   a toast, like an error from our own commands.
-- **In `apps/design/**/*.md` a blank line before markup indented by ≥4 spaces
+- **In `apps/ui-design/**/*.md` a blank line before markup indented by ≥4 spaces
   breaks the page silently.** markdown-it (CommonMark) treats such a line as an
   indented code block rather than a continuation of the HTML inside
   `<Window>`/`<ThemePair>` — the component falls apart with "Element is missing
@@ -114,7 +114,7 @@ Each one was found the expensive way — none may be broken.
   content written in the calling screen carries the caller's attribute, not the
   component's — so a flat selector like `.screen-head .lead` in scoped CSS
   silently matches nothing. `:slotted()`/`:deep()` fix this for `apps/desktop`
-  but break `apps/design`: the showcase imports the same `.css` directly
+  but break `apps/ui-design`: the showcase imports the same `.css` directly
   (`import '...css'` in `.vitepress/theme/index.ts`), bypassing the Vue SFC
   compiler, and those pseudo-classes are constructs of that compiler
   specifically — outside an SFC they mean nothing and the whole selector is
@@ -132,7 +132,7 @@ Panels with a fixed header and footer keep the scroll inside, between them.
 | File | Produced by |
 |---|---|
 | `apps/desktop/src/bindings.ts` | `tauri-specta` when the dev build runs |
-| `apps/design/.vitepress/theme/preview-tokens.css` | `pnpm design:tokens` from `apps/desktop/src/styles/tokens.css` |
+| `apps/ui-design/.vitepress/theme/preview-tokens.css` | `pnpm ui-design:tokens` from `apps/desktop/src/styles/tokens.css` |
 
 Edits go into the source, then it is regenerated. Both are guarded by a hook —
 the refusal names the source and the regeneration command.
@@ -153,14 +153,14 @@ is committed: any drift from the Rust signatures is caught by the first
 ## Commands
 
 ```
-pnpm dev:desktop      dev build of the app (Vite + cargo, hot reload)
-pnpm dev:build-desktop  the same, but without the devtools feature — no inspector
-pnpm build:desktop    release build, NSIS installer
-pnpm design:check     rebuild showcase tokens and run contrast and theme-parity checks
-pnpm design:tokens    rebuild apps/design/.vitepress/theme/preview-tokens.css from the app
-pnpm i18n:check       locale key parity against en.json
-pnpm typecheck        vue-tsc over the frontend
-pnpm kill             kill the process holding the dev server port
+pnpm desktop:dev        dev build of the app (Vite + cargo, hot reload)
+pnpm desktop:build      release build, NSIS installer
+pnpm ui-design:dev      the showcase of the style guide and screens (VitePress)
+pnpm ui-design:check    rebuild showcase tokens and run contrast and theme-parity checks
+pnpm ui-design:tokens   rebuild apps/ui-design/.vitepress/theme/preview-tokens.css from the app
+pnpm i18n:check         locale key parity against en.json
+pnpm typecheck          vue-tsc over the frontend
+pnpm kill               kill the process holding the dev server port
 ```
 
 ## What lives in `.claude/`
@@ -183,7 +183,7 @@ stay in context permanently, the body is pulled in on demand.
 | `spec-audit` | check what was built against the acceptance criteria before closing a phase |
 
 Hooks: a ban on editing generated files, `i18n:check` after locale edits,
-a reminder about `design:tokens` after editing the app's tokens. The dispatcher
+a reminder about `ui-design:tokens` after editing the app's tokens. The dispatcher
 is `tools/claude-hook.mjs`.
 
 Settings and skills are read at session start: a new skill or an edit to

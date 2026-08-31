@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 # The WebView2 inspector. A feature of its own rather than keyed off
 # debug_assertions: the profile at the end of this file switches those off for
 # every dependency, and the regular devtools path inside tauri and wry is cut
-# out by the preprocessor. It is supplied by the `pnpm dev:desktop` script;
+# out by the preprocessor. It is supplied by the `pnpm desktop:dev` script;
 # the release build has no such feature.
 devtools = ["tauri/devtools"]
 

@@ -56,7 +56,7 @@ jobs:
       # Building the site does not depend on the Rust side and must not: the
       # docs have to be publishable even while the app temporarily does not
       # compile.
-      - run: pnpm build:docs
+      - run: pnpm docs:build
 
       - uses: actions/configure-pages@v5
 

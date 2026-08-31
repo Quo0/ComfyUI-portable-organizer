@@ -64,7 +64,7 @@ jobs:
       # eye.
       - name: Quality gates
         run: |
-          pnpm design:check
+          pnpm ui-design:check
           pnpm i18n:check
           pnpm typecheck
 

@@ -1,7 +1,7 @@
 // Kills the process holding the Vite dev server port.
 //
 // Needed because closing the app window with the X leaves Vite alive: the next
-// `pnpm dev:desktop` fails with "Port 1420 is already in use". The regular way
+// `pnpm desktop:dev` fails with "Port 1420 is already in use". The regular way
 // to stop it is Ctrl+C in the terminal; this script is for when the terminal is
 // already gone.
 //
