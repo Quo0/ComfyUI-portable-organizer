@@ -1,32 +1,32 @@
-# Карточка инстанса
+# Instance card
 
 <!-- US-REG-03 · US-INST-07 · US-RUN-06 -->
 
-Самый частый и самый насыщенный данными элемент приложения.
+The most frequent and the most data-dense element in the app.
 
-Состояний пять, а не два. Недоступный инстанс — папка исчезла или диск
-отключён — **не пропадает из списка**, а помечается пунктиром
-`US-REG-03/AC-7`: молча удалять запись нельзя, пользователь
-должен понять, что произошло. Строка источника показывает, из какого архива
-развёрнут инстанс, — по ней различаются версии, стоящие рядом
-`US-INST-07/AC-5`.
+There are five states, not two. An unavailable instance — the folder is gone or
+the drive is disconnected — **does not vanish from the list**, it is marked with
+a dashed outline `US-REG-03/AC-7`: silently dropping the entry is not allowed,
+the user has to understand what happened. The source line shows which archive
+the instance was unpacked from — that is what tells apart two versions standing
+side by side `US-INST-07/AC-5`.
 
-<ThemePair light="Светлая · пять состояний" dark="Тёмная · пять состояний">
+<ThemePair light="Light · five states" dark="Dark · five states">
   <div class="cards">
     <div class="card">
       <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
       <div class="card-in">
-        <div class="card-top"><div class="card-name">SDXL стабильная</div><span class="pill running"><i></i>Работает</span></div>
-        <div class="card-desc">Рабочая сборка, ноды не трогаю</div>
+        <div class="card-top"><div class="card-name">SDXL stable</div><span class="pill running"><i></i>Running</span></div>
+        <div class="card-desc">The working build, I do not touch its nodes</div>
         <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8188</span><span>52.3 GB</span></div>
-        <div class="src">Из архива <code>portable_nvidia_0.30.2.7z</code></div>
+        <div class="src">From archive <code>portable_nvidia_0.30.2.7z</code></div>
       </div>
     </div>
     <div class="card">
       <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
       <div class="card-in">
-        <div class="card-top"><div class="card-name">Flux тест</div><span class="pill starting"><i></i>Стартует</span></div>
-        <div class="card-desc">Проверяю новые ноды перед переносом</div>
+        <div class="card-top"><div class="card-name">Flux test</div><span class="pill starting"><i></i>Starting</span></div>
+        <div class="card-desc">Trying new nodes out before moving them over</div>
         <div class="bar"><i></i></div>
         <div class="meta"><span>ComfyUI 0.31.0</span><span>Python 3.13.12</span><span>:8189</span><span>18.7 GB</span></div>
       </div>
@@ -34,34 +34,34 @@
     <div class="card">
       <div class="card-accent" style="--instance-accent:var(--accent-ember)"></div>
       <div class="card-in">
-        <div class="card-top"><div class="card-name">Анимация</div><span class="pill crashed"><i></i>Аварийно завершён</span></div>
-        <div class="card-desc">Не хватило видеопамяти при втором запуске</div>
+        <div class="card-top"><div class="card-name">Animation</div><span class="pill crashed"><i></i>Crashed</span></div>
+        <div class="card-desc">Ran out of video memory on the second run</div>
         <div class="meta"><span>ComfyUI 0.30.2</span><span>Python 3.13.12</span><span>:8190</span><span>41.0 GB</span></div>
       </div>
     </div>
     <div class="card">
       <div class="card-accent" style="--instance-accent:var(--accent-moss)"></div>
       <div class="card-in">
-        <div class="card-top"><div class="card-name">Эксперименты</div><span class="pill stopped"><i></i>Остановлен</span></div>
-        <div class="card-desc">Песочница под чужие воркфлоу</div>
+        <div class="card-top"><div class="card-name">Experiments</div><span class="pill stopped"><i></i>Stopped</span></div>
+        <div class="card-desc">A sandbox for other people's workflows</div>
         <div class="meta"><span>ComfyUI 0.29.4</span><span>Python 3.12.8</span><span>:8191</span><span>9.4 GB</span></div>
       </div>
     </div>
     <div class="card gone">
       <div class="card-accent"></div>
       <div class="card-in">
-        <div class="card-top"><div class="card-name">Архив на внешнем диске</div><span class="pill gone">Недоступен</span></div>
-        <div class="card-desc">Папка не найдена — диск отключён</div>
+        <div class="card-top"><div class="card-name">Archive on the external drive</div><span class="pill gone">Folder missing</span></div>
+        <div class="card-desc">Folder not found — the drive is disconnected</div>
         <div class="meta"><span>E:\ComfyUI\Legacy</span></div>
       </div>
     </div>
   </div>
 </ThemePair>
 
-## Проверка на длинных строках · подписи состояний
+## Long-string check · state captions
 
 <div class="longform">
-  <div class="lf-head">Проверка на длинных строках · подписи состояний</div>
+  <div class="lf-head">Long-string check · state captions</div>
   <div class="lf-rows">
     <div class="lf-row"><b>EN</b><span>Stopped · Starting · Running · Crashed · Unavailable</span></div>
     <div class="lf-row"><b>RU</b><span>Остановлен · Стартует · Работает · Аварийно завершён · Недоступен</span></div>

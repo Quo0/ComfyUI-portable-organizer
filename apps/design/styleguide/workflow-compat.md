@@ -1,32 +1,32 @@
-# Совместимость воркфлоу
+# Workflow compatibility
 
 <!-- US-WF-05 -->
 
-То, ради чего перенос воркфлоу живёт в приложении, а не в проводнике.
+The reason moving workflows lives in the app rather than in Explorer.
 
-Перед добавлением видно, все ли нужные ноды есть в целевой сборке.
-Состояний три, а не два: у остановленного инстанса точного ответа нет,
-и честнее пометить его **неизвестным**, чем показать
-зелёную галочку `US-WF-05/AC-6`. Нехватка нод предупреждает,
-но не запрещает — доустановить их можно потом `AC-4`.
+Before adding one, you can see whether the target build has all the nodes it
+needs. There are three states, not two: a stopped instance has no exact answer,
+and marking it **unknown** is more honest than showing a green tick
+`US-WF-05/AC-6`. Missing nodes warn but do not forbid — they can be installed
+afterwards `AC-4`.
 
 <ThemePair>
   <div class="compat">
     <div class="compat-row ok">
       <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
-      <span>SDXL стабильная</span>
-      <span class="compat-note">все ноды на месте</span>
+      <span>SDXL stable</span>
+      <span class="compat-note">all nodes present</span>
     </div>
     <div class="compat-row warn">
       <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
-      <span>Flux тест</span>
-      <span class="compat-note">нет 2 нод</span>
+      <span>Flux test</span>
+      <span class="compat-note">2 nodes missing</span>
     </div>
     <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
     <div class="compat-row">
       <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
-      <span>Эксперименты</span>
-      <span class="compat-note">по данным последнего запуска</span>
+      <span>Experiments</span>
+      <span class="compat-note">per the last run</span>
     </div>
   </div>
 </ThemePair>

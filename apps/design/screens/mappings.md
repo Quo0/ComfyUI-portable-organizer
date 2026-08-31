@@ -2,175 +2,172 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, ArrowLeft, Pencil, X, Ban, Check } from '@lucide/vue';
 </script>
 
-# Назначения
+# Destinations
 
-<!-- J-01 · шаг 4 · US-INST-02 · US-INST-08 -->
+<!-- J-01 · step 4 · US-INST-02 · US-INST-08 -->
 
-Назначений может быть несколько за один прогон — распаковка выполняется
-один раз, остальные копии получаются копированием готового дерева.
-Предупреждение о длинном пути стоит здесь, а не после сбоя: часть файлов
-сборки вложена настолько глубоко, что упирается в ограничение Windows.
+There can be several destinations in one run — the unpacking happens once, and
+the other copies are made by copying the finished tree. The warning about a long
+path stands here rather than after a failure: some of the build's files are
+nested deep enough to hit the Windows limit.
 
-Кнопки перехода — **в ряду с названием шага**, а не в подвале: при
-нескольких назначениях «Дальше» уезжала из виду ровно тогда, когда
-становилась нужна. «Назад» всегда левее кнопки действия. Под ними
-закреплена сводка по архиву — то, что раньше показывалось отдельным
-шагом.
+The buttons that move on are **in the row with the step's name**, not in a
+footer: with several destinations "Next" scrolled out of sight exactly when it
+became needed. "Back" is always to the left of the action button. Pinned under
+them is the summary of the archive — what used to be shown as a step of its own.
 
-Слева форма, справа список: она накидывает в него назначение
-за назначением и после каждого встаёт в исходное. Панель со всеми
-полями на каждую цель разом занимала по экрану прокрутки на цель,
-а целей бывает шесть.
+The form is on the left, the list on the right: it throws destination after
+destination into the list and returns to its initial state after each one. A
+panel with all the fields for every target at once took a screenful of scrolling
+per target, and there can be six targets.
 
-Описание в строку не выводится — она и без него из четырёх колонок, —
-но всплывает подсказкой при наведении. У строк без описания подсказки
-нет вовсе.
+The description is not printed in the row — it has four columns as it is — but
+it pops up as a hint on hover. Rows without a description have no hint at all.
 
-Правка разворачивается **под своей строкой**, той же формой: список
-остаётся на месте, и видно, что именно правится. Правится копия —
-«Отмена» обязана откатывать, а не «сохранять обратно». Кнопки формы
-правки — значками: «Добавить в список» бывает раз, а этих две на
-каждую строку, и подписями они вытеснят из строки то, ради чего она
-есть.
+An edit opens **under its own row**, in the same form: the list stays where it
+is, and it is visible what exactly is being edited. It is a copy that is edited
+— "Cancel" must roll back rather than "save it back". The edit form's buttons
+are icons: "Add to the list" happens once, while these are two per row, and with
+captions they would push out of the row the very thing it exists for.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item on"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item on"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content">
     <div class="steps">
-      <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
-      <span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span>
-      <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
-      <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
-      <span class="step"><u>5</u>Готово</span>
+      <span class="step done"><u>✓</u>Archive</span><span class="step-sep"></span>
+      <span class="step now"><u>2</u>Destinations</span><span class="step-sep"></span>
+      <span class="step"><u>3</u>Shared resources</span><span class="step-sep"></span>
+      <span class="step"><u>4</u>Unpacking</span><span class="step-sep"></span>
+      <span class="step"><u>5</u>Done</span>
     </div>
     <div class="step-bar">
-      <h3>Куда распаковать</h3>
+      <h3>Where to unpack</h3>
       <span class="spacer"></span>
       <span class="acts">
-        <span class="btn ghost"><ArrowLeft class="ico" />Назад</span>
-        <span class="btn primary lg">Дальше</span>
+        <span class="btn ghost"><ArrowLeft class="ico" />Back</span>
+        <span class="btn primary lg">Next</span>
       </span>
     </div>
     <div class="meta">
       <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
-      <span>56 128 файлов</span>
-      <span>Распакуется в 9,7 ГБ</span>
-      <span>Нужно примерно 19,4 ГБ свободного места</span>
+      <span>56,128 files</span>
+      <span>Unpacks to 9.7 GB</span>
+      <span>Needs about 19.4 GB free</span>
     </div>
-    <!-- Что окажется на верхнем уровне после распаковки: у сборки
-         это одна корневая папка, но так бывает не у всякого архива,
-         и строка стоит всегда. -->
-    <p class="hint">Корневая папка в архиве: ComfyUI_windows_portable</p>
+    <!-- What ends up at the top level after unpacking: for a build that is
+         a single root folder, but not every archive is like that, and the
+         line is always there. -->
+    <p class="hint">Root folder in the archive: ComfyUI_windows_portable</p>
     <div class="cols targets">
       <div class="pane">
         <div class="pane-head">
-          <span class="title">Новое назначение</span>
-          <span class="btn primary">Добавить в список</span>
+          <span class="title">New destination</span>
+          <span class="btn primary">Add to the list</span>
         </div>
         <div class="scroll-pad">
           <div class="field">
-            <span class="t-label">Папка сборки</span>
+            <span class="t-label">Build folder</span>
             <div class="path-row">
               <div class="input mono"><span>D:\AI\Flux</span></div>
-              <span class="btn secondary">Выбрать…</span>
+              <span class="btn secondary">Choose…</span>
             </div>
-            <!-- Предупреждение, а не постоянная подсказка: оно
-                 появляется, только когда путь действительно
-                 длинный, и приходит проверкой назначений. -->
-            <div class="hint">Самый глубокий файл окажется на 246 символах. Распаковка пройдёт, но ComfyUI и pip могут не справиться — выберите путь короче.</div>
+            <!-- A warning rather than a permanent hint: it appears only
+                 when the path really is long, and it arrives with the
+                 check of the destinations. -->
+            <div class="hint">The deepest file would land 246 characters in. Unpacking will still work, but ComfyUI and pip may not — pick a shorter path.</div>
           </div>
           <div class="field">
-            <label>Имя</label>
-            <div class="input">Flux тест</div>
+            <label>Name</label>
+            <div class="input">Flux test</div>
           </div>
           <div class="field">
-            <label>Описание</label>
+            <label>Description</label>
             <div class="input"></div>
           </div>
           <div class="field">
-            <span class="t-label">Акцентный цвет</span>
+            <span class="t-label">Accent colour</span>
             <div class="picker">
               <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
               <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
               <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
               <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
-              <span class="swatch-custom" title="Выбрать свой цвет"></span>
+              <span class="swatch-custom" title="Pick your own colour"></span>
             </div>
           </div>
           <div class="field">
-            <label>Предпочитаемый порт</label>
+            <label>Preferred port</label>
             <div class="input num">8188</div>
-            <div class="hint">Используется при запуске, если свободен.</div>
+            <div class="hint">Used at startup when it is free.</div>
           </div>
         </div>
       </div>
-      <!-- Цвет виден прямо в строке: две сборки с похожими путями
-           различают по нему, а не по пути. Стоит между именем
-           и кнопками — там квадраты выстраиваются в колонку,
-           а не гуляют вслед за длиной имени. Карандаш разворачивает
-           правку под самой строкой — список остаётся на месте,
-           и видно, что именно правится. -->
+      <!-- The colour is visible right in the row: two builds with similar
+           paths are told apart by it, not by the path. It sits between the
+           name and the buttons — there the squares line up in a column
+           instead of wandering with the length of the name. The pencil
+           opens the edit under the row itself — the list stays where it
+           is, and it is visible what exactly is being edited. -->
       <div class="field">
-        <span class="t-label">Распакуется в</span>
+        <span class="t-label">Will be unpacked into</span>
         <div class="paths">
-          <!-- Описание в строку не лезет, но и пропасть не должно:
-               оно всплывает подсказкой. У строки без описания
-               атрибута нет вовсе — пустая подсказка мигала бы
-               рамкой ни о чём. -->
-          <div class="path-item editable" title="Ветка для экспериментов с Flux, ставим поверх свежей 0.31">
+          <!-- The description does not fit in the row, but it must not be
+               lost either: it pops up as a hint. A row without one has no
+               attribute at all — an empty hint would flash a frame about
+               nothing. -->
+          <div class="path-item editable" title="A branch for Flux experiments, put on top of the fresh 0.31">
             <span class="lbl">D:\AI\Flux</span>
-            <span class="val">Flux тест</span>
+            <span class="val">Flux test</span>
             <span class="chip sm" style="--instance-accent:var(--accent-teal)"></span>
             <span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span>
           </div>
           <div class="path-item editable">
             <span class="lbl">E:\AI\Flux_clean</span>
-            <span class="val">Flux чистый</span>
+            <span class="val">Flux clean</span>
             <span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span>
             <span class="acts"><span class="act" aria-pressed="true"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span>
           </div>
           <div class="pane">
             <div class="pane-head">
-              <span class="title">Редактирование</span>
+              <span class="title">Editing</span>
               <span class="acts"><span class="act"><Ban class="ico" /></span><span class="act"><Check class="ico" /></span></span>
             </div>
             <div class="scroll-pad">
               <div class="field">
-                <span class="t-label">Папка сборки</span>
+                <span class="t-label">Build folder</span>
                 <div class="path-row">
                   <div class="input mono"><span>E:\AI\Flux_clean</span></div>
-                  <span class="btn secondary">Выбрать…</span>
+                  <span class="btn secondary">Choose…</span>
                 </div>
               </div>
               <div class="field">
-                <label>Имя</label>
-                <div class="input">Flux чистый</div>
+                <label>Name</label>
+                <div class="input">Flux clean</div>
               </div>
               <div class="field">
-                <label>Описание</label>
+                <label>Description</label>
                 <div class="input"></div>
               </div>
               <div class="field">
-                <span class="t-label">Акцентный цвет</span>
+                <span class="t-label">Accent colour</span>
                 <div class="picker">
                   <i style="background:var(--accent-teal)"></i><i class="on" style="background:var(--accent-indigo)"></i>
                   <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
                   <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
                   <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
-                  <span class="swatch-custom" title="Выбрать свой цвет"></span>
+                  <span class="swatch-custom" title="Pick your own colour"></span>
                 </div>
               </div>
               <div class="field">
-                <label>Предпочитаемый порт</label>
+                <label>Preferred port</label>
                 <div class="input num">8189</div>
-                <div class="hint">Используется при запуске, если свободен.</div>
+                <div class="hint">Used at startup when it is free.</div>
               </div>
             </div>
           </div>
@@ -180,225 +177,225 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, ArrowLeft, Pencil, X, Ban,
   </div>
 </Window>
 
-## Реальный объём данных
+## A realistic amount of data
 
-*прокрутка · восемнадцать папок назначения; ряд шага с «Дальше» закреплён*
+*scrolling · eighteen destination folders; the step row with "Next" is pinned*
 
-<!-- Кнопки перехода стоят здесь и никуда не уезжают: шесть назначений
-     в области ниже прокручиваются, ряд шага остаётся на месте. -->
+<!-- The buttons that move on stand here and never scroll away: the six
+     destinations in the area below scroll, the step row stays put. -->
 <Window fixed scroll>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item on"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item on"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
       <div class="nav-sep"></div>
-      <div class="nav-note">Запущены · 8</div>
+      <div class="nav-note">Running · 8</div>
       <div class="nav-runs">
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-        <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL stable</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux test</em><i class="dot" style="background:var(--state-starting)"></i></div>
+        <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Animation</em><span class="badge">!</span></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">E</span><em>Experiments</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">V</span><em>Video</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">I</span><em>Inpaint</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">U</span><em>Upscale</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">N</span><em>Node tests</em><i class="dot" style="background:var(--state-running)"></i></div>
       </div>
     </nav>
   </template>
   <div class="content">
     <div class="pinned">
       <div class="steps">
-        <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
-        <span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span>
-        <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
-        <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
-        <span class="step"><u>5</u>Готово</span>
+        <span class="step done"><u>✓</u>Archive</span><span class="step-sep"></span>
+        <span class="step now"><u>2</u>Destinations</span><span class="step-sep"></span>
+        <span class="step"><u>3</u>Shared resources</span><span class="step-sep"></span>
+        <span class="step"><u>4</u>Unpacking</span><span class="step-sep"></span>
+        <span class="step"><u>5</u>Done</span>
       </div>
       <div class="step-bar">
-        <h3>Куда распаковать</h3>
+        <h3>Where to unpack</h3>
         <span class="spacer"></span>
         <span class="acts">
-          <span class="btn ghost"><ArrowLeft class="ico" />Назад</span>
-          <span class="btn primary lg">Дальше</span>
+          <span class="btn ghost"><ArrowLeft class="ico" />Back</span>
+          <span class="btn primary lg">Next</span>
         </span>
       </div>
       <div class="meta">
         <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
-        <span>56 128 файлов</span>
-        <span>Нужно примерно 58,2 ГБ свободного места</span>
+        <span>56,128 files</span>
+        <span>Needs about 58.2 GB free</span>
       </div>
     </div>
-    <!-- Форма прибита к верху колонки: список растёт вниз, а она
-         остаётся на месте — ровно по той же причине, по которой
-         из подвала наверх переехали «Назад» и «Дальше». -->
+    <!-- The form is nailed to the top of its column: the list grows
+         downwards while it stays put — for exactly the reason "Back" and
+         "Next" moved up out of the footer. -->
     <div class="scroll"><div class="scroll-pad">
       <div class="cols targets">
         <div class="pane">
           <div class="pane-head">
-            <span class="title">Новое назначение</span>
-            <span class="btn primary">Добавить в список</span>
+            <span class="title">New destination</span>
+            <span class="btn primary">Add to the list</span>
           </div>
           <div class="scroll-pad">
             <div class="field">
-              <span class="t-label">Папка сборки</span>
+              <span class="t-label">Build folder</span>
               <div class="path-row">
                 <div class="input mono"><span>D:\AI\Flux</span></div>
-                <span class="btn secondary">Выбрать…</span>
+                <span class="btn secondary">Choose…</span>
               </div>
             </div>
             <div class="field">
-              <label>Имя</label>
-              <div class="input">Flux тест</div>
+              <label>Name</label>
+              <div class="input">Flux test</div>
             </div>
             <div class="field">
-              <span class="t-label">Акцентный цвет</span>
+              <span class="t-label">Accent colour</span>
               <div class="picker">
                 <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
                 <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
-                <span class="swatch-custom" title="Выбрать свой цвет"></span>
+                <span class="swatch-custom" title="Pick your own colour"></span>
               </div>
             </div>
           </div>
         </div>
         <div class="field">
-          <span class="t-label">Распакуется в</span>
+          <span class="t-label">Will be unpacked into</span>
           <div class="paths">
-            <div class="path-item editable" title="Ветка для экспериментов с Flux, ставим поверх свежей 0.31"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span><span class="chip sm" style="--instance-accent:var(--accent-teal)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span><span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span><span class="acts"><span class="act" aria-pressed="true"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <!-- Правка в середине списка: панель разворачивается
-                 на своём месте, всё ниже уезжает вниз, порядок
-                 строк не меняется. -->
+            <div class="path-item editable" title="A branch for Flux experiments, put on top of the fresh 0.31"><span class="lbl">D:\AI\Flux</span><span class="val">Flux test</span><span class="chip sm" style="--instance-accent:var(--accent-teal)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux clean</span><span class="chip sm" style="--instance-accent:var(--accent-indigo)"></span><span class="acts"><span class="act" aria-pressed="true"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <!-- An edit in the middle of the list: the panel opens in its
+                 own place, everything below moves down, and the order of
+                 the rows does not change. -->
             <div class="pane">
               <div class="pane-head">
-                <span class="title">Редактирование</span>
+                <span class="title">Editing</span>
                 <span class="acts"><span class="act"><Ban class="ico" /></span><span class="act"><Check class="ico" /></span></span>
               </div>
               <div class="scroll-pad">
                 <div class="field">
-                  <span class="t-label">Папка сборки</span>
+                  <span class="t-label">Build folder</span>
                   <div class="path-row">
                     <div class="input mono"><span>E:\AI\Flux_clean</span></div>
-                    <span class="btn secondary">Выбрать…</span>
+                    <span class="btn secondary">Choose…</span>
                   </div>
                 </div>
                 <div class="field">
-                  <label>Имя</label>
-                  <div class="input">Flux чистый</div>
+                  <label>Name</label>
+                  <div class="input">Flux clean</div>
                 </div>
                 <div class="field">
-                  <label>Предпочитаемый порт</label>
+                  <label>Preferred port</label>
                   <div class="input num">8189</div>
-                  <div class="hint">Используется при запуске, если свободен.</div>
+                  <div class="hint">Used at startup when it is free.</div>
                 </div>
               </div>
             </div>
             <div class="path-item editable"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span><span class="chip sm" style="--instance-accent:var(--accent-ember)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Sandbox</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Video</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Archive 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
             <div class="path-item editable"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span><span class="chip sm" style="--instance-accent:var(--accent-ember)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Sandbox</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Video</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Archive 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
             <div class="path-item editable"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span><span class="chip sm" style="--instance-accent:var(--accent-ember)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
-            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Sandbox</span><span class="val">Sandbox</span><span class="chip sm" style="--instance-accent:var(--accent-moss)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">D:\AI\Video</span><span class="val">Video</span><span class="chip sm" style="--instance-accent:var(--accent-azure)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
+            <div class="path-item editable"><span class="lbl">E:\AI\Archive_030</span><span class="val">Archive 0.30</span><span class="chip sm" style="--instance-accent:var(--accent-orchid)"></span><span class="acts"><span class="act"><Pencil class="ico" /></span><span class="act"><X class="ico" /></span></span></div>
           </div>
-          <!-- Проверка идёт по всему списку и после каждого
-               добавления: место на диске могло кончиться уже
-               после того, как назначение добавили. -->
-          <p class="hint bad">Не хватает места: нужно примерно 58,2 ГБ.</p>
+          <!-- The check runs over the whole list and after every addition:
+               the disk could have filled up after the destination was
+               added. -->
+          <p class="hint bad">Not enough free space: about 58.2 GB is required.</p>
         </div>
       </div>
     </div></div>
   </div>
 </Window>
 
-## Список пуст
+## The list is empty
 
-Первое, что видно на шаге.
+The first thing seen on the step.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item on"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item on"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content">
     <div class="steps">
-      <span class="step done"><u>✓</u>Архив</span><span class="step-sep"></span>
-      <span class="step now"><u>2</u>Назначения</span><span class="step-sep"></span>
-      <span class="step"><u>3</u>Общие ресурсы</span><span class="step-sep"></span>
-      <span class="step"><u>4</u>Распаковка</span><span class="step-sep"></span>
-      <span class="step"><u>5</u>Готово</span>
+      <span class="step done"><u>✓</u>Archive</span><span class="step-sep"></span>
+      <span class="step now"><u>2</u>Destinations</span><span class="step-sep"></span>
+      <span class="step"><u>3</u>Shared resources</span><span class="step-sep"></span>
+      <span class="step"><u>4</u>Unpacking</span><span class="step-sep"></span>
+      <span class="step"><u>5</u>Done</span>
     </div>
     <div class="step-bar">
-      <h3>Куда распаковать</h3>
+      <h3>Where to unpack</h3>
       <span class="spacer"></span>
       <span class="acts">
-        <span class="btn ghost"><ArrowLeft class="ico" />Назад</span>
-        <span class="btn primary lg" aria-disabled="true">Дальше</span>
+        <span class="btn ghost"><ArrowLeft class="ico" />Back</span>
+        <span class="btn primary lg" aria-disabled="true">Next</span>
       </span>
     </div>
     <div class="meta">
       <span>ComfyUI_windows_portable_nvidia_0.31.0.7z</span>
-      <span>56 128 файлов</span>
-      <span>Распакуется в 9,7 ГБ</span>
-      <span>Нужно примерно 0 байт свободного места</span>
+      <span>56,128 files</span>
+      <span>Unpacks to 9.7 GB</span>
+      <span>Needs about 0 bytes free</span>
     </div>
-    <p class="hint">Корневая папка в архиве: ComfyUI_windows_portable</p>
-    <!-- Форма чиста и молчит: ругаться на поле, до которого
-         не дошли, — врать. Ошибки появятся, когда «Добавить
-         в список» нажмут на незаполненной форме. «Дальше»
-         выключена: пока список пуст, распаковывать нечего. -->
+    <p class="hint">Root folder in the archive: ComfyUI_windows_portable</p>
+    <!-- The form is clean and silent: complaining about a field nobody has
+         reached yet is a lie. The errors appear when "Add to the list" is
+         pressed on an empty form. "Next" is disabled: while the list is
+         empty there is nothing to unpack. -->
     <div class="cols targets">
       <div class="pane">
         <div class="pane-head">
-          <span class="title">Новое назначение</span>
-          <span class="btn primary">Добавить в список</span>
+          <span class="title">New destination</span>
+          <span class="btn primary">Add to the list</span>
         </div>
         <div class="scroll-pad">
           <div class="field">
-            <span class="t-label">Папка сборки</span>
+            <span class="t-label">Build folder</span>
             <div class="path-row">
               <div class="input mono"><span></span></div>
-              <span class="btn secondary">Выбрать…</span>
+              <span class="btn secondary">Choose…</span>
             </div>
           </div>
           <div class="field">
-            <label>Имя</label>
+            <label>Name</label>
             <div class="input"></div>
           </div>
           <div class="field">
-            <label>Описание</label>
+            <label>Description</label>
             <div class="input"></div>
           </div>
           <div class="field">
-            <span class="t-label">Акцентный цвет</span>
+            <span class="t-label">Accent colour</span>
             <div class="picker">
               <i class="on" style="background:var(--accent-teal)"></i><i style="background:var(--accent-indigo)"></i>
               <i style="background:var(--accent-ember)"></i><i style="background:var(--accent-moss)"></i>
               <i style="background:var(--accent-azure)"></i><i style="background:var(--accent-orchid)"></i>
               <i style="background:var(--accent-rose)"></i><i style="background:var(--accent-amber)"></i>
-              <span class="swatch-custom" title="Выбрать свой цвет"></span>
+              <span class="swatch-custom" title="Pick your own colour"></span>
             </div>
           </div>
           <div class="field">
-            <label>Предпочитаемый порт</label>
+            <label>Preferred port</label>
             <div class="input num">8188</div>
-            <div class="hint">Используется при запуске, если свободен.</div>
+            <div class="hint">Used at startup when it is free.</div>
           </div>
         </div>
       </div>
       <div class="field">
-        <span class="t-label">Распакуется в</span>
-        <p class="blank">Заполните форму слева и добавьте первое назначение.</p>
+        <span class="t-label">Will be unpacked into</span>
+        <p class="blank">Fill in the form on the left and add the first destination.</p>
       </div>
     </div>
   </div>

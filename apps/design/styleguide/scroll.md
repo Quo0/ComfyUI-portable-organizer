@@ -2,42 +2,42 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info } from '@lucide/vue';
 </script>
 
-# Прокрутка
+# Scrolling
 
 <!-- NFR-420 · NFR-430 · NFR-440 -->
 
-Окно фиксированной высоты, данные не ограничены. Что закреплено, а что уезжает — это архитектура экрана.
+The window has a fixed height, the data does not. What is pinned and what moves away is the architecture of a screen.
 
-Правило одно: **окно не прокручивается целиком**. Рейл
-закреплён, внутри контентной области ровно один вертикальный скролл —
-область данных, а всё управляющее из неё вынесено. Уехавший подвал
-мастера делает мастер непроходимым; уехавшая панель деталей делает
-выбор невидимым. Вложенная прокрутка допускается только в раскладке
-«список — детали»: два независимых региона рядом.
+There is one rule: **the window never scrolls as a whole**. The rail is pinned,
+and inside the content area there is exactly one vertical scroll — the data
+area, with everything that controls it lifted out. A wizard footer that scrolls
+away makes the wizard impossible to finish; a details panel that scrolls away
+makes the selection invisible. Nested scrolling is allowed only in the
+master-detail layout: two independent regions side by side.
 
-### Каркас: закреплённый верх → область данных → закреплённый подвал
+### The frame: pinned header → data area → pinned footer
 
 <ThemePair>
   <div class="pane" style="height:220px">
-    <div class="pane-head"><span class="title">Назначения</span><span class="t-label">6</span></div>
+    <div class="pane-head"><span class="title">Destinations</span><span class="t-label">6</span></div>
     <div class="scroll"><div class="scroll-pad">
-      <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux тест</span></div>
-      <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux чистый</span></div>
+      <div class="path-item"><span class="lbl">D:\AI\Flux</span><span class="val">Flux test</span></div>
+      <div class="path-item"><span class="lbl">E:\AI\Flux_clean</span><span class="val">Flux clean</span></div>
       <div class="path-item"><span class="lbl">D:\AI\SDXL_new</span><span class="val">SDXL 0.31</span></div>
-      <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Песочница</span></div>
-      <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Видео</span></div>
-      <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Архив 0.30</span></div>
+      <div class="path-item"><span class="lbl">E:\AI\Sandbox</span><span class="val">Sandbox</span></div>
+      <div class="path-item"><span class="lbl">D:\AI\Video</span><span class="val">Video</span></div>
+      <div class="path-item"><span class="lbl">E:\AI\Archive_030</span><span class="val">Archive 0.30</span></div>
     </div></div>
-    <div class="pane-foot"><span class="btn ghost">Назад</span><span class="btn primary">Далее</span></div>
+    <div class="pane-foot"><span class="btn ghost">Back</span><span class="btn primary">Next</span></div>
   </div>
 </ThemePair>
 
-### Список и детали — две независимые прокрутки
+### List and details — two independent scrolls
 
 <ThemePair>
   <div class="split-master" style="height:220px">
     <div class="pane">
-      <div class="pane-head"><span class="title">Воркфлоу</span><span class="t-label">214</span></div>
+      <div class="pane-head"><span class="title">Workflows</span><span class="t-label">214</span></div>
       <div class="scroll"><div class="scroll-pad" style="gap:1px">
         <div class="wf-row"><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span><span class="star">★</span></div>
         <div class="wf-row"><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span><span class="star">★</span></div>
@@ -48,29 +48,29 @@ import { Layers, FolderPlus, SlidersHorizontal, Info } from '@lucide/vue';
       </div></div>
     </div>
     <div class="pane">
-      <div class="pane-head"><span class="title">Выбран</span></div>
+      <div class="pane-head"><span class="title">Selected</span></div>
       <div class="scroll"><div class="scroll-pad">
         <div class="t-sm">flux / portrait-v3.json</div>
-        <div class="t-label">Заметка</div>
-        <p class="t-sm" style="margin:0">Портрет с двумя LoRA и апскейлом. Работает только там, где стоит IPAdapter.</p>
-        <div class="t-label">Совместимость</div>
-        <div class="compat-note" style="color:var(--state-starting)">нет 2 нод в «Flux тест»</div>
+        <div class="t-label">Note</div>
+        <p class="t-sm" style="margin:0">A portrait with two LoRAs and an upscale. Only works where IPAdapter is installed.</p>
+        <div class="t-label">Compatibility</div>
+        <div class="compat-note" style="color:var(--state-starting)">2 nodes missing in “Flux test”</div>
       </div></div>
-      <div class="pane-foot"><span class="btn primary">Добавить</span></div>
+      <div class="pane-foot"><span class="btn primary">Add</span></div>
     </div>
   </div>
 </ThemePair>
 
-Прокрутка списка не двигает панель деталей, и наоборот. При узком окне
-раскладка схлопывается в одну колонку, и детали становятся отдельным
-экраном — иначе на панель в 300&nbsp;px не останется места.
+Scrolling the list does not move the details panel, and the other way round. In
+a narrow window the layout collapses into a single column and the details become
+a screen of their own — otherwise there is no room left for a 300&nbsp;px panel.
 
-### Консоль: следование за лентой приостановлено
+### The console: following the tail is paused
 
-Пока пользователь внизу, консоль следует за новыми строками. Как только
-он прокрутил вверх, следование **приостанавливается** —
-иначе лог выдёргивает текст из-под курсора при каждой новой строке.
-Кнопка возврата показывает, сколько строк накопилось.
+While the user is at the bottom, the console follows the new lines. The moment
+they scroll up, following is **paused** — otherwise the log yanks the text out
+from under the cursor on every new line. The return button shows how many lines
+have piled up.
 
 <ThemePair>
   <div class="log" style="height:180px">
@@ -81,44 +81,44 @@ Loading custom nodes: 47 found
   ComfyUI_IPAdapter_plus
   ComfyUI-VideoHelperSuite
   was-node-suite-comfyui
-<span class="dim">  ... ещё 43</span>
+<span class="dim">  ... 43 more</span>
 Import times for custom nodes:
    0.1 seconds: ComfyUI-Manager
    2.4 seconds: was-node-suite-comfyui
 Starting server on 127.0.0.1:8188</div>
-    <span class="log-follow">К последним строкам <span class="n">+128</span></span>
+    <span class="log-follow">To the latest lines <span class="n">+128</span></span>
   </div>
 </ThemePair>
 
-### Рейл: разделы закреплены, запущенные прокручиваются
+### The rail: sections pinned, running instances scroll
 
 <ThemePair>
   <nav class="nav" style="height:240px">
-    <div class="nav-item on"><Layers class="ico" /><span>Инстансы</span></div>
-    <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-    <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-    <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+    <div class="nav-item on"><Layers class="ico" /><span>Instances</span></div>
+    <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+    <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+    <div class="nav-item"><Info class="ico" /><span>About</span></div>
     <div class="nav-sep"></div>
-    <div class="nav-note">Запущены · 8</div>
+    <div class="nav-note">Running · 8</div>
     <div class="nav-runs">
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-      <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL stable</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux test</em><i class="dot" style="background:var(--state-starting)"></i></div>
+      <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Animation</em><span class="badge">!</span></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">E</span><em>Experiments</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">V</span><em>Video</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">I</span><em>Inpaint</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">U</span><em>Upscale</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">N</span><em>Node tests</em><i class="dot" style="background:var(--state-running)"></i></div>
     </div>
   </nav>
 </ThemePair>
 
 <div class="longform">
-  <div class="lf-head">Механика, которую легко сделать неправильно</div>
+  <div class="lf-head">Mechanics that are easy to get wrong</div>
   <div class="lf-rows">
-    <div class="lf-row"><b>1</b><span><code>min-height: 0</code> на каждом звене цепочки — иначе grid-элемент не сожмётся ниже содержимого и скролл не появится вовсе</span></div>
-    <div class="lf-row"><b>2</b><span><code>overscroll-behavior: contain</code> — иначе докрутка списка до конца начинает прокручивать страницу за ним</span></div>
-    <div class="lf-row"><b>3</b><span>Закрепление через <code>position: sticky</code> внутри панели, а не <code>fixed</code> — тот привязался бы к окну</span></div>
-    <div class="lf-row"><b>4</b><span>Полоса прокрутки из токенов: системная светлая в тёмном интерфейсе выглядит чужеродно</span></div>
+    <div class="lf-row"><b>1</b><span><code>min-height: 0</code> on every link of the chain — otherwise a grid item will not shrink below its content and no scroll appears at all</span></div>
+    <div class="lf-row"><b>2</b><span><code>overscroll-behavior: contain</code> — otherwise scrolling the list to its end starts scrolling the page behind it</span></div>
+    <div class="lf-row"><b>3</b><span>Pinning through <code>position: sticky</code> inside the panel, not <code>fixed</code> — that one would attach to the window</span></div>
+    <div class="lf-row"><b>4</b><span>The scrollbar comes from the tokens: a light system one looks alien in a dark interface</span></div>
   </div>
 </div>

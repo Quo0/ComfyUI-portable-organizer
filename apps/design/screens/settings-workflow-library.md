@@ -2,86 +2,87 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, Palette, Database, Workflow, HardDrive, Archive, Plus, ListChecks, Check, ExternalLink } from '@lucide/vue';
 </script>
 
-# Настройки: библиотека воркфлоу
+# Settings: workflow library
 
-<!-- J-05 · шаги 4-5 · US-WF-02 · US-WF-04 · US-WF-05 -->
+<!-- J-05 · steps 4-5 · US-WF-02 · US-WF-04 · US-WF-05 -->
 
-Библиотека — раздел настроек, а не раздел рейла. Она устроена ровно как
-общие модели: одна папка снаружи сборок и её содержимое. Настройка папки
-и то, что в ней лежит, стояли в разных местах — путь в настройках, список
-в рейле, — и на вопрос «а куда это складывается» приходилось отвечать
-переходом в другой раздел. Теперь и путь, и содержимое на одном экране,
-а в рейле остались четыре постоянных места: сборки, откуда взять новую,
-настройки, о программе.
+The library is a settings section, not a rail section. It is built exactly like
+the shared models: one folder outside the builds and its contents. Configuring
+the folder and seeing what lies in it used to sit in different places — the
+path in the settings, the list in the rail — and the question "where does this
+get put" had to be answered by going to another section. Now both the path and
+the contents are on one screen, and the rail keeps four permanent places:
+builds, where to get a new one, settings, about.
 
-Проверка совместимости — то, ради чего перенос живёт в приложении, а не в
-проводнике. У остановленного инстанса точного ответа нет, и честнее
-пометить его неизвестным, чем показать зелёную галочку.
+The compatibility check is what the transfer lives in the app for rather than
+in Explorer. For a stopped instance there is no exact answer, and marking it
+unknown is more honest than showing a green tick.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
-      <!-- Поля даёт содержимое: у шапки и у мастер-детейла они свои. -->
+      <!-- The padding comes from the content: the head and the master-detail
+           each have their own. -->
       <div class="content flush">
-        <!-- Путь стоит в шапке раздела, а не отдельным полем над
-             списком: это одна строка, которую задают один раз, и
-             отводить под неё блок в полэкрана значило бы говорить
-             о ней громче, чем о самой библиотеке. -->
-        <!-- Способы пополнить библиотеку собраны в одну кнопку
-             с меню и отжаты к правому краю. Их два, они об одном,
-             и рядом с путём читались как три равноправных органа;
-             освободившееся место отдано пути — ради него ряд
-             и существует. -->
+        <!-- The path sits in the section head rather than in a field of its
+             own above the list: it is one line, set once, and giving it half
+             a screen would speak of it louder than of the library itself. -->
+        <!-- The ways to fill the library are collected under one button with
+             a menu, pushed to the right edge. There are two of them, they are
+             about the same thing, and next to the path they read as three
+             equal controls; the freed space went to the path — the row exists
+             for it. -->
         <div class="lib-head">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
           <span class="spacer"></span>
           <div class="menu">
-            <span class="btn secondary"><Plus class="ico" />Добавить</span>
+            <span class="btn secondary"><Plus class="ico" />Add</span>
           </div>
         </div>
         <div class="split-master">
           <div class="pane">
             <div class="pane-head">
-              <!-- Множественный выбор объявляется отсюда, а не
-                   заводится сам от первой отметки. Кнопка стоит
-                   до поля поиска: она меняет, чем список является,
-                   а поиск и избранное лишь сужают показанное. -->
+              <!-- Multiple selection is declared from here rather than
+                   starting by itself on the first tick. The button stands
+                   before the search field: it changes what the list is, while
+                   search and favourites only narrow what is shown. -->
               <span class="btn ghost icon"><ListChecks class="ico" /></span>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <div class="input search"><span>Search by name and tags</span></div>
               <span class="btn ghost icon" aria-pressed="true"><span class="star">★</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad" style="gap:1px">
-              <!-- Отметок в обычном режиме нет: держать под них
-                   пустую колонку постоянно значило бы отодвигать
-                   имена ради органа, которого на экране нет. -->
+              <!-- There are no tick boxes in the normal mode: keeping an empty
+                   column for them at all times would push the names aside for
+                   a control that is not on the screen. -->
               <div class="wf-row"><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span><span class="tag">upscale</span></span></div>
               <div class="wf-row on"><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
               <div class="wf-row"><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
-              <div class="wf-row lost"><span class="star off">★</span><span class="nm">video / ltx-draft.json</span><span class="tags"><span class="tag stop">файла нет</span></span></div>
+              <div class="wf-row lost"><span class="star off">★</span><span class="nm">video / ltx-draft.json</span><span class="tags"><span class="tag stop">file gone</span></span></div>
             </div></div>
-            <!-- Счётчик внизу списка, а не в его шапке: шапка занята
-                 поиском, а число отвечает на вопрос о том, что под
-                 ним, — и отвечает после фильтра, а не до него. -->
-            <div class="pane-foot"><span class="t-label">14 воркфлоу</span></div>
+            <!-- The counter is at the bottom of the list, not in its head: the
+                 head is taken by the search, and the number answers a question
+                 about what is under it — and answers after the filter, not
+                 before it. -->
+            <div class="pane-foot"><span class="t-label">14 workflows</span></div>
           </div>
           <div class="pane">
             <div class="pane-head">
@@ -89,33 +90,33 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, Palette, Database, Workflo
               <span class="star lg">★</span>
             </div>
             <div class="tabs">
-              <span aria-selected="true">Где откроется</span>
-              <span>Заметка</span>
-              <span>Теги <span class="n">1</span></span>
+              <span aria-selected="true">Where it opens</span>
+              <span>Note</span>
+              <span>Tags <span class="n">1</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
               <div class="compat">
-                <!-- Уход на страницу сборки — в правом углу, в одну
-                     строку с именем: это переход к другому объекту,
-                     а не действие над воркфлоу, и путать его с «положить»
-                     нельзя. -->
+                <!-- Leaving for the build's page is in the right corner, on
+                     the same line as the name: this is a move to another
+                     object, not an action on the workflow, and it must not be
+                     confused with "put it there". -->
                 <div class="compat-row ok">
                   <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
                   <span class="act on"><Check class="ico" /></span>
-                  <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
+                  <span class="nm">SDXL stable</span><span class="compat-note">all nodes present</span>
                   <span class="act open"><ExternalLink class="ico" /></span>
                 </div>
                 <div class="compat-row warn">
                   <span class="chip" style="--instance-accent:var(--accent-indigo)"></span>
                   <span class="act"><Plus class="ico" /></span>
-                  <span class="nm">Flux тест</span><span class="compat-note">нет 2 нод</span>
+                  <span class="nm">Flux test</span><span class="compat-note">2 nodes missing</span>
                   <span class="act open"><ExternalLink class="ico" /></span>
                 </div>
                 <div class="missing">IPAdapterUnifiedLoader · ReActorFaceSwap</div>
                 <div class="compat-row">
                   <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
                   <span class="act"><Plus class="ico" /></span>
-                  <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
+                  <span class="nm">Experiments</span><span class="compat-note">per the last run</span>
                   <span class="act open"><ExternalLink class="ico" /></span>
                 </div>
               </div>
@@ -127,111 +128,113 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, Palette, Database, Workflo
   </div>
 </Window>
 
-## Папка ещё не выбрана
+## The folder has not been chosen yet
 
-Раздел настройки и есть, поэтому уводить некуда — выбор стоит здесь же.
+This section is the setting, so there is nowhere to send the user — the choice
+stands right here.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
-        <h3>Библиотека воркфлоу</h3>
+        <h3>Workflow library</h3>
         <div class="empty">
           <p>
-            Библиотека — папка вне сборок. Воркфлоу в ней переживают
-            переустановку ComfyUI и видны всем сборкам сразу.
+            The library is a folder outside the builds. Workflows in it survive
+            a ComfyUI reinstall and are visible to every build at once.
           </p>
           <div class="field" style="width:100%;max-width:520px">
-            <label>Папка библиотеки</label>
+            <label>Library folder</label>
             <div class="path-row">
-              <div class="input mono"><span>не выбрана</span></div>
-              <span class="btn secondary">Обзор</span>
+              <div class="input mono"><span>not chosen</span></div>
+              <span class="btn secondary">Browse</span>
             </div>
-            <!-- Подсказка рядом с общими моделями — не правило,
-                 а удобство: они обычно на просторном диске. -->
-            <div class="hint">Рядом с общими моделями: D:\AI\_shared\workflows</div>
+            <!-- Suggesting a spot next to the shared models is not a rule but
+                 a convenience: they usually sit on a roomy drive. -->
+            <div class="hint">Next to the shared models: D:\AI\_shared\workflows</div>
           </div>
-          <span class="btn primary">Положить рядом с общими моделями</span>
+          <span class="btn primary">Put it next to the shared models</span>
         </div>
       </div>
     </div>
   </div>
 </Window>
 
-## Вставка из буфера
+## Pasting from the clipboard
 
-Граф приходит текстом — из чата, с форума, из соседней машины.
+A graph arrives as text — from a chat, from a forum, from the machine next
+door.
 
-Воркфлоу чаще присылают текстом, чем файлом, и сохранять присланное
-в файл только ради того, чтобы тут же выбрать его в диалоге, — лишний
-круг. Форма занимает место списка, а не всплывает над ним: тот же
-компонент встанет на вкладку «Воркфлоу» у сборки, где поверх нашего
-HTML лежит нативное окно ComfyUI и всплыть физически не над чем.
-Имя спрашивается сразу: у текста из буфера его нет, а придумывать
-за пользователя «workflow (3)» значит гарантировать свалку.
+Workflows are sent as text more often than as a file, and saving what was sent
+into a file only to pick it in a dialog straight away is a detour. The form
+takes the place of the list rather than popping up over it: the same component
+will stand on a build's "Workflows" tab, where a native ComfyUI window lies on
+top of our HTML and there is physically nothing to pop up above. The name is
+asked for at once: text from the clipboard has none, and inventing
+`workflow (3)` for the user guarantees a dump.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
         <div class="row">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <span class="spacer"></span>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
         </div>
         <div class="paste">
           <div class="field">
-            <label>Имя</label>
+            <label>Name</label>
             <div class="input"><span>portrait-v3</span></div>
-            <!-- Расширение дописывается само: набранное руками
-                 «.jsn» или «.json.json» — не выбор пользователя,
-                 а описка, и ловить её вопросом незачем. -->
-            <div class="hint">Сохранится как portrait-v3.json</div>
+            <!-- The extension is appended by itself: a hand-typed `.jsn` or
+                 `.json.json` is not the user's choice but a typo, and there is
+                 no point catching it with a question. -->
+            <div class="hint">Will be saved as portrait-v3.json</div>
           </div>
           <div class="field">
-            <label>JSON воркфлоу</label>
+            <label>Workflow JSON</label>
             <div class="input area mono">{"last_node_id": 42, "last_link_id": 61, "nodes": [{"id": 1, "type": "CheckpointLoaderSimple", "pos": [80, 120], "widgets_values": ["sd_xl_base_1.0.safetensors"]}, {"id": 2, "type": "CLIPTextEncode", …</div>
-            <!-- Разбор идёт по ходу набора, а не по нажатию:
-                 «Сохранить» на неразобранном тексте — это вопрос,
-                 ответ на который уже известен. -->
-            <div class="hint">Разобрано: 27 нод · IPAdapterUnifiedLoader и ещё 12 типов</div>
+            <!-- Parsing runs as the text is typed rather than on the press:
+                 "Save" on unparsed text is a question whose answer is already
+                 known. -->
+            <div class="hint">Parsed: 27 nodes · IPAdapterUnifiedLoader and 12 more types</div>
           </div>
           <div class="row">
-            <span class="btn primary">Сохранить в библиотеку</span>
-            <span class="btn ghost">Отмена</span>
+            <span class="btn primary">Save to the library</span>
+            <span class="btn ghost">Cancel</span>
           </div>
         </div>
       </div>
@@ -239,54 +242,54 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
   </div>
 </Window>
 
-## В буфере не воркфлоу
+## The clipboard holds something else
 
-Отказ на месте, до записи файла.
+The refusal happens on the spot, before a file is written.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
         <div class="row">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <span class="spacer"></span>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
         </div>
         <div class="paste">
           <div class="field">
-            <label>Имя</label>
-            <!-- Занятое имя — не ошибка ввода: файл в библиотеке
-                 не перезаписывается никогда, и сказать об этом
-                 надо до нажатия, а не после. -->
+            <label>Name</label>
+            <!-- A taken name is not an input error: a file in the library is
+                 never overwritten, and this has to be said before the press,
+                 not after it. -->
             <div class="input bad"><span>portrait-v3</span></div>
-            <div class="hint bad">portrait-v3.json в библиотеке уже есть. Заменить нечем: выберите другое имя.</div>
+            <div class="hint bad">portrait-v3.json is already in the library. There is nothing to replace it with: choose another name.</div>
           </div>
           <div class="field">
-            <label>JSON воркфлоу</label>
-            <div class="input area mono bad">{"prompt": "закат над морем", "steps": 30}</div>
-            <div class="hint bad">Это JSON, но не воркфлоу: в нём нет узлов. Ничего не сохранено.</div>
+            <label>Workflow JSON</label>
+            <div class="input area mono bad">{"prompt": "sunset over the sea", "steps": 30}</div>
+            <div class="hint bad">This is JSON, but not a workflow: it has no nodes. Nothing has been saved.</div>
           </div>
           <div class="row">
-            <span class="btn primary" aria-disabled="true">Сохранить в библиотеку</span>
-            <span class="btn ghost">Отмена</span>
+            <span class="btn primary" aria-disabled="true">Save to the library</span>
+            <span class="btn ghost">Cancel</span>
           </div>
         </div>
       </div>
@@ -294,70 +297,70 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
   </div>
 </Window>
 
-## Реальный объём данных
+## The real volume of data
 
-**Прокрутка.** Двести воркфлоу; список разделов и панель деталей не
-уезжают вместе со списком.
+**Scrolling.** Two hundred workflows; the section list and the detail pane do
+not ride away with the list.
 
 <Window :fixed="true" scroll>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
       <div class="nav-sep"></div>
-      <div class="nav-note">Запущены · 8</div>
+      <div class="nav-note">Running · 8</div>
       <div class="nav-runs">
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux тест</em><i class="dot" style="background:var(--state-starting)"></i></div>
-        <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Анимация</em><span class="badge">!</span></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">Э</span><em>Эксперименты</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">В</span><em>Видео</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">И</span><em>Инпейнт</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">У</span><em>Апскейл</em><i class="dot" style="background:var(--state-running)"></i></div>
-        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">Т</span><em>Тесты нод</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL stable</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-indigo)">F</span><em>Flux test</em><i class="dot" style="background:var(--state-starting)"></i></div>
+        <div class="nav-run alert"><span class="chip" style="--instance-accent:var(--accent-ember)">A</span><em>Animation</em><span class="badge">!</span></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-moss)">E</span><em>Experiments</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-azure)">V</span><em>Video</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-orchid)">I</span><em>Inpaint</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-rose)">U</span><em>Upscale</em><i class="dot" style="background:var(--state-running)"></i></div>
+        <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-amber)">N</span><em>Node tests</em><i class="dot" style="background:var(--state-running)"></i></div>
       </div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content flush framed no-foot">
         <div class="lib-head">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
           <span class="spacer"></span>
           <div class="menu">
-            <span class="btn secondary"><Plus class="ico" />Добавить</span>
+            <span class="btn secondary"><Plus class="ico" />Add</span>
           </div>
         </div>
-        <!-- Множественный выбор. Панель справа заменяется целиком:
-             раньше она жила в двух режимах разом — заголовок
-             со звёздочкой про выбранный воркфлоу, а тело под ним
-             про все отмеченные. -->
+        <!-- Multiple selection. The pane on the right is replaced whole:
+             it used to live in two modes at once — a head with a star about
+             the selected workflow, and a body under it about everything
+             ticked. -->
         <div class="split-master">
           <div class="pane">
             <div class="pane-head">
               <span class="btn ghost icon" aria-pressed="true"><ListChecks class="ico" /></span>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <div class="input search"><span>Search by name and tags</span></div>
               <span class="btn ghost icon"><span class="star off">★</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
               <div class="wf-list picking">
-                <!-- data-repeat="3": исходник повторяет один и тот же
-                     блок из восьми строк трижды подряд, изображая
-                     двести воркфлоу без двухсот уникальных записей.
-                     Ниже — те же три повтора, расписанные вручную. -->
+                <!-- data-repeat="3": the source repeats one and the same block
+                     of eight rows three times in a row, depicting two hundred
+                     workflows without two hundred unique entries. Below are
+                     those same three repeats, written out by hand. -->
                 <div class="wf-row on"><span class="check on"><svg viewBox="0 0 10.1668 10.1668"><path d="M1 5.52 3.92 9.17 9.17 1"/></svg></span><span class="star">★</span><span class="nm">sdxl / base-upscale.json</span><span class="tags"><span class="tag">sdxl</span></span></div>
                 <div class="wf-row"><span class="check"></span><span class="star">★</span><span class="nm">flux / portrait-v3.json</span><span class="tags"><span class="tag">flux</span></span></div>
                 <div class="wf-row"><span class="check"></span><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
@@ -384,27 +387,28 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
                 <div class="wf-row"><span class="check"></span><span class="star off">★</span><span class="nm">flux / lora-stack.json</span><span class="tags"><span class="tag">flux</span></span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">214 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">214 workflows</span></div>
           </div>
           <div class="pane">
-            <!-- Кнопка в шапке, счётчик отмеченного в подвале —
-                 как и счётчик списка слева: обе панели отвечают
-                 «сколько тут» внизу, а действие держат наверху. -->
-            <div class="pane-head"><span class="title">Множественный выбор</span><span class="btn primary">Добавить</span></div>
+            <!-- The button in the head, the counter of what is ticked in the
+                 foot — the same as the list counter on the left: both panes
+                 answer "how many are here" at the bottom and keep the action
+                 at the top. -->
+            <div class="pane-head"><span class="title">Multiple selection</span><span class="btn primary">Add</span></div>
             <div class="scroll"><div class="scroll-pad">
-              <!-- Сборки отмечаются, а не запускают запись по клику:
-                   файлы пишутся на диск необратимо, и начинать это
-                   попаданием мышью в строку нельзя. Кладёт кнопка
-                   внизу, которая так и подписана. -->
+              <!-- Builds are ticked rather than starting the write on a click:
+                   files go to disk irreversibly, and that must not begin with
+                   the mouse landing on a row. The button at the bottom does
+                   the putting, and it says so. -->
               <div class="pick-list">
-                <div class="pick-head"><span class="check mixed"></span><span>Все сборки</span></div>
-                <div class="pick-row"><span class="check on"><svg viewBox="0 0 10.1668 10.1668"><path d="M1 5.52 3.92 9.17 9.17 1"/></svg></span><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="nm">SDXL стабильная</span></div>
-                <div class="pick-row"><span class="check on"><svg viewBox="0 0 10.1668 10.1668"><path d="M1 5.52 3.92 9.17 9.17 1"/></svg></span><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="nm">Flux тест</span></div>
-                <div class="pick-row"><span class="check"></span><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="nm">Эксперименты</span></div>
-                <div class="pick-row"><span class="check"></span><span class="chip" style="--instance-accent:var(--accent-azure)"></span><span class="nm">Видео</span></div>
+                <div class="pick-head"><span class="check mixed"></span><span>All builds</span></div>
+                <div class="pick-row"><span class="check on"><svg viewBox="0 0 10.1668 10.1668"><path d="M1 5.52 3.92 9.17 9.17 1"/></svg></span><span class="chip" style="--instance-accent:var(--accent-teal)"></span><span class="nm">SDXL stable</span></div>
+                <div class="pick-row"><span class="check on"><svg viewBox="0 0 10.1668 10.1668"><path d="M1 5.52 3.92 9.17 9.17 1"/></svg></span><span class="chip" style="--instance-accent:var(--accent-indigo)"></span><span class="nm">Flux test</span></div>
+                <div class="pick-row"><span class="check"></span><span class="chip" style="--instance-accent:var(--accent-moss)"></span><span class="nm">Experiments</span></div>
+                <div class="pick-row"><span class="check"></span><span class="chip" style="--instance-accent:var(--accent-azure)"></span><span class="nm">Video</span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">отмечено 6 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">6 workflows ticked</span></div>
           </div>
         </div>
       </div>
@@ -412,51 +416,52 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
   </div>
 </Window>
 
-## Массовая запись идёт
+## The bulk write is running
 
-Панель занята ходом операции: выбирать сборки не во что.
+The pane is taken by the progress of the operation: there is nothing to pick
+builds in.
 
-Счёт идёт по операциям, а не по файлам: два воркфлоу в две сборки — это
-два файла, но четыре независимые записи, и каждая может отказать своей
-причиной. В счётчике стоят удавшиеся, а полоса идёт по пройденным:
-её вопрос — «сколько ещё ждать», и на отказах она обязана двигаться,
-иначе операция выглядит зависшей.
+The count goes by operations, not by files: two workflows into two builds are
+two files but four independent writes, and each can fail for its own reason.
+The counter holds the ones that succeeded, while the bar goes by the ones that
+are done: its question is "how much longer", and on failures it is obliged to
+move, otherwise the operation looks stuck.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content flush framed no-foot">
         <div class="lib-head">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
           <span class="spacer"></span>
           <div class="menu">
-            <span class="btn secondary"><Plus class="ico" />Добавить</span>
+            <span class="btn secondary"><Plus class="ico" />Add</span>
           </div>
         </div>
         <div class="split-master">
           <div class="pane">
             <div class="pane-head">
               <span class="btn ghost icon" aria-pressed="true"><ListChecks class="ico" /></span>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <div class="input search"><span>Search by name and tags</span></div>
               <span class="btn ghost icon"><span class="star off">★</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
@@ -468,20 +473,21 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
                 <div class="wf-row"><span class="check"></span><span class="star off">★</span><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">5 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">5 workflows</span></div>
           </div>
           <div class="pane">
-            <!-- Кнопки «Добавить» в шапке нет: пока идёт запись,
-                 предлагать начать ещё одну поверх неё незачем. -->
-            <div class="pane-head"><span class="title">Множественный выбор</span></div>
+            <!-- There is no "Add" button in the head: while the write is
+                 running, there is no point offering to start another one on
+                 top of it. -->
+            <div class="pane-head"><span class="title">Multiple selection</span></div>
             <div class="scroll"><div class="scroll-pad">
               <div class="group">
-                <p class="t-sm">выполнено 1 из 4 операций</p>
+                <p class="t-sm">1 of 4 operations done</p>
                 <div class="bar"><i style="width:50%"></i></div>
-                <div class="row"><span class="btn danger">Отмена</span></div>
+                <div class="row"><span class="btn danger">Cancel</span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">отмечено 2 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">2 workflows ticked</span></div>
           </div>
         </div>
       </div>
@@ -489,54 +495,54 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
   </div>
 </Window>
 
-## Отчёт: не прошло ничего
+## The report: nothing went through
 
-Оба воркфлоу уже лежат в обеих сборках.
+Both workflows are already in both builds.
 
-Занятое имя — не ошибка, а отказ по правилу: перезаписи в массовой
-операции нет вовсе, и вопросов она не задаёт — двадцать подряд задавать
-нельзя. Поэтому у каждой пары своя строка и своя причина: сверху пара
-«воркфлоу → сборка» в цвете основного текста, под ней объяснение
-вполголоса. Красный оставлен одной строке со счётом: тревога, размазанная
-по всему блоку, перестаёт быть тревогой, а четыре одинаковые красные
-строки читаются как поломка приложения. Совет стоит один на весь список,
-а не повторяется в каждой строке.
+A taken name is not an error but a refusal by rule: there is no overwriting in
+a bulk operation at all, and it asks no questions — twenty in a row must not be
+asked. So every pair has its own line and its own reason: on top the pair
+"workflow → build" in the colour of the main text, below it the explanation in
+an undertone. The red is left to the single line with the count: alarm smeared
+over the whole block stops being alarm, and four identical red lines read as
+a broken app. The advice stands once for the whole list rather than repeating
+in every line.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content flush framed no-foot">
         <div class="lib-head">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
           <span class="spacer"></span>
           <div class="menu">
-            <span class="btn secondary"><Plus class="ico" />Добавить</span>
+            <span class="btn secondary"><Plus class="ico" />Add</span>
           </div>
         </div>
         <div class="split-master">
           <div class="pane">
             <div class="pane-head">
               <span class="btn ghost icon" aria-pressed="true"><ListChecks class="ico" /></span>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <div class="input search"><span>Search by name and tags</span></div>
               <span class="btn ghost icon"><span class="star off">★</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
@@ -548,38 +554,38 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
                 <div class="wf-row"><span class="check"></span><span class="star off">★</span><span class="nm">utils / batch-rename.json</span><span class="tags"><span class="tag">utils</span></span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">5 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">5 workflows</span></div>
           </div>
           <div class="pane">
-            <div class="pane-head"><span class="title">Множественный выбор</span></div>
+            <div class="pane-head"><span class="title">Multiple selection</span></div>
             <div class="scroll"><div class="scroll-pad">
               <div class="group">
-                <p class="t-sm">выполнено 0 из 4 операций</p>
+                <p class="t-sm">0 of 4 operations done</p>
                 <div class="bar"><i style="width:100%"></i></div>
-                <p class="hint bad">не прошло 4</p>
+                <p class="hint bad">4 did not go through</p>
                 <div class="fails">
                   <div class="fail">
-                    <span class="fail-pair">sdxl / base-upscale.json → SDXL стабильная</span>
-                    <span class="fail-why">в сборке уже есть воркфлоу с таким именем, он не тронут</span>
+                    <span class="fail-pair">sdxl / base-upscale.json → SDXL stable</span>
+                    <span class="fail-why">the build already has a workflow with this name, it is untouched</span>
                   </div>
                   <div class="fail">
-                    <span class="fail-pair">sdxl / base-upscale.json → Flux тест</span>
-                    <span class="fail-why">в сборке уже есть воркфлоу с таким именем, он не тронут</span>
+                    <span class="fail-pair">sdxl / base-upscale.json → Flux test</span>
+                    <span class="fail-why">the build already has a workflow with this name, it is untouched</span>
                   </div>
                   <div class="fail">
-                    <span class="fail-pair">flux / portrait-v3.json → SDXL стабильная</span>
-                    <span class="fail-why">в сборке уже есть воркфлоу с таким именем, он не тронут</span>
+                    <span class="fail-pair">flux / portrait-v3.json → SDXL stable</span>
+                    <span class="fail-why">the build already has a workflow with this name, it is untouched</span>
                   </div>
                   <div class="fail">
-                    <span class="fail-pair">flux / portrait-v3.json → Flux тест</span>
-                    <span class="fail-why">в сборке уже есть воркфлоу с таким именем, он не тронут</span>
+                    <span class="fail-pair">flux / portrait-v3.json → Flux test</span>
+                    <span class="fail-why">the build already has a workflow with this name, it is untouched</span>
                   </div>
                 </div>
-                <p class="hint">Заменить можно только по одному: перед перезаписью приложение спросит.</p>
-                <div class="row"><span class="btn ghost">Закрыть</span></div>
+                <p class="hint">Replacing is only possible one at a time: the app will ask before overwriting.</p>
+                <div class="row"><span class="btn ghost">Close</span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">отмечено 2 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">2 workflows ticked</span></div>
           </div>
         </div>
       </div>
@@ -587,48 +593,48 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
   </div>
 </Window>
 
-## Меню «Добавить» раскрыто
+## The "Add" menu open
 
-Два способа пополнить библиотеку под одной кнопкой.
+Two ways to fill the library under one button.
 
-Способов два, и они об одном; рядом с путём они читались как три
-равноправных органа, и место, которое занимали, отдано пути — ради него
-ряд и существует. Это единственная всплывашка в приложении, кроме тостов,
-и ставить её на экране встроенной вкладки нельзя: там поверх нашего HTML
-лежит нативное окно, и меню просто не будет видно. Поэтому форма вставки
-разворачивается на месте списка, а не всплывает над ним.
+There are two ways and they are about the same thing; next to the path they
+read as three equal controls, and the space they took went to the path — the
+row exists for it. This is the only pop-up in the app apart from the toasts,
+and it must not be placed on the embedded tab screen: there a native window
+lies on top of our HTML and the menu simply would not be visible. That is why
+the paste form unfolds in the place of the list rather than popping up over it.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item on"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item on"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content flush framed no-foot">
         <div class="lib-head">
-          <h3>Библиотека воркфлоу</h3>
+          <h3>Workflow library</h3>
           <div class="path-row grow">
             <div class="input mono"><span>D:\AI\_shared\workflows</span></div>
-            <span class="btn secondary">Обзор</span>
+            <span class="btn secondary">Browse</span>
           </div>
           <span class="spacer"></span>
           <div class="menu">
-            <span class="btn secondary" aria-expanded="true"><Plus class="ico" />Добавить</span>
+            <span class="btn secondary" aria-expanded="true"><Plus class="ico" />Add</span>
             <div class="menu-pop">
-              <span>Из файла…</span>
-              <span>Вставить текстом</span>
+              <span>From a file…</span>
+              <span>Paste as text</span>
             </div>
           </div>
         </div>
@@ -636,7 +642,7 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
           <div class="pane">
             <div class="pane-head">
               <span class="btn ghost icon"><ListChecks class="ico" /></span>
-              <div class="input search"><span>Поиск по имени и тегам</span></div>
+              <div class="input search"><span>Search by name and tags</span></div>
               <span class="btn ghost icon"><span class="star off">★</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
@@ -646,7 +652,7 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
                 <div class="wf-row"><span class="star off">★</span><span class="nm">inpaint / face-fix.json</span><span class="tags"><span class="tag">inpaint</span></span></div>
               </div>
             </div></div>
-            <div class="pane-foot"><span class="t-label">14 воркфлоу</span></div>
+            <div class="pane-foot"><span class="t-label">14 workflows</span></div>
           </div>
           <div class="pane">
             <div class="pane-head">
@@ -654,22 +660,22 @@ HTML лежит нативное окно ComfyUI и всплыть физиче
               <span class="star lg">★</span>
             </div>
             <div class="tabs">
-              <span aria-selected="true">Где откроется</span>
-              <span>Заметка</span>
-              <span>Теги <span class="n">1</span></span>
+              <span aria-selected="true">Where it opens</span>
+              <span>Note</span>
+              <span>Tags <span class="n">1</span></span>
             </div>
             <div class="scroll"><div class="scroll-pad">
               <div class="compat">
                 <div class="compat-row ok">
                   <span class="chip" style="--instance-accent:var(--accent-teal)"></span>
                   <span class="act on"><Check class="ico" /></span>
-                  <span class="nm">SDXL стабильная</span><span class="compat-note">все ноды на месте</span>
+                  <span class="nm">SDXL stable</span><span class="compat-note">all nodes present</span>
                   <span class="act open"><ExternalLink class="ico" /></span>
                 </div>
                 <div class="compat-row">
                   <span class="chip" style="--instance-accent:var(--accent-moss)"></span>
                   <span class="act"><Plus class="ico" /></span>
-                  <span class="nm">Эксперименты</span><span class="compat-note">по данным последнего запуска</span>
+                  <span class="nm">Experiments</span><span class="compat-note">per the last run</span>
                   <span class="act open"><ExternalLink class="ico" /></span>
                 </div>
               </div>

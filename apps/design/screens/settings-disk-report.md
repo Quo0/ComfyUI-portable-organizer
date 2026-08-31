@@ -2,125 +2,124 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, Palette, Database, Workflow, HardDrive, Archive } from '@lucide/vue';
 </script>
 
-# Настройки: отчёт по диску
+# Settings: disk report
 
 <!-- US-SHARED-09 -->
 
-Раздел называется отчётом, а не «дубликатами»: дубликаты — то, что он
-нашёл, а не то, чем он является. Он только считает. Ни одной кнопки,
-которая что-нибудь удалит, здесь нет и не будет: освобождение места —
-отдельное осознанное действие на своём экране, и отчёт объясняет, где
-именно оно делается.
+The section is called a report rather than "duplicates": duplicates are what it
+found, not what it is. It only counts. There is not one button here that deletes
+anything, and there never will be: freeing space is a separate, deliberate
+action on its own screen, and the report explains where exactly that is done.
 
-Обход десятков гигабайт по нескольким сборкам занимает минуты, поэтому
-идёт полоса и названо место, которое смотрят прямо сейчас: пауза без
-подписи читается как зависание. Прерванный обход честно помечает отчёт
-неполным, а недоступные папки перечислены отдельно — молча пропущенная
-папка превратила бы отчёт в неправду.
+Walking tens of gigabytes across several builds takes minutes, so there is a bar
+and the place being looked at right now is named: a pause with no caption reads
+as a hang. An interrupted walk honestly marks the report incomplete, and folders
+that could not be reached are listed separately — a folder skipped in silence
+would turn the report into a lie.
 
-«Одно имя, разный размер» вынесено из дубликатов в свой перечень
-и не предлагается ни к чему: совпадение имени не говорит о содержимом
-ничего, и подать такие файлы как дубли значило бы подтолкнуть к удалению
-разных моделей.
+"Same name, different size" is lifted out of the duplicates into a list of its
+own and is not offered for anything: a matching name says nothing about the
+contents, and presenting such files as duplicates would nudge someone into
+deleting two different models.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item on"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item on"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
-        <h3>Отчёт по диску</h3>
-        <p class="t-sm">Отчёт по всем зарегистрированным сборкам и общей папке. Он только считает: ничего не удаляет, не переносит и не связывает ссылками.</p>
+        <h3>Disk report</h3>
+        <p class="t-sm">A report across every registered build and the shared folder. It only counts: nothing is deleted, moved or linked.</p>
         <div class="row">
-          <span class="btn primary">Построить отчёт</span>
+          <span class="btn primary">Build the report</span>
         </div>
         <div class="group">
-          <span class="t-label">Впустую на дублях: 6,9 ГБ</span>
+          <span class="t-label">Wasted on duplicates: 6.9 GB</span>
           <div class="dup-list">
             <div class="dup-row">
               <span class="nm">sd_xl_base_1.0.safetensors</span>
               <span class="tag">checkpoints</span>
-              <span class="t-mono">6,5 ГБ</span>
-              <span class="where hint">SDXL стабильная · Flux тест</span>
+              <span class="t-mono">6.5 GB</span>
+              <span class="where hint">SDXL stable · Flux test</span>
             </div>
             <div class="dup-row">
               <span class="nm">ip-adapter-plus_sdxl.bin</span>
               <span class="tag">ipadapter</span>
-              <span class="t-mono">0,8 ГБ</span>
-              <span class="where hint">SDXL стабильная · Эксперименты · Видео</span>
+              <span class="t-mono">0.8 GB</span>
+              <span class="where hint">SDXL stable · Experiments · Video</span>
             </div>
             <div class="dup-row">
               <span class="nm">4x-UltraSharp.pth</span>
               <span class="tag">upscale_models</span>
-              <span class="t-mono">64 МБ</span>
-              <span class="where hint">Апскейл · Видео</span>
+              <span class="t-mono">64 MB</span>
+              <span class="where hint">Upscale · Video</span>
             </div>
           </div>
-          <p class="hint">Освобождение места — отдельное осознанное действие: откройте сборку и воспользуйтесь панелью «Модели этой сборки».</p>
+          <p class="hint">Freeing this space is a separate, deliberate step: open a build and use the “Models of this build” panel.</p>
         </div>
         <div class="group">
-          <span class="t-label">Одно имя, разный размер</span>
-          <p class="hint">Это не дубликаты: совпадение имени ничего не говорит о содержимом. Они перечислены, чтобы вы посмотрели на них сами.</p>
+          <span class="t-label">Same name, different size</span>
+          <p class="hint">These are not duplicates: a matching name proves nothing about the contents. They are listed so you can look at them yourself.</p>
           <div class="dup-list">
             <div class="dup-row">
               <span class="nm">lora_style_v2.safetensors</span>
               <span class="tag">loras</span>
               <span class="t-mono"></span>
-              <span class="where hint">SDXL стабильная · 144 МБ · Эксперименты · 151 МБ</span>
+              <span class="where hint">SDXL stable · 144 MB · Experiments · 151 MB</span>
             </div>
           </div>
         </div>
-        <p class="hint bad">Пропущено, папка недоступна: E:\AI\Flux_clean</p>
+        <p class="hint bad">Skipped, folder unavailable: E:\AI\Flux_clean</p>
       </div>
     </div>
   </div>
 </Window>
 
-## Обход идёт
+## The walk is running
 
-Минуты работы: молчать нельзя.
+Minutes of work: saying nothing is not an option.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item on"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item on"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
-        <h3>Отчёт по диску</h3>
-        <p class="t-sm">Отчёт по всем зарегистрированным сборкам и общей папке. Он только считает: ничего не удаляет, не переносит и не связывает ссылками.</p>
+        <h3>Disk report</h3>
+        <p class="t-sm">A report across every registered build and the shared folder. It only counts: nothing is deleted, moved or linked.</p>
         <div class="row">
-          <span class="btn primary" aria-disabled="true">Построить отчёт</span>
-          <span class="btn ghost">Отмена</span>
+          <span class="btn primary" aria-disabled="true">Build the report</span>
+          <span class="btn ghost">Cancel</span>
         </div>
         <div class="group">
           <div class="bar"><i style="width:38%"></i></div>
-          <span class="hint">Смотрим D:\AI\_shared\models\checkpoints…</span>
+          <span class="hint">Looking through D:\AI\_shared\models\checkpoints…</span>
         </div>
       </div>
     </div>

@@ -2,70 +2,69 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, ArrowLeft, X } from '@lucide/vue';
 </script>
 
-# Аргументы запуска
+# Launch arguments
 
 <!-- US-RUN-01 -->
 
-Отдельный роут, а не модалка. Дисциплина z-order этого требует всюду,
-но здесь есть и своя причина: на экране читают итоговую команду,
-а команду не разглядывают во всплывашке.
+A separate route, not a modal. Z-order discipline demands that everywhere, but
+there is a reason of its own here: this screen is where the final command is
+read, and a command is not something you study in a popover.
 
-Файлы `.bat` самой сборки не меняются никогда
-`US-RUN-01/AC-8`. Правка ложится своим профилем поверх
-одного из них: разбор `.bat` перечитывается при каждом
-запуске, и удержать правку внутри него было бы негде.
+The build's own `.bat` files are never modified `US-RUN-01/AC-8`. An edit is
+saved as a profile of your own on top of one of them: the `.bat` is re-parsed
+on every launch, and there would be nowhere inside it to hold the edit.
 
-Экран линейный: пришли с экрана сборки, сохранили, вернулись. Поэтому
-«Назад» здесь не навигация у левого края, а шаг назад рядом
-с действием — как в мастере и на добавлении инстанса. Внизу
-«Сохранить» уезжала из виду тем вернее, чем больше аргументов правят:
-под ней скроллится их список.
+The screen is linear: you came from the build screen, saved, and went back. So
+"Back" here is not navigation at the left edge but a step back next to the
+action — as in the wizard and when adding an instance. At the bottom, "Save"
+scrolled out of sight the more surely the more arguments were edited: their
+list scrolls beneath it.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item on"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item on"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content">
     <div class="step-bar">
-      <h3 class="title">Аргументы запуска</h3>
-      <span class="hint">SDXL стабильная</span>
+      <h3 class="title">Launch arguments</h3>
+      <span class="hint">SDXL stable</span>
       <span class="spacer"></span>
       <span class="acts">
-        <span class="btn ghost"><ArrowLeft class="ico" />Назад</span>
-        <span class="btn primary lg">Сохранить</span>
+        <span class="btn ghost"><ArrowLeft class="ico" />Back</span>
+        <span class="btn primary lg">Save</span>
       </span>
     </div>
-    <p class="t-sm">Файлы .bat самой сборки не меняются никогда. Правка сохраняется своим профилем поверх одного из них.</p>
+    <p class="t-sm">The build's own .bat files are never modified. An edit is saved as a profile of your own on top of one of them.</p>
     <div class="group">
-      <span class="t-label">Свои профили</span>
+      <span class="t-label">Your profiles</span>
       <div class="wf-list">
         <div class="wf-row">
           <span class="nm">run_nvidia_gpu +</span>
           <span class="hint">run_nvidia_gpu.bat</span>
-          <span class="btn ghost">Изменить</span>
-          <span class="btn ghost">Убрать из списка</span>
+          <span class="btn ghost">Edit</span>
+          <span class="btn ghost">Remove from the list</span>
         </div>
       </div>
     </div>
     <div class="two">
       <div class="field">
-        <label>На основе</label>
+        <label>Based on</label>
         <span class="input">advanced\run_nvidia_gpu_disable_api_nodes.bat</span>
       </div>
       <div class="field">
-        <label>Имя профиля</label>
+        <label>Profile name</label>
         <span class="input">run_nvidia_gpu_disable_api_nodes +</span>
       </div>
     </div>
     <div class="group">
-      <span class="t-label">Аргументы</span>
-      <!-- Крестик тот же, что убирает строку в списке назначений
-           мастера: одна операция — один значок. -->
+      <span class="t-label">Arguments</span>
+      <!-- The same cross that removes a row in the wizard's list of
+           destinations: one operation — one icon. -->
       <div class="path-row">
         <span class="input mono">-s</span>
         <span class="acts"><span class="act"><X class="ico" /></span></span>
@@ -83,16 +82,16 @@ import { Layers, FolderPlus, SlidersHorizontal, Info, ArrowLeft, X } from '@luci
         <span class="acts"><span class="act"><X class="ico" /></span></span>
       </div>
       <div class="row">
-        <span class="btn secondary">Добавить аргумент</span>
-        <span class="btn ghost">Вернуть как в .bat</span>
+        <span class="btn secondary">Add argument</span>
+        <span class="btn ghost">Reset to the .bat</span>
       </div>
     </div>
     <div class="group">
-      <span class="t-label">Команда, которая уйдёт системе</span>
-      <!-- Своей прокрутки у предпросмотра нет: на экране одна область
-           прокрутки, а команду сюда приходят прочитать целиком. -->
+      <span class="t-label">The command that will actually run</span>
+      <!-- The preview has no scroll of its own: one scroll area per screen,
+           and people come here to read the command in full. -->
       <div class="console preview">D:\program_files\comfyui\SDXL\python_embeded\python.exe -s ..\ComfyUI\main.py --windows-standalone-build --disable-api-nodes --port 8188 --disable-auto-launch</div>
-      <p class="hint">Порт и --disable-auto-launch дописывает приложение. Настоящий порт выдаётся при старте, поэтому показан предпочитаемый.</p>
+      <p class="hint">The port and --disable-auto-launch are added by the app. The real port is assigned at startup, so the one shown is the preferred one.</p>
     </div>
   </div>
 </Window>

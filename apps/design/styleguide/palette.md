@@ -1,31 +1,31 @@
-# Палитра
+# Palette
 
 <!-- US-UI-01 · US-REG-02 · NFR-280 -->
 
-Нейтраль обязана быть тише пользовательских акцентов, иначе она их подкрашивает.
+The neutral has to be quieter than the user's accents, or it tints them.
 
-Тёплый графит вместо привычного сине-серого: тон около 45°, насыщенность
-3–6%. Достаточно, чтобы нейтраль читалась выбранной, и достаточно мало,
-чтобы восемь акцентных цветов инстансов жили рядом не конфликтуя.
-Рядом с холодным почти-чёрным холстом ComfyUI такая чрома не спорит.
+Warm graphite instead of the usual blue-grey: hue around 45°, saturation 3–6%.
+Enough for the neutral to read as chosen, and little enough for the eight
+instance accent colours to live next to it without a fight. Beside ComfyUI's
+cold near-black canvas, that much chroma does not argue.
 
-## Семантические роли
+## Semantic roles
 
 <Roles />
 
-## Акценты инстансов
+## Instance accents
 
-Пользователь выбирает цвет каждому инстансу сам, поэтому предлагать
-заведомо нечитаемый нельзя. Яркость всех восьми удерживается в узкой
-полосе, где цвет проходит **3:1** и на бумаге, и на графите — числа под
-образцами посчитаны из токенов при сборке, а не проставлены руками.
+The user picks a colour for every instance, so offering one that is illegible
+from the start is out. The lightness of all eight is held in a narrow band
+where the colour clears **3:1** on both paper and graphite — the numbers under
+the swatches are computed from the tokens at build time, not typed in by hand.
 
 <Swatches />
 
-## Проверка на длинных строках
+## Long-string check
 
 <div class="longform">
-  <div class="lf-head">Проверка на длинных строках</div>
+  <div class="lf-head">Long-string check</div>
   <div class="lf-rows">
     <div class="lf-row"><b>EN</b><span>Shared model storage</span></div>
     <div class="lf-row"><b>RU</b><span>Общее хранилище моделей</span></div>

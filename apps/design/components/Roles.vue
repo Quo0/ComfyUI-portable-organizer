@@ -13,7 +13,7 @@ const rows = (theme: 'light' | 'dark') =>
   <var class="Roles">
     <div class="pair">
       <figure class="panel t-light">
-        <figcaption>Светлая</figcaption>
+        <figcaption>Light</figcaption>
         <div class="app">
           <div class="roles">
             <div class="role" v-for="r in rows('light')" :key="r.name">
@@ -25,7 +25,7 @@ const rows = (theme: 'light' | 'dark') =>
         </div>
       </figure>
       <figure class="panel t-dark">
-        <figcaption>Тёмная</figcaption>
+        <figcaption>Dark</figcaption>
         <div class="app">
           <div class="roles">
             <div class="role" v-for="r in rows('dark')" :key="r.name">

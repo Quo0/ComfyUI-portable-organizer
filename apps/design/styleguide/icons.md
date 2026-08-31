@@ -7,22 +7,22 @@ import {
 } from '@lucide/vue';
 </script>
 
-# Значки
+# Icons
 
 <!-- NFR-300 -->
 
-Свой набор, не библиотека: шестнадцать штук дешевле нарисовать, чем тащить зависимость.
+Our own set, not a library: sixteen of them are cheaper to draw than to drag in a dependency.
 
-Значки — компоненты `@lucide/vue`, тот же пакет и в приложении, и здесь:
-подменять реальный компонент нарисованным вручную квадратом незачем,
-а разойтись с приложением спрайт-копия уже не может — копии нет.
-Размер и цвет задаёт класс `.ico` (16×16, цвет наследуется от текста
-через `currentColor`), а не сам значок — поэтому они одинаково читаются
-в обеих темах.
+The icons are `@lucide/vue` components — the same package in the app and here:
+there is no point substituting a hand-drawn square for the real component, and
+a sprite copy can no longer drift away from the app, because there is no copy.
+Size and colour come from the `.ico` class (16×16, colour inherited from the
+text through `currentColor`) rather than from the icon itself — which is why
+they read the same in both themes.
 
-`pnpm design:check` проверяет, что каждый импортированный здесь значок
-реально существует в `@lucide/vue` — опечатка в имени иначе тихо дала бы
-пустой квадрат вместо значка.
+`pnpm design:check` verifies that every icon imported here really exists in
+`@lucide/vue` — otherwise a typo in a name would quietly produce an empty
+square instead of an icon.
 
 <ThemePair>
   <div class="icons">

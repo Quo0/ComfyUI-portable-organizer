@@ -2,81 +2,83 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, Palette, Database, Workflow, HardDrive, Archive } from '@lucide/vue';
 </script>
 
-# Настройки: внешний вид
+# Settings: appearance
 
 <!-- US-UI-01 · US-UI-02 -->
 
-Первый раздел настроек и самый короткий: тема, язык и образец того,
-что от них меняется. Образец здесь не для красоты — язык меняет не только
-надписи, но и числа, даты и формы слов, а этого в списке языков не видно.
+The first settings section and the shortest: theme, language and a sample of
+what they change. The sample is not there for decoration — the language changes
+not only the captions but numbers, dates and word forms, and none of that is
+visible in a list of languages.
 
-Тема переключателем, а не списком: вариантов три, они видны разом,
-и выбранный виден без раскрытия. Тёмная — первая и выбрана по умолчанию.
-«Как в системе» — состояние, а не отсутствие выбора, поэтому рядом
-с переключателем, а не строкой под ним, сказано, что система выбрала
-сейчас: факт относится к этому варианту, а не ко всем трём. Язык —
-обычный список: языков будет больше трёх, и подписи в нём всегда
-на самом языке, потому что искать свой в чужом переводе неудобно.
+The theme is a segmented control rather than a list: there are three options,
+they are visible at once, and the chosen one is visible without opening
+anything. Dark comes first and is the default. "Follow system" is a state
+rather than an absence of choice, so what the system has chosen right now is
+said next to the control rather than on a line below it: the fact belongs to
+that option, not to all three. The language is an ordinary list: there will be
+more than three languages, and its labels are always in the language itself,
+because hunting for yours in someone else's translation is awkward.
 
-Последняя строка отвечает на вопрос, который иначе задают ошибкой:
-у ComfyUI внутри встроенной вкладки своя тема и свой язык, и приложение
-их не трогает.
+The last line answers a question that otherwise gets asked as a bug report:
+ComfyUI inside the embedded tab has its own theme and its own language, and the
+app does not touch them.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item on"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content flush">
     <div class="settings-split">
       <nav class="settings-sections">
-        <div class="nav-item on"><Palette class="ico" /><span>Внешний вид</span></div>
-        <div class="nav-item"><Database class="ico" /><span>Общие модели</span></div>
-        <div class="nav-item"><Workflow class="ico" /><span>Библиотека воркфлоу</span></div>
-        <div class="nav-item"><HardDrive class="ico" /><span>Отчёт по диску</span></div>
-        <div class="nav-item"><Archive class="ico" /><span>Архивы установщика</span></div>
+        <div class="nav-item on"><Palette class="ico" /><span>Appearance</span></div>
+        <div class="nav-item"><Database class="ico" /><span>Shared models</span></div>
+        <div class="nav-item"><Workflow class="ico" /><span>Workflow library</span></div>
+        <div class="nav-item"><HardDrive class="ico" /><span>Disk report</span></div>
+        <div class="nav-item"><Archive class="ico" /><span>Installer archives</span></div>
       </nav>
       <div class="content">
-        <h3>Внешний вид</h3>
+        <h3>Appearance</h3>
         <div class="group">
-          <span class="t-label">Тема</span>
+          <span class="t-label">Theme</span>
           <div class="row">
             <div class="seg">
-              <span>Тёмная</span>
-              <span>Светлая</span>
-              <span aria-pressed="true">Как в системе</span>
+              <span>Dark</span>
+              <span>Light</span>
+              <span aria-pressed="true">Follow system</span>
             </div>
-            <span class="hint">Сейчас в Windows выбрана тёмная.</span>
+            <span class="hint">Windows is currently set to dark.</span>
           </div>
         </div>
         <div class="group">
-          <span class="t-label">Язык</span>
-          <div class="input" style="width:240px"><span>Русский</span></div>
+          <span class="t-label">Language</span>
+          <div class="input" style="width:240px"><span>English</span></div>
         </div>
         <div class="group">
-          <span class="t-label">Предпросмотр</span>
+          <span class="t-label">Preview</span>
           <div class="pane">
             <div class="pane-head">
-              <span class="title">Числа, даты и формы слов подчиняются выбранному языку.</span>
+              <span class="title">Numbers, dates and word forms follow the selected language.</span>
             </div>
             <div class="scroll"><div class="scroll-pad">
               <div class="row">
-                <span class="pill running"><i></i>Работает</span>
-                <span class="pill stopped"><i></i>Остановлен</span>
+                <span class="pill running"><i></i>Running</span>
+                <span class="pill stopped"><i></i>Stopped</span>
               </div>
               <div class="meta">
-                <span>3 инстанса</span>
-                <span>Размер на диске: 52,4 ГБ</span>
-                <span>Последний запуск: сегодня, 14:20</span>
+                <span>3 instances</span>
+                <span>Size on disk: 52.4 GB</span>
+                <span>Last run: today, 14:20</span>
               </div>
             </div></div>
           </div>
         </div>
-        <p class="hint">У ComfyUI внутри встроенной вкладки своя тема и свой язык — приложение их не меняет.</p>
+        <p class="hint">ComfyUI keeps its own theme and language inside the embedded tab, and the app does not change them.</p>
       </div>
     </div>
   </div>

@@ -1,11 +1,10 @@
-# Полнота покрытия
+# Coverage
 
-Восемнадцать экранов покрывают все шесть сквозных сценариев из
-`specs/journeys.md`. Не показаны экраны, которые появляются
-только в исключительных ситуациях: разрешение конфликта, когда в инстансе
-уже лежит чужой файл настроек, и отчёт о дубликатах моделей — оба
-относятся к более поздним фазам.
+Eighteen screens cover all six end-to-end scenarios from `specs/journeys.md`.
+Not shown are the screens that only appear in exceptional situations: resolving
+the conflict when a build already holds someone else's config file, and the
+duplicate models report — both belong to later phases.
 
-Все компоненты взяты из общей библиотеки, а не нарисованы заново:
-стилевой файл у обеих страниц один. Значит, правка компонента в библиотеке
-автоматически меняет его на всех экранах.
+Every component is taken from the shared library rather than drawn again: both
+pages share one style file. So editing a component in the library changes it on
+every screen automatically.

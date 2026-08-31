@@ -2,38 +2,39 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info } from '@lucide/vue';
 </script>
 
-# Две дорожки
+# Two paths
 
-<!-- ревизия · US-ONB-02 · US-REG-01 -->
+<!-- revision · US-ONB-02 · US-REG-01 -->
 
-Раздел постоянный, а не только для первого запуска, и это единственное
-место, где заводят сборки: со списка инстансов кнопка «Добавить»
-убрана, двух дверей в одну комнату быть не должно.
+The section is permanent rather than first-run only, and it is the only place
+where builds are created: the "Add" button was taken off the instance list,
+there must not be two doors into one room.
 
-Дорожки идут слева направо, а не одна под другой: это развилка, и обе
-ветки должны быть видны разом, чтобы выбирать было из чего.
+The paths run left to right rather than one under the other: this is a fork,
+and both branches have to be visible at once for there to be anything to choose
+between.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item on"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item on"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content">
-    <h3>Добавление сборки</h3>
+    <h3>Add a build</h3>
     <div class="forks">
       <div class="fork">
-        <b>Папка уже есть</b>
-        <p>Зарегистрировать распакованную сборку. Папка остаётся нетронутой.</p>
-        <span class="btn secondary">Выбрать папку</span>
+        <b>I already have a folder</b>
+        <p>Register a build that is already unpacked. The folder is left untouched.</p>
+        <span class="btn secondary">Choose a folder</span>
       </div>
       <div class="fork">
-        <b>Распаковать из архива</b>
-        <p>Распаковать портабл-сборку в одно или несколько мест и сразу их зарегистрировать.</p>
-        <span class="btn primary">Выбрать архив .7z…</span>
+        <b>Unpack from an archive</b>
+        <p>Unpack a portable build into one or several destinations and register them at once.</p>
+        <span class="btn primary">Choose a .7z archive…</span>
       </div>
     </div>
   </div>

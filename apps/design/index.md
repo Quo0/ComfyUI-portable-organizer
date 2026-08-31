@@ -1,13 +1,14 @@
-# ComfyUI Portable Organizer — дизайн
+# ComfyUI Portable Organizer — design
 
-Стайлгайд и макеты экранов в одном сайте, под разными пунктами меню:
+The style guide and the screen mock-ups in one site, under separate menu items:
 
-- **[Стайлгайд](/styleguide/)** — палитра, типографика и образцы компонентов
-  в обеих темах.
-- **[Экраны](/screens/)** — макеты экранов по сквозным сценариям, собранные
-  из тех же компонентов.
+- **[Style guide](/styleguide/)** — palette, typography and component samples
+  in both themes.
+- **[Screens](/screens/)** — screen mock-ups by end-to-end scenario, built from
+  those same components.
 
-Источник правды не здесь: цвета и метрики — `apps/desktop/src/styles/tokens.css`,
-компоненты — `apps/desktop/src/styles/components.css`. Оба читаются напрямую,
-без копий; на `.t-light`/`.t-dark` (для панелей ниже) токены проецирует
-`pnpm design:tokens` — автоматически при запуске `pnpm dev:design`.
+The source of truth is not here: colours and metrics live in
+`apps/desktop/src/styles/tokens.css`, components in
+`apps/desktop/src/styles/components.css`. Both are read directly, with no
+copies; `pnpm design:tokens` projects the tokens onto `.t-light`/`.t-dark`
+(for the panels below) — automatically when `pnpm dev:design` runs.

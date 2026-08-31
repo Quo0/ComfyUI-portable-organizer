@@ -1,14 +1,14 @@
-# Стайлгайд
+# Style guide
 
-Библиотека компонентов ComfyUI Portable Organizer: палитра, типографика
-и образцы каждого компонента в обеих темах. Источник цветов и метрик —
-`apps/desktop/src/styles/tokens.css`, источник разметки компонентов —
-`apps/desktop/src/styles/components.css`; ни то, ни другое здесь не
-копируется, а читается напрямую.
+The component library of ComfyUI Portable Organizer: palette, typography and
+a sample of every component in both themes. Colours and metrics come from
+`apps/desktop/src/styles/tokens.css`, component markup from
+`apps/desktop/src/styles/components.css`; neither is copied here, both are read
+directly.
 
-- [Палитра](/styleguide/palette)
-- [Типографика](/styleguide/typography)
+- [Palette](/styleguide/palette)
+- [Typography](/styleguide/typography)
 
-Остальные разделы (рейл навигации, карточка инстанса, действия, поля
-ввода, уведомления и прогресс, пустой реестр, шаги мастера, категории
-моделей, совместимость воркфлоу) переезжают сюда следующим шагом.
+The remaining sections (navigation rail, instance card, actions, input fields,
+notifications and progress, empty registry, wizard steps, model categories,
+workflow compatibility) move here in the next step.

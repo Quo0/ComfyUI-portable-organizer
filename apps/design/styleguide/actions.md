@@ -1,47 +1,46 @@
-# Действия
+# Actions
 
 <!-- US-RUN-01 · US-REG-05 · NFR-300 -->
 
-Главное действие нейтральное: фирменный цвет спорил бы с акцентами инстансов.
+The primary action is neutral: a brand colour would argue with the instance accents.
 
-Кнопка главного действия залита не фирменным цветом, а нейтральным
-чернильным — потому что цвет в этом приложении уже занят: его выбирает
-пользователь каждому инстансу. Опасные действия обозначены контуром,
-а не заливкой: удаление из реестра не должно выглядеть привлекательнее
-запуска.
+The primary action button is filled with neutral ink rather than a brand
+colour, because colour in this app is already taken: the user picks one for
+every instance. Dangerous actions are outlined rather than filled — removing an
+entry from the registry must not look more inviting than starting a build.
 
 <ThemePair>
   <div class="stack" style="gap:var(--space-4)">
     <div class="row">
-      <span class="btn primary">Запустить</span>
-      <span class="btn secondary">Открыть папку</span>
-      <span class="btn ghost">Отмена</span>
-      <span class="btn danger">Убрать из реестра</span>
+      <span class="btn primary">Start</span>
+      <span class="btn secondary">Open folder</span>
+      <span class="btn ghost">Cancel</span>
+      <span class="btn danger">Remove from the list</span>
     </div>
     <div class="row">
-      <span class="btn primary lg">Установить ComfyUI</span>
-      <span class="btn secondary"><i class="spin"></i>Останавливается</span>
-      <span class="btn secondary" aria-disabled="true">Запустить</span>
+      <span class="btn primary lg">Install ComfyUI</span>
+      <span class="btn secondary"><i class="spin"></i>Stopping</span>
+      <span class="btn secondary" aria-disabled="true">Start</span>
     </div>
     <div class="row">
       <span class="split">
-        <span class="btn primary">Запустить</span>
+        <span class="btn primary">Start</span>
         <span class="btn primary">▾</span>
       </span>
-      <span class="t-label">сплит-кнопка выбора профиля</span>
+      <span class="t-label">split button for choosing a profile</span>
     </div>
   </div>
 </ThemePair>
 
-Выпадающий список профилей у сплит-кнопки раскрывается
-**только пока инстанс не запущен**. После старта область
-контента занимает нативное окно ComfyUI, и всплыть поверх него наш список
-физически не может — поэтому здесь он показан закрытым.
+The profile dropdown on the split button opens **only while the instance is not
+running**. Once it starts, the content area is taken by the native ComfyUI
+window, and our list physically cannot float above it — which is why it is
+shown closed here.
 
-## Проверка на длинных строках · подписи кнопок
+## Long-string check · button captions
 
 <div class="longform">
-  <div class="lf-head">Проверка на длинных строках · подписи кнопок</div>
+  <div class="lf-head">Long-string check · button captions</div>
   <div class="lf-rows">
     <div class="lf-row"><b>EN</b><span>Launch · Open folder · Remove from registry</span></div>
     <div class="lf-row"><b>RU</b><span>Запустить · Открыть папку · Убрать из реестра</span></div>

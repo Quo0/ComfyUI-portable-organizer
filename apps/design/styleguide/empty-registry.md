@@ -1,37 +1,37 @@
-# Пустой реестр
+# Empty registry
 
 <!-- US-ONB-01 · US-ONB-02 · US-ONB-03 -->
 
-Первые тридцать секунд знакомства. Отдельного приветственного экрана нет — его роль играет пустое состояние.
+The first thirty seconds of the acquaintance. There is no separate welcome screen — the empty state plays that part.
 
-Ровно два пути, и у каждого пояснение, кому он подходит
-`US-ONB-01/AC-3`: новичок и владелец готовой сборки должны
-выбрать не угадывая. Обещание «регистрация ничего не изменит» стоит прямо
-здесь — это главный страх того, у кого уже есть рабочая папка.
+Exactly two paths, each with an explanation of who it suits
+`US-ONB-01/AC-3`: the newcomer and the owner of a ready build both have to
+choose without guessing. The promise that "registering changes nothing" stands
+right here — it is the main fear of someone who already has a working folder.
 
 <ThemePair>
   <div class="empty">
-    <h4>Пока ни одного инстанса</h4>
-    <p>Приложение запускает портабл-сборки ComfyUI, показывает логи старта и открывает интерфейс прямо в этом окне.</p>
+    <h4>No instances yet</h4>
+    <p>The app launches portable ComfyUI builds, shows the startup log and opens the interface right in this window.</p>
     <div class="forks">
       <div class="fork">
-        <b>У меня уже есть ComfyUI</b>
-        <p>Укажите распакованную папку. Приложение прочитает версию и профили запуска и ничего в ней не изменит.</p>
-        <span class="btn secondary">Указать папку</span>
+        <b>I already have ComfyUI</b>
+        <p>Point at an unpacked folder. The app reads the version and the launch profiles and changes nothing inside it.</p>
+        <span class="btn secondary">Choose a folder</span>
       </div>
       <div class="fork">
-        <b>Установить ComfyUI</b>
-        <p>Понадобится скачанный архив портабл-сборки. Распакуем сразу в одну или несколько папок.</p>
-        <span class="btn primary">Открыть мастер</span>
+        <b>Install ComfyUI</b>
+        <p>You will need a downloaded portable build archive. We unpack it into one or several folders at once.</p>
+        <span class="btn primary">Open the wizard</span>
       </div>
     </div>
   </div>
 </ThemePair>
 
-## Проверка на длинных строках · заголовки развилки
+## Long-string check · fork headings
 
 <div class="longform">
-  <div class="lf-head">Проверка на длинных строках · заголовки развилки</div>
+  <div class="lf-head">Long-string check · fork headings</div>
   <div class="lf-rows">
     <div class="lf-row"><b>EN</b><span>I already have ComfyUI · Install ComfyUI</span></div>
     <div class="lf-row"><b>RU</b><span>У меня уже есть ComfyUI · Установить ComfyUI</span></div>

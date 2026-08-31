@@ -1,9 +1,9 @@
-# Экраны
+# Screens
 
-Макеты экранов приложения, собранные из утверждённых компонентов
-стайлгайда и разложенные по сквозным сценариям из `specs/journeys.md`
+Mock-ups of the app's screens, built from the approved components of the style
+guide and laid out by the end-to-end scenarios in `specs/journeys.md`
 (`J-01…J-06`).
 
-- [Инстанс работает](/screens/instance-running)
+- [Instance running](/screens/instance-running)
 
-Остальные экраны переезжают сюда следующим шагом.
+The remaining screens move here in the next step.

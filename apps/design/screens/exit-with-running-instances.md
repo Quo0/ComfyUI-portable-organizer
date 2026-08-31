@@ -2,39 +2,39 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info } from '@lucide/vue';
 </script>
 
-# Выход при работающих сборках
+# Exiting with builds running
 
 <!-- US-RUN-08 -->
 
-Серверы — дочерние процессы приложения и уходят вместе с ним. Молча
-закрыться значило бы оборвать чужую генерацию и потерять несохранённые
-графы, поэтому вместо закрытия показывается этот экран: что именно
-работает и два честных выхода.
+The servers are child processes of the app and leave with it. Closing silently
+would mean cutting off someone's generation and losing unsaved graphs, so this
+screen is shown instead of closing: what exactly is running, and two honest ways
+out.
 
-Развилка настоящая, а не «да / отмена»: свернуть в трей — полноценный
-ответ, а не отказ от действия. Красная кнопка называет последствие
-словами, а не «ОК». Список работающих не декоративный: он отвечает
-на вопрос «что именно я сейчас остановлю» до нажатия, а не после.
+The fork is a real one, not a "yes / cancel": minimising to the tray is a full
+answer, not a refusal to act. The red button names the consequence in words
+rather than saying "OK". The list of what is running is not decorative: it
+answers "what exactly am I about to stop" before the click rather than after.
 
 <Window>
   <template #nav>
     <nav class="nav in-win collapsed">
-      <div class="nav-item on"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item on"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
     </nav>
   </template>
   <div class="content">
-    <h3>Серверы ещё работают</h3>
-    <p class="t-sm">Закрытие приложения останавливает все работающие серверы: они его дочерние процессы и уходят вместе с ним. Несохранённые графы и очередь генерации — тоже.</p>
+    <h3>Servers are still running</h3>
+    <p class="t-sm">Closing the app stops every running server: they are its child processes and leave with it. Unsaved graphs and the generation queue go with them.</p>
     <div class="cards">
       <div class="card">
         <div class="card-accent" style="--instance-accent:var(--accent-teal)"></div>
         <div class="card-in">
           <div class="card-top">
-            <span class="card-name">SDXL стабильная</span>
-            <span class="pill running"><i></i>Работает</span>
+            <span class="card-name">SDXL stable</span>
+            <span class="pill running"><i></i>Running</span>
             <span class="t-mono">:8188</span>
           </div>
         </div>
@@ -43,17 +43,17 @@ import { Layers, FolderPlus, SlidersHorizontal, Info } from '@lucide/vue';
         <div class="card-accent" style="--instance-accent:var(--accent-indigo)"></div>
         <div class="card-in">
           <div class="card-top">
-            <span class="card-name">Flux тест</span>
-            <span class="pill starting"><i></i>Стартует</span>
+            <span class="card-name">Flux test</span>
+            <span class="pill starting"><i></i>Starting</span>
             <span class="t-mono">:8189</span>
           </div>
         </div>
       </div>
     </div>
     <div class="row">
-      <span class="btn danger lg">Остановить всё и выйти</span>
-      <span class="btn secondary lg">Свернуть в трей</span>
+      <span class="btn danger lg">Stop everything and exit</span>
+      <span class="btn secondary lg">Minimize to tray</span>
     </div>
-    <p class="hint">Приложение останется в области уведомлений — щелчок по значку вернёт его.</p>
+    <p class="hint">The app keeps running in the notification area — click its icon to bring it back.</p>
   </div>
 </Window>

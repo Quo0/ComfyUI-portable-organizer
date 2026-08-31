@@ -2,101 +2,101 @@
 import { Layers, FolderPlus, SlidersHorizontal, Info, ArrowLeft, FolderOpen, RotateCw } from '@lucide/vue';
 </script>
 
-# Забор воркфлоу в библиотеку
+# Taking a workflow into the library
 
-<!-- J-05 · шаг 2 · US-WF-03 -->
+<!-- J-05 · step 2 · US-WF-03 -->
 
-Забор **переносит**: файл уходит из сборки и остаётся только
-в библиотеке. Сказано это строкой под списком, а не узнаётся
-по исчезнувшей строке. Порядок тот же, что у переноса моделей —
-копия пишется, читается обратно и сверяется, и лишь потом исходник
-убирается из сборки.
+Taking one **moves** it: the file leaves the build and stays only in the
+library. That is said in a line under the list rather than learned from a row
+that vanished. The order is the same as for moving models — the copy is
+written, read back and compared, and only then is the source removed from the
+build.
 
-Меток две, и это главное здесь. По одному имени метка врала бы:
-правленная в сборке версия под занятым именем выглядела бы
-сохранённой. Поэтому содержимое сверяется целиком — сначала байты,
-потом разобранный JSON, иначе пересохранённый в ComfyUI воркфлоу
-объявлялся бы разошедшимся из-за одних отступов.
+There are two marks, and that is the main thing here. Going by name alone the
+mark would lie: a version edited inside the build, under a taken name, would
+look as if it were saved. So the contents are compared in full — bytes first,
+then the parsed JSON, otherwise a workflow re-saved in ComfyUI would be
+declared diverged over indentation alone.
 
-Погашена кнопка только у того, что уже лежит в библиотеке тем же
-файлом. У разошедшегося она работает и забирает под свободным именем:
-замены нет вовсе, потому что заменить значило бы затереть одну работу
-другой, не оставив ни той, ни другой.
+The button is off only for what already lies in the library as the very same
+file. For a diverged one it works and takes it under a free name: there is no
+replacing at all, because replacing would mean erasing one piece of work with
+another, leaving neither.
 
 <Window>
   <template #nav>
     <nav class="nav in-win">
-      <div class="nav-item on"><Layers class="ico" /><span>Инстансы</span></div>
-      <div class="nav-item"><FolderPlus class="ico" /><span>Добавление</span></div>
-      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Настройки</span></div>
-      <div class="nav-item"><Info class="ico" /><span>О приложении</span></div>
+      <div class="nav-item on"><Layers class="ico" /><span>Instances</span></div>
+      <div class="nav-item"><FolderPlus class="ico" /><span>Add build</span></div>
+      <div class="nav-item"><SlidersHorizontal class="ico" /><span>Settings</span></div>
+      <div class="nav-item"><Info class="ico" /><span>About</span></div>
       <div class="nav-sep"></div>
-      <div class="nav-note">Запущены</div>
-      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL стабильная</em><i class="dot" style="background:var(--state-running)"></i></div>
+      <div class="nav-note">Running</div>
+      <div class="nav-run"><span class="chip" style="--instance-accent:var(--accent-teal)">S</span><em>SDXL stable</em><i class="dot" style="background:var(--state-running)"></i></div>
     </nav>
   </template>
   <div class="content">
     <div class="row">
-      <span class="btn ghost"><ArrowLeft class="ico" />Назад</span>
+      <span class="btn ghost"><ArrowLeft class="ico" />Back</span>
       <span class="chip" style="--instance-accent:var(--accent-teal)">S</span>
-      <h3>SDXL стабильная</h3>
+      <h3>SDXL stable</h3>
       <span class="spacer"></span>
-      <span class="pill running"><i></i>Работает</span>
+      <span class="pill running"><i></i>Running</span>
       <span class="t-mono">:8188</span>
-      <span class="btn primary lg">Открыть ComfyUI</span>
-      <span class="btn secondary">Перезапустить</span>
-      <span class="btn danger">Остановить</span>
+      <span class="btn primary lg">Open ComfyUI</span>
+      <span class="btn secondary">Restart</span>
+      <span class="btn danger">Stop</span>
     </div>
     <div class="tabs">
-      <span>Обзор</span>
-      <span>Модели</span>
-      <span aria-selected="true">Воркфлоу</span>
-      <span>Параметры</span>
+      <span>Overview</span>
+      <span>Models</span>
+      <span aria-selected="true">Workflows</span>
+      <span>Settings</span>
     </div>
     <div class="row">
-      <span class="t-label">Воркфлоу этой сборки</span>
-      <!-- Тот же значок и то же место, что у моделей сборки: путь
-           к папке воркфлоу в панели больше нигде не показан,
-           а идти разбираться руками приходится именно туда. -->
+      <span class="t-label">Workflows in this build</span>
+      <!-- The same icon in the same place as on the build's models: the path
+           to the workflows folder is shown nowhere else in the panel, and
+           sorting things out by hand means going exactly there. -->
       <span class="btn ghost icon" title="D:\AI\ComfyUI_windows_portable\ComfyUI\user\default\workflows"><FolderOpen class="ico" /></span>
       <span class="spacer"></span>
-      <span class="btn ghost"><RotateCw class="ico" />Обновить</span>
+      <span class="btn ghost"><RotateCw class="ico" />Refresh</span>
     </div>
-    <!-- Ни отметки для массовой операции, ни звёздочки избранного:
-         отметка нужна тому, над чем бывают действия скопом,
-         а избранное живёт в манифесте библиотеки — эти файлы туда
-         ещё не попали. Отсюда своя сетка строки. -->
+    <!-- Neither a checkbox for bulk operations nor a favourite star: the
+         checkbox belongs to things that get acted on in bulk, and favourites
+         live in the library manifest — these files have not got there yet.
+         Hence a row grid of its own. -->
     <div class="wf-list of-instance">
-      <!-- Имени в библиотеке нет — забирается без разговоров. -->
+      <!-- The name is not in the library — taken without further ado. -->
       <div class="wf-row">
         <span class="nm">sdxl / img2img-refine.json</span>
         <span class="tags"></span>
-        <span class="btn ghost">Забрать в библиотеку</span>
+        <span class="btn ghost">Take into the library</span>
       </div>
-      <!-- Тот же файл: забирать нечего, кнопка справедливо погашена. -->
+      <!-- The same file: nothing to take, the button is rightly off. -->
       <div class="wf-row">
         <span class="nm">flux / portrait-v3.json</span>
-        <span class="tags"><span class="tag">в библиотеке</span></span>
-        <span class="btn ghost" aria-disabled="true">Забрать в библиотеку</span>
+        <span class="tags"><span class="tag">in the library</span></span>
+        <span class="btn ghost" aria-disabled="true">Take into the library</span>
       </div>
-      <!-- Имя занято чужой работой. Кнопка работает и предложит
-           «base-upscale (2).json» — но спросит до того, как двинет. -->
+      <!-- The name is taken by someone else's work. The button works and will
+           offer "base-upscale (2).json" — but it asks before it moves. -->
       <div class="wf-row">
         <span class="nm">sdxl / base-upscale.json</span>
-        <span class="tags"><span class="tag warn">имя занято, файл другой</span></span>
-        <span class="btn ghost">Забрать в библиотеку</span>
+        <span class="tags"><span class="tag warn">name taken, different file</span></span>
+        <span class="btn ghost">Take into the library</span>
       </div>
     </div>
-    <p class="hint">Забор переносит: файл уходит из сборки и остаётся только в библиотеке.</p>
-    <!-- Легенда меток: слева та же метка, что в строке, справа — что
-         она значит. Абзацем это уже было, и метку в нём приходилось
-         искать глазами. -->
+    <p class="hint">Taking a workflow moves it: the file leaves the build and stays only in the library.</p>
+    <!-- A legend of the marks: on the left the same mark as in the row, on
+         the right what it means. It used to be a paragraph, and the mark had
+         to be hunted for by eye inside it. -->
     <dl class="tag-legend">
-      <dt><span class="tag">в библиотеке</span></dt>
-      <dd>— там лежит тот же самый воркфлоу: забирать нечего, кнопка погашена.</dd>
-      <dt><span class="tag warn">имя занято, файл другой</span></dt>
-      <dd>— содержимое разошлось: это две разные работы, и та, что в сборке, заберётся под свободным именем, а не поверх чужой.</dd>
+      <dt><span class="tag">in the library</span></dt>
+      <dd>— the library already has this very workflow: there is nothing to take, the button is off.</dd>
+      <dt><span class="tag warn">name taken, different file</span></dt>
+      <dd>— the contents have diverged: these are two different pieces of work, and the one from the build is taken under a free name, not over someone else's.</dd>
     </dl>
-    <p class="hint">Список берётся у запущенной сборки, поэтому в нём есть и то, что она сохранила минуту назад.</p>
+    <p class="hint">The list comes from the running build, so it includes what it saved a minute ago.</p>
   </div>
 </Window>

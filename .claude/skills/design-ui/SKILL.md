@@ -25,7 +25,7 @@ apps/design/styleguide/                  component library, one file per section
 ```
 
 To browse — `pnpm dev:design`, which starts `apps/design` (VitePress):
-"Стайлгайд" and "Экраны" are separate menu items.
+"Style guide" and "Screens" are separate menu items.
 
 ## What already exists
 
