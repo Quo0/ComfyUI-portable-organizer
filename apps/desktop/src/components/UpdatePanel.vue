@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import ReleaseNotes from './ReleaseNotes.vue';
 import Group from './ui/Group.vue';
 import Toggle from './ui/Toggle.vue';
 import ToggleRow from './ui/ToggleRow.vue';
@@ -95,9 +96,9 @@ function toggleAuto(): void {
         </p>
       </div>
 
-      <div v-if="updates.info?.notes" class="notes">
+      <div v-if="updates.info?.notes" class="release-notes">
         <span class="t-label">{{ t('about.update.notes') }}</span>
-        <p class="t-sm">{{ updates.info.notes }}</p>
+        <ReleaseNotes :text="updates.info.notes" />
       </div>
 
       <div class="row">
@@ -132,11 +133,6 @@ function toggleAuto(): void {
 </template>
 
 <style scoped>
-
-.notes p {
-  margin: var(--space-1) 0 0;
-  white-space: pre-wrap;
-}
 
 .dl {
   display: flex;

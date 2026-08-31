@@ -73,9 +73,19 @@ not in the result.
         <span class="spacer"></span>
         <span class="btn primary">Download and install</span>
       </div>
-      <div>
+      <!-- The notes are not written here: they are the new version's
+           CHANGELOG section, carried inside the updater's manifest and
+           rendered from markdown. Hence the shape — a lead paragraph, a
+           heading and a list — and hence the absence of a scroll of its own:
+           the screen already has one, and the section flows inside it. -->
+      <div class="release-notes">
         <span class="t-label">What changed</span>
-        <p class="t-sm">The workflow library moved into "Settings". Cancelling an unpack no longer looks like a hang.</p>
+        <p>The workflow library moved into "Settings". The release is a maintenance one: nothing in the launch path changed.</p>
+        <h4 class="t-label">Changed</h4>
+        <ul>
+          <li><b>The workflow library</b> moved into "Settings" and no longer takes a place in the rail.</li>
+          <li><b>Cancelling an unpack</b> no longer looks like a hang: the wizard reports the rollback and clears <code class="t-mono">extra_model_paths.yaml</code>.</li>
+        </ul>
       </div>
       <div class="row"><span class="btn secondary">Check now</span></div>
       <div class="toggle-row">
@@ -198,9 +208,19 @@ the row below.
         <span class="spacer"></span>
         <span class="btn primary">Download and install</span>
       </div>
-      <div>
+      <!-- The notes are not written here: they are the new version's
+           CHANGELOG section, carried inside the updater's manifest and
+           rendered from markdown. Hence the shape — a lead paragraph, a
+           heading and a list — and hence the absence of a scroll of its own:
+           the screen already has one, and the section flows inside it. -->
+      <div class="release-notes">
         <span class="t-label">What changed</span>
-        <p class="t-sm">The workflow library moved into "Settings". Cancelling an unpack no longer looks like a hang.</p>
+        <p>The workflow library moved into "Settings". The release is a maintenance one: nothing in the launch path changed.</p>
+        <h4 class="t-label">Changed</h4>
+        <ul>
+          <li><b>The workflow library</b> moved into "Settings" and no longer takes a place in the rail.</li>
+          <li><b>Cancelling an unpack</b> no longer looks like a hang: the wizard reports the rollback and clears <code class="t-mono">extra_model_paths.yaml</code>.</li>
+        </ul>
       </div>
       <div class="row"><span class="btn secondary">Check now</span></div>
       <div class="toggle-row">

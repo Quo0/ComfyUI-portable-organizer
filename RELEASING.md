@@ -46,7 +46,9 @@ tag, rather than trusting the state `tauri-action` left the draft in.
 
 The release body is taken from the `CHANGELOG.md` section for this version.
 `tools/release-notes.mjs` cuts the section out and checks the tag against the
-version; no section means the release stops before the build.
+version; no section means the release stops before the build. The same section
+becomes the text the app shows under "What changed" — see "Auto-update" below
+for why it has to be known *before* the build.
 
 ## The release checklist
 
@@ -171,6 +173,22 @@ the **contents** of the `.sig` file, not a path to it.
 **The private key is stored outside the repository and backed up.** If it is
 lost, releasing an update for copies already installed becomes impossible
 forever.
+
+**`latest.json` carries the release notes, and it is written during the build.**
+`tauri-action` copies `releaseBody` into the manifest's `notes` field while it
+bundles, and the manifest is an ordinary asset from that moment on: the
+`gh release edit --notes-file` at the end of the workflow rewrites the release
+page and never touches the file. So the app's update panel shows whatever
+`releaseBody` said **at build time** — on `v0.1.1` that was the placeholder that
+used to stand there, and the release page looked perfectly fine while "What
+changed" read "The release body is appended by the next step." Hence the
+CHANGELOG section is cut out before the build and handed to `tauri-action`
+through `$RELEASE_NOTES`. The checksums are appended to `release-notes.md`
+afterwards on purpose: they belong on the release page, not in a panel inside
+the app.
+
+A release already published cannot be fixed by editing its body — only by
+replacing the `latest.json` asset itself.
 
 **An update signature is not a code signature.** The minisign keys prove the
 update was released by you; they have no effect on SmartScreen. The two

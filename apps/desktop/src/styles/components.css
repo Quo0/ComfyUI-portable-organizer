@@ -474,6 +474,40 @@ var {
   background: var(--state-crashed-bg);
   color: var(--state-crashed);
 }
+
+/* "What changed" in the update panel: the caption and the new version's
+   changelog, rendered from markdown by `ReleaseNotes.vue`. The block has no
+   scroll of its own — the screen has one scroll area and the notes flow inside
+   it. Headings and inline code reuse `.t-label` and `.t-mono` instead of
+   repeating them, so this block only sets what is left: rhythm and the list. */
+.release-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--ink-secondary);
+}
+.release-notes p {
+  margin: 0;
+}
+.release-notes h4 {
+  margin: var(--space-1) 0 0;
+}
+.release-notes ul {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.release-notes li::marker {
+  color: var(--ink-muted);
+}
+.release-notes b {
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+}
 .row {
   display: flex;
   flex-wrap: wrap;

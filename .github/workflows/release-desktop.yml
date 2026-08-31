@@ -33,9 +33,22 @@ jobs:
       # Before installing anything at all: two refusals that must happen
       # earlier than the build. The script also cuts out the CHANGELOG section
       # — the release body comes from there, it is not written in the GitHub UI.
+      #
+      # The section is passed on as an env var because `tauri-action` bakes it
+      # into `latest.json` as `notes` while it builds. That file is an asset:
+      # the `gh release edit` at the end rewrites the release page and never
+      # touches it, so whatever `releaseBody` says at build time is what the
+      # update panel inside the app shows forever. On v0.1.1 that was the
+      # placeholder that used to stand there.
       - name: Check the tag against the version and cut the CHANGELOG section
         shell: bash
-        run: node tools/release-notes.mjs "$GITHUB_REF_NAME" release-notes.md
+        run: |
+          node tools/release-notes.mjs "$GITHUB_REF_NAME" release-notes.md
+          {
+            echo 'RELEASE_NOTES<<CHANGELOG_SECTION_EOF'
+            cat release-notes.md
+            echo 'CHANGELOG_SECTION_EOF'
+          } >> "$GITHUB_ENV"
 
       - uses: pnpm/action-setup@v4
 
@@ -83,7 +96,11 @@ jobs:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}
           releaseName: ${{ github.ref_name }}
-          releaseBody: 'The release body is appended by the next step.'
+          # The CHANGELOG section, without the checksums: those are appended to
+          # `release-notes.md` after this step, so they reach the release page
+          # through `--notes-file` but stay out of `latest.json` — a wall of
+          # SHA-256 sums in the app's update panel is noise, not a change list.
+          releaseBody: ${{ env.RELEASE_NOTES }}
           releaseDraft: true
           # A tag with a hyphen is a prerelease: `releases/latest` skips it, and
           # the button on the site keeps pointing at the stable version.

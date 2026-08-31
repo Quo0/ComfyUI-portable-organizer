@@ -3,15 +3,36 @@
 The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), the
 numbering is [semantic](https://semver.org/).
 
-**The GitHub release body is assembled from here.** The release workflow takes
-the `## <version>` section whole, up to the next heading of the same level. If
-the section is missing, the build fails before anything is built: a release with
-no description of the changes is worse than a postponed release.
+**The GitHub release body is assembled from here**, and with it the "What
+changed" text inside the app's update panel. The release workflow takes the
+`## <version>` section whole, up to the next heading of the same level. If the
+section is missing, the build fails before anything is built: a release with no
+description of the changes is worse than a postponed release.
+
+The section is read by two audiences, so it is written for people rather than
+for `git log`: whoever is deciding whether to install the update sees exactly
+these lines, rendered — headings, bullets, **bold** and `code`.
 
 Hence the release order: the "Unreleased" section is renamed to
 `## <version> — <date>`, the version in
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
+
+## Unreleased
+
+### Fixed
+
+- **"What changed" showed a placeholder instead of the changelog.** The
+  updater's manifest takes its notes from `releaseBody` while the app is being
+  built, and the release body was only filled in afterwards — so the release
+  page looked right while the update panel read "The release body is appended by
+  the next step". The section is now cut out before the build.
+
+### Changed
+
+- **The update notes are rendered, not printed raw.** Headings, lists, bold and
+  inline code from `CHANGELOG.md` are shown as such instead of as markdown
+  source.
 
 ## 0.1.1 — 2026-09-01
 
