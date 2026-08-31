@@ -200,7 +200,7 @@ fn scenario_restart(instance: &Instance, profiles: &[cpo_desktop_lib::profiles::
 
 /// A path with a space and non-ASCII characters.
 ///
-/// The trap is named in the plan on a line of its own, yet there was no check
+/// The trap was known from the start, yet for a long time there was no check
 /// for it. What breaks on it is exactly what breaks nowhere else: quoting at
 /// spawn time and resolving `..\` from `advanced\`.
 fn scenario_odd_path() -> u32 {

@@ -23,8 +23,8 @@ const link = join(instance, 'python_embeded');
 /**
  * A second copy of the rig under a path with a space and non-ASCII characters.
  *
- * The trap is named in the plan: `d:\program files\Модели ИИ\...` shows up in
- * users' setups more often than one would think, and it breaks quoting on spawn
+ * A path like `d:\program files\Модели ИИ\...` shows up in users' setups more
+ * often than one would think, and it breaks quoting on spawn
  * and the resolution of `..\` inside `advanced\`. Checking this on an English
  * path without spaces is pointless — everything always works there.
  *
