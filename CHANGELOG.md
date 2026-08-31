@@ -18,7 +18,7 @@ Hence the release order: the "Unreleased" section is renamed to
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
 
-## Unreleased
+## 0.1.2 — 2026-09-01
 
 ### Fixed
 

@@ -1,7 +1,7 @@
 {
   "name": "comfyui-portable-organizer",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Managing ComfyUI portable builds: registry, launch, embedded tabs, shared models",
   "license": "GPL-3.0-only",
   "author": "Andrew Blokhin",
