@@ -1,12 +1,7 @@
 <script setup lang="ts">
 
-//
-
-//
-
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-
 import type { AppError } from '../bindings';
 import { errorText } from '../lib/errors';
 import Field from './ui/Field.vue';

@@ -1,9 +1,5 @@
 <script setup lang="ts">
 
-//
-
-//
-
 import { ArrowLeft, ExternalLink, FolderOpen, RotateCw, ScrollText } from '@lucide/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

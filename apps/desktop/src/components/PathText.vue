@@ -1,7 +1,5 @@
 <script setup lang="ts">
 
-//
-
 import { computed } from 'vue';
 
 const { path } = defineProps<{ path: string }>();

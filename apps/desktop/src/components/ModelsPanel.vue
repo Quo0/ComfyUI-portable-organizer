@@ -1,9 +1,5 @@
 <script setup lang="ts">
 
-//
-
-//
-
 import { ChevronRight, RotateCw } from '@lucide/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

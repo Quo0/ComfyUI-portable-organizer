@@ -22,9 +22,6 @@ onMounted(async () => {
   await run.load();
 });
 
-//
-
-//
 
 const sections = computed(() => [
   { to: '/instances', icon: Layers, label: t('nav.instances'), mark: false },

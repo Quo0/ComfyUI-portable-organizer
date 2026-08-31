@@ -1,9 +1,5 @@
 <script setup lang="ts">
 
-//
-
-//
-
 import { FolderOpen } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';

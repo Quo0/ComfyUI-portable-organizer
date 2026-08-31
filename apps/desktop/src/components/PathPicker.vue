@@ -1,7 +1,5 @@
 <script setup lang="ts">
 
-//
-
 import { open } from '@tauri-apps/plugin-dialog';
 import { useI18n } from 'vue-i18n';
 

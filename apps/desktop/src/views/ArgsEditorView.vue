@@ -1,13 +1,7 @@
 <script setup lang="ts">
-
-//
-
-//
-
 import { ArrowLeft, X } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-
 import EmptyNote from '../components/EmptyNote.vue';
 import Field from '../components/ui/Field.vue';
 import Group from '../components/ui/Group.vue';
