@@ -32,6 +32,27 @@ repository.
   The source of truth is `en.json`; Russian, Chinese and Spanish follow it.
 - Paths, instance names and log contents are never translated.
 
+**Cyrillic that must stay.** The repository is English, but "zero Cyrillic" is
+the wrong criterion — in these four places the Russian is data or an address,
+not a note, and translating it breaks something:
+
+1. **Locales.** `apps/desktop/src/i18n/locales/ru.json`, `apps/docs/ru/**` and
+   the `ru` strings in `apps/docs/.vitepress/config.ts` are the product. The
+   same holds for the Spanish and Chinese beside them.
+2. **The design showcase.** `apps/design/**/*.md` and its menu in
+   `config.mts` are in Russian by decision; the `design-ui` skill quotes those
+   menu items by name, so translating them breaks the pointer.
+3. **Test data with non-ASCII.** `стенд с пробелом`, `_архив`, `сборка A`,
+   `ночной город` in `examples/`, `tools/fixtures/**` and line 32 of
+   `.gitignore`. They are the case under test — quoting on spawn, console
+   encoding, YAML parsing. Translating deletes the check instead of
+   translating it.
+4. **Samples and self-names.** The Russian examples in the `i18n` skill and
+   `tools/i18n-add.mjs`, `[Русский]` in `README.md`, `ru: 'Русский'` in
+   `i18n/index.ts`.
+
+Anything Cyrillic outside this list is a leftover and gets translated.
+
 ## Rules already paid for
 
 Each one was found the expensive way — none may be broken.
