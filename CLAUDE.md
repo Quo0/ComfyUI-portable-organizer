@@ -9,6 +9,7 @@ install from archive, launch, embedded tabs, shared models, workflow library.
 |---|---|
 | `specs/` | **what** we build: functional requirements, user stories, NFRs |
 | `apps/ui-design/` | **how it looks**: showcase of the style guide and screens by scenario (VitePress) |
+| `RELEASING.md` | **how a version ships**: the checklist, the workflow, the traps |
 
 The source of truth for tokens and component CSS is `apps/desktop/src/styles/`
 itself, not a separate folder: `apps/ui-design` reads those files directly,
