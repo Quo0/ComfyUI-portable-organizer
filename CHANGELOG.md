@@ -13,6 +13,29 @@ Hence the release order: the "Unreleased" section is renamed to
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
 
+## 0.1.1 — 2026-09-01
+
+A maintenance release. The app itself has not changed: this version exists to
+run the release pipeline through once more.
+
+### Changed
+
+- **The repository speaks English.** Rust and frontend comments, `specs/`, the
+  design showcase and the infrastructure scripts have been translated. The UI
+  strings, the four documentation locales and the deliberately non-ASCII test
+  data are untouched.
+- **The design showcase moved** from `apps/design` to `apps/ui-design`, and the
+  root scripts are named target-first: `desktop:*`, `docs:*`, `ui-design:*`.
+
+### Added
+
+- `RELEASING.md` — the release checklist, back in the repository.
+
+### Removed
+
+- **The technical plan** (`PLAN.md` and `plan/`). What was absolute in it is
+  repeated in `CLAUDE.md`; the reasoning stays in `git log`.
+
 ## 0.1.0 — 2026-08-27
 
 ### Added
