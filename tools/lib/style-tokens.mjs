@@ -105,7 +105,7 @@ export const ACCENTS = [
   ['rose', 'Rose'],
 ];
 
-// Semantic palette roles, shown in the "Палитра" section of the style guide.
+// Semantic palette roles, shown in the "Palette" section of the style guide.
 export const ROLES = [
   ['--ground', 'window ground'],
   ['--surface', 'cards, rail, fields'],
