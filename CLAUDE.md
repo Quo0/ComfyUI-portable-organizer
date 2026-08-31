@@ -7,8 +7,6 @@ install from archive, launch, embedded tabs, shared models, workflow library.
 
 | Document | Question it answers |
 |---|---|
-| `PLAN.md` | plan index: context, stack, repository layout, section table |
-| `plan/` | **how** we build: architecture, findings from ComfyUI sources, phase checklist, write-ups |
 | `specs/` | **what** we build: functional requirements, user stories, NFRs |
 | `apps/design/` | **how it looks**: showcase of the style guide and screens by scenario (VitePress) |
 
@@ -16,13 +14,16 @@ The source of truth for tokens and component CSS is `apps/desktop/src/styles/`
 itself, not a separate folder: `apps/design` reads those files directly,
 without copies.
 
-The plan is cut into sections: load only the one you need, not all of it.
-The entry point is the table in `PLAN.md`. The phase checklist is
-`plan/phases.md`; the "what got settled" write-ups from finished phases live
-in `plan/notes/`.
+**The technical plan is no longer in the repository.** `PLAN.md` and `plan/`
+are gone: the architecture write-ups, the phase checklist and the findings from
+the ComfyUI sources are kept outside it. What was absolute in them is repeated
+below in "Rules already paid for"; the reasoning is in `git log` up to the
+commit that removed the folder. Do not restore references to `plan/` — they
+resolve nowhere.
 
-Before working on a phase, check its checklist in `plan/phases.md` and the
-epics in `specs/` that the phase references with `@phase-N` tags.
+Work on a phase starts from the epics in `specs/` that carry the phase's
+`@phase-N` tag; the phase's own scope comes from the task, not from the
+repository.
 
 ## Language
 

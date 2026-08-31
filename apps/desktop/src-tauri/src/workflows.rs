@@ -1,7 +1,7 @@
 //! The workflow library: reading the folder, the manifest, parsing the graph.
 //!
-//! The findings from the ComfyUI sources that shaped the design are collected
-//! in `plan/workflows.md`; only what affects the code is here.
+//! Only the findings from the ComfyUI sources that affect the code are written
+//! down here.
 //!
 //! **The library is a folder with files.** The manifest merely enriches it
 //! with tags, notes and a "favourite" mark. Hence the robustness rule running

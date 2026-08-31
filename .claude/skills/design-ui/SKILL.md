@@ -113,7 +113,8 @@ The child webview with ComfyUI is a native window on top of our HTML, and
 covering it with a dropdown or a modal is physically impossible. That is why
 settings, adding an instance and the argument editor are **separate routes**.
 Any new component that wants to pop up over the content area is designed wrong.
-The full reasoning is in `plan/ui.md`, section «Дисциплина z-order».
+The short form of the rule, with its consequences for toasts and the log
+console, is in `CLAUDE.md`.
 
 ## Animation
 

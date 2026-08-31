@@ -73,5 +73,5 @@ in the ComfyUI documentation.
 ## String length
 
 There is no German, but Spanish runs about twenty percent longer than English
-and Chinese is half the length. Buttons and tables are laid out to survive both.
-`plan/verification.md` has separate check items for this.
+and Chinese is half the length. Buttons and tables are laid out to survive both,
+and that is checked by hand, on a running app in each locale.

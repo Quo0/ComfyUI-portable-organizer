@@ -27,8 +27,8 @@ Frontend build: `pnpm --filter @cpo/desktop exec vite build`.
 **`cargo test` does not work and will not.** The test binary fails with
 `STATUS_ENTRYPOINT_NOT_FOUND` while loading the image, before `main`. The cause
 is not `cdylib` — that was verified twice: any binary other than the Tauri app
-itself fails the same way if it pulls in the `tauri_specta` machinery. Write-up:
-`plan/notes/phase-25-shared-models.md`.
+itself fails the same way if it pulls in the `tauri_specta` machinery. This was
+established in phase 2.5; do not spend the time on it again.
 
 So the Rust checks live in `apps/desktop/src-tauri/examples/` and are run as
 `cargo run --example check_profiles`. When writing a new check, put it in the
@@ -70,11 +70,10 @@ If the `python_embeded` junction is missing, create it with
 
 ## What these checks do not replace
 
-`plan/verification.md` holds the list of engineering checks done by hand: no 403
-in the child webview, dragging images onto the canvas, behaviour on a Windows
-theme change, uninstallation. They do not yield to automation, and a phase
-cannot be closed without them — but there is no reason to run them on every
-commit either.
+A set of engineering checks is done by hand: no 403 in the child webview,
+dragging images onto the canvas, behaviour on a Windows theme change,
+uninstallation. They do not yield to automation, and a phase cannot be closed
+without them — but there is no reason to run them on every commit either.
 
 User-facing test cases are not derived from here: their source is the acceptance
 criteria in `specs/`.

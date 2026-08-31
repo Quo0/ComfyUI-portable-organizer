@@ -1,8 +1,7 @@
 //! A check of the workflow library and of resolving an instance's folder.
 //!
 //! In `examples/` rather than in `#[cfg(test)]` for the known reason:
-//! `cargo test` in this crate fails while loading the image
-//! (`plan/notes/phase-25-shared-models.md`).
+//! `cargo test` in this crate fails while loading the image.
 //!
 //! Test bed: node tools/fixtures/make-workflow-library.mjs
 //!

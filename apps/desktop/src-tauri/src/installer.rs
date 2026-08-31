@@ -6,8 +6,8 @@
 //!
 //! The decoder decision was made by measurement, not by feel: `sevenz-rust2`
 //! is three times slower than 7-Zip on a real archive (238 s against 81), and
-//! that has been accepted. The details and the numbers are in
-//! `plan/installer.md`.
+//! that has been accepted: a bundled decoder with no external dependency is
+//! worth more here than the extra minutes of a one-off operation.
 
 use std::fs::{self, File};
 use std::io;
@@ -705,8 +705,7 @@ fn partial_of(dest: &Path) -> PathBuf {
 /// A single call is not enough: right after extraction the antivirus is
 /// holding some of the files, and the deletion returns now "directory not
 /// empty", now "access denied", with the set of locked files changing from
-/// attempt to attempt. Verified on a real archive — see `plan/installer.md`,
-/// "What else the spike uncovered".
+/// attempt to attempt. Verified on a real archive.
 fn remove_tree(path: &Path) -> Result<(), AppError> {
     if !path.exists() {
         return Ok(());

@@ -8,8 +8,9 @@
 # checksums have been appended to its body: there is never a state where the
 # file is already visible and there is nothing to verify it against.
 #
-# The app is unsigned (see plan/release.md), and the checksum is the only way
-# a user can make sure the file was not swapped.
+# The app is unsigned — a code-signing certificate is not worth its price at
+# this stage — and the checksum is the only way a user can make sure the file
+# was not swapped.
 
 name: Release the app
 

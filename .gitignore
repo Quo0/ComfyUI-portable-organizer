@@ -23,7 +23,7 @@ apps/design/.vitepress/dist/
 apps/design/.vitepress/theme/preview-tokens.css
 
 # Development rig: a junction to the system Python is not put into git, the
-# fixture is created by a script (see «Разработка» in plan/dev.md).
+# fixture is created by tools/fixtures/make-fixture.mjs.
 tools/fixtures/fake-instance/python_embeded/
 
 # The copy of the rig under a path with a space and non-ASCII characters: the

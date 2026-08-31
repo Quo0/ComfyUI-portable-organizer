@@ -2,8 +2,7 @@
 //!
 //! It lives in `examples/` rather than in `#[cfg(test)]` for the same reason
 //! as `check_profiles`: `cargo test` in this crate fails while loading the
-//! test binary with `STATUS_ENTRYPOINT_NOT_FOUND`. The limitation is written
-//! down in `plan/notes/phase-0-spike.md`.
+//! test binary with `STATUS_ENTRYPOINT_NOT_FOUND`.
 //!
 //! The test bed is built by `node tools/fixtures/make-shared-root.mjs`.
 //!

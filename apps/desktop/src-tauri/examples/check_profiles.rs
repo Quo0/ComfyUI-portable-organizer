@@ -3,8 +3,8 @@
 //! These are tests moved into an example out of necessity: `cargo test` does
 //! not run in this crate — the test binary fails at load with
 //! STATUS_ENTRYPOINT_NOT_FOUND, and removing `cdylib` from crate-type does not
-//! help. The limitation is written down in `plan/notes/phase-0-spike.md`; once
-//! it is lifted, the checks move into `#[cfg(test)]` unchanged in substance.
+//! help. The limitation was established in phase 0; once it is lifted, the
+//! checks move into `#[cfg(test)]` unchanged in substance.
 //!
 //! Run: cargo run --example check_profiles
 

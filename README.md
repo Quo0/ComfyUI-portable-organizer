@@ -95,7 +95,7 @@ pnpm build:docs       # the documentation site
 | `apps/desktop` | the app itself — Vue frontend, Tauri/Rust backend |
 | `apps/docs` | the user documentation site (VitePress, four locales) |
 | `apps/design` | the style guide and screen showcase |
-| `plan/`, `specs/` | how it is built, and what it is meant to do |
+| `specs/` | what the app is meant to do: requirements, stories, acceptance criteria |
 
 ## License
 

@@ -2,9 +2,8 @@
 //! `extra_model_paths.yaml`.
 //!
 //! The mechanism is a regular part of ComfyUI; our job is to generate a
-//! correct file and hand it to the instance. The findings from the sources
-//! that shaped the design are collected in `plan/shared-models.md`; only what
-//! affects the code is here.
+//! correct file and hand it to the instance. Only what affects the code is
+//! written down here.
 //!
 //! **Sections are built from the subfolders that actually exist in the root,
 //! not from a hardcoded list of keys.** The list of categories in ComfyUI is
