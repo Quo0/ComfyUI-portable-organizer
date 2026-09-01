@@ -18,6 +18,16 @@ Hence the release order: the "Unreleased" section is renamed to
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
 
+## 0.1.4 — 2026-09-01
+
+### Fixed
+
+- **Buttons in a banner sat too high.** They were aligned on the first line of
+  the text, so as soon as the message ran to a second line — "Download and
+  install" next to the version and the release date, or the warning about a
+  shared folder that cannot be reached — the button drifted above the middle of
+  the frame. It is now centred.
+
 ## 0.1.3 — 2026-09-01
 
 A test release. The app itself has not changed: this version exists to check
