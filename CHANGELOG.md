@@ -18,6 +18,17 @@ Hence the release order: the "Unreleased" section is renamed to
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
 
+## 0.1.3 — 2026-09-01
+
+A test release. The app itself has not changed: this version exists to check
+that the in-app update works — the fix that lets the installer outlive the app
+shipped in 0.1.2, and the only way to see it work is to update from 0.1.2 to
+something.
+
+If you are reading this in the app's update panel, the check has already
+half-succeeded: the manifest was fetched and its notes came from the changelog.
+The rest of it is whether the installer actually runs after you press install.
+
 ## 0.1.2 — 2026-09-01
 
 ### Fixed
