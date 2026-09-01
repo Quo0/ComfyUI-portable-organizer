@@ -1,6 +1,6 @@
 [package]
 name = "cpo-desktop"
-version = "0.1.4"
+version = "0.1.5"
 description = "Managing ComfyUI portable builds"
 authors = ["Andrew Blokhin"]
 edition = "2021"

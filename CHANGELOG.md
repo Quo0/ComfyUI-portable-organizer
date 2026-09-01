@@ -18,6 +18,13 @@ Hence the release order: the "Unreleased" section is renamed to
 `apps/desktop/src-tauri/tauri.conf.json` is raised to match, and only then is
 the `v<version>` tag created.
 
+## 0.1.5 — 2026-09-01
+
+Another test release, with no changes to the app. This one checks that
+updating works twice in a row: an update installs a new copy of the app, and
+whether that copy can update in turn is a separate question from whether the
+first one could.
+
 ## 0.1.4 — 2026-09-01
 
 ### Fixed
