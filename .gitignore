@@ -56,6 +56,15 @@ Thumbs.db
 .claude/settings.local.json
 .claude/hook-events.log
 
+# Skills and subagents live in .agents/ — the vendor-neutral location, so
+# a second agent tool reads the same folders. Claude Code only looks in
+# .claude/, so tools/agents-sync.mjs copies them there on `pnpm install`.
+# Copies, not symlinks: core.symlinks is off on Windows by default, and git
+# would check a committed symlink out as a text file with a path inside it —
+# a skill that loads as garbage instead of failing loudly.
+.claude/skills/
+.claude/agents/
+
 .cc-connect
 
 # The logo sources and their slicer live outside the repository: only the
