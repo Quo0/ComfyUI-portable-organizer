@@ -97,6 +97,18 @@ pnpm docs:build         # the documentation site
 | `apps/ui-design` | the style guide and screen showcase |
 | `specs/` | what the app is meant to do: requirements, stories, acceptance criteria |
 
+## Contributing
+
+Bug reports, translation fixes and patches are welcome. Start from
+[CONTRIBUTING.md](CONTRIBUTING.md): what fits, how to get the app running, the
+checks to run before opening a pull request — there is no CI on pull requests,
+so the local run is the only one there is.
+
+For anything larger than a typo, open an
+[issue](https://github.com/Quo0/ComfyUI-portable-organizer/issues/new/choose)
+first. Problems inside ComfyUI itself belong
+[upstream](https://github.com/comfyanonymous/ComfyUI/issues).
+
 ## License
 
 **[GNU General Public License, version 3 only](LICENSE).**
