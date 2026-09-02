@@ -56,19 +56,28 @@ The order is mandatory: the tag goes last, because the workflow builds **the
 commit the tag points at**. An edit made afterwards does not make it into the
 build — it is not "one more push" but a tag that has to be moved.
 
-1. **Raise the version** in `apps/desktop/src-tauri/tauri.conf.json` — the
-   single source. And with it `apps/desktop/src-tauri/Cargo.toml`, its
-   `Cargo.lock` entry, `apps/desktop/package.json` and the root
-   `package.json`: the workflow does not check those, but numbers that have
-   drifted apart are afterwards hunted by eye.
-2. **Rename `## Unreleased`** to `## <version> — <date>`. An empty section
-   fails the release just as a missing one does.
+1. **Write the CHANGELOG section** under a `## Unreleased` heading. An empty
+   section fails the release just as a missing one does, and its text is what
+   the app's update panel shows — it is written for people, not from `git log`.
+2. **Raise the version**: `pnpm release:version patch` (or `minor`, `major`, or
+   an exact `0.2.0`). `tools/release-version.mjs` moves all five places at once
+   — `apps/desktop/src-tauri/tauri.conf.json` (the single source),
+   `apps/desktop/src-tauri/Cargo.toml`, its `Cargo.lock` entry,
+   `apps/desktop/package.json` and the root `package.json` — and renames
+   `## Unreleased` to `## <version> — <date>`.
+
+   Only the first of the five is checked by the workflow; the others are
+   afterwards hunted by eye, which is exactly why they drift. So the script
+   reads all five before writing any and refuses outright if they disagree:
+   a disagreement means the previous release was left half-raised, and guessing
+   which number is the real one is how a wrong version reaches a user.
+   `pnpm release:check` runs that comparison on its own, without writing.
 3. **Run the gates locally**: `pnpm ui-design:check`, `pnpm i18n:check`,
    `pnpm typecheck`. They also stand in the workflow, but failing them there
    costs twenty minutes of Rust build.
-4. **Check the section is cut correctly**: `node tools/release-notes.mjs
-   v<version>`. The script prints what will become the release body and fails
-   in exactly the place CI would.
+4. **Check the section is cut correctly**: `pnpm release:notes v<version>`. The
+   script prints what will become the release body and fails in exactly the
+   place CI would.
 5. **Commit and push** to `master` — the whole release, including
    `bindings.ts` if it changed.
 6. **Tag that commit and push the tag**:

@@ -24,6 +24,9 @@
     "ui-design:check": "node tools/build-preview-tokens.mjs && node tools/check-styles.mjs",
     "i18n:check": "node tools/i18n-check.mjs",
     "typecheck": "pnpm --filter @cpo/desktop exec vue-tsc --noEmit",
+    "release:check": "node tools/release-version.mjs --check",
+    "release:version": "node tools/release-version.mjs",
+    "release:notes": "node tools/release-notes.mjs",
     "kill": "node tools/kill-dev.mjs"
   }
 }

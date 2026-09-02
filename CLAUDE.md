@@ -161,6 +161,9 @@ pnpm ui-design:check    rebuild showcase tokens and run contrast and theme-parit
 pnpm ui-design:tokens   rebuild apps/ui-design/.vitepress/theme/preview-tokens.css from the app
 pnpm i18n:check         locale key parity against en.json
 pnpm typecheck          vue-tsc over the frontend
+pnpm release:check      do the five version places agree, is the CHANGELOG section in place
+pnpm release:version    raise the version everywhere and close the CHANGELOG section
+pnpm release:notes      print the section that becomes the release body
 pnpm kill               kill the process holding the dev server port
 ```
 
@@ -174,6 +177,7 @@ stay in context permanently, the body is pulled in on demand.
 |---|---|
 | `phase` | opening and closing a phase: what to read, what to update |
 | `verify` | what to run before a commit, and in what order |
+| `release` | cutting a release: the number, the CHANGELOG section, the version, the tag |
 | `i18n` | any edit to UI strings |
 | `design-ui` | laying out a screen: what already exists in `apps/desktop/src/styles/` |
 | `vue` | Vue 3 Composition API, by antfu |
