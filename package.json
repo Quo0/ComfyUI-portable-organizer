@@ -14,6 +14,7 @@
     "node": ">=22.13"
   },
   "scripts": {
+    "prepare": "node tools/hooks/install.mjs",
     "desktop:dev": "pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json --features devtools",
     "desktop:build": "pnpm --filter @cpo/desktop tauri build",
     "docs:dev": "pnpm --filter @cpo/docs docs:dev",
@@ -27,6 +28,10 @@
     "release:check": "node tools/release-version.mjs --check",
     "release:version": "node tools/release-version.mjs",
     "release:notes": "node tools/release-notes.mjs",
-    "kill": "node tools/kill-dev.mjs"
+    "kill": "node tools/kill-dev.mjs",
+    "hooks:install": "node tools/hooks/install.mjs"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.0"
   }
 }

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Installed by `git config core.hooksPath .githooks`, which the root `prepare`
+# script sets on install. The logic is in Node, like every other tool here.
+#
+# A missing Node lets the commit through rather than blocking it: the checks
+# also stand in CI, and a machine without a toolchain is not a reason to be
+# unable to commit.
+command -v node >/dev/null 2>&1 || exit 0
+exec node "$(dirname "$0")/../tools/hooks/commit-msg.mjs" "$@"
