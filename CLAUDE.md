@@ -134,9 +134,10 @@ Panels with a fixed header and footer keep the scroll inside, between them.
 |---|---|
 | `apps/desktop/src/bindings.ts` | `tauri-specta` when the dev build runs |
 | `apps/ui-design/.vitepress/theme/preview-tokens.css` | `pnpm ui-design:tokens` from `apps/desktop/src/styles/tokens.css` |
+| `.claude/skills/**` | `pnpm skills:sync` from `.agents/skills/**` |
 
-Edits go into the source, then it is regenerated. Both are guarded by a hook —
-the refusal names the source and the regeneration command.
+Edits go into the source, then it is regenerated. All three are guarded by
+a hook — the refusal names the source and the regeneration command.
 
 The logo is an exception: the design file and the slicer live outside the
 repository, only the result is here. `apps/docs/public/logo.svg`,
@@ -164,14 +165,37 @@ pnpm typecheck          vue-tsc over the frontend
 pnpm release:check      do the five version places agree, is the CHANGELOG section in place
 pnpm release:version    raise the version everywhere and close the CHANGELOG section
 pnpm release:notes      print the section that becomes the release body
+pnpm skills:sync        copy .agents/skills/** into .claude/skills/** for Claude Code
+pnpm skills:check       has the copy in .claude/skills/ drifted from the source
 pnpm kill               kill the process holding the dev server port
 ```
 
-## What lives in `.claude/`
+## Skills, agents and hooks
 
-Short absolute rules — they are loaded into every session in full. Procedures
-are not added here; they belong in skills: only a skill's name and description
-stay in context permanently, the body is pulled in on demand.
+Short absolute rules go in this file — it is loaded into every session in full.
+Procedures are not added here; they belong in skills: only a skill's name and
+description stay in context permanently, the body is pulled in on demand.
+
+**Skills live in `.agents/skills/`, and only there.** That location is the
+vendor-neutral one, so a second agent tool reads the same folder instead of its
+own copy. Claude Code scans only `.claude/skills/`, so `pnpm skills:sync` copies
+them there; the copy is in `.gitignore` and is regenerated on every
+`pnpm install` through `prepare`. Edits go into `.agents/skills/`, which is what
+the hook says when it refuses an edit to the copy.
+
+A skill installed from outside (`skills-lock.json` records where each one came
+from) has to end up in `.agents/skills/`. If the installer put it in
+`.claude/skills/` instead, move it — the next sync deletes whatever is there and
+not in the source. The `skillPath` in that lockfile is the path inside the
+upstream repository, not a local one, and does not change when skills move here.
+
+Copies rather than symlinks, and this was paid for: three skills used to sit in
+`.claude/skills/` as Windows junctions, and the junctions were never in git —
+the index carried both trees as real files, so a fresh clone got two
+independent copies with nothing to notice them drifting apart. Committing
+symlinks does not fix it either: `core.symlinks` is off on Windows without
+Developer Mode, and git checks such an entry out as a text file holding the
+target path, so the skill loads as garbage instead of failing loudly.
 
 | Skill | When it fires |
 |---|---|
@@ -182,6 +206,9 @@ stay in context permanently, the body is pulled in on demand.
 | `design-ui` | laying out a screen: what already exists in `apps/desktop/src/styles/` |
 | `vue` | Vue 3 Composition API, by antfu |
 
+Agents stay in `.claude/agents/` — unlike skills, they are Claude Code's own
+format, and there is no second tool to share them with.
+
 | Agent | What for |
 |---|---|
 | `rust-check` | build Rust and return a diagnosis instead of a wall of `cargo` output |
@@ -191,8 +218,8 @@ Hooks: a ban on editing generated files, `i18n:check` after locale edits,
 a reminder about `ui-design:tokens` after editing the app's tokens. The dispatcher
 is `tools/claude-hook.mjs`.
 
-Settings and skills are read at session start: a new skill or an edit to
-`settings.json` takes effect only after a restart.
+Settings and skills are read at session start: a new skill, a `skills:sync` that
+brought one in, or an edit to `settings.json` takes effect only after a restart.
 
 ## Commits
 

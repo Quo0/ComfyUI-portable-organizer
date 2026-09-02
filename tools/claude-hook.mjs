@@ -41,6 +41,13 @@ const GENERATED = [
     source: 'apps/desktop/src/styles/tokens.css',
     rebuild: 'pnpm ui-design:tokens',
   },
+  {
+    // .claude/skills/ is a copy for Claude Code, which scans nowhere else. An
+    // edit here survives until the next sync and reaches no other agent tool.
+    match: (p) => p.startsWith('.claude/skills/'),
+    source: (p) => `.agents/${p.slice('.claude/'.length)}`,
+    rebuild: 'pnpm skills:sync',
+  },
 ];
 
 const isLocale = (p) => /^apps\/desktop\/src\/i18n\/locales\/[\w-]+\.json$/.test(p);
@@ -91,9 +98,12 @@ function pre(event) {
   for (const path of targets(event)) {
     const rule = GENERATED.find((r) => r.match(path));
     if (rule) {
+      // A whole generated tree names its source per file, a single file has it
+      // fixed — hence a source that may be a function of the path.
+      const source = typeof rule.source === 'function' ? rule.source(path) : rule.source;
       deny(
         `The file ${path} is generated and is not edited by hand — the edit ` +
-          `will disappear on the next build. Source: ${rule.source}. ` +
+          `will disappear on the next build. Source: ${source}. ` +
           `Rebuild: ${rule.rebuild}.`,
       );
     }
