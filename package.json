@@ -14,7 +14,7 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "prepare": "node tools/hooks/install.mjs && node tools/skills-sync.mjs",
+    "prepare": "node tools/hooks/install.mjs && node tools/agents-sync.mjs",
     "desktop:dev": "pnpm --filter @cpo/desktop tauri dev --config src-tauri/tauri.dev.conf.json --features devtools",
     "desktop:build": "pnpm --filter @cpo/desktop tauri build",
     "docs:dev": "pnpm --filter @cpo/docs docs:dev",
@@ -30,8 +30,8 @@
     "release:notes": "node tools/release-notes.mjs",
     "kill": "node tools/kill-dev.mjs",
     "hooks:install": "node tools/hooks/install.mjs",
-    "skills:sync": "node tools/skills-sync.mjs",
-    "skills:check": "node tools/skills-sync.mjs --check"
+    "agents:sync": "node tools/agents-sync.mjs",
+    "agents:check": "node tools/agents-sync.mjs --check"
   },
   "devDependencies": {
     "yaml": "^2.9.0"

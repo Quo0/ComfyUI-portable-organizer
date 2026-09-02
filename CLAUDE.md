@@ -134,7 +134,7 @@ Panels with a fixed header and footer keep the scroll inside, between them.
 |---|---|
 | `apps/desktop/src/bindings.ts` | `tauri-specta` when the dev build runs |
 | `apps/ui-design/.vitepress/theme/preview-tokens.css` | `pnpm ui-design:tokens` from `apps/desktop/src/styles/tokens.css` |
-| `.claude/skills/**` | `pnpm skills:sync` from `.agents/skills/**` |
+| `.claude/skills/**` and `.claude/agents/**` | `pnpm agents:sync` from `.agents/**` |
 
 Edits go into the source, then it is regenerated. All three are guarded by
 a hook — the refusal names the source and the regeneration command.
@@ -165,8 +165,8 @@ pnpm typecheck          vue-tsc over the frontend
 pnpm release:check      do the five version places agree, is the CHANGELOG section in place
 pnpm release:version    raise the version everywhere and close the CHANGELOG section
 pnpm release:notes      print the section that becomes the release body
-pnpm skills:sync        copy .agents/skills/** into .claude/skills/** for Claude Code
-pnpm skills:check       has the copy in .claude/skills/ drifted from the source
+pnpm agents:sync        copy .agents/** into .claude/** for Claude Code
+pnpm agents:check       has the copy in .claude/ drifted from the source
 pnpm kill               kill the process holding the dev server port
 ```
 
@@ -176,12 +176,17 @@ Short absolute rules go in this file — it is loaded into every session in full
 Procedures are not added here; they belong in skills: only a skill's name and
 description stay in context permanently, the body is pulled in on demand.
 
-**Skills live in `.agents/skills/`, and only there.** That location is the
-vendor-neutral one, so a second agent tool reads the same folder instead of its
-own copy. Claude Code scans only `.claude/skills/`, so `pnpm skills:sync` copies
-them there; the copy is in `.gitignore` and is regenerated on every
-`pnpm install` through `prepare`. Edits go into `.agents/skills/`, which is what
-the hook says when it refuses an edit to the copy.
+**Skills and subagents live in `.agents/`, and only there** —
+`.agents/skills/` and `.agents/agents/`. That location is the vendor-neutral
+one, so a second agent tool reads the same folders instead of its own copy.
+Claude Code looks only in `.claude/skills/` and `.claude/agents/`, so
+`pnpm agents:sync` copies them there; both copies are in `.gitignore` and are
+regenerated on every `pnpm install` through `prepare`. Edits go into `.agents/`,
+which is what the hook says when it refuses an edit to a copy.
+
+The two are shaped differently and the sync knows it: a skill is a folder with
+a `SKILL.md` inside, a subagent is a single `.md` file. Anything else in those
+folders is not carried over.
 
 A skill installed from outside (`skills-lock.json` records where each one came
 from) has to end up in `.agents/skills/`. If the installer put it in
@@ -206,8 +211,9 @@ target path, so the skill loads as garbage instead of failing loudly.
 | `design-ui` | laying out a screen: what already exists in `apps/desktop/src/styles/` |
 | `vue` | Vue 3 Composition API, by antfu |
 
-Agents stay in `.claude/agents/` — unlike skills, they are Claude Code's own
-format, and there is no second tool to share them with.
+Subagents are Claude Code's own format and there is no second tool to share
+them with yet, but they live in `.agents/agents/` all the same: two rules for
+two neighbouring folders is the arrangement that produced the duplicate below.
 
 | Agent | What for |
 |---|---|
@@ -218,8 +224,9 @@ Hooks: a ban on editing generated files, `i18n:check` after locale edits,
 a reminder about `ui-design:tokens` after editing the app's tokens. The dispatcher
 is `tools/claude-hook.mjs`.
 
-Settings and skills are read at session start: a new skill, a `skills:sync` that
-brought one in, or an edit to `settings.json` takes effect only after a restart.
+Settings, skills and subagents are read at session start: a new skill, an
+`agents:sync` that brought one in, or an edit to `settings.json` takes effect
+only after a restart.
 
 ## Commits
 

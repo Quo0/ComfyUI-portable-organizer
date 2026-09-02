@@ -42,11 +42,12 @@ const GENERATED = [
     rebuild: 'pnpm ui-design:tokens',
   },
   {
-    // .claude/skills/ is a copy for Claude Code, which scans nowhere else. An
-    // edit here survives until the next sync and reaches no other agent tool.
-    match: (p) => p.startsWith('.claude/skills/'),
+    // .claude/skills/ and .claude/agents/ are copies for Claude Code, which
+    // looks nowhere else. An edit here survives until the next sync and reaches
+    // no other agent tool.
+    match: (p) => p.startsWith('.claude/skills/') || p.startsWith('.claude/agents/'),
     source: (p) => `.agents/${p.slice('.claude/'.length)}`,
-    rebuild: 'pnpm skills:sync',
+    rebuild: 'pnpm agents:sync',
   },
 ];
 
