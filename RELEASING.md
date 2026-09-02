@@ -5,6 +5,41 @@ with a "Download" button. The repository is public — otherwise the assets
 could not be downloaded without authorisation, and Pages would need a paid
 plan.
 
+## Where a release is cut from
+
+**Normally: a tag on `master`.** There is no release branch in the usual case
+and no `develop` behind it. Nothing is published by a push — the `v*` tag is
+the only trigger — so master needs no second branch to protect what users have;
+`git describe` already says which commit a release was built from.
+
+A release candidate is a tag on master too: `v0.2.0-rc.1`. The hyphen is what
+marks it a prerelease, and `releases/latest` skips prereleases, so neither the
+updater nor the "Download" button sees it — testers take the installer off the
+release page by hand. What a candidate costs is not a branch, it is a pause:
+between `rc.1` and the release, master takes fixes and not features.
+
+**A `release/x.y` branch is cut only when that pause is not affordable**, or
+when a version that master has already left behind needs a patch. It carries
+the whole minor line — 0.2.1, 0.2.2 — rather than one version, because a branch
+per patch dies the day it is made:
+
+```
+git switch -c release/0.2 v0.2.0
+git cherry-pick <fix>
+# write the CHANGELOG section, then: pnpm release:version patch
+git push origin release/0.2 && git tag v0.2.1 && git push origin v0.2.1
+git switch master && git cherry-pick <fix>
+```
+
+The fix goes back to master by hand, in the same sitting. Nothing merges a
+release branch back automatically, and a fix that lives only on the branch
+comes back as the same bug one version later.
+
+One oddity to expect, not to correct: on master the `## 0.2.1` section then
+sits below `## 0.3.0`, out of chronological order. The changelog is read by
+version, and reordering it would break the section the release workflow cuts
+out by heading.
+
 ## The version has a single source
 
 `apps/desktop/src-tauri/tauri.conf.json`, the `version` field. The tag must
@@ -24,6 +59,12 @@ The gates are `pnpm ui-design:check`, `pnpm i18n:check` and `pnpm typecheck`.
 They stand before the build deliberately: rolling back a published installer
 with a broken dark theme or a missing translation costs more than not
 releasing.
+
+Since `ci.yml` these three also run on every pull request and every push to
+master, so by tag time they are a second opinion rather than a first. They stay
+here regardless: the tag is the last point where a failure is still free, and a
+gate that only runs elsewhere is a gate that can be bypassed by pushing
+elsewhere.
 
 `tauri-action` creates the release as a **draft**. The next step computes the
 SHA-256 sums and appends them to the release body, and only then is the draft

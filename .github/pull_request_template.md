@@ -3,8 +3,11 @@
   short version of it.
 
   Delete any section that does not apply — an empty heading helps nobody.
-  There is no CI on pull requests here: the checks below are the only ones
-  that will have run.
+
+  CI will run the frontend gates and the Rust checks on this pull request.
+  Tick below what you ran locally anyway: CI answers in minutes what your
+  machine answers in seconds, and two things it cannot check at all are
+  bindings.ts drift and everything that needs a real ComfyUI build.
 -->
 
 ## What this changes
@@ -61,7 +64,7 @@ By hand:
 
 ## Checklist
 
-- [ ] Branched off `master`, one topic in this pull request
+- [ ] Branched off `master`, one topic in this pull request, CI green
 - [ ] New UI strings go through `t()` and exist in all four locales
       (`node tools/i18n-add.mjs` adds them at once)
 - [ ] No hand edits to generated files — `bindings.ts`, `preview-tokens.css`

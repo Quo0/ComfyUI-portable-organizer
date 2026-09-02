@@ -100,9 +100,9 @@ pnpm docs:build         # the documentation site
 ## Contributing
 
 Bug reports, translation fixes and patches are welcome. Start from
-[CONTRIBUTING.md](CONTRIBUTING.md): what fits, how to get the app running, the
-checks to run before opening a pull request — there is no CI on pull requests,
-so the local run is the only one there is.
+[CONTRIBUTING.md](CONTRIBUTING.md): what fits, how to get the app running, and
+the checks to run before opening a pull request. Work goes on short-lived
+branches off `master`; releases are tags on it.
 
 For anything larger than a typo, open an
 [issue](https://github.com/Quo0/ComfyUI-portable-organizer/issues/new/choose)

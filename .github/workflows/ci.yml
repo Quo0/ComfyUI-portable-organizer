@@ -1,0 +1,154 @@
+# Quality gates on every push and every pull request.
+#
+# Why this exists at all: until now the three gates ran in exactly one place —
+# the release workflow, which is triggered by a tag. A broken typecheck or a
+# missing translation therefore lived in master until release day and then
+# failed the one run that was supposed to ship something. The local git hooks
+# are the fast copy of this file; this is the copy that also covers work
+# arriving from a machine whose hooks were never installed, or were skipped
+# with --no-verify.
+#
+# There is no path filter here, unlike the docs deploy. A locale edit, a token
+# edit and a Vue edit all live under apps/desktop, the whole job is about a
+# minute, and a filter that wrongly skips a run costs more than a run that was
+# not strictly needed.
+
+name: Quality gates
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A superseded run has nothing left to say. Unlike the pages deploy, cancelling
+# one here loses nothing — no artefact of it was going to be published.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      # The version is pinned to a number rather than the `lts/*` alias: the
+      # alias moves to the next LTS line on its own, without a commit, and
+      # breaks the build on a day when nobody changed anything. The lower bound
+      # is set by pnpm — it requires Node 22.13 or newer, otherwise it fails on
+      # `node:sqlite`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The same three, in the same order, as the release workflow. Keeping
+      # them identical is the point: a green run here has to mean the release
+      # will not fail on these.
+      - name: Quality gates
+        run: |
+          pnpm ui-design:check
+          pnpm i18n:check
+          pnpm typecheck
+
+      # `typecheck` is not the build. vue-tsc checks types and stops there,
+      # while Vite resolves every import and asset for real — a path that only
+      # exists on a case-insensitive filesystem passes the first and fails the
+      # second, on Linux, where this runs.
+      - name: Frontend build
+        run: pnpm --filter @cpo/desktop exec vite build
+
+  # Windows, because that is the only platform the app is built for and the
+  # only one where the Windows-specific modules — job objects, process
+  # supervision, portable-build discovery — compile at all.
+  #
+  # `cargo check`, not a build: the twenty-minute NSIS build belongs to the
+  # release. And no Node here — the frontend dist is not needed to check the
+  # Rust side, which was measured rather than assumed.
+  rust:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      # --all-targets covers examples/ as well, which is where this project's
+      # Rust checks live: `cargo test` cannot run here at all — the test binary
+      # dies while loading the image, before main, as soon as it pulls in the
+      # tauri_specta machinery.
+      - name: cargo check
+        run: cargo check --all-targets
+
+      # Three of the checks below read a rig that is deliberately not in git,
+      # and the first CI run found that out the hard way: `check_profiles`
+      # panicked with "the test bed is not built" before doing anything.
+      # `shared-models` and `workflow-library` are fifty-odd empty files and a
+      # folder of workflows — generated in full by their scripts, so keeping
+      # them in history would be keeping generated output. `fake-instance`
+      # needs one thing more: `python_embeded` is a junction to the system
+      # Python, and a link cannot be committed at all.
+      #
+      # Hence setup-python. The image does ship an interpreter, but
+      # make-fixture.mjs takes the first real hit from `where python` and skips
+      # the WindowsApps stub — pinning the version here is what makes that
+      # search deterministic instead of dependent on the image of the week.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Node comes with the image and the three scripts use nothing but its
+      # built-ins, so there is no install step. They resolve their paths from
+      # their own location, which is why running them from the repository root
+      # rather than from src-tauri changes nothing — it is only easier to read.
+      #
+      # `shell: bash` for the same reason as in the release workflow: three
+      # commands in one step under PowerShell 5.1 report only the last line's
+      # exit code, so a rig that failed to build would be reported as built.
+      - name: Build the test beds
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        run: |
+          node tools/fixtures/make-shared-root.mjs
+          node tools/fixtures/make-workflow-library.mjs
+          node tools/fixtures/make-fixture.mjs
+
+      # `check_run` and the live checks stay out. They drive real processes —
+      # start a build, kill it, hold a port, wait on a hang — and their timing
+      # belongs on a developer's machine rather than a shared runner; the live
+      # ones want a real ComfyUI install, which no rig substitutes for.
+      #
+      # What runs here covers .bat parsing, the shared-folder scanner and its
+      # YAML, writing into someone else's install, PNG workflow extraction, the
+      # library, the duplicate report and migration. One partial: `check_png`
+      # looks for a real image in a ComfyUI `output` folder, finds none on a
+      # runner and says so, then still checks the cases that matter most — a
+      # truncated chunk, a `prompt` chunk passed off as a graph, bytes that are
+      # not a PNG.
+      #
+      # Each one prints its steps and exits non-zero on a mismatch, so bash
+      # with -e stops at the first failure and the log says which check and
+      # which step.
+      - name: The checks from examples/
+        shell: bash
+        run: |
+          for check in check_profiles check_shared check_instance_file \
+                       check_png check_workflows check_duplicates check_migrate; do
+            echo "::group::$check"
+            cargo run --quiet --example "$check"
+            echo "::endgroup::"
+          done

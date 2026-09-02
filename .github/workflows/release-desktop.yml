@@ -75,7 +75,17 @@ jobs:
       # Quality gates. Theme parity and contrast, locale key parity, frontend
       # types. Each of the three has already caught something invisible to the
       # eye.
+      #
+      # `shell: bash` is load-bearing. The default here is PowerShell, where
+      # whether a failing native command stops a multi-line script depends on
+      # the version and on `$PSNativeCommandUseErrorActionPreference` — on 5.1
+      # it simply continues, and the runner takes only the last line's
+      # `$LASTEXITCODE`. In that case a broken theme or a missing translation
+      # passes the step as long as `pnpm typecheck` ends clean: three gates,
+      # one of them actually gating. Bash runs with `-eo pipefail` and stops at
+      # the first failure, whichever PowerShell the image happens to ship.
       - name: Quality gates
+        shell: bash
         run: |
           pnpm ui-design:check
           pnpm i18n:check

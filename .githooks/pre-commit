@@ -1,0 +1,5 @@
+#!/bin/sh
+# See .githooks/commit-msg for why this is a wrapper and why a missing Node
+# lets the commit through.
+command -v node >/dev/null 2>&1 || exit 0
+exec node "$(dirname "$0")/../tools/hooks/pre-commit.mjs" "$@"

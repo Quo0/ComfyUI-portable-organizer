@@ -110,9 +110,11 @@ runs into most often.
 
 ## Checks before you open a pull request
 
-**There is no CI on pull requests.** The quality gates run on a release tag,
-which is far too late to be your feedback loop — whatever you did not run
-locally, nobody ran.
+CI runs on every pull request: the frontend gates on Linux, and `cargo check`
+plus the checks from `examples/` on Windows. It is not a substitute for running
+them yourself — a local run answers in seconds what CI answers in minutes, and
+a pull request whose first three commits are "fix CI" is harder to review than
+one that arrives green.
 
 | What you edited | What to run |
 |---|---|
@@ -126,21 +128,75 @@ Two traps in that table:
 
 - **`bindings.ts` is generated only by `pnpm desktop:dev`.** Running
   `pnpm typecheck` before restarting the dev build checks the old types, so it
-  passes while the frontend and the backend disagree.
+  passes while the frontend and the backend disagree. **CI cannot catch this
+  one**: a dev build will not run on a runner, so CI typechecks against the
+  committed file exactly as your stale local copy did. If you changed a command
+  or event signature, regenerating the bindings is on you.
 - **`cargo test` does not work in this repository and will not.** The test
   binary fails while loading the image, before `main`, as soon as it pulls in
   the `tauri_specta` machinery. The Rust checks live in
   `apps/desktop/src-tauri/examples/` instead and run as
   `cargo run --example check_profiles`. A new check goes in the same place with
-  the same shape: print the steps, exit non-zero on a mismatch.
+  the same shape: print the steps, exit non-zero on a mismatch — CI runs the
+  self-contained ones and will run yours if it belongs in that list.
 
-Some things do not automate — no 403 in the child webview, dragging an image
-onto the ComfyUI canvas, behaviour on a Windows theme change. If your change
-touches one of them, say in the pull request what you did by hand.
+Some things do not automate and no runner will ever do them — no 403 in the
+child webview, dragging an image onto the ComfyUI canvas, behaviour on a
+Windows theme change, install and uninstall. If your change touches one of
+them, say in the pull request what you did by hand.
 
 Say what you ran and what came out. "Everything checked" without a list of
 commands means nothing; a check you skipped is fine as long as you name the
 reason.
+
+## The hooks run most of that for you
+
+`pnpm install` points git at `.githooks/` — there is no separate setup step and
+nothing to remember per machine. Three hooks, each doing the least it can get
+away with:
+
+- **`pre-commit`** parses every staged YAML file, then runs only the gates the
+  staged files call for: `i18n:check` if a locale changed, `ui-design:check` if
+  a token did, `typecheck` if any Vue or TypeScript did. A commit that touches
+  only documentation costs nothing. The YAML parse is there because a broken
+  workflow file does not fail loudly — it silently never runs again.
+- **`commit-msg`** checks the message against the rules below: Conventional
+  Commits, a non-empty body, no Cyrillic outside backticks. Every problem is
+  reported at once, and your text stays in `.git/COMMIT_EDITMSG` for
+  `git commit -e -F`.
+- **`pre-push`** runs all three gates, plus `cargo check --all-targets` when the
+  push carries anything under `src-tauri/`. This is the copy of CI that answers
+  in seconds instead of minutes.
+
+`git commit --no-verify` skips the two commit hooks, `git push --no-verify` the
+push one, and `CPO_SKIP=1` skips whichever would have run — each hook prints
+that line itself when it stops you. Two things they do not do: without Node on
+`PATH` they step aside rather than block, and `typecheck` sees the files on disk
+rather than the index, so a partially staged file can pass here and fail in CI.
+Neither is a reason to trust the hook over CI — a hook is skippable and a clone
+that never ran `pnpm install` never had one.
+
+## Branches
+
+**`master` is the trunk.** There is no long-lived `develop`: a release here is
+a tag, not a push, so master being always releasable is enforced by the tag
+rather than by a second branch — and a permanent integration branch would only
+add a merge to every change and delay the documentation site, which publishes
+from master on its own.
+
+**Work happens on short-lived topic branches**, cut from the current master and
+named after the commit type they carry: `feat/shared-models-scan`,
+`fix/banner-buttons`, `docs/contributing`, `chore/…`. One topic per branch.
+Rebase onto master rather than merging it back in — the history here is linear.
+
+**`release/x.y` branches exist only when they are needed** — to stabilise a
+version while master moves on, or to patch a line that master has already left
+behind. They are the maintainer's to cut. If your fix has to reach a released
+version and not just the next one, say so in the pull request; do not open it
+against a release branch on your own.
+
+**The version and the tags are the maintainer's.** See
+[RELEASING.md](RELEASING.md) for what happens after a merge.
 
 ## Commits
 
@@ -157,9 +213,14 @@ says what changed, and in a year that is never the question anyone has.
 One logical change per commit. There is no need to polish history into a
 single commit; there is a need for each commit to make sense on its own.
 
+Pull requests are **squash-merged by default**, which makes the pull request
+body the commit body — so write it the way you would write the commit. When the
+individual commits are worth keeping, say so and it is rebased instead.
+
 ## The pull request
 
-- **Branch off `master`**, one topic per branch.
+- **Wait for CI to go green**, or say why it cannot. A red check that the
+  author has not explained is where review stops.
 - **Do not raise the version and do not edit `CHANGELOG.md`.** Releases are cut
   by the maintainer — the version lives in five files and the changelog section
   becomes the release body and the app's update panel, so a contributor's edit
