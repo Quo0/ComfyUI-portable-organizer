@@ -1,0 +1,124 @@
+name: Bug report
+description: Something in the app behaves differently from what it says it does
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please write in English.
+
+        **If the problem is inside ComfyUI itself** — a generation fails, a node
+        is missing, a custom node throws — it belongs
+        [upstream](https://github.com/comfyanonymous/ComfyUI/issues). This app
+        starts builds and shows them; it does not run the graph. The question
+        further down about the build's own `.bat` file is what separates the two,
+        and it is the single most useful thing in this form.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before reporting
+      options:
+        - label: I read the [known limitations](https://quo0.github.io/ComfyUI-portable-organizer/guide/limitations) and this is not one of them
+          required: true
+        - label: I searched the existing issues
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: "**About** in the left rail, the `Version` line. Please report against the latest release if you can."
+      placeholder: 0.1.5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows
+      options:
+        - Windows 11
+        - Windows 10
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: windows-build
+    attributes:
+      label: Windows build
+      description: "`winver` in the Start menu — the line under the version, e.g. `10.0.26100`. Useful for anything involving the ComfyUI tab, which is drawn by WebView2."
+      placeholder: 10.0.26100
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where in the app
+      options:
+        - Instances — the list, adding, editing, removing a build
+        - Add build — installing from an archive
+        - Launching — profiles, ports, arguments, the startup log
+        - The ComfyUI tab — the embedded window
+        - Shared models folder
+        - Workflow library
+        - Settings, theme, language
+        - Updating the app itself, or the installer
+        - Tray, closing the app, single instance
+        - Something else or not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: From a freshly started app, if you can get there.
+      placeholder: |
+        1. Open Instances
+        2. Press …
+        3. …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outside-the-app
+    attributes:
+      label: Does it also happen outside the app?
+      description: Start the same build by double-clicking its own `.bat` file in the portable folder, with the app closed. If it fails there too, the app is not what broke it.
+      options:
+        - "No — the build works fine when started from its own .bat"
+        - "Yes — it fails the same way from its own .bat"
+        - "Not applicable — the problem is not about running a build"
+        - "I have not checked"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log or error text
+      description: "The startup log is in the tab toolbar under **Logs**; it takes the place of the ComfyUI area rather than covering it. Paste the text, not a screenshot of it — pasted text is searchable. No backticks needed."
+      render: text
+
+  - type: textarea
+    id: build
+    attributes:
+      label: The build involved
+      description: ComfyUI version and Python version as the app shows them, where the folder came from, and roughly how deep on disk it sits. Skip if the problem has nothing to do with a specific build.
+      placeholder: |
+        ComfyUI 0.3.x, Python 3.12, official portable, D:\AI\comfy-sdxl
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Drag images in here. For the ComfyUI tab, a screenshot of the whole window helps — the tab is a native window on top of ours, and where the seam is matters.

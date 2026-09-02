@@ -1,0 +1,18 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: How something works — the documentation
+    url: https://quo0.github.io/ComfyUI-portable-organizer/guide/
+    about: Adding a build, ports, launch profiles, the shared models folder, the workflow library. Most "how do I" questions are answered there.
+
+  - name: Known limitations — read before reporting
+    url: https://quo0.github.io/ComfyUI-portable-organizer/guide/limitations
+    about: Two builds on one GPU, ComfyUI-Manager restarting the server behind our back, closing the app stopping every server, long paths. These are deliberate and already documented.
+
+  - name: '"Windows protected your PC" when installing'
+    url: https://quo0.github.io/ComfyUI-portable-organizer/guide/smartscreen
+    about: The app is not signed with a code-signing certificate. This is expected, and the page explains what to do about it.
+
+  - name: ComfyUI itself, custom nodes, ComfyUI-Manager
+    url: https://github.com/comfyanonymous/ComfyUI/issues
+    about: This app manages portable builds you downloaded yourself — it does not bundle ComfyUI and does not install or update custom nodes. Errors inside a generation queue, missing nodes and node installation belong upstream.

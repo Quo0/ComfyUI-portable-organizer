@@ -1,0 +1,78 @@
+name: Translation or wording issue
+description: A string is wrong, missing, cut off, or reads badly
+labels: ["i18n"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please write in English, except for the strings themselves — quote those
+        exactly as the app shows them.
+
+        English is the source the other three languages follow. If the English
+        wording is itself unclear, pick English below: that fixes all four at
+        once.
+
+        Paths, build names and log contents are deliberately never translated.
+
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Language
+      options:
+        - English — the source
+        - Русский
+        - 中文
+        - Español
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong with it
+      options:
+        - Wrong translation — it says something different from the English
+        - Untranslated — English text showing in another language
+        - Cut off, overflowing or overlapping other elements
+        - Awkward or unclear wording
+        - Wrong term — the word exists in ComfyUI and means something else there
+        - Wrong plural form or wrong grammar with a number
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Where in the app
+      description: The screen and the element — "Settings, the theme section, the label above the switch". A screenshot at the bottom saves the description.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: The text as it appears now
+      description: Copy it exactly, including the surrounding sentence if the problem is the wording rather than a single word.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: What it should say
+      description: Your suggested wording. For a cut-off string, a shorter variant with the same meaning is the fix.
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: "**About** in the left rail, the `Version` line."
+      placeholder: 0.1.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Drag it in here. For anything cut off or overlapping this is the report — the fix depends on how much room the string has.

@@ -1,0 +1,91 @@
+name: Build not recognised
+description: The app refuses your portable folder, or reads it wrong
+labels: ["compat"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please write in English.
+
+        The app accepts a folder as a portable ComfyUI build when it finds
+        `python_embeded\python.exe` and `ComfyUI\main.py` at those relative
+        paths, and it reads the versions and the launch profiles out of the
+        folder's own files. Portable builds vary — nightly ones, GPU-specific
+        ones, third-party repacks — so a layout we have not seen is a real
+        possibility rather than a mistake on your side.
+
+        **The folder listing below is the whole report.** Without it there is
+        nothing to compare against.
+
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: What exactly happens
+      options:
+        - The folder is rejected when adding it
+        - It is added, but the ComfyUI version is unknown or wrong
+        - It is added, but the Python version is unknown or wrong
+        - No launch profiles were found, or the wrong ones
+        - It was installed from an archive, but the result is not usable
+        - Something else about how the build is read
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: "**About** in the left rail, the `Version` line."
+      placeholder: 0.1.5
+    validations:
+      required: true
+
+  - type: input
+    id: origin
+    attributes:
+      label: Where the build came from
+      description: A link to the release or the repack, or the archive's file name. "I have had it for a year" is a valid answer — say so.
+      placeholder: https://github.com/comfyanonymous/ComfyUI/releases/…
+    validations:
+      required: true
+
+  - type: textarea
+    id: listing
+    attributes:
+      label: The folder listing
+      description: |
+        Two levels from the build's root. In PowerShell, with the path replaced by yours:
+
+        ```
+        Get-ChildItem -Path 'D:\AI\comfy' -Depth 1 -Name
+        ```
+
+        Trim it if it runs to hundreds of lines, but keep everything at the top level and everything under `python_embeded` and `ComfyUI`.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: message
+    attributes:
+      label: What the app said
+      description: The exact message, word for word, or a screenshot of it. If it showed a bare code like `instance_invalid`, that code is the useful part.
+
+  - type: dropdown
+    id: works-standalone
+    attributes:
+      label: Does the build run on its own?
+      description: Double-click its `.bat` file in the portable folder, with the app closed.
+      options:
+        - "Yes — it starts normally from its own .bat"
+        - "No — it does not start on its own either"
+        - "I have not checked"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bat
+    attributes:
+      label: The launch .bat files
+      description: The names of the `.bat` files in the build's root, and the contents of the one you normally use. This is what launch profiles are parsed from — the files themselves are never modified.
+      render: text

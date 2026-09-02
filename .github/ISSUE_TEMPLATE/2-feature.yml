@@ -1,0 +1,70 @@
+name: Feature request
+description: Something the app should do and does not
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please write in English.
+
+        **Describe the problem before the solution.** What you are doing today
+        and why it is awkward tells us more than a described button — there is
+        often a cheaper answer than the one you had in mind, and it can only be
+        found from the problem.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before requesting
+      options:
+        - label: "This is not on the [What it does not do](https://github.com/Quo0/ComfyUI-portable-organizer#what-it-does-not-do) list — editing workflow graphs, installing or updating custom nodes, changing ComfyUI's own theme or language"
+          required: true
+        - label: I searched the existing issues
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and where the app gets in the way.
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: What you do today instead
+      description: The manual workaround, the other tool, the folder you keep by hand. How often you have to do it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like to see
+      description: Optional. If you already have a shape in mind, describe it — but the problem above is the part that decides whether this gets built.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app
+      options:
+        - Instances — the list, adding, editing, removing a build
+        - Add build — installing from an archive
+        - Launching — profiles, ports, arguments, the startup log
+        - The ComfyUI tab — the embedded window
+        - Shared models folder
+        - Workflow library
+        - Settings, theme, language
+        - Updating the app itself, or the installer
+        - Something new that has no place yet
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: files
+    attributes:
+      label: Does it touch the user's files?
+      description: "The app has a boundary here: models and workflows are never deleted, and the three operations that move files each start with an explicit click that shows what will go away first. A request that crosses it is not refused out of hand, but it is a different conversation."
+      options:
+        - label: What I am asking for would move, overwrite or delete files inside a build or in the shared folder
