@@ -1,0 +1,115 @@
+# Quality gates on every push and every pull request.
+#
+# Why this exists at all: until now the three gates ran in exactly one place —
+# the release workflow, which is triggered by a tag. A broken typecheck or a
+# missing translation therefore lived in master until release day and then
+# failed the one run that was supposed to ship something. The local git hooks
+# are the fast copy of this file; this is the copy that also covers work
+# arriving from a machine whose hooks were never installed, or were skipped
+# with --no-verify.
+#
+# There is no path filter here, unlike the docs deploy. A locale edit, a token
+# edit and a Vue edit all live under apps/desktop, the whole job is about a
+# minute, and a filter that wrongly skips a run costs more than a run that was
+# not strictly needed.
+
+name: Quality gates
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A superseded run has nothing left to say. Unlike the pages deploy, cancelling
+# one here loses nothing — no artefact of it was going to be published.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      # The version is pinned to a number rather than the `lts/*` alias: the
+      # alias moves to the next LTS line on its own, without a commit, and
+      # breaks the build on a day when nobody changed anything. The lower bound
+      # is set by pnpm — it requires Node 22.13 or newer, otherwise it fails on
+      # `node:sqlite`.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The same three, in the same order, as the release workflow. Keeping
+      # them identical is the point: a green run here has to mean the release
+      # will not fail on these.
+      - name: Quality gates
+        run: |
+          pnpm ui-design:check
+          pnpm i18n:check
+          pnpm typecheck
+
+      # `typecheck` is not the build. vue-tsc checks types and stops there,
+      # while Vite resolves every import and asset for real — a path that only
+      # exists on a case-insensitive filesystem passes the first and fails the
+      # second, on Linux, where this runs.
+      - name: Frontend build
+        run: pnpm --filter @cpo/desktop exec vite build
+
+  # Windows, because that is the only platform the app is built for and the
+  # only one where the Windows-specific modules — job objects, process
+  # supervision, portable-build discovery — compile at all.
+  #
+  # `cargo check`, not a build: the twenty-minute NSIS build belongs to the
+  # release. And no Node here — the frontend dist is not needed to check the
+  # Rust side, which was measured rather than assumed.
+  rust:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      # --all-targets covers examples/ as well, which is where this project's
+      # Rust checks live: `cargo test` cannot run here at all — the test binary
+      # dies while loading the image, before main, as soon as it pulls in the
+      # tauri_specta machinery.
+      - name: cargo check
+        run: cargo check --all-targets
+
+      # The self-contained ones only. `check_run` and the live checks are
+      # missing on purpose: they need the fixture rig, whose junction to a
+      # system Python is not in git, or a real ComfyUI build. What is left
+      # covers .bat parsing, the shared-folder scanner and its YAML, writing
+      # into someone else's install, PNG workflow extraction, the library, the
+      # duplicate report and migration.
+      #
+      # Each one prints its steps and exits non-zero on a mismatch, so bash
+      # with -e stops at the first failure and the log says which check and
+      # which step.
+      - name: The checks from examples/
+        shell: bash
+        run: |
+          for check in check_profiles check_shared check_instance_file \
+                       check_png check_workflows check_duplicates check_migrate; do
+            echo "::group::$check"
+            cargo run --quiet --example "$check"
+            echo "::endgroup::"
+          done
