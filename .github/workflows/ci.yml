@@ -94,12 +94,51 @@ jobs:
       - name: cargo check
         run: cargo check --all-targets
 
-      # The self-contained ones only. `check_run` and the live checks are
-      # missing on purpose: they need the fixture rig, whose junction to a
-      # system Python is not in git, or a real ComfyUI build. What is left
-      # covers .bat parsing, the shared-folder scanner and its YAML, writing
-      # into someone else's install, PNG workflow extraction, the library, the
-      # duplicate report and migration.
+      # Three of the checks below read a rig that is deliberately not in git,
+      # and the first CI run found that out the hard way: `check_profiles`
+      # panicked with "the test bed is not built" before doing anything.
+      # `shared-models` and `workflow-library` are fifty-odd empty files and a
+      # folder of workflows — generated in full by their scripts, so keeping
+      # them in history would be keeping generated output. `fake-instance`
+      # needs one thing more: `python_embeded` is a junction to the system
+      # Python, and a link cannot be committed at all.
+      #
+      # Hence setup-python. The image does ship an interpreter, but
+      # make-fixture.mjs takes the first real hit from `where python` and skips
+      # the WindowsApps stub — pinning the version here is what makes that
+      # search deterministic instead of dependent on the image of the week.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Node comes with the image and the three scripts use nothing but its
+      # built-ins, so there is no install step. They resolve their paths from
+      # their own location, which is why running them from the repository root
+      # rather than from src-tauri changes nothing — it is only easier to read.
+      #
+      # `shell: bash` for the same reason as in the release workflow: three
+      # commands in one step under PowerShell 5.1 report only the last line's
+      # exit code, so a rig that failed to build would be reported as built.
+      - name: Build the test beds
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        run: |
+          node tools/fixtures/make-shared-root.mjs
+          node tools/fixtures/make-workflow-library.mjs
+          node tools/fixtures/make-fixture.mjs
+
+      # `check_run` and the live checks stay out. They drive real processes —
+      # start a build, kill it, hold a port, wait on a hang — and their timing
+      # belongs on a developer's machine rather than a shared runner; the live
+      # ones want a real ComfyUI install, which no rig substitutes for.
+      #
+      # What runs here covers .bat parsing, the shared-folder scanner and its
+      # YAML, writing into someone else's install, PNG workflow extraction, the
+      # library, the duplicate report and migration. One partial: `check_png`
+      # looks for a real image in a ComfyUI `output` folder, finds none on a
+      # runner and says so, then still checks the cases that matter most — a
+      # truncated chunk, a `prompt` chunk passed off as a graph, bytes that are
+      # not a PNG.
       #
       # Each one prints its steps and exits non-zero on a mismatch, so bash
       # with -e stops at the first failure and the log says which check and
